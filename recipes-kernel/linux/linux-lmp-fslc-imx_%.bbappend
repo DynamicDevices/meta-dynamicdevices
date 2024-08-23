@@ -4,6 +4,7 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://enable_i2c-dev.cfg \
 		file://enable_lp50xx.cfg \
                 file://enable_usb_modem.cfg \
+		file://enable_gpio_key.cfg \
 		file://imx8mm-jaguar-sentai.dts \
                 file://01-fix-enable-lp50xx.patch \
 		file://02-disable-wifi-scan-msg.patch \
