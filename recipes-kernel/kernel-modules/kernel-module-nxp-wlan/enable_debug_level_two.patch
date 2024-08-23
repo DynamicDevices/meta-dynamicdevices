@@ -1,0 +1,13 @@
+diff --git mxm_wifiex/wlan_src/Makefile mxm_wifiex/wlan_src/Makefile
+index bf5c5cb..973d283 100644
+--- wlan_src/Makefile
++++ wlan_src/Makefile
+@@ -63,7 +63,7 @@ CONFIG_PCIEAW693=n
+ # n: NO DEBUG
+ # 1: Only PRINTM(MMSG,...), PRINTM(MFATAL,...), ...
+ # 2: All PRINTM()
+-CONFIG_DEBUG=1
++CONFIG_DEBUG=2
+ 
+ # Enable STA mode support
+ CONFIG_STA_SUPPORT=y

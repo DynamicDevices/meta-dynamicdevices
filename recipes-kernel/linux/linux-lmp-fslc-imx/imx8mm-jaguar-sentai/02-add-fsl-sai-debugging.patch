@@ -1,0 +1,23 @@
+diff --git a/arch/arm64/boot/dts/Makefile b/arch/arm64/boot/dts/Makefile
+index 7b107fa7414b..87c45cb2908d 100644
+--- a/arch/arm64/boot/dts/Makefile
++++ b/arch/arm64/boot/dts/Makefile
+@@ -32,3 +32,4 @@ subdir-y += tesla
+ subdir-y += ti
+ subdir-y += toshiba
+ subdir-y += xilinx
++dtb-y += imx8mm-jaguar-sentai.dtb
+diff --git a/sound/soc/fsl/fsl_sai.c b/sound/soc/fsl/fsl_sai.c
+index 8862b7f47b29..1273adb3f894 100644
+--- a/sound/soc/fsl/fsl_sai.c
++++ b/sound/soc/fsl/fsl_sai.c
+@@ -789,6 +789,9 @@ static int fsl_sai_trigger(struct snd_pcm_substream *substream, int cmd,
+ 	int dir = tx ? TX : RX;
+ 	u32 xcsr;
+ 
++        struct device *dev = &sai->pdev->dev;
++        dev_err(dev, "fsl_sai_trigger - setting FSL_SAI_TXR2");
++
+ 	/*
+ 	 * Asynchronous mode: Clear SYNC for both Tx and Rx.
+ 	 * Rx sync with Tx clocks: Clear SYNC for Tx, set it for Rx.

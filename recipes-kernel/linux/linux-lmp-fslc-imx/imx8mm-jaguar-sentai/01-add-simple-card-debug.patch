@@ -1,0 +1,58 @@
+diff -ur kernel-source.org/sound/soc/generic/simple-card.c kernel-source/sound/soc/generic/simple-card.c
+--- kernel-source.org/sound/soc/generic/simple-card.c	2024-07-17 19:07:52.695639241 +0000
++++ kernel-source/sound/soc/generic/simple-card.c	2024-07-17 23:06:51.436189730 +0000
+@@ -381,6 +381,8 @@
+ 		codec = of_get_child_by_name(node, is_top ?
+ 					     PREFIX "codec" : "codec");
+ 		if (!codec) {
++			struct device *dev = simple_priv_to_dev(priv); dev_err(dev, "no codec\n");
++
+ 			ret = -ENODEV;
+ 			goto error;
+ 		}
+@@ -479,19 +481,26 @@
+ 	struct snd_soc_card *card = simple_priv_to_card(priv);
+ 	int ret;
+ 
++	struct device *dev = simple_priv_to_dev(priv); dev_err(dev, "widgets\n");
++
+ 	ret = asoc_simple_parse_widgets(card, PREFIX);
+ 	if (ret < 0)
+ 		return ret;
+ 
++ 	dev_err(dev, "routing\n");
++
+ 	ret = asoc_simple_parse_routing(card, PREFIX);
+ 	if (ret < 0)
+ 		return ret;
+ 
++	dev_err(dev, "switches\n");
++
+ 	ret = asoc_simple_parse_pin_switches(card, PREFIX);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	/* Single/Muti DAI link(s) & New style of DT node */
++	dev_err(dev, "DAI link\n");
+ 	memset(li, 0, sizeof(*li));
+ 	ret = simple_for_each_link(priv, li,
+ 				   simple_dai_link_of,
+@@ -499,12 +508,18 @@
+ 	if (ret < 0)
+ 		return ret;
+ 
++	dev_err(dev, "card name\n");
++
+ 	ret = asoc_simple_parse_card_name(card, PREFIX);
+ 	if (ret < 0)
+ 		return ret;
+ 
++	dev_err(dev, "aux-devs\n");
++
+ 	ret = snd_soc_of_parse_aux_devs(card, PREFIX "aux-devs");
+ 
++	dev_err(dev, "done\n");
++
+ 	return ret;
+ }
+ 

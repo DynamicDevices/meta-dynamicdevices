@@ -1,0 +1,46 @@
+diff -ur kernel-source.org/sound/soc/generic/simple-card.c kernel-source/sound/soc/generic/simple-card.c
+--- kernel-source.org/sound/soc/generic/simple-card.c	2024-07-17 23:34:46.732012927 +0000
++++ kernel-source/sound/soc/generic/simple-card.c	2024-07-17 23:57:03.487440141 +0000
+@@ -362,6 +362,9 @@
+ 	bool is_top = 0;
+ 	int ret = 0;
+ 
++	//struct device *dev = simple_priv_to_dev(priv);
++	dev_err(dev, "entry\n");
++
+ 	/* Check if it has dai-link */
+ 	node = of_get_child_by_name(top, PREFIX "dai-link");
+ 	if (!node) {
+@@ -377,11 +380,13 @@
+ 		struct device_node *np;
+ 		int num = of_get_child_count(node);
+ 
++		dev_err(dev, "loop\n");
++
+ 		/* get codec */
+ 		codec = of_get_child_by_name(node, is_top ?
+ 					     PREFIX "codec" : "codec");
+ 		if (!codec) {
+-			struct device *dev = simple_priv_to_dev(priv); dev_err(dev, "no codec\n");
++			dev_err(dev, "no codec\n");
+ 
+ 			ret = -ENODEV;
+ 			goto error;
+@@ -427,6 +432,8 @@
+ 			}
+ 
+ 			if (ret < 0) {
++				dev_err(dev, "ret %d\n", ret);
++
+ 				of_node_put(codec);
+ 				of_node_put(plat);
+ 				of_node_put(np);
+@@ -439,6 +446,8 @@
+ 	} while (!is_top && node);
+ 
+  error:
++	dev_err(dev, "ret %d\n", ret);
++
+ 	of_node_put(node);
+ 	return ret;
+ }

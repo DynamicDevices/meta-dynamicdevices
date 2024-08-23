@@ -1,0 +1,104 @@
+NOTES:
+
+Jaguar Sentai Board
+
+- Build CI by pushing to Foundries rpo on `main-jaguar-sentai branch`
+
+- Develop locally by building lmp-base image. This makes f/s writeable and DTD is loaded from /mnt/boot (currently imx8mm-evkb.dtb)
+
+- Add an initial development DTB and SSIDs by adding to machine features in `conf/machine/imx8mm-jaguar-sentai.conf`
+
+```
+MACHINE_FEATURES:append:imx8mm-jaguar-sentai = " nxpiw612-sdio dev"
+```
+
+- Remove nxpiw612-sdio if you want to build an SDK with `-c populate_sdk` as there's some conflict with `linux-firmware`
+
+- Update to a new development DTB by changing file `recipes-support/default-dtb/default-dtb/imx8mm-jaguar-sentai.bb
+
+- You can find this in `build-jaguar-sentai/deploy/images/imx8mm-jaguar-sentai/devicetree/imx8mm-jaguar-sentai.dtb`
+
+- Update with your own SSID for nmcli by changing the script in `recipes-support/default-ssids/default-ssids.bb`
+
+- Run a build docker container with the following (my fork includes nano). See Dockerfile here for the build details
+
+```
+docker run --rm -u builder --name lmp-sdk -v .:/build -it dynamicdevices/lmp-sdk:93
+```
+
+- Build a lmp-base image for local development
+
+```
+DISTRO=lmp-base MACHINE=imx8mm-jaguar-sentai source setup-environment build-jaguar-sentai
+DISTRO=lmp-base MACHINE=imx8mm-jaguar-sentai bitbake lmp-factory-image
+```
+
+- Build a new DTB
+
+```
+DISTRO=lmp-base MACHINE=imx8mm-jaguar-sentai source setup-environment build-jaguar-sentai
+DISTRO=lmp-base MACHINE=imx8mm-jaguar-sentai bitbake lmp-device-tree
+```
+
+- Program a full image
+
+```
+sudo mfgtool-files-imx8mm-jaguar-sentai/uuu mfgtool-files-imx8mm-jaguar-sentai/full_image.uuu
+```
+
+Example uuu file
+
+```
+ajlennon@ajlennon-Laptop-12th-Gen-Intel-Core:/data_drive/sentai/foundries/programming$ cat mfgtool-files-imx8mm-jaguar-sentai/full_image.uuu 
+uuu_version 1.2.39
+
+SDP: boot -f imx-boot-mfgtool
+
+SDPV: delay 1000
+SDPV: write -f u-boot-mfgtool.itb
+SDPV: jump
+
+FB: ucmd setenv fastboot_dev mmc
+FB: ucmd setenv mmcdev ${emmc_dev}
+FB: ucmd mmc dev ${emmc_dev} 1; mmc erase 0 0x2000
+FB: flash -raw2sparse all ../lmp-factory-image-imx8mm-jaguar-sentai.wic.gz/*
+FB: flash bootloader ../imx-boot-imx8mm-jaguar-sentai
+FB: flash bootloader2 ../u-boot-imx8mm-jaguar-sentai.itb
+FB: flash bootloader_s ../imx-boot-imx8mm-jaguar-sentai
+FB: flash bootloader2_s ../u-boot-imx8mm-jaguar-sentai.itb
+FB: flash sit ../sit-imx8mm-jaguar-sentai.bin
+FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
+FB: ucmd mmc partconf ${emmc_dev} ${emmc_ack} 1 0
+FB: done
+```
+
+- Program a base image
+
+```
+sudo mfgtool-files-imx8mm-jaguar-sentai/uuu mfgtool-files-imx8mm-jaguar-sentai/base_image_local.uuu
+```
+
+Example uuu file
+
+```
+uuu_version 1.2.39
+
+SDP: boot -f imx-boot-mfgtool
+
+SDPV: delay 1000
+SDPV: write -f u-boot-mfgtool.itb
+SDPV: jump
+
+FB: ucmd setenv fastboot_dev mmc
+FB: ucmd setenv mmcdev ${emmc_dev}
+FB: ucmd mmc dev ${emmc_dev} 1; mmc erase 0 0x2000
+FB: flash -raw2sparse all ../../localbuild/dynamic-devices/build-jaguar-sentai/deploy/images/imx8mm-jaguar-sentai/lmp-factory-image-imx8mm-jaguar-sentai.wic.gz/*
+FB: flash bootloader ../../localbuild/dynamic-devices/build-jaguar-sentai/deploy/images/imx8mm-jaguar-sentai/imx-boot-imx8mm-jaguar-sentai
+FB: flash bootloader2 ../../localbuild/dynamic-devices/build-jaguar-sentai/deploy/images/imx8mm-jaguar-sentai/u-boot-imx8mm-jaguar-sentai.itb
+FB: flash bootloader_s ../../localbuild/dynamic-devices/build-jaguar-sentai/deploy/images/imx8mm-jaguar-sentai/imx-boot-imx8mm-jaguar-sentai
+FB: flash bootloader2_s ../../localbuild/dynamic-devices/build-jaguar-sentai/deploy/images/imx8mm-jaguar-sentai/u-boot-imx8mm-jaguar-sentai.itb
+FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
+FB: ucmd mmc partconf ${emmc_dev} ${emmc_ack} 1 0
+FB: done
+```
+
