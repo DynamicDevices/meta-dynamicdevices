@@ -1,2 +1,3 @@
-# meta-subscriber-overrides-common
-Common core to Foundries.io meta-subscriber-overrides
+# meta-dynamic-devices
+
+Common core for Dynamic Devices Yocto board support
