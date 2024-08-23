@@ -12,7 +12,7 @@ do_compile:prepend() {
     ln -sf ${WORKDIR}/simw-top ${S}/lib/libnxpse050/se050/simw-top
 }
 
-EXTRA_OEMAKE:append = " \
+EXTRA_OEMAKE:append:imx8mm-jaguar-sentai = " \
     CFG_IMX_I2C=y CFG_CORE_SE05X=y CFG_NXP_SE05X_RNG_DRV=n \
     CFG_NXP_CAAM_RSA_DRV=n CFG_NUM_THREADS=1 CFG_CORE_SE05X_DISPLAY_INFO=1 \
     CFG_CORE_SE05X_SCP03_EARLY=1 \
