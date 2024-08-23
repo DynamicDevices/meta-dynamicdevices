@@ -17,6 +17,7 @@ if [ -f /etc/sota/tag ] ; then
 fi
 
 if [ -n "${USE_HOSTNAME}" ]; then
+        echo Using Hostname
 	NAME="-n $(cat /etc/hostname)"
 fi
 
