@@ -1,6 +1,7 @@
-diff -ur git.org/arch/arm/dts/imx8mm-evk.dts git/arch/arm/dts/imx8mm-evk.dts
---- git.org/arch/arm/dts/imx8mm-evk.dts	2024-08-19 13:52:30.409928118 +0000
-+++ git/arch/arm/dts/imx8mm-evk.dts	2024-08-23 15:57:46.769813439 +0000
+diff --git a/arch/arm/dts/imx8mm-evk.dts b/arch/arm/dts/imx8mm-evk.dts
+index 73d2061efde..360de1309f8 100644
+--- a/arch/arm/dts/imx8mm-evk.dts
++++ b/arch/arm/dts/imx8mm-evk.dts
 @@ -9,7 +9,7 @@
  #include "imx8mm-evk.dtsi"
  
@@ -30,3 +31,29 @@ diff -ur git.org/arch/arm/dts/imx8mm-evk.dts git/arch/arm/dts/imx8mm-evk.dts
 +
 +        status = "okay";
  };
+diff --git a/board/freescale/imx8mm_evk/imx8mm_evk.c b/board/freescale/imx8mm_evk/imx8mm_evk.c
+index 1b183b25287..5104a1d7cc9 100644
+--- a/board/freescale/imx8mm_evk/imx8mm_evk.c
++++ b/board/freescale/imx8mm_evk/imx8mm_evk.c
+@@ -330,7 +330,7 @@ static void set_fdt_file(void)
+ 	is_bd71837 = !ret && ((is_bd71837 & 0xf0) == 0xa0);
+ 
+ 	if (!is_bd71837)
+-		env_set("fdt_file", "imx8mm-evkb.dtb");
++		env_set("fdt_file", "imx8mm-jaguar-sentai.dtb");
+ 	else
+ 		env_set("fdt_file", "imx8mm-evk-qca-wifi.dtb");
+ }
+diff --git a/drivers/power/pmic/pmic_pca9450.c b/drivers/power/pmic/pmic_pca9450.c
+index 5b15d8c5a38..f2755e0670f 100644
+--- a/drivers/power/pmic/pmic_pca9450.c
++++ b/drivers/power/pmic/pmic_pca9450.c
+@@ -27,7 +27,7 @@ int power_pca9450_init(unsigned char bus, unsigned char addr)
+ 	p->hw.i2c.tx_num = 1;
+ 	p->bus = bus;
+ 
+-	printf("power_pca9450b_init\n");
++	printf("*** power_pca9450b_init\n");
+ 
+ 	return 0;
+ }
