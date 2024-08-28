@@ -40,7 +40,7 @@ index 5b15d8c5a38..f2755e0670f 100644
  	p->bus = bus;
  
 -	printf("power_pca9450b_init\n");
-+	printf("*** power_pca9450b_init\n");
++	printf("*** power_pca9450b_init\ FOOn");
  
  	return 0;
  }
