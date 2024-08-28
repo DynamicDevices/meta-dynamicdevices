@@ -25,7 +25,7 @@ index 73d2061efde..360de1309f8 100644
 +};
 +
 +&i2c4 {
-+        clock-frequency = <400000>;
++        clock-frequency = <100000>;
 +        pinctrl-names = "default";
 +        pinctrl-0 = <&pinctrl_i2c4>;
 +
