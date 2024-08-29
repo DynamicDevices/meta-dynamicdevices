@@ -1,4 +1,3 @@
-  GNU nano 6.2                                                                         /usr/sbin/board_info.sh                                                                          Modified  
 # Capture and display board information
 
 MACHINE=`cat /sys/devices/soc0/machine`
