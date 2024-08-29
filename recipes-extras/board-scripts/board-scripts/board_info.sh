@@ -7,7 +7,7 @@ WLAN_MAC=`ifconfig wlan0 | grep ether | cut -c 15-31`
 
 MODEM_ID=` mmcli -L | cut -c 42-42`
 
-if [ ! -z "${MDOEM_ID}"	]; then
+if [ ! -z "${MODEM_ID}"	]; then
   MODEM_PRESENT="true"
   MODEM_FW=`mmcli -m ${MODEM_ID} | grep firmware | cut -c 33-48 `
   MODEM_IMEI=`mmcli -m ${MODEM_ID} | grep equipment | cut -c 33-47`
