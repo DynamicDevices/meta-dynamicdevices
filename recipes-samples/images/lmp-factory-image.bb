@@ -14,7 +14,7 @@ require recipes-samples/images/lmp-feature-dev.inc
 
 # Enable auto register related recipes if required by DISTRO
 #require ${@bb.utils.contains('DISTRO_FEATURES', 'auto-register', 'recipes-samples/images/lmp-feature-auto-register.inc', '', d)}
-#require recipes-samples/images/lmp-feature-auto-register.inc
+require recipes-samples/images/lmp-feature-auto-register.inc
 
 # Enable alsa related recipes if required by DISTRO
 require ${@bb.utils.contains('DISTRO_FEATURES', 'alsa', 'recipes-samples/images/lmp-feature-alsa.inc', '', d)}
