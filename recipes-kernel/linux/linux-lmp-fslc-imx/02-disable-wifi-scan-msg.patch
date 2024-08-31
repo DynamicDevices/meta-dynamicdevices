@@ -7,7 +7,7 @@ index b545d93c6e37..6bc6499aca9a 100644
  
  	if (wfi_drv->usr_scan_req.scan_result) {
 -		netdev_err(vif->ndev, "%s: Scan in progress\n", __func__);
-+		netdev_dbg(vif->ndev, "%s: Scan in progress\n", __func__);
++#		netdev_err(vif->ndev, "%s: Scan in progress\n", __func__);
  		ret = -EBUSY;
  		goto out_error;
  	}
