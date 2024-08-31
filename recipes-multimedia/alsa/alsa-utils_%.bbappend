@@ -1,11 +1,18 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
+#
+# NOTE: We need to fix the IDs of the playback and recording
+#       drivers so they don't change on boot. So we do this
+#       here and then later on will manually load the drivers
+#       in order
+#
+
 SRC_URI += "\
-    file://alsa-base.conf \
+    file://blacklist-audio.conf \
 "
 
 do_install:append:imx8mm-jaguar-sentai() {
-        install -D -m 0644 ${WORKDIR}/alsa-base.conf ${D}${sysconfdir}/alsa-base.conf
+        install -D -m 0644 ${WORKDIR}/alsa-base.conf ${D}${sysconfdir}/modprobe.d/blacklist-audio.conf
 }
 
-FILES:alsa-utils:imx8mm-jaguar-sentai += "${sysconfdir}/alsa-base.conf"
+FILES:alsa-utils:imx8mm-jaguar-sentai += "${sysconfdir}/modprobe.d/blacklist-audio.conf"
