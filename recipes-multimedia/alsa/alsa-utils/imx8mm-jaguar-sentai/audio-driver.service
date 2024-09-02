@@ -1,0 +1,8 @@
+[Unit]
+Description=Load audio drivers in order
+
+[Service]
+ExecStart=/usr/bin/load-drivers.sh
+
+[Install]
+WantedBy=multi-user.target
