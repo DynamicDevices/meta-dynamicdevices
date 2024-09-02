@@ -24,4 +24,4 @@ do_install:append:imx8mm-jaguar-sentai() {
 }
 
 FILES:${PN}:imx8mm-jaguar-sentai += "${sysconfdir}/modprobe.d/blacklist-audio.conf"
-FILES:${PN}:imx8mm-jaguar-sentai += "${systemd_unitdir}/system/audio-driver.service"
+FILES:${PN}:imx8mm-jaguar-sentai += "${systemd_unitdir}/system/audio-driver.service ${bindir}/load-audio-drivers.sh"
