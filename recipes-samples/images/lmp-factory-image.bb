@@ -46,6 +46,9 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'tas2563', 'recipes-samples/ima
 # Enable TI tas2781 related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'tas2781', 'recipes-samples/images/lmp-feature-tas2781.inc', '', d)}
 
+# Enable ST usb4500 related recipes if required by MACHINE
+require ${@bb.utils.contains('MACHINE_FEATURES', 'stusb4500', 'recipes-samples/images/lmp-feature-stusb4500.inc', '', d)}
+
 # Enable Infineon bgt60 related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'bgt60', 'recipes-samples/images/lmp-feature-bgt60.inc', '', d)}
 
