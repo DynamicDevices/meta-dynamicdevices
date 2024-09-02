@@ -12,6 +12,7 @@ CORE_IMAGE_BASE_INSTALL += " \
    imx-test \
    spidev-test \
    minicom \
+   gpio-utils \
 "
 
 #   board-demos \

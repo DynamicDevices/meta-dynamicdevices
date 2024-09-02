@@ -17,6 +17,6 @@ do_configure() {
 #  install -m 755 ${WORKDIR}/tas2563_uCDSP.bin ${D}${nonarch_base_libdir}/firmware
 #}
 
-#FILES:${PN} += "${nonarch_base_libdir}/firmware/tas2563_uCDSP.bin" 
+FILES:${PN} += "/lib/modules*" 
 
 KERNEL_MODULE_AUTOLOAD:append = "snd-soc-tas2781"
