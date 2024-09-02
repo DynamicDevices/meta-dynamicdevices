@@ -8,8 +8,10 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 #       with the systemd service
 #
 
-SYSTEMD_AUTO_ENABLE = "enable"
+inherit systemd
+
 SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-sentai = "audio-driver.service"
+SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-sentai = "enable"
 
 SRC_URI += "\
     file://blacklist-audio.conf \
