@@ -18,7 +18,7 @@ SRC_URI += "\
 
 do_install:append:imx8mm-jaguar-sentai() {
         install -D -m 0644 ${WORKDIR}/blacklist-audio.conf ${D}${sysconfdir}/modprobe.d/blacklist-audio.conf
-        install -D -m 0644 ${WORKDIR}/load-audio-drivers.sh ${D}${bindir}/load-audio-drivers.sh
+        install -D -m 0755 ${WORKDIR}/load-audio-drivers.sh ${D}${bindir}/load-audio-drivers.sh
         install -d ${D}/${systemd_unitdir}/system
         install -m 0644 ${WORKDIR}/audio-driver.service ${D}/${systemd_unitdir}/system
 }
