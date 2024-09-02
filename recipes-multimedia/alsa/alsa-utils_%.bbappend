@@ -3,12 +3,13 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 #
 # NOTE: We need to fix the IDs of the playback and recording
 #       drivers so they don't change on boot. So we do this
-#       here and then will load the drivers in order with the
-#       systemd service
+#       here. We blacklist the drivers so they don't automatically
+#       load. Then we will load the drivers in the order we want
+#       with the systemd service
 #
 
 SYSTEMD_AUTO_ENABLE = "enable"
-SYSTEMD_SERVICE:${PN} = "audio-driver.service"
+SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-sentai = "audio-driver.service"
 
 SRC_URI += "\
     file://blacklist-audio.conf \
