@@ -3,7 +3,7 @@ Description=Load audio drivers in order
 
 [Service]
 User=root
-ExecStart=/usr/bin/load-audio-drivers.sh
+ExecStart=/bin/bash /usr/bin/load-audio-drivers.sh
 
 [Install]
 WantedBy=multi-user.target
