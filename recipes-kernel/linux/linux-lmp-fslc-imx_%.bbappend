@@ -11,6 +11,7 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://enable_gpio_key.cfg \
 		file://enable_stts22h.cfg \
 		file://enable_lis2dh.cfg \
+		file://enable_sht4x.cfg \
 		file://imx8mm-jaguar-sentai.dts \
                 file://01-fix-enable-lp50xx.patch \
 		file://02-disable-wifi-scan-msg.patch \
