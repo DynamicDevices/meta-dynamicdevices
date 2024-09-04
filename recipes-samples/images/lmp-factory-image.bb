@@ -13,11 +13,13 @@ require ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'recipes-samples/imag
 require recipes-samples/images/lmp-feature-dev.inc
 
 # Enable auto register related recipes if required by DISTRO
-#require ${@bb.utils.contains('DISTRO_FEATURES', 'auto-register', 'recipes-samples/images/lmp-feature-auto-register.inc', '', d)}
-require recipes-samples/images/lmp-feature-auto-register.inc
+require ${@bb.utils.contains('DISTRO_FEATURES', 'auto-register', 'recipes-samples/images/lmp-feature-auto-register.inc', '', d)}
 
 # Enable alsa related recipes if required by DISTRO
 require ${@bb.utils.contains('DISTRO_FEATURES', 'alsa', 'recipes-samples/images/lmp-feature-alsa.inc', '', d)}
+
+# Enable alsa related recipes if required by DISTRO
+require ${@bb.utils.contains('DISTRO_FEATURES', 'pulseaudio', 'recipes-samples/images/lmp-feature-pulseaudio.inc', '', d)}
 
 # Enable OP-TEE related recipes if provided by the image
 require ${@bb.utils.contains('MACHINE_FEATURES', 'optee', 'recipes-samples/images/lmp-feature-optee.inc', '', d)}
