@@ -84,6 +84,23 @@ temp1:        +32.0 C
 humidity1:     33.0 %RH
 ```
 
+## LIS2DH12 Accelerometer
+
+## STTS22H Temperature
+
+The STT22H driver is implemented within the IIO subsystem. To check the temperature you can use:
+
+```
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/name 
+stts22h
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/in_temp_ambient_raw                                   
+3167
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/in_temp_ambient_scale                                   
+10.000000000
+```
+
+TODO: These numbers don't seem quite right?
+
 # Useful Scripts
 
 ## Board Test
