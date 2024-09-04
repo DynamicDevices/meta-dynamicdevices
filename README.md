@@ -88,5 +88,28 @@ humidity1:     33.0 %RH
 
 ## Board Test
 
-Run the `board-test.sh` script for general board info including board unique ID (from SOC), WiFi MAC address and modem IMEI
+Run the `board-info.sh` script for general board info including board unique ID (from SOC), WiFi MAC address and modem IMEI
 
+e.g.
+
+```
+BOARD DETAILS
+=============
+
+**************************************
+Machine: i.MX8MM Jaguar Sentai board
+Serial: 07130A09DAB86563
+WLAN MAC: dc:bd:cc:d1:80:99
+Modem Present: true
+Modem SIM State: state: enabled
+Modem IMEI: d: 867752050572
+Modem F/W: n: EM05EFAR06A06
+Modem MSISDN: 46719121279982
+**************************************
+Done
+```
+
+## LED testing
+
+- Pulse RGBW LED intensity "heartbeat" `test-leds-hb.sh`
+- Rotate R, G, B, W in ring `test-leds-rc.sh`
