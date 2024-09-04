@@ -16,7 +16,7 @@ The TAS2563 audio codec is used for output. Currently we've back ported an older
 
 The driver downloads a pre-built audio firmware binary to the TAS2563 (`/lib/firmware/tas2563_uCDSP.bin`). There is also a calibration file which is not currently supported.
 
-The firmware can be built with the TI graphical tool for Windows which can be found [here](https://www.ti.com/tool/PUREPATHCONSOLE]).
+The firmware can be built with the TI graphical tool for Windows which can be found [here](https://www.ti.com/tool/PUREPATHCONSOLE).
  
 Further resources can be found [here](https://www.ti.com/product/TAS2563?keyMatch=TAS2563).
 
