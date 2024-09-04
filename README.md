@@ -83,3 +83,10 @@ Adapter: 30a40000.i2c
 temp1:        +32.0 C  
 humidity1:     33.0 %RH
 ```
+
+# Useful Scripts
+
+## Board Test
+
+Run the `board-test.sh` script for general board info including board unique ID (from SOC), WiFi MAC address and modem IMEI
+
