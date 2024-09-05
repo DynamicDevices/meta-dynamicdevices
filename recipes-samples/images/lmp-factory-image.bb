@@ -8,10 +8,6 @@ require ${@bb.utils.contains('DISTRO_FEATURES', 'sota', 'recipes-samples/images/
 # Enable wayland related recipes if required by DISTRO
 require ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'recipes-samples/images/lmp-feature-wayland.inc', '', d)}
 
-# Enable development related recipes if required by DISTRO
-#require ${@bb.utils.contains('DISTRO_FEATURES', 'lmpdebug', 'recipes-samples/images/lmp-feature-dev.inc', '', d)}
-require recipes-samples/images/lmp-feature-dev.inc
-
 # Enable auto register related recipes if required by DISTRO
 require ${@bb.utils.contains('DISTRO_FEATURES', 'auto-register', 'recipes-samples/images/lmp-feature-auto-register.inc', '', d)}
 
@@ -53,6 +49,9 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'stusb4500', 'recipes-samples/i
 
 # Enable Infineon bgt60 related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'bgt60', 'recipes-samples/images/lmp-feature-bgt60.inc', '', d)}
+
+# Enable development related recipes if required by IMAGE_FEATURES
+require ${@bb.utils.contains('IMAGE_FEATURES', 'debug-tweaks', 'recipes-samples/images/lmp-feature-dev.inc', '', d)}
 
 require recipes-samples/images/lmp-feature-softhsm.inc
 require recipes-samples/images/lmp-feature-wireguard.inc
