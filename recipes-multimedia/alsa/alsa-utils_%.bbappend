@@ -17,6 +17,7 @@ SRC_URI += "\
     file://blacklist-audio.conf \
     file://audio-driver.service \
     file://load-audio-drivers.sh \
+    file://asound.conf \
 "
 
 do_install:append:imx8mm-jaguar-sentai() {
