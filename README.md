@@ -42,7 +42,9 @@ aplay -Dhw:1,0 -r 48000 -c 2 sample.wav
 
 NOTE: Currently when using the hardware device directly only 2 channnels of 48kHz audio are supported.
 
-# Networking Support
+# Networking / Radio Support
+
+## WiFi
 
 Run `ifconfig` to view the wlan0 device (there is no wired ethernet)
 
@@ -58,6 +60,8 @@ To see connection status use:
 nmcli
 ```
 
+## Cellular
+
 If a Quectel modem module is installed it is posssible to see the modem ID with:
 
 ```
@@ -69,6 +73,14 @@ Then use this to get the modem status
 ```
 mmcli -m $MODEM_ID
 ```
+
+## Bluetooth / BLE
+
+TBD
+
+## 802.15.4 / Thread / Matter
+
+TBD
 
 # Sensors
 
@@ -113,7 +125,7 @@ TODO: These numbers don't seem quite right?
 
 # Useful Scripts
 
-## Board Test
+## Board Info
 
 Run the `board-info.sh` script for general board info including board unique ID (from SOC), WiFi MAC address and modem IMEI
 
@@ -140,3 +152,8 @@ Done
 
 - Pulse RGBW LED intensity "heartbeat" `test-leds-hb.sh`
 - Rotate R, G, B, W in ring `test-leds-rc.sh`
+
+# Board Testing (fiotest)
+
+TBD
+
