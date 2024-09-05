@@ -86,16 +86,26 @@ humidity1:     33.0 %RH
 
 ## LIS2DH12 Accelerometer
 
+```
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/name 
+lis2dh12_accel
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# echo 400 > /sys/bus/iio/devices/iio\:device0/sampling_frequency
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/in_accel_x_raw 
+336
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/in_accel_x_raw 
+-8
+```
+
 ## STTS22H Temperature
 
 The STT22H driver is implemented within the IIO subsystem. To check the temperature you can use:
 
 ```
-root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/name 
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device1/name 
 stts22h
-root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/in_temp_ambient_raw                                   
-3167
-root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device0/in_temp_ambient_scale                                   
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device1/in_temp_ambient_raw 
+3073
+root@imx8mm-jaguar-sentai-7130a09dab86563:~# cat /sys/bus/iio/devices/iio\:device1/in_temp_ambient_scale 
 10.000000000
 ```
 
