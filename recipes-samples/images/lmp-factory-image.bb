@@ -54,7 +54,9 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'bgt60', 'recipes-samples/image
 IMAGE_FEATURES += "${@bb.utils.contains('DEV_MODE', '1', 'debug-tweaks tools-sdk', '', d)}"
 
 # Enable development related recipes if required by IMAGE_FEATURES
-require ${@bb.utils.contains('IMAGE_FEATURES', 'debug-tweaks', 'recipes-samples/images/lmp-feature-dev.inc', '', d)}
+#require ${@bb.utils.contains('IMAGE_FEATURES', 'debug-tweaks', 'recipes-samples/images/lmp-feature-dev.inc', '', d)}
+# TODO: Force inclusion of dev support as we don't seem to be picking up DEV_MODE properly
+require recipes-samples/images/lmp-feature-dev.inc
 
 require recipes-samples/images/lmp-feature-softhsm.inc
 require recipes-samples/images/lmp-feature-wireguard.inc
