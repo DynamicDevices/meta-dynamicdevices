@@ -20,7 +20,7 @@ SRCREV="e342328550779423382f35cd10a18b1c76b81f40"
 
 S = "${WORKDIR}/git"
 
-DEPENDS = "alsa-lib"
+DEPENDS = "alsa-lib avahi"
 
 do_install:append:imx8mm-jaguar-sentai() {
         install -d ${D}/${systemd_unitdir}/system
