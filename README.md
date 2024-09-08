@@ -24,6 +24,8 @@ The driver for this is a module which loads as `snd_soc_tas2563` (use `lsmod` to
 
 We blacklist automatic loading of audio drivers in `/etc/modprobe.d/blacklist.conf` as otherwise card IDs can change depending on load order. Instead a systemd service `audio-driver` runs on startup and executes `/usr/bin/load-audio-drivers.sh` to load in the relevant drivers
 
+### ALSA
+
 When loaded `aplay -l` can be executed to show device details
 
 ```
@@ -41,6 +43,57 @@ aplay -Dhw:1,0 -r 48000 -c 2 sample.wav
 ```
 
 NOTE: Currently when using the hardware device directly only 2 channnels of 48kHz audio are supported.
+
+### PulseAudio
+
+We need to be running audio within docker containers. We seem to be able to use ALSA but some .NET code fails with ALSA. So we've added PulseAudio to the host OS mage and can use this instead of ALSA.
+
+There are PulseAudio equivalents to ALSA record and playback utilities. For example
+
+```
+parecord file.wav
+paplay file.wav
+```
+
+There is also a command line control utility, for example
+
+```
+pactl list sources
+pactl list sinks
+pactl list modules
+```
+
+NOTE: That the pulseaudio server runs as non-root `fio` user. It's not possible to interact with the server as the root user and this will fail.
+
+The docker container needs to have access to the host os pulse audio socket and dbus. An example `docker-compose.yml` configuration to achieve this looks something like this
+
+```
+version: '2'
+services:
+  Example:
+    build: .
+    image: hub.foundries.io/dynamic-devices/example:latest
+    devices:
+      - /dev/snd:/dev/snd
+    environment:
+      - PULSE_SERVER=unix:/tmp/pulseaudio.socket
+      - PULSE_COOKIE=/tmp/pulseaudio.cookie
+    volumes:
+      - "/tmp:/tmp"
+      - "/run/dbus/system_bus_socket:/run/dbus/system_bus_socket"
+    restart: always
+    privileged: true
+```
+
+TODO: We should support cookies for authentication but this is not yet implemented. Instead we allow unauthenticated to the host pulseaudio server
+
+To provide the socket in a known place, `/tmp/pulseaudio.socket` we have a script that runs the following command on start-up
+
+```
+pactl load-module module-native-protocol-unix socket=/tmp/pulseaudio.socket auth-anonymous=true
+```
+
+Then you can enter a docker container configured as above and run the `paplay` commands or similar
 
 # Networking / Radio Support
 
