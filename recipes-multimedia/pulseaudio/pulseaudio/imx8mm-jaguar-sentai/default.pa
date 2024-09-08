@@ -79,7 +79,8 @@ load-module module-bluetooth-discover headset=auto
 .ifexists module-esound-protocol-unix.so
 load-module module-esound-protocol-unix
 .endif
-load-module module-native-protocol-unix socket=/tmp/pulseaudio/pulseaudio.socket
+load-module module-native-protocol-unix
+load-module module-native-protocol-unix auth-anonymous=true socket=/tmp/pulseaudio.socket
 
 ### Network access (may be configured with paprefs, so leave this commented
 ### here if you plan to use paprefs)

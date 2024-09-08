@@ -1,9 +1,0 @@
-[Unit]
-Description=Load pulseaudio modules in order (provide unix socket to containers)
-
-[Service]
-User=fio
-ExecStart=/bin/bash /usr/bin/load-pulseaudio-modules.sh
-
-[Install]
-WantedBy=multi-user.target
