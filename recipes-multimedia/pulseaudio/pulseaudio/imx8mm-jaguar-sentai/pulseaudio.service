@@ -1,0 +1,10 @@
+[Unit]
+Description=Sound Service
+
+[Service]
+User=root
+ExecStart=/usr/bin/pulseaudio --system --log-target=journal
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

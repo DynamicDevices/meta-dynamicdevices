@@ -1,9 +1,0 @@
-[Unit]
-Description=Initialise pulse audio daemon
-
-[Service]
-User=root
-ExecStart=/bin/bash /usr/bin/pulse-audio-init.sh
-
-[Install]
-WantedBy=multi-user.target
