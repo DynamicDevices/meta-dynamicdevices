@@ -38,7 +38,7 @@ TBD
 
 # Power
 
-Note that USB-A does not provide enough power for the system when the speaker is operating. The unit should be powered from an appropriate USB-C adaptor.
+Note that USB-A does not provide enough power for the system e.g. when a speaker is operating. The unit should be powered from an appropriate USB-C adaptor.
 
 # Reflashing a board
 
