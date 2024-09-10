@@ -9,7 +9,7 @@ inherit cargo_bin
 do_compile[network] = "1"
 
 SRC_URI = "git://github.com/DynamicDevices/stusb4500-rs.git;protocol=https;branch=main"
-SRCREV="40b7d4063a78101dc2a20fa8769c7ac46bc7edbf"
+SRCREV="e125339c15d19dc4a15f245dd9518f88ca89fd46"
 S = "${WORKDIR}/git"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3570cec030817fca048fd7f61219a588"
 
