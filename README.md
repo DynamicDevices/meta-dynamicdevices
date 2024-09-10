@@ -216,3 +216,6 @@ TBD
 
 Note that USB-A does not provide enough power for the system when the speaker is operating. The unit should be powered from an appropriate USB-C adaptor.
 
+# Reflashing a board
+
+See details [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Flashing-a-Jaguar-board-with-a-Yocto-Embedded-Linux-image).
