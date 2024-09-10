@@ -32,12 +32,6 @@ Modem MSISDN: 46719121279982
 **************************************
 Done
 ```
-
-## LED testing
-
-- Pulse RGBW LED intensity "heartbeat" `test-leds-hb.sh`
-- Rotate R, G, B, W in ring `test-leds-rc.sh`
-
 # Board Testing (fiotest)
 
 TBD
