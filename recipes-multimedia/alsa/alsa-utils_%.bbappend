@@ -13,7 +13,7 @@ inherit systemd
 SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-sentai = "audio-driver.service"
 SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-sentai = "enable"
 
-SRC_URI:append:imx8mm-jaguar-sentai += "\
+SRC_URI:append:imx8mm-jaguar-sentai = "\
     file://blacklist-audio.conf \
     file://audio-driver.service \
     file://load-audio-drivers.sh \
