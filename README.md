@@ -95,6 +95,8 @@ pactl load-module module-native-protocol-unix socket=/tmp/pulseaudio.socket auth
 
 Then you can enter a docker container configured as above and run the `paplay` commands or similar
 
+SECURITY NOTE: That usually PulseAudio would run within a user session. This makes sense for desktop/laptop systems but is non-ideal for embedded systems. Instead we run PulseAudio in the systemwide configuration so we don't have to worry about user login. There are potentially some security and other issues with running in this configuration. These should be noted and can be found [here](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/).
+
 # Networking / Radio Support
 
 ## WiFi
@@ -209,4 +211,8 @@ Done
 # Board Testing (fiotest)
 
 TBD
+
+# Power
+
+Note that USB-A does not provide enough power for the system when the speaker is operating. The unit should be powered from an appropriate USB-C adaptor.
 
