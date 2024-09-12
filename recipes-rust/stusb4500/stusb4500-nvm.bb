@@ -4,6 +4,7 @@ SUMMARY = "STUSB4500 support data file"
 HOMEPAGE = "git://github.com/Atmelfan/stusb4500-rs"
 
 LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 SRC_URI:imx8mm-jaguar-sentai = " file://stusb4500.dat"
 
