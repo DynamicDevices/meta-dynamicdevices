@@ -18,4 +18,4 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3570cec030817fca048fd7f61219a588"
 
 EXTRA_CARGO_FLAGS = "--examples"
 
-DEPENDS += "stusb4500-nvm"
+RDEPENDS:${PN} += "stusb4500-nvm"
