@@ -10,7 +10,7 @@ do_install() {
   install -m 755 ${WORKDIR}/setup-network-manager.sh ${D}${bindir}
 }
 
-FILES_${PN} = "${bindir}/setup-network-manager.sh"
+FILES:${PN} = "${bindir}/setup-network-manager.sh"
 
 pkg_postinst_ontarget:${PN} () {
   #!/bin/sh
