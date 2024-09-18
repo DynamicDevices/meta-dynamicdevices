@@ -1,0 +1,275 @@
+# meta-phasora
+
+## i.MX8M Mini EVK based build
+
+### Overview
+
+This layer depends upon and customises the NXP i.MX EVK BSP support.
+
+You should first install and familiarise yourself with the BSP [here](https://www.nxp.com/design/software/embedded-software/i-mx-software/embedded-linux-for-i-mx-applications-processors:IMXLINUX)
+
+You'll find the Yocto Project Quickstart [here](https://docs.yoctoproject.org/2.4.2/yocto-project-qs/yocto-project-qs.html) and the Reference Manual [here](https://docs.yoctoproject.org/ref-manual/index.html)
+
+This layer customises the Linux kernel for Phasora specific hardware and customises the build for that hardware, e.g. Flutter UI
+
+NOTE: We are currently using the `kirkstone` branch
+
+#### Configuration files
+
+`local.conf`
+
+```
+MACHINE ??= 'imx8mmevk'
+DISTRO ?= 'fsl-imx-wayland'
+DISTRO_FEATURES:append = 'gbm'
+DISTRO_FEATURES:remove = 'x11 vulkan'
+PACKAGE_CLASSES ?= 'package_rpm'
+EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
+USER_CLASSES ?= "buildstats"
+PATCHRESOLVE = "noop"
+BB_DISKMON_DIRS ??= "\
+    STOPTASKS,${TMPDIR},1G,100K \
+    STOPTASKS,${DL_DIR},1G,100K \
+    STOPTASKS,${SSTATE_DIR},1G,100K \
+    STOPTASKS,/tmp,100M,100K \
+    HALT,${TMPDIR},100M,1K \
+    HALT,${DL_DIR},100M,1K \
+    HALT,${SSTATE_DIR},100M,1K \
+    HALT,/tmp,10M,1K"
+PACKAGECONFIG:append:pn-qemu-system-native = " sdl"
+CONF_VERSION = "2"
+
+DL_DIR ?= "${BSPDIR}/downloads/"
+ACCEPT_FSL_EULA = "1"
+
+# Switch to Debian packaging and include package-management in the image
+PACKAGE_CLASSES = "package_deb"
+EXTRA_IMAGE_FEATURES += "package-management"
+
+INHERIT += " rm_work "
+
+OE_TERMINAL = "screen"
+
+# FIXME - Needs to go elsewhere
+KERNEL_DEVICETREE:append:imx8mmevk = " freescale/imx8mm-evk-st7701.dtb "
+```
+
+`bblayers.conf`
+
+```
+LCONF_VERSION = "7"
+
+BBPATH = "${TOPDIR}"
+BSPDIR := "${@os.path.abspath(os.path.dirname(d.getVar('FILE', True)) + '/../..')}"
+
+BBFILES ?= ""
+BBLAYERS = " \
+  ${BSPDIR}/sources/poky/meta \
+  ${BSPDIR}/sources/poky/meta-poky \
+  \
+  ${BSPDIR}/sources/meta-openembedded/meta-oe \
+  ${BSPDIR}/sources/meta-openembedded/meta-multimedia \
+  ${BSPDIR}/sources/meta-openembedded/meta-python \
+  \
+  ${BSPDIR}/sources/meta-freescale \
+  ${BSPDIR}/sources/meta-freescale-3rdparty \
+  ${BSPDIR}/sources/meta-freescale-distro \
+"
+
+
+# i.MX Yocto Project Release layers
+BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-bsp"
+BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-sdk"
+BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-ml"
+BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-v2x"
+BBLAYERS += "${BSPDIR}/sources/meta-nxp-demo-experience"
+
+BBLAYERS += "${BSPDIR}/sources/meta-browser/meta-chromium"
+BBLAYERS += "${BSPDIR}/sources/meta-clang"
+BBLAYERS += "${BSPDIR}/sources/meta-openembedded/meta-gnome"
+BBLAYERS += "${BSPDIR}/sources/meta-openembedded/meta-networking"
+BBLAYERS += "${BSPDIR}/sources/meta-openembedded/meta-filesystems"
+BBLAYERS += "${BSPDIR}/sources/meta-qt6"
+BBLAYERS += "${BSPDIR}/sources/meta-virtualization"
+
+BBLAYERS += "${BSPDIR}/sources/meta-flutter"
+BBLAYERS += "${BSPDIR}/sources/meta-phasora"
+```
+
+#### Building
+
+`. ./setup-environment build`
+`bitbake imx-image-multimedia`
+
+```
+Build Configuration:
+BB_VERSION           = "2.0.0"
+BUILD_SYS            = "x86_64-linux"
+NATIVELSBSTRING      = "universal"
+TARGET_SYS           = "aarch64-poky-linux"
+MACHINE              = "imx8mmevk"
+DISTRO               = "fsl-imx-wayland"
+DISTRO_VERSION       = "5.15-kirkstone"
+TUNE_FEATURES        = "aarch64 armv8a crc crypto"
+TARGET_FPU           = ""
+meta                 
+meta-poky            
+meta-oe              
+meta-multimedia      
+meta-python          
+meta-freescale       
+meta-freescale-3rdparty 
+meta-freescale-distro 
+meta-bsp             
+meta-sdk             
+meta-ml              
+meta-v2x             
+meta-nxp-demo-experience 
+meta-chromium        
+meta-clang           
+meta-gnome           
+meta-networking      
+meta-filesystems     
+meta-qt6             
+meta-virtualization  = "<unknown>:<unknown>"
+meta-flutter         = "kirkstone:1724903a9dc96bfbf7f1a1ddee4931d4e46869cb"
+meta-phasora         = "main:052470f99685dd8354cd08c02209776c87c8bf15"
+```
+
+The build files will be in `tmp/deploy/images/imx8mmevk`
+
+#### Flashing
+
+Change the boot pin settings on the i.MX8M Mini (SW1101 1 UP, 2 DOWN = Download Mode)
+
+```
+cd tmp/deploy/images/imx8mmevk
+sudo uuu -b emmc_all imx-boot imx-image-multimedia-imx8mmevk.wic.bz2
+```
+
+Change the boot pin settings on the i.MX8M Mini (SW1101 1 DOWN, 2 UP = eMMC Boot Mode)
+
+#### Booting
+
+u-boot will boot and then boot the kernel. With the `local.conf` above you will have ST7701 LCD controller enabled with a custom DTB.
+If you need to set this manually break into the u-boot boot (press any key) and
+
+```
+setenv fdtfile imx8mm-evk-st7701.dtb
+saveenv
+```
+
+Power cycle
+
+The Linux kernel will boot to a login prompt and the display will come on with a desktop displaying
+
+TBD: Note sometimes the display doesn't correctly initialise and it needs a power cycle
+
+You can login with "root", no password
+
+#### Initial setup
+
+The board comes with calibration settings saved in 'TBD'
+
+You can update these at any time by running the interactive calibration utility `weston-touchscreen-calibration`
+
+You can also test the touchscreen calibration by running `weston-simple-touch`
+
+The board boots to GUI mode. You need to be running in console mode to run Flutter applications. To change to console mode type
+
+`systemctl isolate multi-user.target`
+
+To go back to GUI mode type
+
+`systemctl isolate graphical.target`
+
+## Flutter
+
+### Host Setup
+
+TBD
+
+### Setup workspace
+
+### Add custom device
+
+```
+cd ~/workspace
+. ./setup_env.sh
+flutter custom-device add
+```
+
+*TBD*
+
+
+The configuration file is here `~/workspace/.config/flutter/custom_devices.json` and should look like this
+
+NOTE: The IP address of your target will be different and you can see this by running `ifconfig` on the board itself
+
+```                     
+{
+  "custom-devices": [
+    {
+      "id": "imx8mm",
+      "label": "imx8mm",
+      "sdkNameAndVersion": "",
+      "platform": null,
+      "enabled": true,
+      "ping": [
+        "ping",
+        "-c",
+        "1",
+        "-w",
+        "1",
+        "10.0.31.109"
+      ],
+      "pingSuccessRegex": null,
+      "postBuild": null,
+      "install": [
+        "bash", "-c", "ssh -t -oBatchMode=yes root@10.0.31.109 mkdir -p \"/tmp/${appName}/data/flutter_assets\" && scp -oBatchMode=yes -r \"${localPath}\" root@10.0.31.109:/>
+      ],
+      "uninstall": [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "root@10.0.31.109",
+        "rm -rf \"/tmp/${appName}\""
+      ],
+      "runDebug": [
+        "bash", "-c", "ssh -t -oBatchMode=yes root@10.0.31.109 flutter-pi -r 90 -i /dev/input/event2 /tmp/${appName}"
+      ],
+      "forwardPort": [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ExitOnForwardFailure=yes",
+        "-L",
+        "127.0.0.1:${hostPort}:127.0.0.1:${devicePort}",
+        "root@10.0.31.109",
+        "echo 'Port forwarding success'; read"
+      ],
+      "forwardPortSuccessRegex": "Port forwarding success",
+      "screenshot": null
+    }
+  ]
+}
+```
+
+### Create hello world application
+
+*TBD*
+
+### Running Hello World application on target
+
+```
+cd ~/workspace
+. ./setup_env.sh
+cd ~/workspace/app/hello_world
+# Copies across the files
+flutter -d imx8mm install
+# Runs the app in debugger mode
+flutter -d imx8mm run
+```
+
+You should see the hello world application window display and you should be able to use the touchscreen to touch the button to increment the count
