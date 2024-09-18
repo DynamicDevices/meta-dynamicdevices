@@ -1,0 +1,30 @@
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-evk-st7701.dts b/arch/arm64/boot/dts/freescale/imx8mm-evk-st7701.dts
+index 6d48893dca12..8f54ee212cae 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-evk-st7701.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-evk-st7701.dts
+@@ -28,14 +28,20 @@ panel@0 {
+ };
+ 
+ &i2c2 {
+-	synaptics_dsx_ts: synaptics_dsx_ts@20 {
+-		compatible = "synaptics_dsx";
+-		reg = <0x20>;
++	clock_frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2>;
++	status = "okay";
++
++	polytouch: edt-ft5x06@38 {
++		compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
++		reg = <0x38>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pinctrl_i2c2_synaptics_dsx_io>;
+ 		interrupt-parent = <&gpio1>;
+ 		interrupts = <9 IRQ_TYPE_LEVEL_LOW>;
+-		synaptics,diagonal-rotation;
+-		status = "okay";
++
++		touchscreen-size-x = <360>;
++		touchscreen-size-y = <640>;
+ 	};
+ };

@@ -1,7 +1,7 @@
-diff --git a/mxm_wifiex/wlan_src/mlan/mlan_11n_rxreorder.c b/mxm_wifiex/wlan_src/mlan/mlan_11n_rxreorder.c
+diff --git a/mlan/mlan_11n_rxreorder.c b/mlan/mlan_11n_rxreorder.c
 index 956d1e0..aecb9c2 100644
---- a/mxm_wifiex/wlan_src/mlan/mlan_11n_rxreorder.c
-+++ b/mxm_wifiex/wlan_src/mlan/mlan_11n_rxreorder.c
+--- a/mlan/mlan_11n_rxreorder.c
++++ b/mlan/mlan_11n_rxreorder.c
 @@ -661,7 +661,7 @@ mlan_status wlan_11n_add_bastream(mlan_private *priv, t_u8 *addba)
         DBG_HEXDUMP(MCMD_D, "addba req", (t_u8 *)addba,
                     sizeof(HostCmd_DS_11N_ADDBA_REQ));
