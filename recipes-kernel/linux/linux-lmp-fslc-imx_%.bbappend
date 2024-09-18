@@ -68,21 +68,21 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 #file://imx8mm-jaguar-phasora.dts \
 #
 
-INSANE_SKIP:imx8mm-jaguar-phasora = "usrmerge"
-PACKAGES:imx8mm-jaguar-phasora =+ "kernel-firmware"
-RPROVIDES:${PN}:imx8mm-jaguar-phasora += "kernel-firmware"
-FILES:kernel-firmware:imx8mm-jaguar-phasora += "/lib/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
+#INSANE_SKIP:imx8mm-jaguar-phasora = "usrmerge"
+#PACKAGES:imx8mm-jaguar-phasora =+ "kernel-firmware"
+#RPROVIDES:${PN}:imx8mm-jaguar-phasora += "kernel-firmware"
+#FILES:kernel-firmware:imx8mm-jaguar-phasora += "/lib/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
 
-do_configure:append:imx8mm-jaguar-phasora() {
-   for i in ../*.cfg; do
-      [ -f "$i" ] || break
-      bbdebug 2 "applying $i file contents to .config"
-      cat ../*.cfg >> ${B}/.config
-   done
-}
+#do_configure:append:imx8mm-jaguar-phasora() {
+#   for i in ../*.cfg; do
+#      [ -f "$i" ] || break
+#      bbdebug 2 "applying $i file contents to .config"
+#      cat ../*.cfg >> ${B}/.config
+#   done
+#}
 
-do_install:append:imx8mm-jaguar-phasora() {
-   install -d ${D}/lib/firmware
-   install -m 0644  ../iwlwifi-ty-a0-gf-a0-59.ucode ${D}/lib/firmware
-}
+#do_install:append:imx8mm-jaguar-phasora() {
+#   install -d ${D}/lib/firmware
+#   install -m 0644  ../iwlwifi-ty-a0-gf-a0-59.ucode ${D}/lib/firmware
+#}
 
