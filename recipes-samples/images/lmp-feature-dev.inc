@@ -15,5 +15,4 @@ CORE_IMAGE_BASE_INSTALL += " \
    gpio-utils \
    spotifyd \
    liboqs \
-   liboqs-tests \
 "
