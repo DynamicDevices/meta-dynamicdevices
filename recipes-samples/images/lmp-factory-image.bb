@@ -94,15 +94,15 @@ CORE_IMAGE_BASE_INSTALL += " \
 #DRM-REMOVE:imxgpu:imx8mm-jaguar-phasora = "drm-gl drm-gles2"
 
 #postprocess_function_phasora() {
-
-   # Setup the Weston UI (rotate)
+#
+#   # Setup the Weston UI (rotate)
 #   sed -z -i 's/#\[output\]\n#name=HDMI-A-1/[output]\nname=DSI-1/g' ${IMAGE_ROOTFS}/etc/xdg/weston/weston.ini
 #   sed -i 's/#transform=rotate-90/transform=rotate-270/g' ${IMAGE_ROOTFS}/etc/xdg/weston/weston.ini
-
-   # Add use of the calibration helper file
+#
+#   # Add use of the calibration helper file
 #   sed -i 's|touchscreen_calibrator=true|touchscreen_calibrator=true\ncalibration_helper=/usr/bin/save-calibration.sh|g' ${IMAGE_ROOTFS}/etc/xdg/weston/weston.ini
-
-   # Set a default calibration matrix
+#
+#   # Set a default calibration matrix
 #   echo "ENV{LIBINPUT_CALIBRATION_MATRIX}=\"0.868808 -0.002796 0.188540 -0.006824 0.982137 -0.013213\"" >> ${IMAGE_ROOTFS}/etc/udev/rules.d/touchscreen.rules
 #}
 
