@@ -42,10 +42,10 @@ do_configure:append:imx8mm-jaguar-handheld(){
 # NOTE: This DTB file is created as a default for use with local development
 #       when building lmp-base. It is NOT used by the lmp build or under CI
 #       which uses the DTS in lmp-device-tree
-#do_configure:append:imx8mm-jaguar-phasora(){
-# cp ${WORKDIR}/imx8mm-jaguar-phasora.dts ${S}/arch/arm64/boot/dts
-# echo "dtb-y += imx8mm-jaguar-phasora.dtb" >> ${S}/arch/arm64/boot/dts/Makefile
-#}
+do_configure:append:imx8mm-jaguar-phasora(){
+ cp ${WORKDIR}/imx8mm-jaguar-phasora.dts ${S}/arch/arm64/boot/dts
+ echo "dtb-y += imx8mm-jaguar-phasora.dtb" >> ${S}/arch/arm64/boot/dts/Makefile
+}
 
 SRC_URI:append:imx8mm-jaguar-handheld = " \
 		file://enable_i2c-dev.cfg \
@@ -85,4 +85,3 @@ SRC_URI:append:imx8mm-jaguar-handheld = " \
 #   install -d ${D}/lib/firmware
 #   install -m 0644  ../iwlwifi-ty-a0-gf-a0-59.ucode ${D}/lib/firmware
 #}
-
