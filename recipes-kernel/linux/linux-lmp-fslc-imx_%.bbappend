@@ -78,10 +78,11 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 #}
 
 do_install:append:imx8mm-jaguar-phasora() {
-   install -d ${D}/lib/firmware
-   install -m 0644  ../iwlwifi-ty-a0-gf-a0-59.ucode ${D}/lib/firmware
+   install -d ${D}${libdir}/firmware
+   install -m 0644  ../iwlwifi-ty-a0-gf-a0-59.ucode ${D}${libdir}/firmware
 }
 
-PACKAGES:imx8mm-jaguar-phasora =+ "kernel-firmware"
-RPROVIDES:${PN}:imx8mm-jaguar-phasora += "kernel-firmware"
-FILES:kernel-firmware:imx8mm-jaguar-phasora += "/lib/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
+#PACKAGES:imx8mm-jaguar-phasora =+ "kernel-firmware"
+#RPROVIDES:${PN}:imx8mm-jaguar-phasora += "kernel-firmware"
+#FILES:kernel-firmware:imx8mm-jaguar-phasora += "/lib/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
+FILES:imx8mm-jaguar-phasora += "${libdir}/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
