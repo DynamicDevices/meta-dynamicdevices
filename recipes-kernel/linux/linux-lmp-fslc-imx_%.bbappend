@@ -52,18 +52,18 @@ SRC_URI:append:imx8mm-jaguar-handheld = " \
 		file://imx8mm-jaguar-handheld.dts \
 "
 
-SRC_URI:append:imx8mm-jaguar-phasora = " \
-		file://enable_i2c-dev.cfg \
-                file://0001-support-phasora-mipi-display.patch \
-                file://0002-use-edt-ft5x06-ts.patch \
-                file://0003-enable-st7701.cfg \
-                file://0004-change-drm-resolution-for-lcd.patch \
-                file://0005-add-lcd-imx8mm-evk-qca-wifi.dts.patch \
-                file://0006-enable-edt-ft5x06.cfg \
-                file://0007-imx8mm-evkb-add-mipi-dsi.patch \
-                file://0008-dts-support-cortex-m4.patch \
-                file://iwlwifi-ty-a0-gf-a0-59.ucode \
-"
+#SRC_URI:append:imx8mm-jaguar-phasora = " \
+#		file://enable_i2c-dev.cfg \
+#                file://0001-support-phasora-mipi-display.patch \
+#                file://0002-use-edt-ft5x06-ts.patch \
+#                file://0003-enable-st7701.cfg \
+#                file://0004-change-drm-resolution-for-lcd.patch \
+#                file://0005-add-lcd-imx8mm-evk-qca-wifi.dts.patch \
+#                file://0006-enable-edt-ft5x06.cfg \
+#                file://0007-imx8mm-evkb-add-mipi-dsi.patch \
+#                file://0008-dts-support-cortex-m4.patch \
+#                file://iwlwifi-ty-a0-gf-a0-59.ucode \
+#"
 
 #file://imx8mm-jaguar-phasora.dts \
 #
