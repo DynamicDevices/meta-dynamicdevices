@@ -5,7 +5,9 @@
 
 /dts-v1/;
 
-#include "imx8mm-evkb.dts"
+#include "freescale/imx8mm-evkb.dts"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
 
 / {
 	model = "i.MX8MM Jaguar Phasora board";
