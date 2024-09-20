@@ -51,26 +51,9 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 		file://enable_i2c-dev.cfg \
 		file://imx8mm-jaguar-phasora.dts \
                 file://0003-enable-st7701.cfg \
-		file://0004-change-drm-resolution-for-lcd.patch \ 
                 file://0006-enable-edt-ft5x06.cfg \
+                file://iwlwifi-ty-a0-gf-a0-59.ucode \
 "
-
-#                file://iwlwifi-ty-a0-gf-a0-59.ucode \
-#
-
-#SRC_URI:append:imx8mm-jaguar-phasora = " \
-#                file://0001-support-phasora-mipi-display.patch \
-#                file://0002-use-edt-ft5x06-ts.patch \
-#                file://0004-change-drm-resolution-for-lcd.patch \
-#                file://0005-add-lcd-imx8mm-evk-qca-wifi.dts.patch \
-#                file://0007-imx8mm-evkb-add-mipi-dsi.patch \
-#                file://0008-dts-support-cortex-m4.patch \
-#"
-
-#file://imx8mm-jaguar-phasora.dts \
-#
-
-#INSANE_SKIP:imx8mm-jaguar-phasora = "usrmerge"
 
 #do_configure:append:imx8mm-jaguar-phasora() {
 #   for i in ../*.cfg; do
@@ -80,12 +63,3 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 #   done
 #}
 
-#do_install:append:imx8mm-jaguar-phasora() {
-#   install -d ${D}${libdir}/firmware
-#   install -m 0644  ../iwlwifi-ty-a0-gf-a0-59.ucode ${D}${libdir}/firmware
-#}
-
-#PACKAGES:imx8mm-jaguar-phasora =+ "kernel-firmware"
-#RPROVIDES:${PN}:imx8mm-jaguar-phasora += "kernel-firmware"
-#FILES:kernel-firmware:imx8mm-jaguar-phasora += "/lib/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
-#FILES:${PN}:imx8mm-jaguar-phasora += "${libdir}/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
