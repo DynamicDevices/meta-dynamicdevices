@@ -14,3 +14,5 @@ FILES:${PN}-iwlwifi-ax210 += " \
 "
 
 RPROVIDES:${PN} += "${PN}-iwlwifi-ax210"
+
+INSANE_SKIP:${PN} += "ldflags"
