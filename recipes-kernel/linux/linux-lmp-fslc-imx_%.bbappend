@@ -51,6 +51,7 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 		file://enable_i2c-dev.cfg \
 		file://imx8mm-jaguar-phasora.dts \
                 file://0003-enable-st7701.cfg \
+		file://0004-change-drm-resolution-for-lcd.patch \ 
                 file://0006-enable-edt-ft5x06.cfg \
 "
 
