@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRC_URI = "\
+SRC_URI:append = "\
   file://iwlwifi-ty-a0-gf-a0-59.ucode \
 "
 
@@ -13,3 +13,4 @@ FILES:${PN}-iwlwifi-ax210 += " \
        ${nonarch_base_libdir}/firmware/iwlwifi-ty-a0-gf-a0-59.ucode \
 "
 
+RPROVIDES:${PN} += "${PN}-iwlwifi-ax210"
