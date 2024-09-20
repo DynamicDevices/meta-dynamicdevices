@@ -277,7 +277,7 @@
 
 &mipi_dsi {
         panel@0 {
-                compatible = "sitronix,st7701";
+                compatible = "techstar,ts8550b";
                 reg = <0>;
                 pinctrl-0 = <&pinctrl_mipi_dsi_en>;
                 reset-gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
