@@ -85,4 +85,4 @@ do_install:append:imx8mm-jaguar-phasora() {
 #PACKAGES:imx8mm-jaguar-phasora =+ "kernel-firmware"
 #RPROVIDES:${PN}:imx8mm-jaguar-phasora += "kernel-firmware"
 #FILES:kernel-firmware:imx8mm-jaguar-phasora += "/lib/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
-FILES:imx8mm-jaguar-phasora += "${libdir}/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
+FILES:${PN}:imx8mm-jaguar-phasora += "${libdir}/firmware/iwlwifi-ty-a0-gf-a0-59.ucode"
