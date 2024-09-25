@@ -52,7 +52,6 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 		file://imx8mm-jaguar-phasora.dts \
                 file://0003-enable-st7701.cfg \
                 file://0006-enable-edt-ft5x06.cfg \
-                file://iwlwifi-ty-a0-gf-a0-59.ucode \
 "
 
 #do_configure:append:imx8mm-jaguar-phasora() {
@@ -62,4 +61,3 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 #      cat ../*.cfg >> ${B}/.config
 #   done
 #}
-
