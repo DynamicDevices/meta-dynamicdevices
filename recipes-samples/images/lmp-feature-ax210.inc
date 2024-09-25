@@ -1,3 +1,3 @@
 CORE_IMAGE_BASE_INSTALL += " \
-    linux-firmware-iwlwifi-ax210 \
+    firmware-imx-iwlwifi-ax210 \
 "
