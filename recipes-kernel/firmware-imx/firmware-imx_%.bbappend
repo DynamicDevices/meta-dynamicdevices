@@ -13,6 +13,8 @@ FILES:${PN}-iwlwifi-ax210 += " \
        ${nonarch_base_libdir}/firmware/iwlwifi-ty-a0-gf-a0-59.ucode \
 "
 
+PACKAGES += " ${PN}-iwlwifi-ax210"
+
 RPROVIDES:${PN} += "${PN}-iwlwifi-ax210"
 
 #INSANE_SKIP += " ldflags"
