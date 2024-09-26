@@ -16,4 +16,5 @@ CORE_IMAGE_BASE_INSTALL += " \
    spotifyd \
    dhcpcd \
    wifi-hotspot \
+   iperf3 \
 "
