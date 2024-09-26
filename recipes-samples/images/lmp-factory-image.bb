@@ -86,6 +86,8 @@ CORE_IMAGE_BASE_INSTALL += " \
     lmsensors \
     tzdata-core \
     tzdata-europe \
+    nodejs \
+    nodejs-npm \
     packagegroup-core-full-cmdline-extended \
     ${@bb.utils.contains('LMP_DISABLE_GPLV3', '1', '', '${CORE_IMAGE_BASE_INSTALL_GPLV3}', d)} \
 "
