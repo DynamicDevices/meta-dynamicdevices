@@ -84,15 +84,13 @@ CORE_IMAGE_BASE_INSTALL += " \
     modemmanager \
     libiio \
     lmsensors \
+    tzdata-core \
+    tzdata-europe \
     packagegroup-core-full-cmdline-extended \
     ${@bb.utils.contains('LMP_DISABLE_GPLV3', '1', '', '${CORE_IMAGE_BASE_INSTALL_GPLV3}', d)} \
 "
 
 #CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-phasora = " \
-#    tzdata-core \
-#    tzdata-europe \
-#    flutter-pi-runtimedebug \
-#    flutter-auto-runtimedebug \
 #    phasora-config \
 #    gstreamer1.0-meta-base \
 #"
