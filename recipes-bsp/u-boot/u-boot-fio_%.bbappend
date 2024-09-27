@@ -15,3 +15,8 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
     file://01-customise-dtb.patch \
 "
 
+# TODO: Add u-boot DTB customisation patch
+SRC_URI:append:imx8ulp-lpddr4-evk = " \
+    file://custom-dtb.cfg \
+"
+
