@@ -15,5 +15,7 @@ CORE_IMAGE_BASE_INSTALL += " \
    gpio-utils \
    spotifyd \
    dhcpcd \
-   wifi-hotspot \
 "
+
+#   wifi-hotspot \
+#
