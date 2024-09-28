@@ -8,6 +8,18 @@ Common core for Dynamic Devices Yocto board support
 
 AI audio STT and TTS development platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Jaguar-Sentai-Board).
 
+## Jaguar Phasora
+
+TBD
+
+## Jaguar Handheld
+
+TBD
+
+## Jaguar i.MX8ULP
+
+TBD
+
 # Useful Scripts
 
 ## Board Info
