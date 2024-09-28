@@ -2,7 +2,6 @@
 Description=CE microphone testing
 
 [Service]
-User=root
 ExecStart=/bin/bash /usr/bin/ce-mic-test.sh
 
 [Install]
