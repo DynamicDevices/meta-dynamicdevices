@@ -67,4 +67,4 @@ do_install:append:imx8mm-jaguar-sentai() {
 FILES:${PN}:imx8mm-jaguar-sentai += "${systemd_unitdir}/system/*.service ${bindir}/*.sh ${datadir}/ce-testing/*"
 
 # NOTE: Should check machine features really e.g. for radar and other hardware support
-RDEPENDS:${PN}:imx8mm-jaguar-sentai += " iperf3"
+RDEPENDS:${PN}:imx8mm-jaguar-sentai += " iperf3 spi-lib"
