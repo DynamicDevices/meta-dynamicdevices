@@ -53,6 +53,7 @@ SRC_URI:append:imx8mm-jaguar-sentai = "\
     file://ce-radar-test.sh \
     file://ce-wifi-bt-test.sh \
     file://PinkPanther60.wav \
+    file://ce-modem-pwrdwn.sh \
 "
 
 do_install:append:imx8mm-jaguar-sentai() {
