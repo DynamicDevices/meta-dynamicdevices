@@ -59,8 +59,14 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'bgt60', 'recipes-samples/image
 # Set image features based on DEV_MODE environment variable defined in Factory configuration
 IMAGE_FEATURES += "${@bb.utils.contains('DEV_MODE', '1', 'debug-tweaks tools-sdk', '', d)}"
 
+# Set image features based on CE_TEST environment variable defined in Factory configuration
+IMAGE_FEATURES += "${@bb.utils.contains('CE_TESTING', '1', 'ce-testing', '', d)}"
+
 # Enable development related recipes if required by IMAGE_FEATURES
 require ${@bb.utils.contains('IMAGE_FEATURES', 'debug-tweaks', 'recipes-samples/images/lmp-feature-dev.inc', '', d)}
+
+# Enable CE test related recipes if required by IMAGE_FEATURES
+require ${@bb.utils.contains('IMAGE_FEATURES', 'ce-testing', 'recipes-samples/images/lmp-feature-ce-testing.inc', '', d)}
 
 require recipes-samples/images/lmp-feature-softhsm.inc
 require recipes-samples/images/lmp-feature-wireguard.inc
