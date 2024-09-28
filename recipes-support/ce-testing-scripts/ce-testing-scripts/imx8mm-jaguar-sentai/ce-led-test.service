@@ -1,0 +1,9 @@
+[Unit]
+Description=CE LED testing
+
+[Service]
+User=root
+ExecStart=/bin/bash /usr/bin/ce-led-test.sh
+
+[Install]
+WantedBy=multi-user.target

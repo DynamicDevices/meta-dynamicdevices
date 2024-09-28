@@ -1,0 +1,9 @@
+[Unit]
+Description=CE audio testing
+
+[Service]
+User=root
+ExecStart=/bin/bash /usr/bin/ce-audio-test.sh
+
+[Install]
+WantedBy=multi-user.target

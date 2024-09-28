@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo Running CE radar testing...

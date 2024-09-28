@@ -1,0 +1,9 @@
+[Unit]
+Description=CE iperf3 testing
+
+[Service]
+User=root
+ExecStart=/bin/bash /usr/bin/ce-iperf3-test.sh
+
+[Install]
+WantedBy=multi-user.target

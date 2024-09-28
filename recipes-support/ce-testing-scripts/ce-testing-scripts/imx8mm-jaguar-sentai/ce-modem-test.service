@@ -1,0 +1,9 @@
+[Unit]
+Description=CE modem testing
+
+[Service]
+User=root
+ExecStart=/bin/bash /usr/bin/ce-modem-test.sh
+
+[Install]
+WantedBy=multi-user.target
