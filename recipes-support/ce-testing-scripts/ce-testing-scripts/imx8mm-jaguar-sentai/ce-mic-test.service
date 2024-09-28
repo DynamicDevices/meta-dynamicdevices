@@ -2,6 +2,7 @@
 Description=CE microphone testing
 
 [Service]
+User=fio
 ExecStart=/bin/bash /usr/bin/ce-mic-test.sh
 
 [Install]

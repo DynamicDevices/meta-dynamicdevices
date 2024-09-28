@@ -2,6 +2,7 @@
 Description=CE audio testing
 
 [Service]
+User=fio
 ExecStart=/bin/bash /usr/bin/ce-audio-test.sh
 
 [Install]
