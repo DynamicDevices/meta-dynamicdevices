@@ -52,12 +52,12 @@ SRC_URI:append:imx8mm-jaguar-sentai = "\
     file://ce-modem-test.sh \
     file://ce-radar-test.sh \
     file://ce-wifi-bt-test.sh \
-    file://gaybar.mp3 \
+    file://PinkPanther60.wav \
 "
 
 do_install:append:imx8mm-jaguar-sentai() {
         install -d ${D}/${datadir}/ce-testing
-        install -D -m 0755 ${WORKDIR}/gaybar.mp3 ${D}${datadir}/ce-testing
+        install -D -m 0755 ${WORKDIR}/*.wav ${D}${datadir}/ce-testing
         install -d ${D}/${bindir}
         install -D -m 0755 ${WORKDIR}/*.sh ${D}${bindir}
         install -d ${D}/${systemd_unitdir}/system
