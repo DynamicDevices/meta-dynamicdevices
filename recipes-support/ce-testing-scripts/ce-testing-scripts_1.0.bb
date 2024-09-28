@@ -52,16 +52,19 @@ SRC_URI:append:imx8mm-jaguar-sentai = "\
     file://ce-modem-test.sh \
     file://ce-radar-test.sh \
     file://ce-wifi-bt-test.sh \
+    file://gaybar.mp3 \
 "
 
 do_install:append:imx8mm-jaguar-sentai() {
+        install -d ${D}/${datadir}/ce-testing
+        install -D -m 0755 ${WORKDIR}/gaybar.mp3 ${D}${datadir}/ce-testing
         install -d ${D}/${bindir}
         install -D -m 0755 ${WORKDIR}/*.sh ${D}${bindir}
         install -d ${D}/${systemd_unitdir}/system
         install -m 0644 ${WORKDIR}/*.service ${D}/${systemd_unitdir}/system
 }
 
-FILES:${PN}:imx8mm-jaguar-sentai += "${systemd_unitdir}/system/*.service ${bindir}/*.sh"
+FILES:${PN}:imx8mm-jaguar-sentai += "${systemd_unitdir}/system/*.service ${bindir}/*.sh ${datadir}/ce-testing/*"
 
 # NOTE: Should check machine features really e.g. for radar and other hardware support
-RDEPENDS:${PN}:imx8mm-jaguar-sentai += "iperf3 
+RDEPENDS:${PN}:imx8mm-jaguar-sentai += " iperf3"
