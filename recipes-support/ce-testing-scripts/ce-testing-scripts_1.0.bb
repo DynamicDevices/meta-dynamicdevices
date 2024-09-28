@@ -16,26 +16,26 @@ LIC_FILES_CHKSUM ?= "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc3
 
 inherit systemd
 
-SYSTEMD_SERVICE:${PN}-audio-test:imx8mm-jaguar-sentai = "ce-audio-test.service"
-SYSTEMD_AUTO_ENABLE:${PN}-audio-test:imx8mm-jaguar-sentai = "enable"
+SYSTEMD_SERVICE:ce-audio-test:imx8mm-jaguar-sentai = "ce-audio-test.service"
+SYSTEMD_AUTO_ENABLE:ce-audio-test:imx8mm-jaguar-sentai = "enable"
 
-SYSTEMD_SERVICE:${PN}-led-test:imx8mm-jaguar-sentai = "ce-led-test.service"
-SYSTEMD_AUTO_ENABLE:${PN}-led-test:imx8mm-jaguar-sentai = "enable"
+SYSTEMD_SERVICE:ce-led-test:imx8mm-jaguar-sentai = "ce-led-test.service"
+SYSTEMD_AUTO_ENABLE:ce-led-test:imx8mm-jaguar-sentai = "enable"
 
-SYSTEMD_SERVICE:${PN}-mic-test:imx8mm-jaguar-sentai = "ce-mic-test.service"
-SYSTEMD_AUTO_ENABLE:${PN}-mic-test:imx8mm-jaguar-sentai = "enable"
+SYSTEMD_SERVICE:ce-mic-test:imx8mm-jaguar-sentai = "ce-mic-test.service"
+SYSTEMD_AUTO_ENABLE:ce-mic-test:imx8mm-jaguar-sentai = "enable"
 
-SYSTEMD_SERVICE:${PN}-modem-test:imx8mm-jaguar-sentai = "ce-modem-test.service"
-SYSTEMD_AUTO_ENABLE:${PN}-modem-test:imx8mm-jaguar-sentai = "enable"
+SYSTEMD_SERVICE:ce-modem-test:imx8mm-jaguar-sentai = "ce-modem-test.service"
+SYSTEMD_AUTO_ENABLE:ce-modem-test:imx8mm-jaguar-sentai = "enable"
 
-SYSTEMD_SERVICE:${PN}-wifi-bt-test:imx8mm-jaguar-sentai = "ce-wifi-bt-test.service"
-SYSTEMD_AUTO_ENABLE:${PN}-wifi-bt-test:imx8mm-jaguar-sentai = "enable"
+SYSTEMD_SERVICE:ce-wifi-bt-test:imx8mm-jaguar-sentai = "ce-wifi-bt-test.service"
+SYSTEMD_AUTO_ENABLE:ce-wifi-bt-test:imx8mm-jaguar-sentai = "enable"
 
-SYSTEMD_SERVICE:${PN}-iperf3-test:imx8mm-jaguar-sentai = "ce-iperf3-test.service"
-SYSTEMD_AUTO_ENABLE:${PN}-iperf3-test:imx8mm-jaguar-sentai = "enable"
+SYSTEMD_SERVICE:ce-iperf3-test:imx8mm-jaguar-sentai = "ce-iperf3-test.service"
+SYSTEMD_AUTO_ENABLE:ce-iperf3-test:imx8mm-jaguar-sentai = "enable"
 
-SYSTEMD_SERVICE:${PN}-radar-test:imx8mm-jaguar-sentai = "ce-radar-test.service"
-SYSTEMD_AUTO_ENABLE:${PN}-radar-test:imx8mm-jaguar-sentai = "enable"
+SYSTEMD_SERVICE:ce-radar-test:imx8mm-jaguar-sentai = "ce-radar-test.service"
+SYSTEMD_AUTO_ENABLE:ce-radar-test:imx8mm-jaguar-sentai = "enable"
 
 SRC_URI:append:imx8mm-jaguar-sentai = "\
     file://ce-audio-test.service \
