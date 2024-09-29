@@ -16,7 +16,8 @@ LIC_FILES_CHKSUM ?= "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc3
 
 inherit systemd
 
-SYSTEMD_SERVICE:imx8mm-jaguar-sentai = "ce-audio-test.service ce-led-test.service ce-mic-test.service ce-modem-test.service ce-wifi-bt-test.service ce-iperf3-test.service ce-radar-test.service"
+SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-sentai = "ce-audio-test.service ce-led-test.service ce-mic-test.service ce-modem-test.service ce-wifi-bt-test.service ce-iperf3-test.service ce-radar-test.service"
+SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-sentai = "enable"
 
 SRC_URI:append:imx8mm-jaguar-sentai = "\
     file://ce-audio-test.service \
