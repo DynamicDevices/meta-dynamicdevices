@@ -16,6 +16,8 @@ LIC_FILES_CHKSUM ?= "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc3
 
 inherit systemd
 
+SYSTEMD_PACKAGES = "ce-audio-test ce-led-test ce-mic-test ce-modem-test ce-wifi-bt-test ce-iperf3-test ce-radar-test"
+
 SYSTEMD_SERVICE:ce-audio-test:imx8mm-jaguar-sentai = "ce-audio-test.service"
 SYSTEMD_AUTO_ENABLE:ce-audio-test:imx8mm-jaguar-sentai = "enable"
 
