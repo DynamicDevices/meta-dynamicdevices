@@ -16,28 +16,7 @@ LIC_FILES_CHKSUM ?= "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc3
 
 inherit systemd
 
-SYSTEMD_PACKAGES = "ce-audio-test ce-led-test ce-mic-test ce-modem-test ce-wifi-bt-test ce-iperf3-test ce-radar-test"
-
-SYSTEMD_SERVICE:ce-audio-test:imx8mm-jaguar-sentai = "ce-audio-test.service"
-SYSTEMD_AUTO_ENABLE:ce-audio-test:imx8mm-jaguar-sentai = "enable"
-
-SYSTEMD_SERVICE:ce-led-test:imx8mm-jaguar-sentai = "ce-led-test.service"
-SYSTEMD_AUTO_ENABLE:ce-led-test:imx8mm-jaguar-sentai = "enable"
-
-SYSTEMD_SERVICE:ce-mic-test:imx8mm-jaguar-sentai = "ce-mic-test.service"
-SYSTEMD_AUTO_ENABLE:ce-mic-test:imx8mm-jaguar-sentai = "enable"
-
-SYSTEMD_SERVICE:ce-modem-test:imx8mm-jaguar-sentai = "ce-modem-test.service"
-SYSTEMD_AUTO_ENABLE:ce-modem-test:imx8mm-jaguar-sentai = "enable"
-
-SYSTEMD_SERVICE:ce-wifi-bt-test:imx8mm-jaguar-sentai = "ce-wifi-bt-test.service"
-SYSTEMD_AUTO_ENABLE:ce-wifi-bt-test:imx8mm-jaguar-sentai = "enable"
-
-SYSTEMD_SERVICE:ce-iperf3-test:imx8mm-jaguar-sentai = "ce-iperf3-test.service"
-SYSTEMD_AUTO_ENABLE:ce-iperf3-test:imx8mm-jaguar-sentai = "enable"
-
-SYSTEMD_SERVICE:ce-radar-test:imx8mm-jaguar-sentai = "ce-radar-test.service"
-SYSTEMD_AUTO_ENABLE:ce-radar-test:imx8mm-jaguar-sentai = "enable"
+SYSTEMD_SERVICE:imx8mm-jaguar-sentai = "ce-audio-test.service ce-led-test.service ce-mic-test.service ce-modem-test.service ce-wifi-bt-test.service ce-iperf3-test.service ce-radar-test.service"
 
 SRC_URI:append:imx8mm-jaguar-sentai = "\
     file://ce-audio-test.service \
