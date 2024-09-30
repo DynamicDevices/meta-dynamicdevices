@@ -1,0 +1,9 @@
+[Unit]
+Description=Enable WiFi GPIO
+
+[Service]
+User=fio
+ExecStart=/bin/bash /usr/bin/enable-wifi.sh
+
+[Install]
+WantedBy=multi-user.target
