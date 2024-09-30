@@ -1,5 +1,6 @@
 [Unit]
 Description=CE audio testing
+After=pulseaudio.service
 
 [Service]
 User=fio
