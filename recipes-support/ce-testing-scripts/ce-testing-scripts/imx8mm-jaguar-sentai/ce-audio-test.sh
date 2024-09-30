@@ -1,7 +1,5 @@
 #!/bin/sh
 
-sleep 10
-
 echo Running CE audio testing...
 
 while [ TRUE ]
