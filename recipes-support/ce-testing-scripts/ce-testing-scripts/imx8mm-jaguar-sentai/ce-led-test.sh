@@ -9,7 +9,7 @@ do
 
   echo "127" > $path/brightness
 
-  echo " 255 0" > $path/multi_intensity
+  echo "0 255 0" > $path/multi_intensity
 
   x=$(( $x + 1 ))
 done
