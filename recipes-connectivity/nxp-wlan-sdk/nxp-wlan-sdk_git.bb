@@ -28,6 +28,7 @@ SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-sentai = "enable-wifi.service"
 SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-sentai = "enable"
 
 SRC_URI:append:imx8mm-jaguar-sentai = "\
+    file://enable-wifi.sh \
     file://enable-wifi.service \
 "
 
