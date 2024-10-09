@@ -31,4 +31,5 @@ RDEPENDS:${PN} += " \
 	python3-core (>3.8) \
 	python3-dbus-fast \
 	python3-xml \
+        python3-typing-extensions \
 "

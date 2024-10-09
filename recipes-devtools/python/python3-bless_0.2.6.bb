@@ -23,18 +23,3 @@ inherit setuptools3
 # python sources, and might not be 100% accurate.
 RDEPENDS:${PN} += "python3-asyncio python3-bleak python3-core python3-dbus-next python3-logging python3-netclient"
 
-# WARNING: We were unable to map the following python package/module
-# dependencies to the bitbake packages which include them:
-#    CoreBluetooth
-#    Foundation
-#    bleak_winrt.windows.devices.bluetooth.genericattributeprofile
-#    bleak_winrt.windows.foundation
-#    bleak_winrt.windows.storage.streams
-#    libdispatch
-#    objc
-#    pysetupdi
-#    typing_extensions
-#    win32api
-#    win32con
-#    win32file
-#    winreg
