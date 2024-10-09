@@ -25,3 +25,5 @@ do_install() {
 }
 
 FILES:${PN} = "${datadir}/improv/*.py"
+
+RDEPENDS:${PN} = "python3-bless"
