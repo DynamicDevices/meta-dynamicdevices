@@ -10,15 +10,15 @@ AI audio STT and TTS development platform. For details see [here](https://github
 
 ## Jaguar Phasora
 
-TBD
+MACHINE=imx8mm-jaguar-phasora is building and under TEST
 
 ## Jaguar Handheld
 
-TBD
+MACHINE=imx8mm-jaguar-handheld is building and under TEST
 
-## Jaguar i.MX8ULP
+## i.MX8ULP EVK
 
-TBD
+MACHINE=imx8ulp-lpddr4-evk is building and under TEST
 
 # Useful Scripts
 
