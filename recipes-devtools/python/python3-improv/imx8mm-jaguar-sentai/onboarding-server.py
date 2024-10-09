@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import subprocess
 from improv import *
 from bless import (  # type: ignore
     BlessServer,
@@ -85,13 +86,13 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
     logger.warning(
         f"Creating Improv WiFi connection for '{ssid.decode('utf-8')}' with password: '{passwd.decode('utf-8')}'")
 
-    subprocess.run(["nmcli", "con", "delete", "id" "improv"])
+    subprocess.run(["nmcli", "con", "delete", "id", "improv"])
     subprocess.run(["nmcli", "con", "add", "type", "wifi", "con-name", "improv", "ssid", "{ssid.decode('utf-8')}", "802-11-wireless-security.key-mgmt", "WPA-PSK", "802-11-wireless-security.psk", "{passwd.decode('utf-8')}", "ifname", "wlan0"])
 
     logger.warning("Return None for the failure")
     localIP = "192.168.2.123"
 
-    localServer = f"http://{localIP}"
+    localServer = f"https://www.sentai.co.uk"
     logger.warning(
         f"Asking the client to now connect to us under {localServer}")
     return [localServer]
