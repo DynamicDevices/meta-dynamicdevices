@@ -1,0 +1,11 @@
+[Unit]
+Description=Improv BLE WiFi onboarding service
+Documentation=https://www.improv-wifi.com/ble/
+
+[Service]
+ExecStart=/usr/share/improv/onboarding-server.py
+Restart=always
+RestartSec=12
+
+[Install]
+WantedBy=default.target
