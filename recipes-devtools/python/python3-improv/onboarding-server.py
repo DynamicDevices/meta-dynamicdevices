@@ -87,7 +87,9 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
         f"Creating Improv WiFi connection for '{ssid.decode('utf-8')}' with password: '{passwd.decode('utf-8')}'")
 
     subprocess.run(["nmcli", "con", "delete", "id", "improv"])
-    subprocess.run(["nmcli", "con", "add", "type", "wifi", "con-name", "improv", "ssid", "{ssid.decode('utf-8')}", "802-11-wireless-security.key-mgmt", "WPA-PSK", "802-11-wireless-security.psk", "{passwd.decode('utf-8')}", "ifname", "wlan0"])
+
+    cmd = "nmcli con add type wifi con-name improv ssid \"" + ssid.decode('utf-8') + "\" 802-11-wireless-security.key-mgmt WPA-PSK 802-11-wireless-security.psk \"" + passwd.decode('utf-8') + "\" ifname wlan0"
+    subprocess.call(cmd, shell=True)
 
     logger.warning("Return None for the failure")
     localIP = "192.168.2.123"
