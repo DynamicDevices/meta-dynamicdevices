@@ -3,7 +3,7 @@ HOMEPAGE = "https://github.com/hbldh/bleak"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=bcbc2069a86cba1b5e47253679f66ed7"
 
-SRCREV = "c746071a3fcc3b5e69db6d6b23445ec3505d7730"
+SRCREV = "2fe1b69f89929ec95dbc8027fd58c47b7a1e3e0a"
 PYPI_SRC_URI = "git://github.com/hbldh/bleak.git;protocol=https;branch=develop \
                 file://01-remove-group-dependencies.patch \
 "

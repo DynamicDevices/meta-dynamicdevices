@@ -1,27 +1,23 @@
-We've backported python3-bleak to kirkstone and the version of poetry
-appears to be too old to support groups. These are for docs and test
-so just remove them for now
-
 diff --git a/pyproject.toml b/pyproject.toml
-index 092f7ff..8453118 100644
+index 7e25ef9..649ab9a 100644
 --- a/pyproject.toml
 +++ b/pyproject.toml
-@@ -39,20 +39,6 @@ bleak-winrt = { version = "^1.2.0", markers = "platform_system=='Windows'", pyth
- "winrt-Windows.Storage.Streams" = { version = "^2", markers = "platform_system=='Windows'", python = ">=3.12" }
- dbus-fast = { version = ">=1.83.0, < 3", markers = "platform_system == 'Linux'" }
+@@ -31,20 +31,6 @@ pyobjc-framework-libdispatch = { version = "^9.0.1", markers = "platform_system=
+ bleak-winrt = { version = "^1.2.0", markers = "platform_system=='Windows'" }
+ dbus-fast = { version = "^1.83.0", markers = "platform_system == 'Linux'" }
  
 -[tool.poetry.group.docs.dependencies]
--Sphinx = "^5.1.1"
+-Sphinx = { version = "^5.1.1", python = ">=3.8" }
 -sphinx-rtd-theme = "^1.0.0"
 -
 -[tool.poetry.group.lint.dependencies]
--black = ">=24.3,<25.0"
--flake8 = "^5.0.0"
--isort = "^5.13.2"
+-black = "^22.1.0"
+-flake8 = { version = "^5.0.0", python = ">=3.8" }
 -
 -[tool.poetry.group.test.dependencies]
--pytest = "^8.2.1"
--pytest-asyncio = "^0.23.7"
+-asynctest = { version = "^0.13.0",  python = "<3.8" }
+-pytest = "^7.0.0"
+-pytest-asyncio = "^0.19.0"
 -pytest-cov = "^3.0.0 "
 -
  [build-system]
