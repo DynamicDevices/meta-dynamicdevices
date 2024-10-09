@@ -18,7 +18,8 @@ require ${@bb.utils.contains('DISTRO_FEATURES', 'alsa', 'recipes-samples/images/
 require ${@bb.utils.contains('DISTRO_FEATURES', 'pulseaudio', 'recipes-samples/images/lmp-feature-pulseaudio.inc', '', d)}
 
 # Enable improv protocol (BLE/serial onboarding) recipes if required by DISTRO
-require ${@bb.utils.contains('DISTRO_FEATURES', 'improv', 'recipes-samples/images/lmp-feature-improv.inc', '', d)}
+#require ${@bb.utils.contains('DISTRO_FEATURES', 'improv', 'recipes-samples/images/lmp-feature-improv.inc', '', d)}
+require recipes-samples/images/lmp-feature-improv.inc
 
 # Enable flutter related recipes if required by DISTRO
 require ${@bb.utils.contains('DISTRO_FEATURES', 'flutter', 'recipes-samples/images/lmp-feature-flutter.inc', '', d)}
