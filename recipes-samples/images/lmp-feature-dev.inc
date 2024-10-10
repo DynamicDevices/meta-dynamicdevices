@@ -13,9 +13,9 @@ CORE_IMAGE_BASE_INSTALL += " \
    spidev-test \
    minicom \
    gpio-utils \
-   spotifyd \
    dhcpcd \
 "
 
+#   spotifyd \
 #   wifi-hotspot \
 #
