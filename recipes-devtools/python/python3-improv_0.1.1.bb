@@ -34,7 +34,7 @@ do_install() {
 
 FILES:${PN} = "${datadir}/improv/*.py"
 
-RDEPENDS:${PN} = "python3-bless"
+RDEPENDS:${PN} = "python3-bless python3-nmcli"
 
 SYSTEMD_SERVICE:${PN} = "improv.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
