@@ -98,13 +98,13 @@
 	};
 };
 
-&uart1 { /* BT */
-	bluetooth {
-		compatible = "qcom,qca9377-bt";
-		enable-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
-                status = "disabled";
-	};
-};
+//&uart1 { /* BT */
+//	bluetooth {
+//		compatible = "qcom,qca9377-bt";
+//		enable-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
+//              status = "disabled";
+//	};
+//};
 
 //&mipi_dsi {
 //        panel@0 {
