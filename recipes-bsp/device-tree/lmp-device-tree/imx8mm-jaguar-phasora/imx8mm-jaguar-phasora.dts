@@ -176,6 +176,6 @@
 	status = "disabled";
 };
 
-&adv_bridge {
-        status = "disabled";
-};
+//&adv_bridge {
+//        status = "disabled";
+//};
