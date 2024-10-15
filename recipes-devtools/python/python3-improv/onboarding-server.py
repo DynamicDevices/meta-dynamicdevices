@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import subprocess
 from improv import *
 from bless import (  # type: ignore
     BlessServer,
@@ -15,10 +14,10 @@ import sys
 import threading
 import asyncio
 import logging
+import uuid
+import nmcli
 
 logging.basicConfig(level=logging.DEBUG)
-
-
 logger = logging.getLogger(name=__name__)
 
 # NOTE: Some systems require different synchronization methods.
@@ -27,7 +26,6 @@ if sys.platform in ["darwin", "win32"]:
     trigger = threading.Event()
 else:
     trigger = asyncio.Event()
-
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -76,28 +74,48 @@ def build_gatt():
  Bluetooth LE Advertisement
 The device MUST advertise the Service UUID.
 """
+
+SERVER_HOST = "api.co.uk"
 SERVICE_NAME = "Improv"
+CON_NAME = "improv"
+INTERFACE = "wlan0"
+TIMEOUT = 10000
 
 loop = asyncio.get_event_loop()
 server = BlessServer(name=SERVICE_NAME, loop=loop)
-
 
 def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
     logger.warning(
         f"Creating Improv WiFi connection for '{ssid.decode('utf-8')}' with password: '{passwd.decode('utf-8')}'")
 
-    subprocess.run(["nmcli", "con", "delete", "id", "improv"])
+    try:
+      nmcli.connection.delete(f"{CON_NAME}")
+    except:
+      print(f'No connection {CON_NAME} to remove')
 
-    cmd = "nmcli con add type wifi con-name improv ssid \"" + ssid.decode('utf-8') + "\" 802-11-wireless-security.key-mgmt WPA-PSK 802-11-wireless-security.psk \"" + passwd.decode('utf-8') + "\" ifname wlan0"
-    subprocess.call(cmd, shell=True)
+    try:
+      nmcli.connection.add('wifi', { 'ssid':ssid.decode('utf-8'), 'wifi-sec.key-mgmt':'wpa-psk', 'wifi-sec.psk':passwd.decode('utf-8') }, f"{INTERFACE}", f"{CON_NAME}", True)
+    except:
+      print(f'Could not add new connection {CON_NAME}')
+      return None
 
-    logger.warning("Return None for the failure")
-    localIP = "192.168.2.123"
+    try:
+      nmcli.connection.up(f"{CON_NAME}", TIMEOUT)
+    except:
+      print(f'Error bringing connection {CON_NAME} up')
+      return None
 
-    localServer = f"http://127.0.0.1"
-    logger.warning(
-        f"Asking the client to now connect to us under {localServer}")
-    return [localServer]
+    dev_details = nmcli.device.show(f"{INTERFACE}")
+    if 'IP4.ADDRESS[1]' in dev_details.keys():
+      dev_addr = dev_details['IP4.ADDRESS[1]']
+      ip_addr = dev_addr.split('/')[0]
+    else:
+      print('Error connecting')
+      return None
+
+    token = uuid.uuid4()
+    server = f"https://{SERVER_HOST}?ip_address={ip_addr}&token={token}"
+    return [server]
 
 improv_server = ImprovProtocol(wifi_connect_callback=wifi_connect)
 
