@@ -13,7 +13,6 @@ CORE_IMAGE_BASE_INSTALL += " \
    spidev-test \
    minicom \
    gpio-utils \
-   dhcpcd \
 "
 
 #   spotifyd \
