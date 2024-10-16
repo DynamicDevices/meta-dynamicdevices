@@ -11,7 +11,7 @@ SRC_URI = "git://github.com/Mimoja/pyImprov.git;protocol=https;branch=main \
            file://onboarding-server.py \
            file://improv.service \
 "
-SRCREV = "d83c0f7c152737de13132533b7d65d4a1e07f6c1"
+SRCREV = "635a49d244f6989803cd426921d645f9b4c29622"
 
 S = "${WORKDIR}/git"
 
