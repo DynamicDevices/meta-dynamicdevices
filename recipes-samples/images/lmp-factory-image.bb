@@ -60,6 +60,9 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'stusb4500', 'recipes-samples/i
 # Enable Infineon bgt60 related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'bgt60', 'recipes-samples/images/lmp-feature-bgt60.inc', '', d)}
 
+# Enable NXP IW612 related recipes if required by MACHINE
+require ${@bb.utils.contains('MACHINE_FEATURES', 'nxpiw612-sdio', 'recipes-samples/images/lmp-feature-iw612.inc', '', d)}
+
 # Set image features based on DEV_MODE environment variable defined in Factory configuration
 IMAGE_FEATURES += "${@bb.utils.contains('DEV_MODE', '1', 'debug-tweaks tools-sdk', '', d)}"
 
