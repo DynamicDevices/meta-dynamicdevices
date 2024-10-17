@@ -483,11 +483,19 @@
 
 // 802.15.4
 &ecspi1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_ecspi1>;
 	cs-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
         fsl,spi-num-chipselects = <1>;
 	status = "okay";
+
+        spidev1: spi@0 {
+		compatible = "rohm,dh2228fv";
+                spi-max-frequency = <50000000>;
+                reg = <0>;
+        };
 };
 
 // BGT 60TR13C E6327 radar
@@ -498,7 +506,6 @@
 	pinctrl-0 = <&pinctrl_ecspi2>;
 	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
         fsl,spi-num-chipselects = <1>;
-
 	status = "okay";
 
         spidev0: spi@0 {
