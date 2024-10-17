@@ -1,3 +1,4 @@
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://zb_mux.sh"
 
