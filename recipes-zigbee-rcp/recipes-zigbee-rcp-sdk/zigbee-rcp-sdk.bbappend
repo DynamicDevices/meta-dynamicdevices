@@ -2,7 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 inherit systemd
 
-SRC_URI:imx8mm-jaguar-sentai += "file://zb_mux.sh"
+SRC_URI:append:imx8mm-jaguar-sentai = " file://zb_mux.sh"
 
 do_install:append:imx8mm-jaguar-sentai() {
     install -d ${D}${sbindir}
