@@ -519,8 +519,14 @@
 	status = "disabled";
 };
 
+// USB-C port
+&usbotg1 {
+	dr_mode = "peripheral";
+        /delete-property/ usb-role-switch;
+        status = "okay";
+};
 
-
+// Cellular modem
 &usbotg2 {
 	dr_mode = "host";
         status = "okay";
