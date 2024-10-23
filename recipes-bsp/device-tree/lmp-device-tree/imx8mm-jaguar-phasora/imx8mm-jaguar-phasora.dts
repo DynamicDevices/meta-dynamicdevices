@@ -120,7 +120,7 @@
                                          */
                 panel-width-mm = <36>;
                 panel-height-mm = <65>;
-                status = "okay";
+                status = "disabled";
         };
 };
 
