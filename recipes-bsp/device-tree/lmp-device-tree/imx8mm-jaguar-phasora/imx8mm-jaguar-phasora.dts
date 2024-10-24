@@ -107,7 +107,6 @@
 //};
 
 &mipi_dsi {
-	/delete-node/ ports;
 
         panel@0 {
                 compatible = "techstar,ts8550b";
@@ -145,6 +144,8 @@
                 touchscreen-size-x = <360>;
                 touchscreen-size-y = <640>;
         };
+
+       status = "disabled";
 };
 
 &i2c3 {
