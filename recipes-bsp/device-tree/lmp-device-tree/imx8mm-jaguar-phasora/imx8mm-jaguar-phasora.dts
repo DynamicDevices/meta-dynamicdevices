@@ -106,6 +106,8 @@
 //	};
 //};
 
+/delete-node/ &mipi_dsi;
+
 &mipi_dsi {
         panel@0 {
                 compatible = "techstar,ts8550b";
