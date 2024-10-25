@@ -107,9 +107,39 @@
 //};
 
 &mipi_dsi {
-	status = "disabled";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
 
-        /delete-node/ ports;
+	panel@0 {
+		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
+		pinctrl-names = "default";
+		compatible = "raydium,rm67191";
+		reg = <0>;
+		reset-gpios = <&gpio5 8 GPIO_ACTIVE_LOW>;
+		dsi-lanes = <4>;
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&mipi_dsi_out>;
+			};
+		};
+	};
+
+	ports {
+		port@1 {
+			reg = <1>;
+			mipi_dsi_out: endpoint {
+				remote-endpoint = <&panel_in>;
+			};
+		};
+	};
+};
+
+//&mipi_dsi {
+//	status = "disabled";
+
+//        /delete-node/ ports;
 
 //	panel@0 {
 //                compatible = "techstar,ts8550b";
@@ -136,7 +166,7 @@
 //			remote-endpoint = <&panel1_in>;
 //		};
 //	};
-};
+//};
 
 &i2c2 { 
         clock_frequency = <100000>;
