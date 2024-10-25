@@ -107,7 +107,7 @@
 //};
 
 &mipi_dsi {
-	status = "okay";
+	status = "disabled";
 
         /delete-node/ ports;
 
