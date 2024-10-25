@@ -115,7 +115,6 @@
                 compatible = "techstar,ts8550b";
 		reg = <0>;
                 pinctrl-0 = <&pinctrl_mipi_dsi_en>;
-		reset-gpio = <&pca9557_a 6 GPIO_ACTIVE_HIGH>;
                 reset-gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
 		dsi-lanes = <2>;
                 video-mode = <2>;       /* 0: burst mode
