@@ -106,10 +106,11 @@
 //	};
 //};
 
-/delete-node/ &mipi_dsi;
-
-&mipi_dsi_bridge1 {
+&mipi_dsi {
 	status = "okay";
+
+        /delete-node/ ports;
+
 	panel@0 {
                 compatible = "techstar,ts8550b";
 		reg = <0>;
