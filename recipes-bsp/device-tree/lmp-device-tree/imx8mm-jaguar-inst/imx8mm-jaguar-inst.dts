@@ -25,3 +25,14 @@
         /delete-property/ usb-role-switch;
         status = "okay";
 };
+
+&i2c2 {
+	ptn5110: tcpc@50 {
+		typec1_con: connector {
+			power-role = "sink";
+			data-role = "host";
+			/delete-property/ try-power-role;
+			/delete-property/ self-powered;
+		};
+	};
+};
