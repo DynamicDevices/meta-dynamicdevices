@@ -108,6 +108,14 @@ CORE_IMAGE_BASE_INSTALL += " \
     ${@bb.utils.contains('LMP_DISABLE_GPLV3', '1', '', '${CORE_IMAGE_BASE_INSTALL_GPLV3}', d)} \
 "
 
+CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
+       firmware-imx-8m \
+       linux-firmware-bdsdmac \
+       linux-firmware-iwlwifi \
+       kernel-devicetree \
+       pciutils \
+"
+
 #CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-phasora = " \
 #    phasora-config \
 #    gstreamer1.0-meta-base \
