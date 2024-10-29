@@ -109,7 +109,6 @@ CORE_IMAGE_BASE_INSTALL += " \
 "
 
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
-       firmware-imx-8m \
        linux-firmware-bdsdmac \
        linux-firmware-iwlwifi \
        kernel-devicetree \
