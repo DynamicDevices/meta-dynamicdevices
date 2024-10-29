@@ -164,28 +164,9 @@
 };
 
 &i2c2 {
-        ptn5110: tcpc@50 {
-                status = "disabled";
-	};
-
-	// Audio Amp
-        tas2563: tas2563@4C {
-                #sound-dai-cells = <0>;
-                compatible = "ti,tas2563";
-                reg = <0x4C>;
-                ti,channels = <1>; /* channel number */
-//              ti,reset-gpio = <&gpio5 4 GPIO_ACTIVE_HIGH>;
-                ti,irq-gpio = <&gpio5 5 GPIO_ACTIVE_LOW>;
-                ti,asi-format = <0>; /* 0, i2S; 1, DSP;  */
-                ti,left-slot = <0>; /* <left slot number> */
-                ti,right-slot = <1>; /* <right slot number> */
-                ti,imon-slot-no = <0>; /* <current sense slot number> */
-                ti,vmon-slot-no = <2>; /* <current voltage slot number> */
-                ti,echo-ref = <2>;
-                ti,bypass-tmax = <1>; /* 0, not bypass; 1, bypass */
-                ti,i2s-bits = <32>;
-                status = "okay";
-        };
+//        ptn5110: tcpc@50 {
+//                status = "disabled";
+//	};
 };
 
 &i2c3 {
@@ -232,8 +213,8 @@
 
 // USB-C port
 &usbotg1 {
-	dr_mode = "host";
-        /delete-property/ usb-role-switch;
+//	dr_mode = "host";
+//        /delete-property/ usb-role-switch;
         status = "okay";
 };
 
