@@ -18,31 +18,6 @@
 		regulator-max-microvolt = <3300000>;
 	};
 
-	sound-tas2563 {
-                compatible = "simple-audio-card";
-                simple-audio-card,name = "tas2563-audio";
-                simple-audio-card,format = "i2s";
-                simple-audio-card,frame-master = <&cpudai2>;
-                simple-audio-card,bitclock-master = <&cpudai2>;
-                //simple-audio-card,widgets =
-                //      "Line", "Left Line Out Jack",
-                //      "Line", "Right Line Out Jack";
-                //simple-audio-card,routing =
-                //      "Left Line Out Jack", "LINEVOUTL",
-                //      "Right Line Out Jack", "LINEVOUTR";
-
-                cpudai2: simple-audio-card,cpu {
-                        sound-dai = <&sai3>;
-                        dai-tdm-slot-num = <2>;
-                        dai-tdm-slot-width = <32>;
-                };
-
-                simple-audio-card,codec {
-                        sound-dai = <&tas2563>;
-                        clocks = <&clk IMX8MM_CLK_SAI3_ROOT>;
-                };
-        };
-
 	sound-wm8524 {
 		status = "disabled";
 	};
@@ -147,211 +122,18 @@
         };
 };
 
-&uart1 { /* BT */
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_uart1>;
-        assigned-clocks = <&clk IMX8MM_CLK_UART1>;
-        assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
-        fsl,uart-has-rtscts;
-        status = "okay";
-
-        bluetooth {
-                compatible = "nxp,88w8997-bt";
-		fw-init-baudrate = <3000000>;
-        };
-};
-
 &uart3 {
 	status = "disabled";
 };
 
-&gpio2 {
-	wl-wake-dev-hog {
-		gpio-hog;
-		gpios = <6 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "wl-wake-dev";
-	};
-	bt-wake-dev-hog {
-		gpio-hog;
-		gpios = <7 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "bt-wake-dev";
-	};
-	zb-reset-hog {
-		gpio-hog;
-		gpios = <11 GPIO_ACTIVE_LOW>;
-		output-low;
-		line-name = "zb-reset";
-	};
-};
-
-&gpio3 {
-	wlan-power-down-hog {
-		gpio-hog;
-		gpios = <7 GPIO_ACTIVE_LOW>;
-		output-low;
-		line-name = "wlan-power-down";
-	};
-	bt-wake-host-hog {
-		gpio-hog;
-		gpios = <8 GPIO_ACTIVE_HIGH>;
-		input;
-		line-name = "bt-wake-host";
-	};
-	bt-reset-hog {
-		gpio-hog;
-		gpios = <9 GPIO_ACTIVE_LOW>;
-		output-low;
-		line-name = "bt-reset";
-	};
-};
-
-&gpio4 {
-       led-enable-hog {
-		gpio-hog;
-		gpios = <9 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "lp5204-enable";
-       };
-       zb-int-hog {
-		gpio-hog;
-		gpios = <22 GPIO_ACTIVE_HIGH>;
-		input;
-		line-name = "zb-int";
-       };
-       radar-irq-hog {
-		gpio-hog;
-		gpios = <28 GPIO_ACTIVE_HIGH>;
-		input;
-		line-name = "radar-irq";
-       };
-       radar-rst-hog {
-		gpio-hog;
-		gpios = <29 GPIO_ACTIVE_HIGH>;
-		output-high;
-		line-name = "radar-rst";
-       };
-};
-
-&gpio5 {
-       audio-shutdown-hog {
-		gpio-hog;
-		gpios = <4 GPIO_ACTIVE_LOW>;
-		output-low;
-		line-name = "tas2563-shutdown";
-       };
-//       bt-cts-hog {
-//		gpio-hog;
-//		gpios = <27 GPIO_ACTIVE_HIGH>;
-//		output-low;
-//		line-name = "bt-cts-hog";
-//     };
-};
-
-&fec1 {
-        status = "disabled";
-};
-
 &i2c2 {
-        ptn5110: tcpc@50 {
-                status = "disabled";
-	};
+//        ptn5110: tcpc@50 {
+//                status = "disabled";
+//	};
 
-	// Audio Amp
-        tas2563: tas2563@4C {
-                #sound-dai-cells = <0>;
-                compatible = "ti,tas2563";
-                reg = <0x4C>;
-                ti,channels = <1>; /* channel number */
-//              ti,reset-gpio = <&gpio5 4 GPIO_ACTIVE_HIGH>;
-                ti,irq-gpio = <&gpio5 5 GPIO_ACTIVE_LOW>;
-                ti,asi-format = <0>; /* 0, i2S; 1, DSP;  */
-                ti,left-slot = <0>; /* <left slot number> */
-                ti,right-slot = <1>; /* <right slot number> */
-                ti,imon-slot-no = <0>; /* <current sense slot number> */
-                ti,vmon-slot-no = <2>; /* <current voltage slot number> */
-                ti,echo-ref = <2>;
-                ti,bypass-tmax = <1>; /* 0, not bypass; 1, bypass */
-                ti,i2s-bits = <32>;
-                status = "okay";
-        };
 };
 
 &i2c3 {
-	led-controller@28 {
-            compatible = "ti,lp5024";
-            reg = <0x28>;
-            #address-cells = <1>;
-            #size-cells = <0>;
-            enable-gpios = <&gpio4 9 GPIO_ACTIVE_HIGH>;
-
-            multi-led@0 {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                reg = <0x0>;
-                color = <LED_COLOR_ID_RGB>;
-		function = LED_FUNCTION_INDICATOR;
-                led@0 {
-                     reg = <0x0>;
-                     color = <LED_COLOR_ID_RED>;
-                };
-
-                led@1 {
-                     reg = <0x1>;
-                     color = <LED_COLOR_ID_GREEN>;
-                };
-
-                led@2 {
-                     reg = <0x2>;
-                     color = <LED_COLOR_ID_BLUE>;
-                };
-            };
-            multi-led@1 {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                reg = <0x1>;
-                color = <LED_COLOR_ID_RGB>;
-		function = LED_FUNCTION_INDICATOR;
-                led@0 {
-                     reg = <0x3>;
-                     color = <LED_COLOR_ID_RED>;
-                };
-
-                led@1 {
-                     reg = <0x4>;
-                     color = <LED_COLOR_ID_GREEN>;
-                };
-
-                led@2 {
-                     reg = <0x5>;
-                     color = <LED_COLOR_ID_BLUE>;
-                };
-            };
-            multi-led@2 {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                reg = <0x2>;
-                color = <LED_COLOR_ID_RGB>;
-		function = LED_FUNCTION_INDICATOR;
-                led@0 {
-                     reg = <0x6>;
-                     color = <LED_COLOR_ID_RED>;
-                };
-
-                led@1 {
-                     reg = <0x7>;
-                     color = <LED_COLOR_ID_GREEN>;
-                };
-
-                led@2 {
-                     reg = <0x8>;
-                     color = <LED_COLOR_ID_BLUE>;
-                };
-            };
-
-        };
-
 	ov5640_mipi: ov5640_mipi@3c {
 		status = "disabled";
 	};
@@ -390,30 +172,9 @@
        status = "disabled";
 };
 
-&pcie0 {
-       status = "disabled";
-};
-
-// 802.15.4
-&ecspi1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_ecspi1>;
-	status = "okay";
-};
-
-// BGT 60TR13C E6327 radar
-&ecspi2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_ecspi1>;
-	status = "okay";
-
-        spidev0: spi@0 {
-// Chip select here?
-                reg = <0>;
-                compatible = "spidev";
-        };
-
-};
+//&pcie0 {
+//       status = "disabled";
+//};
 
 &flexspi {
 	status = "disabled";
