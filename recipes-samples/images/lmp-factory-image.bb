@@ -1,4 +1,4 @@
-SUMMARY = "Minimal factory image which includes OTA Lite, Docker, and OpenSSH support"
+SUMMARY = "Minimal factory image which includes OTA Lite, Docker and optional development support such as OpenSSH"
 
 require recipes-samples/images/lmp-image-common.inc
 
@@ -84,8 +84,6 @@ require recipes-samples/images/lmp-feature-docker.inc
 require recipes-samples/images/lmp-feature-wifi.inc
 require recipes-samples/images/lmp-feature-ota-utils.inc
 require recipes-samples/images/lmp-feature-sbin-path-helper.inc
-
-IMAGE_FEATURES += "ssh-server-openssh"
 
 CORE_IMAGE_BASE_INSTALL_GPLV3 = "\
     packagegroup-core-full-cmdline-utils \

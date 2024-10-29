@@ -15,3 +15,4 @@ CORE_IMAGE_BASE_INSTALL += " \
    gpio-utils \
 "
 
+IMAGE_FEATURES += "ssh-server-openssh"
