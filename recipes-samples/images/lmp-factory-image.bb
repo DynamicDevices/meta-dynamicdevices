@@ -109,9 +109,7 @@ CORE_IMAGE_BASE_INSTALL += " \
 "
 
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
-       linux-firmware-bdsdmac \
        linux-firmware-iwlwifi \
-       kernel-devicetree \
        pciutils \
 "
 
