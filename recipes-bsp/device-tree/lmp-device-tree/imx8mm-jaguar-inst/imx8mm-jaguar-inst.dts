@@ -18,3 +18,10 @@
 		regulator-max-microvolt = <3300000>;
 	};
 };
+
+// USB-C port
+&usbotg1 {
+        dr_mode = "host";
+        /delete-property/ usb-role-switch;
+        status = "okay";
+};
