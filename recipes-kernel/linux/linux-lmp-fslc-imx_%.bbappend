@@ -27,6 +27,23 @@ do_configure:append:imx8mm-jaguar-sentai(){
  echo "dtb-y += imx8mm-jaguar-sentai.dtb" >> ${S}/arch/arm64/boot/dts/Makefile
 }
 
+SRC_URI:append:imx8mm-jaguar-inst = " \
+		file://enable_i2c-dev.cfg \
+                file://enable_usb_modem.cfg \
+		file://enable_gpio_key.cfg \
+		file://imx8mm-jaguar-inst.dts \
+		file://02-disable-wifi-scan-msg.patch \
+		file://04-enable-usb-gadgets.cfg \
+"
+
+# NOTE: This DTB file is created as a default for use with local development
+#       when building lmp-base. It is NOT used by the lmp build or under CI
+#       which uses the DTS in lmp-device-tree
+do_configure:append:imx8mm-jaguar-inst(){
+ cp ${WORKDIR}/imx8mm-jaguar-inst.dts ${S}/arch/arm64/boot/dts
+ echo "dtb-y += imx8mm-jaguar-inst.dtb" >> ${S}/arch/arm64/boot/dts/Makefile
+}
+
 # NOTE: This DTB file is created as a default for use with local development
 #       when building lmp-base. It is NOT used by the lmp build or under CI
 #       which uses the DTS in lmp-device-tree

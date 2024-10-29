@@ -6,6 +6,12 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
 
 COMPATIBLE_MACHINE:imx8mm-jaguar-sentai = ".*"
 
+SRC_URI:append:imx8mm-jaguar-inst = " \
+        file://imx8mm-jaguar-inst.dts \
+"
+
+COMPATIBLE_MACHINE:imx8mm-jaguar-inst = ".*"
+
 SRC_URI:append:imx8mm-jaguar-phasora = " \
         file://imx8mm-jaguar-phasora.dts \
 "

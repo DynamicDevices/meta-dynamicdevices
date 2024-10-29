@@ -30,3 +30,6 @@ PACKAGECONFIG:append:pn-networkmanager:imx8mm-jaguar-sentai = " modemmanager ppp
 # Support SE050
 SE05X_OEFID:imx8mm-jaguar-sentai = "0xA1F4"
 MACHINE_FEATURES:append:imx8mm-jaguar-sentai = " se05x"
+
+SE05X_OEFID:imx8mm-jaguar-inst = "0xA1F4"
+MACHINE_FEATURES:append:imx8mm-jaguar-inst = " se05x"
