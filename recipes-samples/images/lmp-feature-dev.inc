@@ -15,6 +15,3 @@ CORE_IMAGE_BASE_INSTALL += " \
    gpio-utils \
 "
 
-#   spotifyd \
-#   wifi-hotspot \
-#
