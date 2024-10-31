@@ -17,8 +17,11 @@ RDEPENDS:${PN} += "waydroid-data lxc python3-gbinder python3-pygobject libgbinde
 # these modules are directly included in android-flavored kernels
 # Note: Waydroid requires kernel >= 3.18 !
 RDEPENDS:${PN} += " \
-    kernel-module-ashmem-linux \
     kernel-module-binder-linux \
+"
+
+RRECOMMENDS:${PN} += "\
+    kernel-module-ashmem-linux \
 "
 
 SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=https \
