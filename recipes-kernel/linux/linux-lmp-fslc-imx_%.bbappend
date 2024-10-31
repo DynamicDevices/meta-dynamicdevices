@@ -61,9 +61,11 @@ do_configure:append:imx8mm-jaguar-phasora(){
  echo "dtb-y += imx8mm-jaguar-phasora.dtb" >> ${S}/arch/arm64/boot/dts/Makefile
 }
 
+# TODO: Make binder module based on DISTRO
 SRC_URI:append:imx8mm-jaguar-handheld = " \
 		file://enable_i2c-dev.cfg \
 		file://imx8mm-jaguar-handheld.dts \
+                file://enable-binder.cfg \
 "
 
 SRC_URI:append:imx8mm-jaguar-phasora = " \
