@@ -38,12 +38,26 @@ do_install() {
     install -dm755 "${D}/usr/share/waydroid-extra/images"
 
     # split files up
-    split -b100M ${WORKDIR}/system.img system.img.
-    split -b100M ${WORKDIR}/vendor.img.img vendor.img.
- 
+    split -b100M ${WORKDIR}/system.img ${WORKDIR}/system.img.
+    split -b100M ${WORKDIR}/vendor.img ${WORKDIR}/vendor.img.
+
     # makepkg have extracted the zips
-    install -m 0644 "${WORKDIR}/system.img.*" "${D}/usr/share/waydroid-extra/images"
-    install -m 0644 "${WORKDIR}/vendor.img.*" "${D}/usr/share/waydroid-extra/images"
+    for f in ${WORKDIR}/system.img.*; do \
+        install -m 0644 $f "${D}/usr/share/waydroid-extra/images"; \
+    done
+    for f in ${WORKDIR}/vendor.img.*; do \
+        install -m 0644 $f "${D}/usr/share/waydroid-extra/images"; \
+    done
 }
 
 FILES:${PN} += "/usr/share/waydroid-extra/images"
+
+pkg_postinst_ontarget:${PN} () {
+  #!/bin/sh
+  echo Rebuilding Waydroid OS images
+  cat /usr/share/waydroid-extra/images/system.img.* > system.img
+  rm /usr/share/waydroid-extra/images/system.img.*
+  cat /usr/share/waydroid-extra/images/vendor.img.* > vendor.img
+  rm /usr/share/waydroid-extra/images/vendor.img.*
+}
+
