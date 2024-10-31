@@ -55,10 +55,11 @@ FILES:${PN} += "/usr/share/waydroid-extra/images"
 pkg_postinst_ontarget:${PN} () {
   #!/bin/sh
   echo Rebuilding Waydroid OS images
-  cat /usr/share/waydroid-extra/images/system.img.* > system.img
-  rm /usr/share/waydroid-extra/images/system.img.*
-  cat /usr/share/waydroid-extra/images/vendor.img.* > vendor.img
-  rm /usr/share/waydroid-extra/images/vendor.img.*
+  mkdir -p /etc/waydroid-extra/images
+  cat /usr/share/waydroid-extra/images/system.img.* > /etc/waydroid-extra/images/system.img
+#  rm /usr/share/waydroid-extra/images/system.img.*
+  cat /usr/share/waydroid-extra/images/vendor.img.* > /etc/waydroid-extra/images/vendor.img
+#  rm /usr/share/waydroid-extra/images/vendor.img.*
 }
 
 INSANE_SKIP:${PN} += "arch file-rdeps"
