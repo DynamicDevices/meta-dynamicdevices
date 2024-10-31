@@ -37,9 +37,13 @@ SRC_URI[vendor.sha256sum] = "${SHA256SUM_VENDOR}"
 do_install() {
     install -dm755 "${D}/usr/share/waydroid-extra/images"
 
+    # split files up
+    split -b100M ${WORKDIR}/system.img system.img.
+    split -b100M ${WORKDIR}/vendor.img.img vendor.img.
+ 
     # makepkg have extracted the zips
-    install -m 0644 "${WORKDIR}/system.img" "${D}/usr/share/waydroid-extra/images"
-    install -m 0644 "${WORKDIR}/vendor.img" "${D}/usr/share/waydroid-extra/images"
+    install -m 0644 "${WORKDIR}/system.img.*" "${D}/usr/share/waydroid-extra/images"
+    install -m 0644 "${WORKDIR}/vendor.img.*" "${D}/usr/share/waydroid-extra/images"
 }
 
 FILES:${PN} += "/usr/share/waydroid-extra/images"
