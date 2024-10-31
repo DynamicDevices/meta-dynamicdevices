@@ -12,7 +12,7 @@ SPV = "1.4.2"
 PV = "${SPV}+git${SRCPV}"
 
 
-RDEPENDS:${PN} += "waydroid-data lxc python3-gbinder python3-pygobject libgbinder python3-pyclip python3-dbus python3-compression"
+RDEPENDS:${PN} += "waydroid-data lxc python3-gbinder python3-pygobject libgbinder python3-pyclip python3-dbus python3-compression python3-json"
 
 # these modules are directly included in android-flavored kernels
 # Note: Waydroid requires kernel >= 3.18 !
