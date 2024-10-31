@@ -61,4 +61,4 @@ pkg_postinst_ontarget:${PN} () {
   rm /usr/share/waydroid-extra/images/vendor.img.*
 }
 
-INSANE_SKIP:${PN} += "arch"
+INSANE_SKIP:${PN} += "arch file-rdeps"
