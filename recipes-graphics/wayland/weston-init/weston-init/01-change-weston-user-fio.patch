@@ -1,0 +1,13 @@
+--- weston-init/weston.service	2024-08-13 03:05:49.716148266 +0100
++++ weston-init/weston.service.new	2024-11-01 00:54:47.522176906 +0000
+@@ -41,8 +41,8 @@
+ #WatchdogSec=20
+ 
+ # The user to run Weston as.
+-User=weston
+-Group=weston
++User=fio
++Group=fio
+ 
+ # Make sure the working directory is the users home directory
+ WorkingDirectory=/home/weston
