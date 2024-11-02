@@ -38,8 +38,8 @@ do_install() {
     install -dm755 "${D}/usr/share/waydroid-extra/images"
 
     # split files up
-    split -b100M ${WORKDIR}/system.img ${WORKDIR}/system.img.
-    split -b100M ${WORKDIR}/vendor.img ${WORKDIR}/vendor.img.
+    split -b100M -d ${WORKDIR}/system.img ${WORKDIR}/system.img.
+    split -b100M -d ${WORKDIR}/vendor.img ${WORKDIR}/vendor.img.
 
     # makepkg have extracted the zips
     for f in ${WORKDIR}/system.img.*; do \
