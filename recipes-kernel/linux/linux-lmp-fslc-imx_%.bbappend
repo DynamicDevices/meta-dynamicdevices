@@ -67,6 +67,7 @@ SRC_URI:append:imx8mm-jaguar-handheld = " \
 		file://imx8mm-jaguar-handheld.dts \
                 file://enable-binder.cfg \
 		file://enable-iptables-ext.cfg \
+		file://enable-erofs.cfg \
 "
 
 SRC_URI:append:imx8mm-jaguar-phasora = " \
