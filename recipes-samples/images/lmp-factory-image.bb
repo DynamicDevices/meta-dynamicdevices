@@ -66,6 +66,9 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'bgt60', 'recipes-samples/image
 # Enable NXP IW612 related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'nxpiw612-sdio', 'recipes-samples/images/lmp-feature-iw612.inc', '', d)}
 
+# Enable alsa related recipes if required by MACHINE
+require ${@bb.utils.contains('MACHINE_FEATURES', 'zigbee', 'recipes-samples/images/lmp-feature-zigbee.inc', '', d)}
+
 # Set image features based on DEV_MODE environment variable defined in Factory configuration
 IMAGE_FEATURES += "${@bb.utils.contains('DEV_MODE', '1', 'debug-tweaks tools-sdk', '', d)}"
 
