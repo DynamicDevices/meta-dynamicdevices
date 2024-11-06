@@ -114,6 +114,8 @@ CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
        pciutils \
 "
 
+IMAGE_FEATURES += "ssh-server-openssh"
+
 #CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-phasora = " \
 #    phasora-config \
 #    gstreamer1.0-meta-base \
