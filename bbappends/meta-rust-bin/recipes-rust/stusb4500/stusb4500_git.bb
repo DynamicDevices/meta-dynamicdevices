@@ -21,6 +21,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3570cec030817fca048fd7f61219a588"
 RDEPENDS:${PN} += "stusb4500-nvm"
 
 do_install:append() {
-  chmod a+s ${D}${bindir}/stusb4500-util
+  chmod a+s ${D}${bindir}/stusb4500-utils
 }
 
