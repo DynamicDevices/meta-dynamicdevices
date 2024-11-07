@@ -11,6 +11,11 @@ SRC_URI = "git://github.com/Mimoja/pyImprov.git;protocol=https;branch=main \
            file://onboarding-server.py \
            file://improv.service \
 "
+
+SRC_URI:imx8mm-jaguar-sentai:append = " \
+           file://improv.py \
+"
+
 SRCREV = "635a49d244f6989803cd426921d645f9b4c29622"
 
 S = "${WORKDIR}/git"
@@ -25,8 +30,8 @@ do_compile() {
 
 do_install() {
   install -d ${D}/${datadir}/improv
-  install -D -m 0755 ${S}/*.py ${D}${datadir}/improv
   install -D -m 0755 ${WORKDIR}/*.py ${D}${datadir}/improv
+  install -D -m 0755 ${S}/*.py ${D}${datadir}/improv
   chmod a+x ${D}${datadir}/improv
   install -d ${D}/${systemd_unitdir}/system
   install -m 0644 ${WORKDIR}/improv.service ${D}/${systemd_unitdir}/system
