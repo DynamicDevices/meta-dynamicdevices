@@ -12,7 +12,7 @@ SRC_URI = "git://github.com/Mimoja/pyImprov.git;protocol=https;branch=main \
            file://improv.service \
 "
 
-SRC_URI:imx8mm-jaguar-sentai:append = " \
+SRC_URI:append:imx8mm-jaguar-sentai = " \
            file://improv.py \
 "
 
