@@ -16,6 +16,8 @@ import asyncio
 import logging
 import uuid
 import nmcli
+import subprocess
+import os
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -80,13 +82,16 @@ SERVICE_NAME = "Sentai"
 CON_NAME = "improv"
 INTERFACE = "wlan0"
 TIMEOUT = 10000
+FILENAME = "usr_token.json"
+CONTAINERNAME = "sentaispeaker-SentaiSpeaker-1"
+DIRPATH = "/var/rootdirs/home/fio/improv"
 
 loop = asyncio.get_event_loop()
 server = BlessServer(name=SERVICE_NAME, loop=loop)
 
-def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
+def wifi_connect(ssid: str, passwd: str, usrtoken: str) -> Optional[list[str]]:
     logger.warning(
-        f"Creating Improv WiFi connection for '{ssid.decode('utf-8')}' with password: '{passwd.decode('utf-8')}'")
+        f"Creating Improv WiFi connection for '{ssid.decode('utf-8')}' with password: '{passwd.decode('utf-8')}' with password: '{usrtoken.decode('utf-8')}")
 
     try:
       nmcli.connection.delete(f"{CON_NAME}")
@@ -113,9 +118,50 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       print('Error connecting')
       return None
 
+    usertoken = usrtoken.decode('utf-8')
+    if not save_user_token(usertoken):
+        print('Failed to save token')
+        return None
+
+
     token = uuid.uuid4()
-    server = f"https://{SERVER_HOST}?ip_address={ip_addr}&token={token}"
+    server = f"https://{SERVER_HOST}?ip_address={ip_addr}&token={token}&usertoken={usertoken}"
     return [server]
+
+def save_user_token(user_token):
+
+    try:
+
+        if not os.path.exists(DIRPATH):
+            os.mkdir(DIRPATH)
+
+        json_str = '{\n    "UserToken": "' + str(user_token) + '"\n}'
+        filepath = os.path.join(DIRPATH, FILENAME)
+        with open(filepath, 'w') as file:
+            file.write(json_str)
+
+        print(f"UserToken has been written to {FILENAME}")
+
+    except Exception as fileex:
+        print(f"An error occurred while writing the file: {fileex}")
+        return False
+
+    try:
+
+        copy_command = ['docker', 'cp', filepath, f'{CONTAINERNAME}:/app/']
+
+        subprocess.run(copy_command, check=True)
+        print(f"{FILENAME} has been copied to container '{CONTAINERNAME}'")
+
+        return True
+
+    except subprocess.CalledProcessError as subex:
+        print(f"An error occurred while copying the file to the container: {subex}")
+        return False
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return False  # Return False for any other exceptions
 
 improv_server = ImprovProtocol(wifi_connect_callback=wifi_connect)
 
