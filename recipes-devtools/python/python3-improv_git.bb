@@ -30,8 +30,8 @@ do_compile() {
 
 do_install() {
   install -d ${D}/${datadir}/improv
-  install -D -m 0755 ${WORKDIR}/*.py ${D}${datadir}/improv
   install -D -m 0755 ${S}/*.py ${D}${datadir}/improv
+  install -D -m 0755 ${WORKDIR}/*.py ${D}${datadir}/improv
   chmod a+x ${D}${datadir}/improv
   install -d ${D}/${systemd_unitdir}/system
   install -m 0644 ${WORKDIR}/improv.service ${D}/${systemd_unitdir}/system
