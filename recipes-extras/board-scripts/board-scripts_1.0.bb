@@ -7,6 +7,7 @@ SRC_URI:append = " \
   file://board-info.sh \
   file://test-leds-hb.sh \
   file://test-leds-rc.sh \
+  file://set-fio-passwd.sh \
 "
 
 do_install() {
