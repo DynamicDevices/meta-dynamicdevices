@@ -85,6 +85,10 @@ TIMEOUT = 10000
 FILENAME = "usr_token.json"
 CONTAINERNAME = "sentaispeaker-SentaiSpeaker-1"
 DIRPATH = "/var/rootdirs/home/fio/improv"
+SERIALNUMBER = ""
+IMEI = ""
+ICCD = ""
+WLAN_MAC = ""
 
 loop = asyncio.get_event_loop()
 server = BlessServer(name=SERVICE_NAME, loop=loop)
@@ -117,24 +121,51 @@ def wifi_connect(ssid: str, passwd: str, usrtoken: str) -> Optional[list[str]]:
     else:
       print('Error connecting')
       return None
-
-    usertoken = usrtoken.decode('utf-8')
+    
+    usertoken = usrtoken.decode('utf-8')    
     if not save_user_token(usertoken):
         print('Failed to save token')
         return None
+    
 
+    try:
+        SERIALNUMBER = subprocess.check_output("cat /sys/devices/soc0/serial_number", shell=True, text=True).strip()
+        print("Serial Number:", SERIALNUMBER)
 
-    token = uuid.uuid4()
-    server = f"https://{SERVER_HOST}?ip_address={ip_addr}&token={token}&usertoken={usertoken}"
+        WLAN_MAC = subprocess.check_output("cat /sys/devices/soc0/serial_number", shell=True, text=True).strip()
+        print("Mac Address:", WLAN_MAC)
+
+    except subprocess.CalledProcessError as seriale:
+        print("An error occurred when getting serial number and MAC:", seriale)
+
+    try:
+        modem_id = subprocess.check_output("mmcli -L | cut -c 42-42", shell=True, text=True).strip()
+        print("MODEM_ID:", modem_id)
+
+        
+        if modem_id:
+           
+            IMEI = subprocess.check_output(f"mmcli -m {modem_id} | grep equipment | cut -c 35-", shell=True, text=True).strip()
+            print("IMEI:", IMEI)
+            
+            
+            ICCD = subprocess.check_output(f"mmcli --sim {modem_id} | grep 'iccid:' | cut -c 35-", shell=True, text=True).strip()
+            print("ICCID Info:", ICCD)
+            
+    except subprocess.CalledProcessError as modeme:
+        print("An error occurred getting modem details:", modeme)      
+  
+    server = f"https://{SERVER_HOST}?usertoken={usertoken}&ip_address={ip_addr}&mac_address={WLAN_MAC}&serial={SERIALNUMBER}&IMEI={IMEI}&ICCD={ICCD}"
+    print("Return Value:", server)
     return [server]
 
 def save_user_token(user_token):
-
+   
     try:
 
         if not os.path.exists(DIRPATH):
             os.mkdir(DIRPATH)
-
+        
         json_str = '{\n    "UserToken": "' + str(user_token) + '"\n}'
         filepath = os.path.join(DIRPATH, FILENAME)
         with open(filepath, 'w') as file:
@@ -144,20 +175,20 @@ def save_user_token(user_token):
 
     except Exception as fileex:
         print(f"An error occurred while writing the file: {fileex}")
-        return False
+        return False  
 
     try:
-
+        
         copy_command = ['docker', 'cp', filepath, f'{CONTAINERNAME}:/app/']
-
+        
         subprocess.run(copy_command, check=True)
         print(f"{FILENAME} has been copied to container '{CONTAINERNAME}'")
 
-        return True
+        return True  
 
     except subprocess.CalledProcessError as subex:
         print(f"An error occurred while copying the file to the container: {subex}")
-        return False
+        return False  
 
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
