@@ -7,7 +7,6 @@ CORE_IMAGE_BASE_INSTALL += " \
    curl \
    git \
    vim \
-   nano \
    default-network-manager \
    imx-test \
    spidev-test \

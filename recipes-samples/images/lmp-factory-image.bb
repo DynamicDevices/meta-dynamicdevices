@@ -95,6 +95,7 @@ CORE_IMAGE_BASE_INSTALL_GPLV3 = "\
 
 CORE_IMAGE_BASE_INSTALL += " \
     board-scripts \
+    nano \
     lmp-auto-hostname \
     kernel-modules \
     networkmanager-nmcli \
