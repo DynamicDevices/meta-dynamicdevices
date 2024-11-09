@@ -165,7 +165,7 @@
 
         bluetooth {
                 compatible = "nxp,88w8997-bt";
-		fw-init-baudrate = <115200>;
+		fw-init-baudrate = <3000000>;
         };
 };
 
