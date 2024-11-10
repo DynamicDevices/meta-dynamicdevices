@@ -85,10 +85,6 @@ TIMEOUT = 10000
 FILENAME = "usr_token.json"
 CONTAINERNAME = "sentaispeaker-SentaiSpeaker-1"
 DIRPATH = "/var/rootdirs/home/fio/improv"
-SERIALNUMBER = ""
-IMEI = ""
-ICCD = ""
-WLAN_MAC = ""
 
 loop = asyncio.get_event_loop()
 server = BlessServer(name=SERVICE_NAME, loop=loop)
@@ -127,12 +123,16 @@ def wifi_connect(ssid: str, passwd: str, usrtoken: str) -> Optional[list[str]]:
         print('Failed to save token')
         return None
     
+    SERIALNUMBER = ""
+    IMEI = ""
+    ICCD = ""
+    WLAN_MAC = ""
 
     try:
         SERIALNUMBER = subprocess.check_output("cat /sys/devices/soc0/serial_number", shell=True, text=True).strip()
         print("Serial Number:", SERIALNUMBER)
 
-        WLAN_MAC = subprocess.check_output("cat /sys/devices/soc0/serial_number", shell=True, text=True).strip()
+        WLAN_MAC = subprocess.check_output("ifconfig wlan0 | grep ether | cut -c 15-31", shell=True, text=True).strip()
         print("Mac Address:", WLAN_MAC)
 
     except subprocess.CalledProcessError as seriale:
