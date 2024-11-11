@@ -8,12 +8,7 @@ LICENSE = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1803fa9c2c3ce8cb06b4861d75310742"
 
 SRC_URI = "git://github.com/Mimoja/pyImprov.git;protocol=https;branch=main \
-           file://onboarding-server.py \
            file://improv.service \
-"
-
-SRC_URI:append:imx8mm-jaguar-sentai = " \
-           file://improv.py \
 "
 
 SRCREV = "635a49d244f6989803cd426921d645f9b4c29622"
