@@ -135,13 +135,6 @@
 };
 
 &gpio3 {
-	lte-power-down-hog {
-		gpio-hog;
-		gpios = <1 GPIO_ACTIVE_HIGH>;
-		output-low;
-		line-name = "lte-power-down";
-	};
-
 	wlan-power-down-hog {
 		gpio-hog;
 		gpios = <7 GPIO_ACTIVE_LOW>;
@@ -162,15 +155,6 @@
 	};
 };
 
-&gpio5 {
-       audio-shutdown-hog {
-		gpio-hog;
-		gpios = <4 GPIO_ACTIVE_LOW>;
-		output-low;
-		line-name = "tas2563-shutdown";
-       };
-};
-
 &fec1 {
         status = "disabled";
 };
@@ -181,40 +165,8 @@
 	};
 };
 
-&i2c3 {
-
-	ov5640_mipi: ov5640_mipi@3c {
-		status = "disabled";
-	};
-
-	pca6416: gpio@20 {
-		status = "disabled";
-	};
-
-        ak4458_1: ak4458@10 {
-		status = "disabled";
-	};
-
-        ak4458_2: ak4458@12 {
-		status = "disabled";
-	};
-
-        ak5558: ak5558@13 {
-		status = "disabled";
-	};
-
-        ak4497: ak4497@11 {
-		status = "disabled";
-	};
-
-};
-
 &sai1 {
 	status = "disabled";
-};
-
-&mipi_dsi {
-       status = "disabled";
 };
 
 &spdif1 {
