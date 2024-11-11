@@ -36,11 +36,8 @@
 			MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8	0x140  // BT_WAKE_HOST
                         MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9      0x140  // BT_RST#
                         MX8MM_IOMUXC_SAI1_RXD7_GPIO4_IO9        0x140  // LED_ENABLE
-                        MX8MM_IOMUXC_SAI1_TXFS_GPIO4_IO10       0x140  // CODEC_IRQ#
-                        MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4         0x140  // CODEC_SD#
                         MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11      0x140  // ZB_RST#
                         MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12     0x140  // ZB_INT
-			MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x140  // LTE_OFF
 			MX8MM_IOMUXC_SAI1_RXD4_GPIO4_IO6	0x140  // SLMB_0
 		>;
 	};
@@ -54,16 +51,6 @@
                         MX8MM_IOMUXC_ECSPI1_MOSI_ECSPI1_MOSI	0x13
                 >;
         };
-
-	pinctrl_pdm: pdmgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_SAI1_MCLK_PDM_CLK		0xd6
-			MX8MM_IOMUXC_SAI1_RXD0_PDM_DATA0	0xd6
-			MX8MM_IOMUXC_SAI1_RXD1_PDM_DATA1	0xd6
-			MX8MM_IOMUXC_SAI1_RXD2_PDM_DATA2	0xd6
-			MX8MM_IOMUXC_SAI1_RXD3_PDM_DATA3	0xd6
-		>;
-	};
 
         // Bluetooth PCM
         pinctrl_sai2: sai2grp {
@@ -152,28 +139,6 @@
 	};
 };
 
-&fec1 {
-        status = "disabled";
-};
-
-&i2c2 {
-        ptn5110: tcpc@50 {
-                status = "disabled";
-	};
-};
-
-&sai1 {
-	status = "disabled";
-};
-
-&spdif1 {
-       status = "disabled";
-};
-
-&pcie0 {
-       status = "disabled";
-};
-
 // 802.15.4
 &ecspi1 {
 	#address-cells = <1>;
@@ -191,19 +156,22 @@
         };
 };
 
-&flexspi {
+&fec1 {
+        status = "disabled";
+};
+
+&sai1 {
 	status = "disabled";
 };
 
-// USB-C port
-&usbotg1 {
-	dr_mode = "peripheral";
-        /delete-property/ usb-role-switch;
-        status = "okay";
+&spdif1 {
+       status = "disabled";
 };
 
-// Cellular modem
-&usbotg2 {
-	dr_mode = "host";
-        status = "okay";
+&pcie0 {
+       status = "disabled";
+};
+
+&flexspi {
+	status = "disabled";
 };
