@@ -38,7 +38,6 @@
                         MX8MM_IOMUXC_SAI1_RXD7_GPIO4_IO9        0x140  // LED_ENABLE
                         MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11      0x140  // ZB_RST#
                         MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12     0x140  // ZB_INT
-			MX8MM_IOMUXC_SAI1_RXD4_GPIO4_IO6	0x140  // SLMB_0
 		>;
 	};
 
