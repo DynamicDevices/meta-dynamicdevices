@@ -1,11 +1,12 @@
 #!/bin/sh -e
 
+USE_HOSTNAME=1
 TOKEN_FILE=${TOKEN_FILE-/etc/lmp-device-register-token}
-TAG=""
+TAG="sentai-test"
 HSM=""
 NAME=""
 APPS=${APPS-""}
-#GROUP="handheld-dev"
+GROUP="sentai-dev"
 
 if [ -f /etc/sota/tag ] ; then
 	# tag file should contain only one tag
@@ -16,6 +17,7 @@ if [ -f /etc/sota/tag ] ; then
 fi
 
 if [ -n "${USE_HOSTNAME}" ]; then
+        echo Using Hostname
 	NAME="-n $(cat /etc/hostname)"
 fi
 
@@ -56,5 +58,4 @@ else
 	echo "$0: Registering with all available apps"
 fi
 
-#/usr/bin/lmp-device-register -g ${GROUP} -T ${TOKEN} ${NAME} ${TAG} ${APPS} ${HSM}
-/usr/bin/lmp-device-register -T ${TOKEN} ${NAME} ${TAG} ${APPS} ${HSM}
+/usr/bin/lmp-device-register -g ${GROUP} -T ${TOKEN} ${NAME} ${TAG} ${APPS} ${HSM}
