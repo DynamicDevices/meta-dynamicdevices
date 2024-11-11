@@ -17,6 +17,10 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 	};
+
+        sound-ak4458 {
+                status = "disabled";
+        };
 };
 
 &iomuxc {
@@ -41,23 +45,13 @@
 		>;
 	};
 
+        // 802.15.4
         pinctrl_ecspi1: ecspi1grp {
                 fsl,pins = <
 			MX8MM_IOMUXC_ECSPI1_SS0_GPIO5_IO9	0x13
                         MX8MM_IOMUXC_ECSPI1_SCLK_ECSPI1_SCLK	0x13
                         MX8MM_IOMUXC_ECSPI1_MISO_ECSPI1_MISO	0x13
                         MX8MM_IOMUXC_ECSPI1_MOSI_ECSPI1_MOSI	0x13
-                >;
-        };
-
-        pinctrl_ecspi2: ecspi2grp {
-                fsl,pins = <
-			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x96
-                        MX8MM_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK	0x96
-                        MX8MM_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI	0x96
-			MX8MM_IOMUXC_ECSPI2_MISO_ECSPI2_MISO	0x96
-			MX8MM_IOMUXC_SAI3_RXC_GPIO4_IO29	0x96  // RADAR_IRQ
-			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x96 // RADAR_RST
                 >;
         };
 
@@ -71,6 +65,7 @@
 		>;
 	};
 
+        // Bluetooth PCM
         pinctrl_sai2: sai2grp {
                 fsl,pins = <
                         MX8MM_IOMUXC_SAI2_MCLK_SAI2_MCLK        0xd6
@@ -81,16 +76,18 @@
                 >;
         };
 
+        // WM8524 PCM
         pinctrl_sai3: sai3grp {
                 fsl,pins = <
-                        MX8MM_IOMUXC_SAI3_TXFS_SAI3_TX_SYNC     0xd6
-                        MX8MM_IOMUXC_SAI3_TXC_SAI3_TX_BCLK      0xd6
                         MX8MM_IOMUXC_SAI3_MCLK_SAI3_MCLK        0xd6
+                        MX8MM_IOMUXC_SAI3_TXC_SAI3_TX_BCLK      0xd6
+                        MX8MM_IOMUXC_SAI3_TXFS_SAI3_TX_SYNC     0xd6
                         MX8MM_IOMUXC_SAI3_TXD_SAI3_TX_DATA0     0xd6
-                        MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5    0xd6 // Audio codec interrupt
+                        MX8MM_IOMUXC_SPDIF_EXT_RX_GPIO5_IO4     0xd6 // Audio mute
                 >;
         };
 
+        // UART1
         pinctrl_uart1: uart1grp {
                 fsl,pins = <
                         MX8MM_IOMUXC_UART1_RXD_UART1_DCE_RX     0x140
