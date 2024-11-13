@@ -5,6 +5,9 @@ inherit systemd
 SYSTEMD_SERVICE:${PN} = "pulseaudio.service"
 SYSTEMD_AUTO_ENABLE:${PN}  = "enable"
 
+PACKAGECONFIG += " webrtc"
+REPENDS:${PN} += " webrtc"
+ 
 SRC_URI:append = "\
     file://pulseaudio.service \
     file://load-unix-module.pa \
