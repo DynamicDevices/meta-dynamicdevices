@@ -11,7 +11,7 @@ REPENDS:${PN} += " webrtc"
 EXTRA_OEMESON += "-Dwebrtc-aec=enabled"
 EXTRA_OECONF += "--enable-webrtc-aec"
 
-RDEPENDS:pulseaudio-server = " \
+RDEPENDS:pulseaudio-server += " \
     pulseaudio-module-echo-cancel \
 "
  
