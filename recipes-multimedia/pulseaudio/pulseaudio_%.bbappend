@@ -7,6 +7,13 @@ SYSTEMD_AUTO_ENABLE:${PN}  = "enable"
 
 PACKAGECONFIG += " webrtc"
 REPENDS:${PN} += " webrtc"
+
+EXTRA_OEMESON += "-Dwebrtc-aec=enabled"
+EXTRA_OECONF += "--enable-webrtc-aec"
+
+RDEPENDS:pulseaudio-server = " \
+    pulseaudio-module-echo-cancel \
+"
  
 SRC_URI:append = "\
     file://pulseaudio.service \
