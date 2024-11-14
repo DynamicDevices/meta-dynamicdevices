@@ -4,7 +4,7 @@ After=audio-driver.service
 
 [Service]
 User=root
-ExecStart=/usr/bin/pulseaudio --system --log-target=journal --disallow-exit --disallow-module-loading
+ExecStart=/usr/bin/pulseaudio --system --log-target=syslog --disallow-exit --disallow-module-loading
 Restart=on-failure
 
 [Install]
