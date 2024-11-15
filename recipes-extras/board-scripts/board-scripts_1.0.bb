@@ -12,7 +12,7 @@ SRC_URI:append = " \
 
 SRC_URI:append:imx8mm-jaguar-sentai = " \
   file://test-audio-hw.sh \
-  file://dtmf-1234.wav \
+  file://dtmf-182846.wav \
 "
 
 do_install() {
