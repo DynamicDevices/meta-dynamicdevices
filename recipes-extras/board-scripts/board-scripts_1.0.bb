@@ -8,11 +8,15 @@ SRC_URI:append = " \
   file://test-leds-hb.sh \
   file://test-leds-rc.sh \
   file://set-fio-passwd.sh \
+  file://test-audio-hw.sh \
+  file://dtmf-1234.wav \
 "
 
 do_install() {
-    install -d ${D}/${sbindir}
-    install -m 0755 ${WORKDIR}/*.sh ${D}/${sbindir}
+    install -d ${D}${sbindir}
+    install -m 0755 ${WORKDIR}/*.sh ${D}${sbindir}
+    install -d ${D}${datadir}/${PN}
+    install -m 0755 ${WORKDIR}/*.wav ${D}${datadir}/${PN}
 }
 
 
