@@ -110,6 +110,9 @@ CORE_IMAGE_BASE_INSTALL += " \
     ${@bb.utils.contains('LMP_DISABLE_GPLV3', '1', '', '${CORE_IMAGE_BASE_INSTALL_GPLV3}', d)} \
 "
 
+CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-sentai = " \
+    nxp-afe-voiceseeker \
+"
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
        linux-firmware-iwlwifi \
        pciutils \
