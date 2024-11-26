@@ -35,6 +35,7 @@ do_install() {
         install -d ${D}/unit_tests/nxp-afe
         install -m 0644 ${WORKDIR}/deploy_afe/*.so.1.0 ${D}${libdir}/nxp-afe
         ln -sf -r ${D}${libdir}/nxp-afe/libdummyimpl.so.1.0 ${D}${libdir}/nxp-afe/libdummyimpl.so
+        install -d ${D}${sbindir}
         install -m 0755 ${WORKDIR}/deploy_afe/afe ${D}${sbindir}/afe
         install -d ${D}/${systemd_unitdir}/system
         install -m 0644 ${WORKDIR}/nxp-afe.service ${D}/${systemd_unitdir}/system/nxp-afe.service
