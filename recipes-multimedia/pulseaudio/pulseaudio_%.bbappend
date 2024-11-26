@@ -19,6 +19,7 @@ SRC_URI:append = "\
     file://pulseaudio.service \
     file://load-unix-module.pa \
     file://load-echo-cancellation-module.pa \
+    file://load-alsa-modules.pa \
 "
 
 do_install:append() {
@@ -27,6 +28,7 @@ do_install:append() {
         install -d ${D}/${sysconfdir}/pulse/system.pa.d
         install -m 0644 ${WORKDIR}/load-unix-module.pa ${D}/${sysconfdir}/pulse/system.pa.d
         install -m 0644 ${WORKDIR}/load-echo-cancellation-module.pa ${D}/${sysconfdir}/pulse/system.pa.d
+        install -m 0644 ${WORKDIR}/load-alsa-modules.pa ${D}/${sysconfdir}/pulse/system.pa.d
 
         # We need to ignore the ALSA dB information provided to PulseAudio or the volume control is broken
 	sed -i 's/load-module module-udev-detect/load-module module-udev-detect ignore_dB=true/g' ${D}/${sysconfdir}/pulse/system.pa
