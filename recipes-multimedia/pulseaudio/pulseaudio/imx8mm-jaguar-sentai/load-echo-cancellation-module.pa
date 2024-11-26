@@ -1,6 +1,6 @@
 # Support echo cancellation
-.ifexists module-echo-cancel.so
-load-module module-echo-cancel aec_method=webrtc source_name=echocancel_source sink_name=echocancel_sink
-set-default-source echocancel_source
-set-default-sink echocancel_sink
-.endif
+#.ifexists module-echo-cancel.so
+#load-module module-echo-cancel aec_method=webrtc source_name=echocancel_source sink_name=echocancel_sink
+#set-default-source echocancel_source
+#set-default-sink echocancel_sink
+#.endif
