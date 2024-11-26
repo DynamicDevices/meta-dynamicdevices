@@ -10,13 +10,13 @@ inherit autotools pkgconfig
 DEPENDS += "alsa-lib nxp-afe"
 RDEPENDS:${PN} += "alsa-lib nxp-afe"
 
-SRCBRANCH = "MM_04.09.01_2408_L6.6.y"
+SRCBRANCH = "MM_04.08.03_2312_L6.6.y"
 PV = "2.0+${SRCPV}"
 
 NXPAFE_VOICESEEKER_SRC ?= "git://github.com/nxp-imx/imx-voiceui.git;protocol=https"
 SRC_URI = "${NXPAFE_VOICESEEKER_SRC};branch=${SRCBRANCH}"
 
-SRCREV = "b77f85a201a2725a092ece7b99773ee566a66091" 
+SRCREV = "7b7a69852b889d99fd4e1682a88fde69d0ed3f48" 
 S = "${WORKDIR}/git"
 
 EXTRA_CONF = "--enable-armv8 --bindir=/unit_tests/ --libdir=${libdir}"
