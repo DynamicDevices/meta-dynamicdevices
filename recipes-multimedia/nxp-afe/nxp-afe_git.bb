@@ -21,6 +21,7 @@ S = "${WORKDIR}/git"
 inherit systemd
 
 DEPENDS += "alsa-lib"
+RDEPENDS:${PN} = "alsa-state alsa-lib"
 
 TARGET_CC_ARCH += "${LDFLAGS}"
 
