@@ -39,6 +39,7 @@ do_install() {
     ln -sf -r ${D}${libdir}/nxp-afe/libvoiceseekerlight.so.2.0 ${D}${libdir}/nxp-afe/libvoiceseekerlight.so
     install -m 0755 ${WORKDIR}/git/release/voice_ui_app    ${D}/unit_tests/nxp-afe
     install -m 0644 ${WORKDIR}/git/release/Config.ini    ${D}/unit_tests/nxp-afe
+    install -m 0644 ${WORKDIR}/git/voicespot/platforms/models/NXP/*    ${D}/unit_tests/nxp-afe
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
