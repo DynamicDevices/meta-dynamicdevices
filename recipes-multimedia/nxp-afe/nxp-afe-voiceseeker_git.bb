@@ -8,6 +8,7 @@ LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=ca53281cc0caa7e320d4945a896fb837"
 inherit autotools pkgconfig
 
 DEPENDS += "alsa-lib nxp-afe"
+RDEPENDS:${PN} += "alsa-lib nxp-afe"
 
 SRCBRANCH = "MM_04.09.01_2408_L6.6.y"
 PV = "2.0+${SRCPV}"
