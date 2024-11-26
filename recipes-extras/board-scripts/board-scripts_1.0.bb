@@ -13,6 +13,8 @@ SRC_URI:append = " \
 SRC_URI:append:imx8mm-jaguar-sentai = " \
   file://test-audio-hw.sh \
   file://dtmf-182846.wav \
+  file://board-testing-now-starting-up.wav \
+  file://all-completed.wav \
 "
 
 do_install() {
@@ -26,4 +28,3 @@ do_install:append:imx8mm-jaguar-sentai() {
 }
 
 RDEPENDS:${PN}:imx8mm-jaguar-sentai = "dtmf2num"
-
