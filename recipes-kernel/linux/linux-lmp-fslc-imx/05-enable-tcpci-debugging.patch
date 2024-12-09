@@ -1,0 +1,336 @@
+diff --git a/arch/arm64/boot/dts/Makefile b/arch/arm64/boot/dts/Makefile
+index 7b107fa7414b..de0e49a94fb7 100644
+--- a/arch/arm64/boot/dts/Makefile
++++ b/arch/arm64/boot/dts/Makefile
+@@ -32,3 +32,7 @@ subdir-y += tesla
+ subdir-y += ti
+ subdir-y += toshiba
+ subdir-y += xilinx
++dtb-y += imx8mm-jaguar-sentai.dtb
++dtb-y += imx8mm-jaguar-sentai.dtb
++dtb-y += imx8mm-jaguar-sentai.dtb
++dtb-y += imx8mm-jaguar-sentai.dtb
+diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
+index 7ba1c59d14a2..7a61810a2269 100644
+--- a/drivers/usb/typec/tcpm/tcpci.c
++++ b/drivers/usb/typec/tcpm/tcpci.c
+@@ -475,6 +475,8 @@ static int tcpci_vbus_force_discharge(struct tcpc_dev *tcpc, bool enable)
+ 	unsigned int reg;
+ 	int ret;
+ 
++pr_warn("e1");
++
+ 	if (enable)
+ 		regmap_write(tcpci->regmap,
+ 			TCPC_VBUS_VOLTAGE_ALARM_LO_CFG, 0x1c);
+@@ -492,6 +494,8 @@ static int tcpci_vbus_force_discharge(struct tcpc_dev *tcpc, bool enable)
+ 	if (ret < 0)
+ 		return ret;
+ 
++pr_warn("e2");
++
+ 	return 0;
+ }
+ 
+@@ -500,6 +504,13 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+ 	struct tcpci *tcpci = tcpc_to_tcpci(tcpc);
+ 	int ret;
+ 
++pr_warn("tcpci_set_vbus: source %d, sink %d");
++
++source = false;
++sink = true;
++
++pr_warn("tcpci_set_vbus: force source %d, sink %d");
++
+ 	if (tcpci->data->set_vbus) {
+ 		ret = tcpci->data->set_vbus(tcpci, tcpci->data, source, sink);
+ 		/* Bypass when ret > 0 */
+@@ -509,6 +520,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+ 
+ 	/* Disable both source and sink first before enabling anything */
+ 
++pr_warn("d2");
++
+ 	if (!source) {
+ 		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
+ 				   TCPC_CMD_DISABLE_SRC_VBUS);
+@@ -516,6 +529,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+ 			return ret;
+ 	}
+ 
++pr_warn("d3");
++
+ 	if (!sink) {
+ 		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
+ 				   TCPC_CMD_DISABLE_SINK_VBUS);
+@@ -523,9 +538,13 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+ 			return ret;
+ 	}
+ 
++pr_warn("d4");
++
+ 	if (!source && !sink)
+ 		tcpci_vbus_force_discharge(tcpc, true);
+ 
++pr_warn("d5");
++
+ 	if (source) {
+ 		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
+ 				   TCPC_CMD_SRC_VBUS_DEFAULT);
+@@ -533,6 +552,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+ 			return ret;
+ 	}
+ 
++pr_warn("d6");
++
+ 	if (sink) {
+ 		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
+ 				   TCPC_CMD_SINK_VBUS);
+@@ -540,6 +561,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+ 			return ret;
+ 	}
+ 
++pr_warn("d7");
++
+ 	return 0;
+ }
+ 
+@@ -609,6 +632,8 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+ 	unsigned int reg;
+ 	int ret;
+ 
++pr_warn("c1");
++
+ 	while (time_before_eq(jiffies, timeout)) {
+ 		ret = regmap_read(tcpci->regmap, TCPC_POWER_STATUS, &reg);
+ 		if (ret < 0)
+@@ -620,10 +645,14 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+ 	if (time_after(jiffies, timeout))
+ 		return -ETIMEDOUT;
+ 
++pr_warn("c2");
++
+ 	ret = tcpci_write16(tcpci, TCPC_FAULT_STATUS, TCPC_FAULT_STATUS_ALL_REG_RST_TO_DEFAULT);
+ 	if (ret < 0)
+ 		return ret;
+ 
++pr_warn("c3");
++
+ 	/* Handle vendor init */
+ 	if (tcpci->data->init) {
+ 		ret = tcpci->data->init(tcpci, tcpci->data);
+@@ -631,14 +660,20 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+ 			return ret;
+ 	}
+ 
++pr_warn("c4");
++
+ 	/* Clear all events */
+ 	ret = tcpci_write16(tcpci, TCPC_ALERT, 0xffff);
+ 	if (ret < 0)
+ 		return ret;
+ 
++pr_warn("c5");
++
+ 	/* Clear fault condition */
+ 	regmap_write(tcpci->regmap, TCPC_FAULT_STATUS, 0x80);
+ 
++pr_warn("c6");
++
+ 	if (tcpci->controls_vbus)
+ 		reg = TCPC_POWER_STATUS_VBUS_PRES;
+ 	else
+@@ -647,12 +682,16 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+ 	if (ret < 0)
+ 		return ret;
+ 
++pr_warn("c7");
++
+ 	/* Enable Vbus detection */
+ 	ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
+ 			   TCPC_CMD_ENABLE_VBUS_DETECT);
+ 	if (ret < 0)
+ 		return ret;
+ 
++pr_warn("c8");
++
+ 	reg = TCPC_ALERT_TX_SUCCESS | TCPC_ALERT_TX_FAILED |
+ 		TCPC_ALERT_TX_DISCARDED | TCPC_ALERT_RX_STATUS |
+ 		TCPC_ALERT_RX_HARD_RST | TCPC_ALERT_CC_STATUS |
+@@ -667,6 +706,9 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+ 		if (ret < 0)
+ 			return ret;
+ 	}
++
++pr_warn("c9");
++
+ 	return tcpci_write16(tcpci, TCPC_ALERT_MASK, reg);
+ }
+ 
+@@ -785,6 +827,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
+ {
+ 	tcpci->controls_vbus = true; /* XXX */
+ 
++pr_warn("b1");
++
+ 	tcpci->tcpc.fwnode = device_get_named_child_node(tcpci->dev,
+ 							 "connector");
+ 	if (!tcpci->tcpc.fwnode) {
+@@ -792,6 +836,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
+ 		return -EINVAL;
+ 	}
+ 
++pr_warn("b2");
++
+ 	return 0;
+ }
+ 
+@@ -800,6 +846,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+ 	struct tcpci *tcpci;
+ 	int err;
+ 
++pr_warn("register port");
++
+ 	tcpci = devm_kzalloc(dev, sizeof(*tcpci), GFP_KERNEL);
+ 	if (!tcpci)
+ 		return ERR_PTR(-ENOMEM);
+@@ -826,6 +874,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+ 	tcpci->tcpc.frs_sourcing_vbus = tcpci_frs_sourcing_vbus;
+ 	tcpci->tcpc.set_partner_usb_comm_capable = tcpci_set_partner_usb_comm_capable;
+ 
++pr_warn("a1");
++
+ 	if (tcpci->data->auto_discharge_disconnect) {
+ 		tcpci->tcpc.enable_auto_vbus_discharge = tcpci_enable_auto_vbus_discharge;
+ 		tcpci->tcpc.set_auto_vbus_discharge_threshold =
+@@ -834,19 +884,27 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+ 				   TCPC_POWER_CTRL_BLEED_DISCHARGE);
+ 	}
+ 
++pr_warn("a2");
++
+ 	if (tcpci->data->vbus_vsafe0v)
+ 		tcpci->tcpc.is_vbus_vsafe0v = tcpci_is_vbus_vsafe0v;
+ 
++pr_warn("a3");
++
+ 	err = tcpci_parse_config(tcpci);
+ 	if (err < 0)
+ 		return ERR_PTR(err);
+ 
++pr_warn("a4");
++
+ 	tcpci->port = tcpm_register_port(tcpci->dev, &tcpci->tcpc);
+ 	if (IS_ERR(tcpci->port)) {
+ 		fwnode_handle_put(tcpci->tcpc.fwnode);
+ 		return ERR_CAST(tcpci->port);
+ 	}
+ 
++pr_warn("a5");
++
+ 	return tcpci;
+ }
+ EXPORT_SYMBOL_GPL(tcpci_register_port);
+@@ -865,6 +923,8 @@ static int tcpci_probe(struct i2c_client *client,
+ 	int err;
+ 	u16 val = 0;
+ 
++dev_warn(&client->dev, "init");
++
+ 	chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
+ 	if (!chip)
+ 		return -ENOMEM;
+@@ -881,6 +941,8 @@ static int tcpci_probe(struct i2c_client *client,
+ 	if (err < 0)
+ 		return err;
+ 
++dev_warn(&client->dev, "register port");
++
+ 	chip->tcpci = tcpci_register_port(&client->dev, &chip->data);
+ 	if (IS_ERR(chip->tcpci))
+ 		return PTR_ERR(chip->tcpci);
+@@ -895,6 +957,8 @@ static int tcpci_probe(struct i2c_client *client,
+ 		return err;
+ 	}
+ 
++dev_warn(&client->dev, "set wakeup capable");
++
+ 	device_set_wakeup_capable(chip->tcpci->dev, true);
+ 
+ 	return 0;
+diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
+index 96bb7e72d376..c3209a576e5d 100644
+--- a/drivers/usb/typec/tcpm/tcpm.c
++++ b/drivers/usb/typec/tcpm/tcpm.c
+@@ -3561,6 +3561,8 @@ static int tcpm_set_vbus(struct tcpm_port *port, bool enable)
+ {
+ 	int ret;
+ 
++pr_warn("tcpm_set_vbus enable %d charge %d", enable, port->vbus_charge);
++
+ 	if (enable && port->vbus_charge)
+ 		return -EINVAL;
+ 
+@@ -3578,6 +3580,8 @@ static int tcpm_set_charge(struct tcpm_port *port, bool charge)
+ {
+ 	int ret;
+ 
++pr_warn("tcpm_set_charge %d", charge);
++
+ 	if (charge && port->vbus_source)
+ 		return -EINVAL;
+ 
+@@ -3609,6 +3613,8 @@ static int tcpm_init_vbus(struct tcpm_port *port)
+ {
+ 	int ret;
+ 
++pr_warn("tcpm_init_vbus");
++
+ 	ret = port->tcpc->set_vbus(port->tcpc, false, false);
+ 	port->vbus_source = false;
+ 	port->vbus_charge = false;
+@@ -3683,6 +3689,8 @@ static int tcpm_src_attach(struct tcpm_port *port)
+ 			goto out_disable_pd;
+ 	}
+ 
++pr_warn("1a");
++
+ 	ret = tcpm_set_vbus(port, true);
+ 	if (ret < 0)
+ 		goto out_disable_vconn;
+@@ -4526,6 +4534,7 @@ static void run_state_machine(struct tcpm_port *port)
+ 		 * drive VBUS to vSafe0V as shown in Figure 7-9.
+ 		 */
+ 		tcpm_set_vconn(port, false);
++pr_warn("1b");
+ 		tcpm_set_vbus(port, false);
+ 		tcpm_set_roles(port, port->self_powered, TYPEC_SOURCE,
+ 			       tcpm_data_role_for_source(port));
+@@ -4544,6 +4553,8 @@ static void run_state_machine(struct tcpm_port *port)
+ 		break;
+ 	case SRC_HARD_RESET_VBUS_ON:
+ 		tcpm_set_vconn(port, true);
++pr_warn("1c");
++
+ 		tcpm_set_vbus(port, true);
+ 		if (port->ams == HARD_RESET)
+ 			tcpm_ams_finish(port);
+@@ -4729,6 +4740,8 @@ static void run_state_machine(struct tcpm_port *port)
+ 		 * Prevent vbus discharge circuit from turning on during PR_SWAP
+ 		 * as this is not a disconnect.
+ 		 */
++pr_warn("1d");
++
+ 		tcpm_set_vbus(port, false);
+ 		port->explicit_contract = false;
+ 		/* allow time for Vbus discharge, must be < tSrcSwapStdby */
+@@ -4779,6 +4792,8 @@ static void run_state_machine(struct tcpm_port *port)
+ 	case PR_SWAP_SNK_SRC_SOURCE_ON:
+ 		tcpm_enable_auto_vbus_discharge(port, true);
+ 		tcpm_set_cc(port, tcpm_rp_cc(port));
++pr_warn("1e");
++
+ 		tcpm_set_vbus(port, true);
+ 		/*
+ 		 * allow time VBUS ramp-up, must be < tNewSrc

@@ -35,6 +35,7 @@ SRC_URI:append:imx8mm-jaguar-inst = " \
 		file://02-disable-wifi-scan-msg.patch \
 		file://04-enable-usb-gadgets.cfg \
                 file://05-build-usb-as-modules.cfg \
+                file://05-enable-tcpci-debugging.patch \
 "
 
 # NOTE: This DTB file is created as a default for use with local development
