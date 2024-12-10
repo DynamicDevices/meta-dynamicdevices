@@ -11,7 +11,7 @@ index 7b107fa7414b..de0e49a94fb7 100644
 +dtb-y += imx8mm-jaguar-sentai.dtb
 +dtb-y += imx8mm-jaguar-sentai.dtb
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index 7ba1c59d14a2..f27104aede4d 100644
+index 7ba1c59d14a2..1952153d9ff9 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -1,3 +1,5 @@
@@ -59,7 +59,7 @@ index 7ba1c59d14a2..f27104aede4d 100644
  
 -	ret = regmap_read(tcpci->regmap, TCPC_POWER_STATUS, &reg);
 +pr_warn("disabled");
-+return;
++return 0;
 +
 +pr_warn("entry");
 +
