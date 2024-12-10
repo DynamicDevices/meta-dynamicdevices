@@ -11,7 +11,7 @@ index 7b107fa7414b..de0e49a94fb7 100644
 +dtb-y += imx8mm-jaguar-sentai.dtb
 +dtb-y += imx8mm-jaguar-sentai.dtb
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index 7ba1c59d14a2..98bc2f65fb4b 100644
+index 7ba1c59d14a2..0d6fabfcd1f7 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -75,6 +75,8 @@ static int tcpci_set_cc(struct tcpc_dev *tcpc, enum typec_cc_status cc)
@@ -185,7 +185,7 @@ index 7ba1c59d14a2..98bc2f65fb4b 100644
 +source = false;
 +sink = true;
 +
-+pr_warn("tcpci_set_vbus: force source %d, sink %d". source. sink);
++pr_warn("tcpci_set_vbus: force source %d, sink %d", source, sink);
 +
  	if (tcpci->data->set_vbus) {
  		ret = tcpci->data->set_vbus(tcpci, tcpci->data, source, sink);
