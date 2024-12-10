@@ -11,7 +11,7 @@ index 7b107fa7414b..de0e49a94fb7 100644
 +dtb-y += imx8mm-jaguar-sentai.dtb
 +dtb-y += imx8mm-jaguar-sentai.dtb
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index 7ba1c59d14a2..7a61810a2269 100644
+index 7ba1c59d14a2..bda5e264f9e7 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -475,6 +475,8 @@ static int tcpci_vbus_force_discharge(struct tcpc_dev *tcpc, bool enable)
@@ -168,7 +168,90 @@ index 7ba1c59d14a2..7a61810a2269 100644
  	return tcpci_write16(tcpci, TCPC_ALERT_MASK, reg);
  }
  
-@@ -785,6 +827,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
+@@ -678,18 +720,25 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+ 
+ 	tcpci_read16(tcpci, TCPC_ALERT, &status);
+ 
++pr_warn("tcpci_irq");
++
+ 	/*
+ 	 * Clear alert status for everything except RX_STATUS, which shouldn't
+ 	 * be cleared until we have successfully retrieved message.
+ 	 */
+-	if (status & ~TCPC_ALERT_RX_STATUS)
++	if (status & ~TCPC_ALERT_RX_STATUS) {
++pr_warn("tcpci_irq 1");
+ 		tcpci_write16(tcpci, TCPC_ALERT,
+ 			      status & ~TCPC_ALERT_RX_STATUS);
++	}
+ 
+-	if (status & TCPC_ALERT_CC_STATUS)
++	if (status & TCPC_ALERT_CC_STATUS) {
++pr_warn("tcpci_irq 2");
+ 		tcpm_cc_change(tcpci->port);
++	}
+ 
+ 	if (status & TCPC_ALERT_POWER_STATUS) {
++pr_warn("tcpci_irq 3");
+ 		/* Read power status to clear the event */
+ 		regmap_read(tcpci->regmap, TCPC_POWER_STATUS, &raw);
+ 		regmap_read(tcpci->regmap, TCPC_POWER_STATUS_MASK, &raw);
+@@ -704,14 +753,18 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+ 			tcpm_vbus_change(tcpci->port);
+ 	}
+ 
+-	if (status & TCPC_ALERT_V_ALARM_LO)
++	if (status & TCPC_ALERT_V_ALARM_LO) {
++pr_warn("tcpci_irq 4");
+ 		tcpci_vbus_force_discharge(&tcpci->tcpc, false);
++	}
+ 
+ 	if (status & TCPC_ALERT_RX_STATUS) {
+ 		struct pd_message msg;
+ 		unsigned int cnt, payload_cnt;
+ 		u16 header;
+ 
++	pr_warn("tcpci_irq 5");
++
+ 		regmap_read(tcpci->regmap, TCPC_RX_BYTE_CNT, &cnt);
+ 		/*
+ 		 * 'cnt' corresponds to READABLE_BYTE_COUNT in section 4.4.14
+@@ -741,6 +794,7 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+ 	}
+ 
+ 	if (tcpci->data->vbus_vsafe0v && (status & TCPC_ALERT_EXTENDED_STATUS)) {
++pr_warn("tcpci_irq 6");
+ 		ret = regmap_read(tcpci->regmap, TCPC_EXTENDED_STATUS, &raw);
+ 		if (!ret && (raw & TCPC_EXTENDED_STATUS_VSAFE0V))
+ 			tcpm_vbus_change(tcpci->port);
+@@ -748,13 +802,16 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+ 
+ 	/* Clear the fault status anyway */
+ 	if (status & TCPC_ALERT_FAULT) {
++pr_warn("tcpci_irq 7");
+ 		regmap_read(tcpci->regmap, TCPC_FAULT_STATUS, &raw);
+ 		regmap_write(tcpci->regmap, TCPC_FAULT_STATUS,
+ 				raw | TCPC_FAULT_STATUS_CLEAR);
+ 	}
+ 
+-	if (status & TCPC_ALERT_RX_HARD_RST)
++	if (status & TCPC_ALERT_RX_HARD_RST) {
++pr_warn("tcpci_irq 8");
+ 		tcpm_pd_hard_reset(tcpci->port);
++	}
+ 
+ 	if (status & TCPC_ALERT_TX_SUCCESS)
+ 		tcpm_pd_transmit_complete(tcpci->port, TCPC_TX_SUCCESS);
+@@ -763,6 +820,8 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+ 	else if (status & TCPC_ALERT_TX_FAILED)
+ 		tcpm_pd_transmit_complete(tcpci->port, TCPC_TX_FAILED);
+ 
++pr_warn("tcpci_irq end");
++
+ 	return IRQ_HANDLED;
+ }
+ EXPORT_SYMBOL_GPL(tcpci_irq);
+@@ -785,6 +844,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
  {
  	tcpci->controls_vbus = true; /* XXX */
  
@@ -177,7 +260,7 @@ index 7ba1c59d14a2..7a61810a2269 100644
  	tcpci->tcpc.fwnode = device_get_named_child_node(tcpci->dev,
  							 "connector");
  	if (!tcpci->tcpc.fwnode) {
-@@ -792,6 +836,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
+@@ -792,6 +853,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
  		return -EINVAL;
  	}
  
@@ -186,7 +269,7 @@ index 7ba1c59d14a2..7a61810a2269 100644
  	return 0;
  }
  
-@@ -800,6 +846,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+@@ -800,6 +863,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
  	struct tcpci *tcpci;
  	int err;
  
@@ -195,7 +278,7 @@ index 7ba1c59d14a2..7a61810a2269 100644
  	tcpci = devm_kzalloc(dev, sizeof(*tcpci), GFP_KERNEL);
  	if (!tcpci)
  		return ERR_PTR(-ENOMEM);
-@@ -826,6 +874,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+@@ -826,6 +891,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
  	tcpci->tcpc.frs_sourcing_vbus = tcpci_frs_sourcing_vbus;
  	tcpci->tcpc.set_partner_usb_comm_capable = tcpci_set_partner_usb_comm_capable;
  
@@ -204,7 +287,7 @@ index 7ba1c59d14a2..7a61810a2269 100644
  	if (tcpci->data->auto_discharge_disconnect) {
  		tcpci->tcpc.enable_auto_vbus_discharge = tcpci_enable_auto_vbus_discharge;
  		tcpci->tcpc.set_auto_vbus_discharge_threshold =
-@@ -834,19 +884,27 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+@@ -834,19 +901,27 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
  				   TCPC_POWER_CTRL_BLEED_DISCHARGE);
  	}
  
@@ -232,7 +315,7 @@ index 7ba1c59d14a2..7a61810a2269 100644
  	return tcpci;
  }
  EXPORT_SYMBOL_GPL(tcpci_register_port);
-@@ -865,6 +923,8 @@ static int tcpci_probe(struct i2c_client *client,
+@@ -865,6 +940,8 @@ static int tcpci_probe(struct i2c_client *client,
  	int err;
  	u16 val = 0;
  
@@ -241,7 +324,7 @@ index 7ba1c59d14a2..7a61810a2269 100644
  	chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
  	if (!chip)
  		return -ENOMEM;
-@@ -881,6 +941,8 @@ static int tcpci_probe(struct i2c_client *client,
+@@ -881,6 +958,8 @@ static int tcpci_probe(struct i2c_client *client,
  	if (err < 0)
  		return err;
  
@@ -250,7 +333,7 @@ index 7ba1c59d14a2..7a61810a2269 100644
  	chip->tcpci = tcpci_register_port(&client->dev, &chip->data);
  	if (IS_ERR(chip->tcpci))
  		return PTR_ERR(chip->tcpci);
-@@ -895,6 +957,8 @@ static int tcpci_probe(struct i2c_client *client,
+@@ -895,6 +974,8 @@ static int tcpci_probe(struct i2c_client *client,
  		return err;
  	}
  
@@ -260,14 +343,14 @@ index 7ba1c59d14a2..7a61810a2269 100644
  
  	return 0;
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 96bb7e72d376..c3209a576e5d 100644
+index 96bb7e72d376..b0f1aa0c54a1 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -3561,6 +3561,8 @@ static int tcpm_set_vbus(struct tcpm_port *port, bool enable)
  {
  	int ret;
  
-+pr_warn("tcpm_set_vbus enable %d charge %d", enable, port->vbus_charge);
++pr_warn("tcpm_set_vbus enable %B charge %d", enable, port->vbus_charge);
 +
  	if (enable && port->vbus_charge)
  		return -EINVAL;
@@ -299,7 +382,58 @@ index 96bb7e72d376..c3209a576e5d 100644
  	ret = tcpm_set_vbus(port, true);
  	if (ret < 0)
  		goto out_disable_vconn;
-@@ -4526,6 +4534,7 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -3751,28 +3759,42 @@ static void tcpm_reset_port(struct tcpm_port *port)
+ 	port->pps_data.supported = false;
+ 	tcpm_set_partner_usb_comm_capable(port, false);
+ 
++pr_warn("tcpm_reset_port");
++
+ 	/*
+ 	 * First Rx ID should be 0; set this to a sentinel of -1 so that
+ 	 * we can check tcpm_pd_rx_handler() if we had seen it before.
+ 	 */
+ 	port->rx_msgid = -1;
+ 
++pr_warn("tcpm_reset_port 1");
++
+ 	port->tcpc->set_pd_rx(port->tcpc, false);
++
++pr_warn("tcpm_reset_port 2")
++;
+ 	tcpm_init_vbus(port);	/* also disables charging */
++pr_warn("tcpm_reset_port 3");
+ 	tcpm_init_vconn(port);
++pr_warn("tcpm_reset_port 4");
+ 	tcpm_set_current_limit(port, 0, 0);
++pr_warn("tcpm_reset_port 5");
+ 	tcpm_set_polarity(port, TYPEC_POLARITY_CC1);
++pr_warn("tcpm_reset_port 6");
+ 	tcpm_mux_set(port, TYPEC_STATE_SAFE, USB_ROLE_NONE,
+ 		     TYPEC_ORIENTATION_NONE);
++pr_warn("tcpm_reset_port 7");
+ 	tcpm_set_attached_state(port, false);
+ 	port->try_src_count = 0;
+ 	port->try_snk_count = 0;
+ 	port->usb_type = POWER_SUPPLY_USB_TYPE_C;
++pr_warn("tcpm_reset_port 8");
+ 	power_supply_changed(port->psy);
+ 	port->nr_sink_caps = 0;
+ 	port->sink_cap_done = false;
+ 	if (port->tcpc->enable_frs)
+ 		port->tcpc->enable_frs(port->tcpc, false);
++pr_warn("tcpm_reset_port 9");
+ 
+ 	usb_power_delivery_unregister_capabilities(port->partner_sink_caps);
+ 	port->partner_sink_caps = NULL;
+@@ -3780,6 +3802,7 @@ static void tcpm_reset_port(struct tcpm_port *port)
+ 	port->partner_source_caps = NULL;
+ 	usb_power_delivery_unregister(port->partner_pd);
+ 	port->partner_pd = NULL;
++pr_warn("tcpm_reset_port end");
+ }
+ 
+ static void tcpm_detach(struct tcpm_port *port)
+@@ -4526,6 +4549,7 @@ static void run_state_machine(struct tcpm_port *port)
  		 * drive VBUS to vSafe0V as shown in Figure 7-9.
  		 */
  		tcpm_set_vconn(port, false);
@@ -307,7 +441,7 @@ index 96bb7e72d376..c3209a576e5d 100644
  		tcpm_set_vbus(port, false);
  		tcpm_set_roles(port, port->self_powered, TYPEC_SOURCE,
  			       tcpm_data_role_for_source(port));
-@@ -4544,6 +4553,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4544,6 +4568,8 @@ static void run_state_machine(struct tcpm_port *port)
  		break;
  	case SRC_HARD_RESET_VBUS_ON:
  		tcpm_set_vconn(port, true);
@@ -316,7 +450,7 @@ index 96bb7e72d376..c3209a576e5d 100644
  		tcpm_set_vbus(port, true);
  		if (port->ams == HARD_RESET)
  			tcpm_ams_finish(port);
-@@ -4729,6 +4740,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4729,6 +4755,8 @@ static void run_state_machine(struct tcpm_port *port)
  		 * Prevent vbus discharge circuit from turning on during PR_SWAP
  		 * as this is not a disconnect.
  		 */
@@ -325,7 +459,7 @@ index 96bb7e72d376..c3209a576e5d 100644
  		tcpm_set_vbus(port, false);
  		port->explicit_contract = false;
  		/* allow time for Vbus discharge, must be < tSrcSwapStdby */
-@@ -4779,6 +4792,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4779,6 +4807,8 @@ static void run_state_machine(struct tcpm_port *port)
  	case PR_SWAP_SNK_SRC_SOURCE_ON:
  		tcpm_enable_auto_vbus_discharge(port, true);
  		tcpm_set_cc(port, tcpm_rp_cc(port));
