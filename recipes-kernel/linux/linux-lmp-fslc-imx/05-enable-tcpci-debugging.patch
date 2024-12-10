@@ -11,19 +11,163 @@ index 7b107fa7414b..de0e49a94fb7 100644
 +dtb-y += imx8mm-jaguar-sentai.dtb
 +dtb-y += imx8mm-jaguar-sentai.dtb
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index 7ba1c59d14a2..73a1abc4a126 100644
+index 7ba1c59d14a2..98bc2f65fb4b 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
-@@ -475,6 +475,8 @@ static int tcpci_vbus_force_discharge(struct tcpc_dev *tcpc, bool enable)
+@@ -75,6 +75,8 @@ static int tcpci_set_cc(struct tcpc_dev *tcpc, enum typec_cc_status cc)
  	unsigned int reg;
  	int ret;
  
-+pr_warn("e1");
++pr_warn("tcpci_set_cc");
++
+ 	ret = regmap_read(tcpci->regmap, TCPC_POWER_STATUS, &reg);
+ 	if (ret < 0)
+ 		return ret;
+@@ -147,6 +149,8 @@ static int tcpci_apply_rc(struct tcpc_dev *tcpc, enum typec_cc_status cc,
+ 	unsigned int reg;
+ 	int ret;
+ 
++pr_warn("tcpci_apply_rc");
++
+ 	ret = regmap_read(tcpci->regmap, TCPC_ROLE_CTRL, &reg);
+ 	if (ret < 0)
+ 		return ret;
+@@ -175,6 +179,8 @@ static int tcpci_start_toggling(struct tcpc_dev *tcpc,
+ 	struct tcpci *tcpci = tcpc_to_tcpci(tcpc);
+ 	unsigned int reg = TCPC_ROLE_CTRL_DRP;
+ 
++pr_warn("tcpci_start_toggling");
++
+ 	/* Handle vendor drp toggling */
+ 	if (tcpci->data->start_drp_toggling) {
+ 		ret = tcpci->data->start_drp_toggling(tcpci, tcpci->data, cc);
+@@ -218,6 +224,8 @@ static int tcpci_get_cc(struct tcpc_dev *tcpc,
+ 	unsigned int reg, role_control;
+ 	int ret;
+ 
++pr_warn("tcpci_get_cc");
++
+ 	ret = regmap_read(tcpci->regmap, TCPC_ROLE_CTRL, &role_control);
+ 	if (ret < 0)
+ 		return ret;
+@@ -246,6 +254,8 @@ static int tcpci_set_polarity(struct tcpc_dev *tcpc,
+ 	int ret;
+ 	enum typec_cc_status cc1, cc2;
+ 
++pr_warn("tcpci_set_polarity");
++
+ 	/* Obtain Rp setting from role control */
+ 	ret = regmap_read(tcpci->regmap, TCPC_ROLE_CTRL, &reg);
+ 	if (ret < 0)
+@@ -302,6 +312,8 @@ static void tcpci_set_partner_usb_comm_capable(struct tcpc_dev *tcpc, bool capab
+ {
+ 	struct tcpci *tcpci = tcpc_to_tcpci(tcpc);
+ 
++pr_warn("tcpci_set_partner_usb_comm_capable");
++
+ 	if (tcpci->data->set_partner_usb_comm_capable)
+ 		tcpci->data->set_partner_usb_comm_capable(tcpci, tcpci->data, capable);
+ }
+@@ -311,6 +323,8 @@ static int tcpci_set_vconn(struct tcpc_dev *tcpc, bool enable)
+ 	struct tcpci *tcpci = tcpc_to_tcpci(tcpc);
+ 	int ret;
+ 
++pr_warn("tcpci_set_vconn");
++
+ 	/* Handle vendor set vconn */
+ 	if (tcpci->data->set_vconn) {
+ 		ret = tcpci->data->set_vconn(tcpci, tcpci->data, enable);
+@@ -328,6 +342,8 @@ static int tcpci_enable_auto_vbus_discharge(struct tcpc_dev *dev, bool enable)
+ 	struct tcpci *tcpci = tcpc_to_tcpci(dev);
+ 	int ret;
+ 
++pr_warn("tcpci_auto_vbus_discharge");
++
+ 	ret = regmap_update_bits(tcpci->regmap, TCPC_POWER_CTRL, TCPC_POWER_CTRL_AUTO_DISCHARGE,
+ 				 enable ? TCPC_POWER_CTRL_AUTO_DISCHARGE : 0);
+ 	return ret;
+@@ -340,6 +356,8 @@ static int tcpci_set_auto_vbus_discharge_threshold(struct tcpc_dev *dev, enum ty
+ 	unsigned int pwr_ctrl, threshold = 0;
+ 	int ret;
+ 
++pr_warn("tcpci_set_auto_vbus_discharge_threshold");
++
+ 	/*
+ 	 * Indicates that vbus is going to go away due PR_SWAP, hard reset etc.
+ 	 * Do not discharge vbus here.
+@@ -382,6 +400,8 @@ static int tcpci_enable_frs(struct tcpc_dev *dev, bool enable)
+ 	struct tcpci *tcpci = tcpc_to_tcpci(dev);
+ 	int ret;
+ 
++pr_warn("tcpci_enable_frs");
++
+ 	/* To prevent disconnect during FRS, set disconnect threshold to 3.5V */
+ 	ret = tcpci_write16(tcpci, TCPC_VBUS_SINK_DISCONNECT_THRESH, enable ? 0 : 0x8c);
+ 	if (ret < 0)
+@@ -397,6 +417,8 @@ static void tcpci_frs_sourcing_vbus(struct tcpc_dev *dev)
+ {
+ 	struct tcpci *tcpci = tcpc_to_tcpci(dev);
+ 
++pr_warn("tcpci_frs_sourcing_vbus");
++
+ 	if (tcpci->data->frs_sourcing_vbus)
+ 		tcpci->data->frs_sourcing_vbus(tcpci, tcpci->data);
+ }
+@@ -405,6 +427,8 @@ static int tcpci_set_bist_data(struct tcpc_dev *tcpc, bool enable)
+ {
+ 	struct tcpci *tcpci = tcpc_to_tcpci(tcpc);
+ 
++pr_warn("tcpci_set_bist_data");
++
+ 	return regmap_update_bits(tcpci->regmap, TCPC_TCPC_CTRL, TCPC_TCPC_CTRL_BIST_TM,
+ 				 enable ? TCPC_TCPC_CTRL_BIST_TM : 0);
+ }
+@@ -416,6 +440,8 @@ static int tcpci_set_roles(struct tcpc_dev *tcpc, bool attached,
+ 	unsigned int reg;
+ 	int ret;
+ 
++pr_warn("tcpci_set_roles");
++
+ 	reg = PD_REV20 << TCPC_MSG_HDR_INFO_REV_SHIFT;
+ 	if (role == TYPEC_SOURCE)
+ 		reg |= TCPC_MSG_HDR_INFO_PWR_ROLE;
+@@ -434,6 +460,8 @@ static int tcpci_set_pd_rx(struct tcpc_dev *tcpc, bool enable)
+ 	unsigned int reg = 0;
+ 	int ret;
+ 
++pr_warn("tcpci_set_pd_rx");
++
+ 	if (enable)
+ 		reg = TCPC_RX_DETECT_SOP | TCPC_RX_DETECT_HARD_RESET;
+ 	ret = regmap_write(tcpci->regmap, TCPC_RX_DETECT, reg);
+@@ -449,6 +477,8 @@ static int tcpci_get_vbus(struct tcpc_dev *tcpc)
+ 	unsigned int reg;
+ 	int ret;
+ 
++pr_warn("tcpci_get_vbus");
++
+ 	ret = regmap_read(tcpci->regmap, TCPC_POWER_STATUS, &reg);
+ 	if (ret < 0)
+ 		return ret;
+@@ -462,6 +492,8 @@ static bool tcpci_is_vbus_vsafe0v(struct tcpc_dev *tcpc)
+ 	unsigned int reg;
+ 	int ret;
+ 
++pr_warn("tcpci_is_vbus_vsafe0v");
++
+ 	ret = regmap_read(tcpci->regmap, TCPC_EXTENDED_STATUS, &reg);
+ 	if (ret < 0)
+ 		return false;
+@@ -475,6 +507,8 @@ static int tcpci_vbus_force_discharge(struct tcpc_dev *tcpc, bool enable)
+ 	unsigned int reg;
+ 	int ret;
+ 
++pr_warn("vbus_force_discharge");
 +
  	if (enable)
  		regmap_write(tcpci->regmap,
  			TCPC_VBUS_VOLTAGE_ALARM_LO_CFG, 0x1c);
-@@ -492,6 +494,8 @@ static int tcpci_vbus_force_discharge(struct tcpc_dev *tcpc, bool enable)
+@@ -492,6 +526,8 @@ static int tcpci_vbus_force_discharge(struct tcpc_dev *tcpc, bool enable)
  	if (ret < 0)
  		return ret;
  
@@ -32,7 +176,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	return 0;
  }
  
-@@ -500,6 +504,13 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+@@ -500,6 +536,13 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
  	struct tcpci *tcpci = tcpc_to_tcpci(tcpc);
  	int ret;
  
@@ -46,7 +190,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	if (tcpci->data->set_vbus) {
  		ret = tcpci->data->set_vbus(tcpci, tcpci->data, source, sink);
  		/* Bypass when ret > 0 */
-@@ -509,6 +520,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+@@ -509,6 +552,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
  
  	/* Disable both source and sink first before enabling anything */
  
@@ -55,7 +199,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	if (!source) {
  		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
  				   TCPC_CMD_DISABLE_SRC_VBUS);
-@@ -516,6 +529,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+@@ -516,6 +561,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
  			return ret;
  	}
  
@@ -64,7 +208,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	if (!sink) {
  		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
  				   TCPC_CMD_DISABLE_SINK_VBUS);
-@@ -523,9 +538,13 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+@@ -523,9 +570,13 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
  			return ret;
  	}
  
@@ -78,7 +222,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	if (source) {
  		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
  				   TCPC_CMD_SRC_VBUS_DEFAULT);
-@@ -533,6 +552,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+@@ -533,6 +584,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
  			return ret;
  	}
  
@@ -87,7 +231,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	if (sink) {
  		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
  				   TCPC_CMD_SINK_VBUS);
-@@ -540,6 +561,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+@@ -540,6 +593,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
  			return ret;
  	}
  
@@ -96,16 +240,25 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	return 0;
  }
  
-@@ -609,6 +632,8 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+@@ -551,6 +606,8 @@ static int tcpci_pd_transmit(struct tcpc_dev *tcpc, enum tcpm_transmit_type type
+ 	unsigned int reg, cnt;
+ 	int ret;
+ 
++pr_warn("tcpci_pd_transmit");
++
+ 	cnt = msg ? pd_header_cnt(header) * 4 : 0;
+ 	/**
+ 	 * TCPCI spec forbids direct access of TCPC_TX_DATA.
+@@ -609,6 +666,8 @@ static int tcpci_init(struct tcpc_dev *tcpc)
  	unsigned int reg;
  	int ret;
  
-+pr_warn("c1");
++pr_warn("tcpci_init");
 +
  	while (time_before_eq(jiffies, timeout)) {
  		ret = regmap_read(tcpci->regmap, TCPC_POWER_STATUS, &reg);
  		if (ret < 0)
-@@ -620,10 +645,14 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+@@ -620,10 +679,14 @@ static int tcpci_init(struct tcpc_dev *tcpc)
  	if (time_after(jiffies, timeout))
  		return -ETIMEDOUT;
  
@@ -120,7 +273,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	/* Handle vendor init */
  	if (tcpci->data->init) {
  		ret = tcpci->data->init(tcpci, tcpci->data);
-@@ -631,14 +660,20 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+@@ -631,14 +694,20 @@ static int tcpci_init(struct tcpc_dev *tcpc)
  			return ret;
  	}
  
@@ -141,7 +294,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	if (tcpci->controls_vbus)
  		reg = TCPC_POWER_STATUS_VBUS_PRES;
  	else
-@@ -647,12 +682,16 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+@@ -647,12 +716,16 @@ static int tcpci_init(struct tcpc_dev *tcpc)
  	if (ret < 0)
  		return ret;
  
@@ -158,7 +311,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	reg = TCPC_ALERT_TX_SUCCESS | TCPC_ALERT_TX_FAILED |
  		TCPC_ALERT_TX_DISCARDED | TCPC_ALERT_RX_STATUS |
  		TCPC_ALERT_RX_HARD_RST | TCPC_ALERT_CC_STATUS |
-@@ -667,6 +706,9 @@ static int tcpci_init(struct tcpc_dev *tcpc)
+@@ -667,6 +740,9 @@ static int tcpci_init(struct tcpc_dev *tcpc)
  		if (ret < 0)
  			return ret;
  	}
@@ -168,7 +321,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	return tcpci_write16(tcpci, TCPC_ALERT_MASK, reg);
  }
  
-@@ -678,18 +720,25 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+@@ -678,18 +754,25 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
  
  	tcpci_read16(tcpci, TCPC_ALERT, &status);
  
@@ -196,7 +349,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  		/* Read power status to clear the event */
  		regmap_read(tcpci->regmap, TCPC_POWER_STATUS, &raw);
  		regmap_read(tcpci->regmap, TCPC_POWER_STATUS_MASK, &raw);
-@@ -704,14 +753,18 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+@@ -704,14 +787,18 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
  			tcpm_vbus_change(tcpci->port);
  	}
  
@@ -216,7 +369,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  		regmap_read(tcpci->regmap, TCPC_RX_BYTE_CNT, &cnt);
  		/*
  		 * 'cnt' corresponds to READABLE_BYTE_COUNT in section 4.4.14
-@@ -741,6 +794,7 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+@@ -741,6 +828,7 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
  	}
  
  	if (tcpci->data->vbus_vsafe0v && (status & TCPC_ALERT_EXTENDED_STATUS)) {
@@ -224,7 +377,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  		ret = regmap_read(tcpci->regmap, TCPC_EXTENDED_STATUS, &raw);
  		if (!ret && (raw & TCPC_EXTENDED_STATUS_VSAFE0V))
  			tcpm_vbus_change(tcpci->port);
-@@ -748,13 +802,16 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+@@ -748,13 +836,16 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
  
  	/* Clear the fault status anyway */
  	if (status & TCPC_ALERT_FAULT) {
@@ -242,7 +395,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  
  	if (status & TCPC_ALERT_TX_SUCCESS)
  		tcpm_pd_transmit_complete(tcpci->port, TCPC_TX_SUCCESS);
-@@ -763,6 +820,8 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
+@@ -763,6 +854,8 @@ irqreturn_t tcpci_irq(struct tcpci *tcpci)
  	else if (status & TCPC_ALERT_TX_FAILED)
  		tcpm_pd_transmit_complete(tcpci->port, TCPC_TX_FAILED);
  
@@ -251,16 +404,16 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	return IRQ_HANDLED;
  }
  EXPORT_SYMBOL_GPL(tcpci_irq);
-@@ -785,6 +844,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
+@@ -785,6 +878,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
  {
  	tcpci->controls_vbus = true; /* XXX */
  
-+pr_warn("b1");
++pr_warn("parse_config");
 +
  	tcpci->tcpc.fwnode = device_get_named_child_node(tcpci->dev,
  							 "connector");
  	if (!tcpci->tcpc.fwnode) {
-@@ -792,6 +853,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
+@@ -792,6 +887,8 @@ static int tcpci_parse_config(struct tcpci *tcpci)
  		return -EINVAL;
  	}
  
@@ -269,7 +422,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	return 0;
  }
  
-@@ -800,6 +863,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+@@ -800,6 +897,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
  	struct tcpci *tcpci;
  	int err;
  
@@ -278,7 +431,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	tcpci = devm_kzalloc(dev, sizeof(*tcpci), GFP_KERNEL);
  	if (!tcpci)
  		return ERR_PTR(-ENOMEM);
-@@ -826,6 +891,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+@@ -826,6 +925,8 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
  	tcpci->tcpc.frs_sourcing_vbus = tcpci_frs_sourcing_vbus;
  	tcpci->tcpc.set_partner_usb_comm_capable = tcpci_set_partner_usb_comm_capable;
  
@@ -287,7 +440,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	if (tcpci->data->auto_discharge_disconnect) {
  		tcpci->tcpc.enable_auto_vbus_discharge = tcpci_enable_auto_vbus_discharge;
  		tcpci->tcpc.set_auto_vbus_discharge_threshold =
-@@ -834,19 +901,27 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+@@ -834,19 +935,27 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
  				   TCPC_POWER_CTRL_BLEED_DISCHARGE);
  	}
  
@@ -315,7 +468,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	return tcpci;
  }
  EXPORT_SYMBOL_GPL(tcpci_register_port);
-@@ -865,6 +940,8 @@ static int tcpci_probe(struct i2c_client *client,
+@@ -865,6 +974,8 @@ static int tcpci_probe(struct i2c_client *client,
  	int err;
  	u16 val = 0;
  
@@ -324,7 +477,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
  	if (!chip)
  		return -ENOMEM;
-@@ -881,6 +958,8 @@ static int tcpci_probe(struct i2c_client *client,
+@@ -881,6 +992,8 @@ static int tcpci_probe(struct i2c_client *client,
  	if (err < 0)
  		return err;
  
@@ -333,7 +486,7 @@ index 7ba1c59d14a2..73a1abc4a126 100644
  	chip->tcpci = tcpci_register_port(&client->dev, &chip->data);
  	if (IS_ERR(chip->tcpci))
  		return PTR_ERR(chip->tcpci);
-@@ -895,6 +974,8 @@ static int tcpci_probe(struct i2c_client *client,
+@@ -895,6 +1008,8 @@ static int tcpci_probe(struct i2c_client *client,
  		return err;
  	}
  
