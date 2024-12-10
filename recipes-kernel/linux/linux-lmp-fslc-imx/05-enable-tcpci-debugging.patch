@@ -496,7 +496,7 @@ index 7ba1c59d14a2..0d6fabfcd1f7 100644
  
  	return 0;
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 96bb7e72d376..39efb380f69b 100644
+index 96bb7e72d376..58fee95af0b6 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -941,16 +941,25 @@ static int tcpm_mux_set(struct tcpm_port *port, int state,
@@ -600,11 +600,20 @@ index 96bb7e72d376..39efb380f69b 100644
  	ret = tcpm_set_vbus(port, true);
  	if (ret < 0)
  		goto out_disable_vconn;
-@@ -3751,28 +3778,42 @@ static void tcpm_reset_port(struct tcpm_port *port)
+@@ -3740,6 +3767,9 @@ static void tcpm_set_partner_usb_comm_capable(struct tcpm_port *port, bool capab
+ 
+ static void tcpm_reset_port(struct tcpm_port *port)
+ {
++pr_warn("tcpm_reset_port - disabled");
++return;
++
+ 	tcpm_enable_auto_vbus_discharge(port, false);
+ 	port->in_ams = false;
+ 	port->ams = NONE_AMS;
+@@ -3751,28 +3781,41 @@ static void tcpm_reset_port(struct tcpm_port *port)
  	port->pps_data.supported = false;
  	tcpm_set_partner_usb_comm_capable(port, false);
  
-+pr_warn("tcpm_reset_port");
 +
  	/*
  	 * First Rx ID should be 0; set this to a sentinel of -1 so that
@@ -643,7 +652,7 @@ index 96bb7e72d376..39efb380f69b 100644
  
  	usb_power_delivery_unregister_capabilities(port->partner_sink_caps);
  	port->partner_sink_caps = NULL;
-@@ -3780,6 +3821,7 @@ static void tcpm_reset_port(struct tcpm_port *port)
+@@ -3780,6 +3823,7 @@ static void tcpm_reset_port(struct tcpm_port *port)
  	port->partner_source_caps = NULL;
  	usb_power_delivery_unregister(port->partner_pd);
  	port->partner_pd = NULL;
@@ -651,7 +660,7 @@ index 96bb7e72d376..39efb380f69b 100644
  }
  
  static void tcpm_detach(struct tcpm_port *port)
-@@ -4526,6 +4568,7 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4526,6 +4570,7 @@ static void run_state_machine(struct tcpm_port *port)
  		 * drive VBUS to vSafe0V as shown in Figure 7-9.
  		 */
  		tcpm_set_vconn(port, false);
@@ -659,7 +668,7 @@ index 96bb7e72d376..39efb380f69b 100644
  		tcpm_set_vbus(port, false);
  		tcpm_set_roles(port, port->self_powered, TYPEC_SOURCE,
  			       tcpm_data_role_for_source(port));
-@@ -4544,6 +4587,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4544,6 +4589,8 @@ static void run_state_machine(struct tcpm_port *port)
  		break;
  	case SRC_HARD_RESET_VBUS_ON:
  		tcpm_set_vconn(port, true);
@@ -668,7 +677,7 @@ index 96bb7e72d376..39efb380f69b 100644
  		tcpm_set_vbus(port, true);
  		if (port->ams == HARD_RESET)
  			tcpm_ams_finish(port);
-@@ -4729,6 +4774,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4729,6 +4776,8 @@ static void run_state_machine(struct tcpm_port *port)
  		 * Prevent vbus discharge circuit from turning on during PR_SWAP
  		 * as this is not a disconnect.
  		 */
@@ -677,7 +686,7 @@ index 96bb7e72d376..39efb380f69b 100644
  		tcpm_set_vbus(port, false);
  		port->explicit_contract = false;
  		/* allow time for Vbus discharge, must be < tSrcSwapStdby */
-@@ -4779,6 +4826,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4779,6 +4828,8 @@ static void run_state_machine(struct tcpm_port *port)
  	case PR_SWAP_SNK_SRC_SOURCE_ON:
  		tcpm_enable_auto_vbus_discharge(port, true);
  		tcpm_set_cc(port, tcpm_rp_cc(port));
@@ -686,7 +695,7 @@ index 96bb7e72d376..39efb380f69b 100644
  		tcpm_set_vbus(port, true);
  		/*
  		 * allow time VBUS ramp-up, must be < tNewSrc
-@@ -5992,7 +6041,9 @@ static void tcpm_init(struct tcpm_port *port)
+@@ -5992,7 +6043,9 @@ static void tcpm_init(struct tcpm_port *port)
  
  	port->tcpc->init(port->tcpc);
  
