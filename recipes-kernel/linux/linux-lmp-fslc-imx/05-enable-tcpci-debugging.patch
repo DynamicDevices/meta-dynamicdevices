@@ -11,7 +11,7 @@ index 7b107fa7414b..de0e49a94fb7 100644
 +dtb-y += imx8mm-jaguar-sentai.dtb
 +dtb-y += imx8mm-jaguar-sentai.dtb
 diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
-index 7ba1c59d14a2..bda5e264f9e7 100644
+index 7ba1c59d14a2..73a1abc4a126 100644
 --- a/drivers/usb/typec/tcpm/tcpci.c
 +++ b/drivers/usb/typec/tcpm/tcpci.c
 @@ -475,6 +475,8 @@ static int tcpci_vbus_force_discharge(struct tcpc_dev *tcpc, bool enable)
@@ -36,12 +36,12 @@ index 7ba1c59d14a2..bda5e264f9e7 100644
  	struct tcpci *tcpci = tcpc_to_tcpci(tcpc);
  	int ret;
  
-+pr_warn("tcpci_set_vbus: source %d, sink %d");
++pr_warn("tcpci_set_vbus: source %d, sink %d", source, sink);
 +
 +source = false;
 +sink = true;
 +
-+pr_warn("tcpci_set_vbus: force source %d, sink %d");
++pr_warn("tcpci_set_vbus: force source %d, sink %d". source. sink);
 +
  	if (tcpci->data->set_vbus) {
  		ret = tcpci->data->set_vbus(tcpci, tcpci->data, source, sink);
@@ -343,10 +343,75 @@ index 7ba1c59d14a2..bda5e264f9e7 100644
  
  	return 0;
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 96bb7e72d376..b0f1aa0c54a1 100644
+index 96bb7e72d376..3b8d63f5591a 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
-@@ -3561,6 +3561,8 @@ static int tcpm_set_vbus(struct tcpm_port *port, bool enable)
+@@ -941,16 +941,25 @@ static int tcpm_mux_set(struct tcpm_port *port, int state,
+ 	tcpm_log(port, "Requesting mux state %d, usb-role %d, orientation %d",
+ 		 state, usb_role, orientation);
+ 
++pr_warn("Requesting mux state %d, usb-role %d, orientation %d",
++		 state, usb_role, orientation);
++
++pr_warn("tcpm_mux_set 1");
++
+ 	ret = typec_set_orientation(port->typec_port, orientation);
+ 	if (ret)
+ 		return ret;
+ 
++pr_warn("tcpm_mux_set 2");
++
+ 	if (port->role_sw) {
+ 		ret = usb_role_switch_set_role(port->role_sw, usb_role);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
++pr_warn("tcpm_mux_set 3");
++
+ 	return typec_set_mode(port->typec_port, state);
+ }
+ 
+@@ -1028,6 +1037,8 @@ static int tcpm_set_current_limit(struct tcpm_port *port, u32 max_ma, u32 mv)
+ 
+ static int tcpm_set_attached_state(struct tcpm_port *port, bool attached)
+ {
++pr_warn("tcpm_set_attached_state");
++
+ 	return port->tcpc->set_roles(port->tcpc, attached, port->pwr_role,
+ 				     port->data_role);
+ }
+@@ -1039,6 +1050,8 @@ static int tcpm_set_roles(struct tcpm_port *port, bool attached,
+ 	enum usb_role usb_role;
+ 	int ret;
+ 
++pr_warn("tcpm_set_attached_roles");
++
+ 	if (port->polarity == TYPEC_POLARITY_CC1)
+ 		orientation = TYPEC_ORIENTATION_NORMAL;
+ 	else
+@@ -1089,14 +1102,20 @@ static int tcpm_set_pwr_role(struct tcpm_port *port, enum typec_role role)
+ {
+ 	int ret;
+ 
++pr_warn("tcpm_set_pwr_role 1");
++
+ 	ret = port->tcpc->set_roles(port->tcpc, true, role,
+ 				    port->data_role);
+ 	if (ret < 0)
+ 		return ret;
+ 
++pr_warn("tcpm_set_pwr_role 2");
++
+ 	port->pwr_role = role;
+ 	typec_set_pwr_role(port->typec_port, role);
+ 
++pr_warn("tcpm_set_pwr_role 3");
++
+ 	return 0;
+ }
+ 
+@@ -3561,6 +3580,8 @@ static int tcpm_set_vbus(struct tcpm_port *port, bool enable)
  {
  	int ret;
  
@@ -355,7 +420,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  	if (enable && port->vbus_charge)
  		return -EINVAL;
  
-@@ -3578,6 +3580,8 @@ static int tcpm_set_charge(struct tcpm_port *port, bool charge)
+@@ -3578,6 +3599,8 @@ static int tcpm_set_charge(struct tcpm_port *port, bool charge)
  {
  	int ret;
  
@@ -364,7 +429,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  	if (charge && port->vbus_source)
  		return -EINVAL;
  
-@@ -3609,6 +3613,8 @@ static int tcpm_init_vbus(struct tcpm_port *port)
+@@ -3609,6 +3632,8 @@ static int tcpm_init_vbus(struct tcpm_port *port)
  {
  	int ret;
  
@@ -373,7 +438,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  	ret = port->tcpc->set_vbus(port->tcpc, false, false);
  	port->vbus_source = false;
  	port->vbus_charge = false;
-@@ -3683,6 +3689,8 @@ static int tcpm_src_attach(struct tcpm_port *port)
+@@ -3683,6 +3708,8 @@ static int tcpm_src_attach(struct tcpm_port *port)
  			goto out_disable_pd;
  	}
  
@@ -382,7 +447,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  	ret = tcpm_set_vbus(port, true);
  	if (ret < 0)
  		goto out_disable_vconn;
-@@ -3751,28 +3759,42 @@ static void tcpm_reset_port(struct tcpm_port *port)
+@@ -3751,28 +3778,42 @@ static void tcpm_reset_port(struct tcpm_port *port)
  	port->pps_data.supported = false;
  	tcpm_set_partner_usb_comm_capable(port, false);
  
@@ -425,7 +490,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  
  	usb_power_delivery_unregister_capabilities(port->partner_sink_caps);
  	port->partner_sink_caps = NULL;
-@@ -3780,6 +3802,7 @@ static void tcpm_reset_port(struct tcpm_port *port)
+@@ -3780,6 +3821,7 @@ static void tcpm_reset_port(struct tcpm_port *port)
  	port->partner_source_caps = NULL;
  	usb_power_delivery_unregister(port->partner_pd);
  	port->partner_pd = NULL;
@@ -433,7 +498,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  }
  
  static void tcpm_detach(struct tcpm_port *port)
-@@ -4526,6 +4549,7 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4526,6 +4568,7 @@ static void run_state_machine(struct tcpm_port *port)
  		 * drive VBUS to vSafe0V as shown in Figure 7-9.
  		 */
  		tcpm_set_vconn(port, false);
@@ -441,7 +506,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  		tcpm_set_vbus(port, false);
  		tcpm_set_roles(port, port->self_powered, TYPEC_SOURCE,
  			       tcpm_data_role_for_source(port));
-@@ -4544,6 +4568,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4544,6 +4587,8 @@ static void run_state_machine(struct tcpm_port *port)
  		break;
  	case SRC_HARD_RESET_VBUS_ON:
  		tcpm_set_vconn(port, true);
@@ -450,7 +515,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  		tcpm_set_vbus(port, true);
  		if (port->ams == HARD_RESET)
  			tcpm_ams_finish(port);
-@@ -4729,6 +4755,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4729,6 +4774,8 @@ static void run_state_machine(struct tcpm_port *port)
  		 * Prevent vbus discharge circuit from turning on during PR_SWAP
  		 * as this is not a disconnect.
  		 */
@@ -459,7 +524,7 @@ index 96bb7e72d376..b0f1aa0c54a1 100644
  		tcpm_set_vbus(port, false);
  		port->explicit_contract = false;
  		/* allow time for Vbus discharge, must be < tSrcSwapStdby */
-@@ -4779,6 +4807,8 @@ static void run_state_machine(struct tcpm_port *port)
+@@ -4779,6 +4826,8 @@ static void run_state_machine(struct tcpm_port *port)
  	case PR_SWAP_SNK_SRC_SOURCE_ON:
  		tcpm_enable_auto_vbus_discharge(port, true);
  		tcpm_set_cc(port, tcpm_rp_cc(port));
