@@ -496,7 +496,7 @@ index 7ba1c59d14a2..0d6fabfcd1f7 100644
  
  	return 0;
 diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
-index 96bb7e72d376..3b8d63f5591a 100644
+index 96bb7e72d376..39efb380f69b 100644
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -941,16 +941,25 @@ static int tcpm_mux_set(struct tcpm_port *port, int state,
@@ -686,3 +686,14 @@ index 96bb7e72d376..3b8d63f5591a 100644
  		tcpm_set_vbus(port, true);
  		/*
  		 * allow time VBUS ramp-up, must be < tNewSrc
+@@ -5992,7 +6041,9 @@ static void tcpm_init(struct tcpm_port *port)
+ 
+ 	port->tcpc->init(port->tcpc);
+ 
+-	tcpm_reset_port(port);
++pr_warn("tcpm_init");
++
++//	tcpm_reset_port(port);
+ 
+ 	/*
+ 	 * XXX
