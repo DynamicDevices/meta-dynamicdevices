@@ -1,0 +1,99 @@
+diff --git a/drivers/usb/typec/tcpm/tcpci.c b/drivers/usb/typec/tcpm/tcpci.c
+index 7ba1c59d14a2..0bbe45892926 100644
+--- a/drivers/usb/typec/tcpm/tcpci.c
++++ b/drivers/usb/typec/tcpm/tcpci.c
+@@ -36,6 +36,7 @@ struct tcpci {
+ 	struct regmap *regmap;
+ 
+ 	bool controls_vbus;
++	bool drive_vbus;
+ 
+ 	struct tcpc_dev tcpc;
+ 	struct tcpci_data *data;
+@@ -509,7 +510,9 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+ 
+ 	/* Disable both source and sink first before enabling anything */
+ 
+-	if (!source) {
++	if (!source && tcpci->drive_vbus) {
++		tcpci->drive_vbus = false;
++
+ 		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
+ 				   TCPC_CMD_DISABLE_SRC_VBUS);
+ 		if (ret < 0)
+@@ -527,6 +530,8 @@ static int tcpci_set_vbus(struct tcpc_dev *tcpc, bool source, bool sink)
+ 		tcpci_vbus_force_discharge(tcpc, true);
+ 
+ 	if (source) {
++		tcpci->drive_vbus = true;
++
+ 		ret = regmap_write(tcpci->regmap, TCPC_COMMAND,
+ 				   TCPC_CMD_SRC_VBUS_DEFAULT);
+ 		if (ret < 0)
+@@ -807,6 +812,7 @@ struct tcpci *tcpci_register_port(struct device *dev, struct tcpci_data *data)
+ 	tcpci->dev = dev;
+ 	tcpci->data = data;
+ 	tcpci->regmap = data->regmap;
++	tcpci->drive_vbus = true;
+ 
+ 	tcpci->tcpc.init = tcpci_init;
+ 	tcpci->tcpc.get_vbus = tcpci_get_vbus;
+diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
+index 96bb7e72d376..41199426679a 100644
+--- a/drivers/usb/typec/tcpm/tcpm.c
++++ b/drivers/usb/typec/tcpm/tcpm.c
+@@ -343,6 +343,7 @@ struct tcpm_port {
+ 	bool vbus_never_low;
+ 	bool vbus_source;
+ 	bool vbus_charge;
++	bool force_vbus_charge_on;
+ 
+ 	/* Set to true when Discover_Identity Command is expected to be sent in Ready states. */
+ 	bool send_discover;
+@@ -3581,6 +3582,9 @@ static int tcpm_set_charge(struct tcpm_port *port, bool charge)
+ 	if (charge && port->vbus_source)
+ 		return -EINVAL;
+ 
++	if(!charge && port->force_vbus_charge_on)
++		return -EINVAL;
++
+ 	if (charge != port->vbus_charge) {
+ 		tcpm_log(port, "vbus=%d charge:=%d", port->vbus_source, charge);
+ 		ret = port->tcpc->set_vbus(port->tcpc, port->vbus_source,
+@@ -3607,12 +3611,7 @@ static bool tcpm_start_toggling(struct tcpm_port *port, enum typec_cc_status cc)
+ 
+ static int tcpm_init_vbus(struct tcpm_port *port)
+ {
+-	int ret;
+-
+-	ret = port->tcpc->set_vbus(port->tcpc, false, false);
+-	port->vbus_source = false;
+-	port->vbus_charge = false;
+-	return ret;
++	return port->tcpc->set_vbus(port->tcpc, port->vbus_source, port->vbus_charge);
+ }
+ 
+ static int tcpm_init_vconn(struct tcpm_port *port)
+@@ -6166,6 +6165,22 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
+ 	port->pd_supported = !fwnode_property_read_bool(fwnode, "pd-disable");
+ 
+ 	port->slow_charger_loop = fwnode_property_read_bool(fwnode, "slow-charger-loop");
++
++	if (fwnode_property_present(fwnode, "init-vbus-source"))
++		port->vbus_source = true;
++	else
++		port->vbus_source = false;
++
++	if (fwnode_property_present(fwnode, "init-vbus-charge"))
++	        port->vbus_charge = true;
++	else
++	        port->vbus_charge = false;
++
++	if (fwnode_property_present(fwnode, "force-vbus-charge-on"))
++	        port->force_vbus_charge_on = true;
++	else
++	        port->force_vbus_charge_on = false;
++
+ 	if (port->port_type == TYPEC_PORT_SNK)
+ 		goto sink;
+ 
