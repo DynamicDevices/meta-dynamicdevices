@@ -6,6 +6,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI:append:imx8mm-lpddr4-evk = " \
 		file://05-prevent-vbus-loss.patch \
+		file://05-tcpm-console-logging.patch \
 "
 
 SRC_URI:append:imx8mm-jaguar-sentai = " \
