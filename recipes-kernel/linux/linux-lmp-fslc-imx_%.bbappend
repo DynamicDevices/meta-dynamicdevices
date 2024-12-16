@@ -5,7 +5,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 #SRCREV_machine = "b7a6070a84787c49e9891a24bddbc4faaff35a53"
 
 SRC_URI:append:imx8mm-lpddr4-evk = " \
-		file://05-add-ptn5110-handling.patch \
+		file://05-prevent-vbus-loss.patch \
 "
 
 SRC_URI:append:imx8mm-jaguar-sentai = " \
