@@ -18,24 +18,3 @@
 		regulator-max-microvolt = <3300000>;
 	};
 };
-
-// USB-C port
-&usbotg1 {
-        dr_mode = "host";
-        /delete-property/ usb-role-switch;
-        status = "okay";
-};
-
-&i2c2 {
-        ptn5110: tcpc@50 {
-                typec1_con: connector {
-                       power-role = "sink";
-                       data-role = "host";
-                       /delete-property/ try-power-role;
-                       /delete-property/ self-powered;
-                       init-vbus-charge;
-                       force-vbus-charge-on;
-                        status = "okay";
-                };
-        };
-};
