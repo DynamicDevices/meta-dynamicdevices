@@ -4,9 +4,9 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 #KERNEL_BRANCH = "ajl/6.1-2.2.x-imx"
 #SRCREV_machine = "b7a6070a84787c49e9891a24bddbc4faaff35a53"
 
-SRC_URI:append:imx8mm-lpddr4-evk = " \
-		file://backport-tcpm-driver.patch \
-"
+#SRC_URI:append:imx8mm-lpddr4-evk = " \
+#		file://backport-tcpm-driver.patch \
+#"
 
 SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://enable_i2c-dev.cfg \
