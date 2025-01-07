@@ -521,8 +521,7 @@
 
 // USB-C port
 &usbotg1 {
-	dr_mode = "peripheral";
-        /delete-property/ usb-role-switch;
+	dr_mode = "host";
         status = "okay";
 };
 
