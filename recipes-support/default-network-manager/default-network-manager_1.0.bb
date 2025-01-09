@@ -15,5 +15,16 @@ FILES:${PN} = "${bindir}/setup-network-manager.sh"
 pkg_postinst_ontarget:${PN} () {
   #!/bin/sh
   echo Setting up Network Manager connectivity
+
+  WIFIDEV=wlo1
+  wifidown=1
+
+  while [ $wifidown -eq 1 ]; do
+    echo Waiting for WiFi interface ${WIFIDEV} to come up
+    ifconfig | grep $WIFIDEV
+    wifidown=$?
+    sleep 1
+  done
+
   setup-network-manager.sh &
 }
