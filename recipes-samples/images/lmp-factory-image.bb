@@ -112,6 +112,7 @@ CORE_IMAGE_BASE_INSTALL += " \
 
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-sentai = " \
     nxp-afe-voiceseeker \
+    default-network-manager \
 "
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
        linux-firmware-iwlwifi \
