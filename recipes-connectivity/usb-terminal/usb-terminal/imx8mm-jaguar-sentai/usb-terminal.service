@@ -1,0 +1,13 @@
+[Unit]
+Description=Start up a USB terminal
+#Wants=
+#After=
+ConditionPathExists=!/var/sota/sql.db
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=stty -F /dev/ttyUSB4 speed 115200
+
+[Install]
+WantedBy=multi-user.target
