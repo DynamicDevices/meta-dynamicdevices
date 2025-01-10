@@ -1,7 +1,6 @@
 [Unit]
 Description=Start up a USB terminal
-#Wants=
-#After=
+After=systemd-udev-settle.service
 ConditionPathExists=!/var/sota/sql.db
 
 [Service]
