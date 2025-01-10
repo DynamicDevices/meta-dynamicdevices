@@ -9,6 +9,6 @@ SRC_URI:append = " file://20-jaguar.rules"
 S = "${WORKDIR}"
 
 do_install () {
-	install -d ${D}${sysconfdir}/udev/20-jaguar-rules.d
+	install -d ${D}${sysconfdir}/udev/rules.d
 	install -m 0644 ${WORKDIR}/20-jaguar.rules ${D}${sysconfdir}/udev/rules.d/
 }
