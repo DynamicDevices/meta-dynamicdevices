@@ -15,6 +15,4 @@ SYSTEMD_SERVICE:${PN} = "usb-terminal.service"
 do_install() {
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${WORKDIR}/usb-terminal.service ${D}${systemd_system_unitdir}/
-	install -d ${D}${bindir}
-	install -m 0755 ${WORKDIR}/usb-terminal ${D}${bindir}/
 }
