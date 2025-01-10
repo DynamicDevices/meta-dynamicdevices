@@ -6,7 +6,7 @@ ConditionPathExists=!/var/sota/sql.db
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=stty -F /dev/ttyUSB4 speed 115200
+ExecStart=stty -F /dev/ttyUSBConsole speed 115200
 
 [Install]
 WantedBy=multi-user.target
