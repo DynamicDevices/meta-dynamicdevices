@@ -9,7 +9,7 @@
 -A INPUT -i factory-vpn0 -j ACCEPT
 -A INPUT -i br+ -j ACCEPT
 -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-#-A INPUT -j REJECT --reject-with icmp-port-unreachable
+-A INPUT -j REJECT --reject-with icmp-port-unreachable
 -A OUTPUT -p udp -m udp --dport 5555 -j ACCEPT
 COMMIT
 # Completed on Wed Nov  6 13:57:16 2024
