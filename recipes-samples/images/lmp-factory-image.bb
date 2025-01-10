@@ -112,8 +112,8 @@ CORE_IMAGE_BASE_INSTALL += " \
 
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-sentai = " \
     nxp-afe-voiceseeker \
-    usb-terminal \
 "
+
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
        linux-firmware-iwlwifi \
        pciutils \
