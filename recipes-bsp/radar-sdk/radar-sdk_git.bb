@@ -51,23 +51,11 @@ do_install:append() {
   install -m 755 ${B}/bin/BGT60* ${D}${bindir}
   install -m 755 ${B}/bin/BGT24* ${D}${bindir}
   install -m 755 ${B}/bin/bgt60* ${D}${bindir}
-  install -m 755 ${B}/bin/bgt60* ${D}${bindir}
   install -d ${D}${libdir}
   install -m 755 ${B}/bin/*.so ${D}${libdir}
 }
 
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libsdk_algo.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libsdk_radar.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libsdk_cw.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libstrata_shared.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libsdk_fmcw.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libsdk_ltr11.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/liblib_avian.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libsdk_avian.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libsdk_radar_device_common.so'
-#-dev package radar-sdk-dev contains non-symlink .so '/usr/lib/libsdk_base.so' [dev-elf]
-
-FILES:${PN} += "${libdir}/*.so"
+FILES:${PN} += "${libdir}/*.so ${bindir}/*"
 
 # TODO: We get an error relating to the -dev package which shouldn't have these libraries.
 #       Maybe it's a build issue but for now let's just ensure there's nothing in the -dev package
