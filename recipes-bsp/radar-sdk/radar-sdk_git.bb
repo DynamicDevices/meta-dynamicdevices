@@ -37,14 +37,14 @@ SRC_URI = "git://github.com/DynamicDevices/radar-sdk.git;protocol=https;branch=m
 
 # Modify these as desired
 PV = "3.5.0"
-SRCREV = "f63877231c348893dca2c8ee1b3358eb7a5a2969"
+SRCREV = "1ae610b6135917c1fa7855585e24f337ffdef24e"
 
 S = "${WORKDIR}/git"
 
 inherit cmake
 
 # Specify any options you want to pass to cmake using EXTRA_OECMAKE:
-EXTRA_OECMAKE = ""
+EXTRA_OECMAKE = "-DCMAKE_SKIP_RPATH=TRUE"
 
 do_install:append() {
   install -d ${D}${bindir}
