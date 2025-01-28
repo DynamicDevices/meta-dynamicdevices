@@ -8,11 +8,6 @@ SRC_URI:append = " \
   file://test-leds-hb.sh \
   file://test-leds-rc.sh \
   file://set-fio-passwd.sh \
-  file://test-audio-play-and-record.sh \
-  file://AudioTest-Microphone-One.mp3 \
-  file://AudioTest-Microphone-Two.mp3 \
-  file://AudioTest-Recording-Will-Now-Play-Back.mp3 \
-  file://AudioTest-Recording-Should-Have-Played.mp3 \
 "
 
 SRC_URI:append:imx8mm-jaguar-sentai = " \
@@ -20,6 +15,11 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
   file://dtmf-182846.wav \
   file://board-testing-now-starting-up.wav \
   file://tests-all-completed.wav \
+  file://test-audio-play-and-record.sh \
+  file://AudioTest-Microphone-One.mp3 \
+  file://AudioTest-Microphone-Two.mp3 \
+  file://AudioTest-Recording-Will-Now-Play-Back.mp3 \
+  file://AudioTest-Recording-Should-Have-Played.mp3 \
 "
 
 do_install() {
