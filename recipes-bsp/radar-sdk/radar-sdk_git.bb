@@ -36,8 +36,8 @@ LIC_FILES_CHKSUM = "file://3rd_party/libs/argparse/LICENSE;md5=8c440aa75fef5b9fe
 SRC_URI = "git://github.com/DynamicDevices/radar-sdk.git;protocol=https;branch=main"
 
 # Modify these as desired
-PV = "3.5.0"
-SRCREV = "f63877231c348893dca2c8ee1b3358eb7a5a2969"
+PV = "3.6.4"
+SRCREV = "aa85aadc11df8bcb9e39c7e58c98179eea48ccb9"
 
 S = "${WORKDIR}/git"
 
