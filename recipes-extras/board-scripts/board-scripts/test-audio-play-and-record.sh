@@ -54,7 +54,7 @@ paplay /usr/share/board-scripts/AudioTest-Recording-Will-Now-Play-Back.mp3
 sleep 5
 
 echo Playing recording
-paplay pulse audio-test-microphone-1.wav
+paplay audio-test-microphone-1.wav
 
 sleep 5
 
