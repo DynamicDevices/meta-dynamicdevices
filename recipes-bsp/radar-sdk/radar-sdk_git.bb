@@ -19,7 +19,7 @@
 # licenses then you should change the value to separate the licenses with |
 # instead of &. If there is any doubt, check the accompanying documentation
 # to determine which situation is applicable.
-LICENSE = "GPL-2.0-only & LGPL-2.1-only & MIT & Unknown"
+LICENSE = "GPL-2.0-only & LGPL-2.1-only & MIT"
 LIC_FILES_CHKSUM = "file://3rd_party/libs/argparse/LICENSE;md5=8c440aa75fef5b9fe1a00c897580066b \
                     file://3rd_party/libs/bossa/LICENSE_BOSSA_BSD3.txt;md5=a83ef45b4f39a7cb12d9dc11d2c0e623 \
                     file://3rd_party/libs/muFFT/COPYING;md5=5a66f218a4430df274bcddde2656c9c2 \
