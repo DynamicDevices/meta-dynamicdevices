@@ -48,11 +48,9 @@ EXTRA_OECMAKE = ""
 
 do_install:append() {
   install -d ${D}${bindir}
-  install -m 755 ${B}/bin/BGT60* ${D}${bindir}
-  install -m 755 ${B}/bin/BGT24* ${D}${bindir}
-  install -m 755 ${B}/bin/bgt60* ${D}${bindir}
+  install -m 755 ${B}/bin/* ${D}${bindir}
   install -d ${D}${libdir}
-  install -m 755 ${B}/bin/*.so ${D}${libdir}
+  install -m 755 ${B}/bin/lib/*.so ${D}${libdir}
 }
 
 FILES:${PN} += "${libdir}/*.so ${bindir}/*"
