@@ -46,9 +46,9 @@ inherit cmake
 # Specify any options you want to pass to cmake using EXTRA_OECMAKE:
 EXTRA_OECMAKE = ""
 
-do_install:append() {
+do_install() {
   install -d ${D}${bindir}
-  install -m 755 ${B}/bin/* ${D}${bindir}
+  install -m 755 ${B}/bin/example_presence_detection ${D}${bindir}
   install -d ${D}${libdir}
   install -m 755 ${B}/bin/lib/*.so ${D}${libdir}
 }
