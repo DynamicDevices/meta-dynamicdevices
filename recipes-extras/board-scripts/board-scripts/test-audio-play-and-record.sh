@@ -23,17 +23,17 @@ arecord -c 2 -r 8000 -f S16_LE -D pulse audio-test-microphone-1.wav -d 5 &
 sleep 1
 
 echo Playing audio file to record
-paplay /usr/share/board-scripts/AudioTest-Microphone-One.mp3
+paplay /usr/share/board-scripts/AudioTest-Microphone-One.wav
 
 sleep 5
 
 echo Playing replay notification
-paplay /usr/share/board-scripts/AudioTest-Recording-Will-Now-Play-Back.mp3
+paplay /usr/share/board-scripts/AudioTest-Recording-Will-Now-Play-Back.wav
 
 sleep 5
 
 echo Playing recording
-paplay pulse audio-test-microphone-2.wav
+paplay audio-test-microphone-2.wav
 
 echo Setting to record on Microphone 2
 amixer -c micfilaudio set 'CH0' 0
@@ -44,12 +44,12 @@ sleep 1
 
 sleep 5
 echo Playing audio file to record
-paplay /usr/share/board-scripts/AudioTest-Microphone-Two.mp3
+paplay /usr/share/board-scripts/AudioTest-Microphone-Two.wav
 
 sleep 5
 
 echo Playing replay notification
-paplay /usr/share/board-scripts/AudioTest-Recording-Will-Now-Play-Back.mp3
+paplay /usr/share/board-scripts/AudioTest-Recording-Will-Now-Play-Back.wav
 
 sleep 5
 

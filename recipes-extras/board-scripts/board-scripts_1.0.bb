@@ -16,10 +16,10 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
   file://board-testing-now-starting-up.wav \
   file://tests-all-completed.wav \
   file://test-audio-play-and-record.sh \
-  file://AudioTest-Microphone-One.mp3 \
-  file://AudioTest-Microphone-Two.mp3 \
-  file://AudioTest-Recording-Will-Now-Play-Back.mp3 \
-  file://AudioTest-Recording-Should-Have-Played.mp3 \
+  file://AudioTest-Microphone-One.wav \
+  file://AudioTest-Microphone-Two.wav \
+  file://AudioTest-Recording-Will-Now-Play-Back.wav \
+  file://AudioTest-Recording-Should-Have-Played.wav \
 "
 
 do_install() {
@@ -30,7 +30,6 @@ do_install() {
 do_install:append:imx8mm-jaguar-sentai() {
     install -d ${D}${datadir}/${PN}
     install -m 0755 ${WORKDIR}/*.wav ${D}${datadir}/${PN}
-    install -m 0755 ${WORKDIR}/*.mp3 ${D}${datadir}/${PN}
 }
 
 RDEPENDS:${PN}:imx8mm-jaguar-sentai = "dtmf2num"
