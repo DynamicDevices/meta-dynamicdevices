@@ -37,7 +37,7 @@ SRC_URI = "git://github.com/DynamicDevices/radar-sdk.git;protocol=https;branch=m
 
 # Modify these as desired
 PV = "3.6.4"
-SRCREV = "aa85aadc11df8bcb9e39c7e58c98179eea48ccb9"
+SRCREV = "add1349d53d260737e75cda4d40cb9f0b391e63b"
 
 S = "${WORKDIR}/git"
 
@@ -48,9 +48,10 @@ EXTRA_OECMAKE = ""
 
 do_install() {
   install -d ${D}${bindir}
-  install -m 755 ${B}/bin/example_presence_detection ${D}${bindir}
+  install -m 755 ${B}/bin/BGT* ${D}${bindir}
+  install -m 755 ${B}/bin/bgt* ${D}${bindir}
   install -d ${D}${libdir}
-  install -m 755 ${B}/bin/lib/*.so ${D}${libdir}
+  install -m 755 ${B}/bin/*.so ${D}${libdir}
 }
 
 FILES:${PN} += "${libdir}/*.so ${bindir}/*"
