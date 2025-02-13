@@ -1,2 +1,7 @@
-
+build
+layers
+tools
+bitbake
+openembedded-core
 .swp
+*.log

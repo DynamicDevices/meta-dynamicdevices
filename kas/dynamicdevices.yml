@@ -1,0 +1,18 @@
+header:
+  version: 14
+
+repos:
+  meta-dynamicdevices:
+
+  meta-rust-bin:
+    url: https://github.com/rust-embedded/meta-rust-bin.git
+    path: layers/meta-rust-bin
+    commit: 96c802da6a582978721e60b96487d460c8eadf38
+
+  meta-nxp-connectivity:
+    url: https://github.com/dynamicdevices/meta-nxp-connectivity
+    branch: ajl/support-foundries
+    path: layers/meta-nxp-connectivity
+    commit: fc89124886d4a01af9dd72d7890fdf491317bbff
+    layers:
+      meta-nxp-zigbee-rcp:
