@@ -8,6 +8,16 @@ Common core for Dynamic Devices Yocto board support
 
 AI audio STT and TTS development platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Jaguar-Sentai-Board).
 
+To build `lmp-base` with Kas:
+
+`KAS_MACHINE=imx8mm-jaguar-sentai kas-container build kas/lmp-base.yml`
+
+NOTE: Currently you will need to copy your `factory-keys` folder to `build/conf/factory-keys`
+
+To program `lmp-base`:
+
+`./program/program_linux.sh`
+
 ## Jaguar Phasora
 
 MACHINE=imx8mm-jaguar-phasora is building and under TEST
