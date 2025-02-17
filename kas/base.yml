@@ -11,7 +11,7 @@ repos:
   lmp-tools:
     url: https://github.com/foundriesio/lmp-tools
     branch: master
-    path: tools
+    path: lmp-tools
     layers:
       .: excluded
 
