@@ -8,13 +8,13 @@ Common core for Dynamic Devices Yocto board support
 
 AI audio STT and TTS development platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Jaguar-Sentai-Board).
 
-To build `lmp-base` with Kas:
+To build `lmp-dynamicdevces-base` with Kas:
 
-`KAS_MACHINE=imx8mm-jaguar-sentai kas-container build kas/lmp-base.yml`
+`KAS_MACHINE=imx8mm-jaguar-sentai kas-container build kas/lmp-dynamicdevices-base.yml`
 
 NOTE: Currently you will need to copy your `factory-keys` folder to `build/conf/factory-keys`
 
-To program `lmp-base`:
+To program the image:
 
 `./program/program_linux.sh`
 

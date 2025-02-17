@@ -1,0 +1,30 @@
+#
+# To build with Kas use:
+#
+# `KAS_MACHINE=imx8mm-jaguar-foo kas-container build lmp-base.yml`
+#
+# For details contact Alex Lennon <ajlennon@dynamicdevices.co.uk>
+
+header:
+  version: 14
+  includes:
+    - base.yml
+    - bsp.yml
+    - dynamicdevices.yml
+
+distro: lmp-dynamicdevices
+target: lmp-factory-image
+machine: imx8mm-jaguar-sentai
+
+local_conf_header:
+  meta-dynamicdevices: |
+     ACCEPT_FSL_EULA = "1"
+     # TODO: We are building lmp-base so shouldn't be signing anything
+     #       Yet the build system checks for the presence of these files
+     #       For now we just give it a dummy file we know is present...
+#     SIGNING_UBOOT_SIGN_KEY="${TOPDIR}/bitbake.lock"
+#     SIGNING_UBOOT_SIGN_CRT="${TOPDIR}/bitbake.lock"
+#     SIGNING_UBOOT_SPL_SIGN_KEY="${TOPDIR}/bitbake.lock"
+#     SIGNING_UBOOT_SPL_SIGN_CRT="${TOPDIR}/bitbake.lock"
+#     SIGNING_UEFI_SIGN_KEY="${TOPDIR}/bitbake.lock"
+#     SIGNING_UEFI_SIGN_CRT="${TOPDIR}/bitbake.lock"
