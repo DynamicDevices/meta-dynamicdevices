@@ -12,8 +12,6 @@ To build `lmp-dynamicdevces-base` with Kas:
 
 `KAS_MACHINE=imx8mm-jaguar-sentai kas-container build kas/lmp-dynamicdevices-base.yml`
 
-NOTE: Currently you will need to copy your `factory-keys` folder to `build/conf/factory-keys`
-
 To program the image:
 
 `./program/program_linux.sh`
