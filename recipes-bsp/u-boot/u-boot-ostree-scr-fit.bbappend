@@ -1,5 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
+inherit lmp-signing-override
+
 SRC_URI:append:imx8mm-jaguar-sentai = " \
     file://boot.cmd \
 "
