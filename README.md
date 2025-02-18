@@ -14,7 +14,7 @@ To build `lmp-dynamicdevces-base` with Kas:
 
 To program the image:
 
-`./program/program_linux.sh`
+`cd program && ./program_linux.sh`
 
 ## Jaguar Phasora
 
