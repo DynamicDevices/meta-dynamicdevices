@@ -112,6 +112,7 @@ CORE_IMAGE_BASE_INSTALL += " \
 
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-sentai = " \
     socat \
+    default-network-manager \
 "
 
 CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
