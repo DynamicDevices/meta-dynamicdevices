@@ -15,11 +15,10 @@ SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-sentai = "enable"
 
 SRC_URI:append:imx8mm-jaguar-sentai = "\
     file://blacklist-audio.conf \
-    file://load-snd-aloop.conf \
     file://audio-driver.service \
     file://load-audio-drivers.sh \
 "
- 
+
 do_install:append:imx8mm-jaguar-sentai() {
         install -d ${D}${sysconfdir}/modprobe.d
         install -D -m 0644 ${WORKDIR}/blacklist-audio.conf ${D}${sysconfdir}/modprobe.d/blacklist-audio.conf
