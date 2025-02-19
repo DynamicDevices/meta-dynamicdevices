@@ -244,6 +244,14 @@
         status = "disabled";
 };
 
+&i2c1 {
+	sht40: sht40@44 {
+		compatible = "sensirion,sht4x";
+                reg = <0x44>;
+		status = "okay";
+	};
+};
+
 &i2c2 {
         ptn5110: tcpc@50 {
                 status = "disabled";
@@ -270,12 +278,6 @@
 };
 
 &i2c3 {
-	sht40: sht40@44 {
-		compatible = "sensirion,sht4x";
-                reg = <0x44>;
-		status = "okay";
-	};
-
 	lis2dh12: lis2dh12@19 {
 		compatible = "st,lis2dh12_accel";
                 reg = <0x19>;
