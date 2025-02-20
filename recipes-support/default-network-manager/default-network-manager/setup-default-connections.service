@@ -5,8 +5,8 @@ Description=Create a set of default network manager connections
 
 [Service]
 User=root
-ExecStart=/bin/bash /usr/bin/setup-default-network.sh
-ExecStartPost=/bin/bash systemctl disable default-network
+ExecStart=/bin/bash /usr/bin/setup-default-connections.sh
+ExecStartPost=/bin/bash systemctl disable setup-default-connections
 Type=oneshot
 
 [Install]
