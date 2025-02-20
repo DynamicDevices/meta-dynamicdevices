@@ -1,0 +1,11 @@
+[Unit]
+Description=Create a set of default network manager connections
+ConditionFirstBoot=true
+
+[Service]
+User=root
+ExecStart=/bin/bash /usr/bin/setup-default-network.sh
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target
