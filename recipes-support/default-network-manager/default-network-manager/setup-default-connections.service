@@ -1,5 +1,7 @@
 [Unit]
 Description=Create a set of default network manager connections
+Wants=network-online.target
+After=network-online.target
 # Doesnt' seem to work probably as /etc/machine-id exists?
 #ConditionFirstBoot=true
 
