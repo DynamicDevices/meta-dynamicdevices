@@ -8,7 +8,7 @@ After=network-online.target
 [Service]
 User=root
 ExecStart=/bin/bash /usr/bin/setup-default-connections.sh
-ExecStartPost=/bin/bash systemctl disable setup-default-connections
+ExecStartPost=/usr/bin/systemctl disable setup-default-connections
 Type=oneshot
 
 [Install]
