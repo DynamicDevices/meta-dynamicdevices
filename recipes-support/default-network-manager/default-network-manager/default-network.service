@@ -1,10 +1,12 @@
 [Unit]
 Description=Create a set of default network manager connections
-ConditionFirstBoot=true
+# Doesnt' seem to work probably as /etc/machine-id exists?
+#ConditionFirstBoot=true
 
 [Service]
 User=root
 ExecStart=/bin/bash /usr/bin/setup-default-network.sh
+ExecStartPost=/bin/bash systemctl disable default-network
 Type=oneshot
 
 [Install]
