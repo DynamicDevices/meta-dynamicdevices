@@ -20,6 +20,7 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
   file://AudioTest-Microphone-Two.wav \
   file://AudioTest-Recording-Will-Now-Play-Back.wav \
   file://AudioTest-Recording-Should-Have-Played.wav \
+  file://production-test.sh \
 "
 
 do_install() {
