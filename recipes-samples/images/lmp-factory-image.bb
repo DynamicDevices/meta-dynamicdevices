@@ -147,6 +147,6 @@ IMAGE_FEATURES += "ssh-server-openssh"
 # Disable root login
 inherit extrausers
 
-EXTRA_USERS_PARAMS:append = “\
+EXTRA_USERS_PARAMS:append = "\
   usermod -s /sbin/nologin root; \
-“
+"
