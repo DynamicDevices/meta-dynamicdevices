@@ -143,3 +143,10 @@ IMAGE_FEATURES += "ssh-server-openssh"
 #}
 
 #ROOTFS_POSTPROCESS_COMMAND:imx8mm-jaguar-phasora += "postprocess_function; "
+
+# Disable root login
+inherit extrausers
+
+EXTRA_USERS_PARAMS:append = “\
+  usermod -s /sbin/nologin root; \
+“
