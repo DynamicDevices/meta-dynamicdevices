@@ -307,6 +307,7 @@
                 #size-cells = <0>;
 		label = "led5";
                 reg = <0>;
+//                default-intensity = <100 0 0>;
                 color = <LED_COLOR_ID_RGB>;
                 function = LED_FUNCTION_INDICATOR;
                 led@0 {
@@ -330,6 +331,7 @@
                 #size-cells = <0>;
 		label = "led1";
                 reg = <1>;
+//                default-intensity = <100 0 0>;
                 color = <LED_COLOR_ID_RGB>;
                 function = LED_FUNCTION_INDICATOR;
                 led@0 {
@@ -353,6 +355,7 @@
                 #size-cells = <0>;
 		label = "led2";
                 reg = <2>;
+//                default-intensity = <100 0 0>;
                 color = <LED_COLOR_ID_RGB>;
                 function = LED_FUNCTION_INDICATOR;
                 led@0 {
@@ -376,6 +379,7 @@
                 #size-cells = <0>;
 		label = "led3";
                 reg = <3>;
+//                default-intensity = <100 0 0>;
                 color = <LED_COLOR_ID_RGB>;
                 function = LED_FUNCTION_INDICATOR;
                 led@0 {
@@ -399,6 +403,7 @@
                 #size-cells = <0>;
 		label = "led4";
                 reg = <4>;
+//                default-intensity = <100 0 0>;
                 color = <LED_COLOR_ID_RGB>;
                 function = LED_FUNCTION_INDICATOR;
                 led@0 {
@@ -422,6 +427,7 @@
                 #size-cells = <0>;
 		label = "led0";
                 reg = <5>;
+//                default-intensity = <100 0 0>;
                 color = <LED_COLOR_ID_RGB>;
                 function = LED_FUNCTION_INDICATOR;
                 led@0 {
