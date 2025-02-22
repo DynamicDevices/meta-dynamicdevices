@@ -258,8 +258,9 @@ then
     echo -e "- Set secure password"
     set-fio-password.sh
     echo -e "- Enable firewall"
-
+    enable-firewall.sh
     echo -r "- Disable production WiFi connection [TODO]"
+    nmcli c del SentaiProduction
 else
     echo TEST FAILED
     exit -1
