@@ -21,6 +21,7 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://02-disable-wifi-scan-msg.patch \
 		file://03-add-st-mems-support.patch \
 		file://04-enable-usb-gadgets.cfg \
+		file://05-patch-led-defaults.patch \
 "
 
 # NOTE: This DTB file is created as a default for use with local development
