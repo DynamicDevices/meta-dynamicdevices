@@ -36,6 +36,9 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+echo -e "Stopping Sentai application\n"
+docker stop sentaispeaker-SentaiSpeaker-1
+
 echo -e "Running Sentai Production Test - Version ${VERSION}\n"
 
 # (1) Show board infomation
@@ -252,9 +255,11 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
     echo TBD - SECURING DEVICE
-    echo -e "- Set secure password [TODO]"
+    echo -e "- Set secure password"
+    set-fio-password.sh
+    echo -e "- Enable firewall"
+
     echo -r "- Disable production WiFi connection [TODO]"
-    echo -r "- Move to production tag and start app container download [TODO]"
 else
     echo TEST FAILED
     exit -1
