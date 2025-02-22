@@ -37,5 +37,3 @@ do_install:append:imx8mm-jaguar-sentai() {
 }
 
 RDEPENDS:${PN}:imx8mm-jaguar-sentai = "dtmf2num"
-
-FILES:${PN} += "${sbindir}/set-fio-passwd.sh ${sbindir}/enable-firewall.sh"
