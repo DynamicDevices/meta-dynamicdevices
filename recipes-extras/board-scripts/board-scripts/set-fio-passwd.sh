@@ -29,4 +29,4 @@ CIPHERTEXT=`echo "${SALT}|${SERIAL}|" | sha256sum | cut -f 1 -d ' '`
 echo Password: ${CIPHERTEXT}
 
 # Set the password as the fio user
-sudo -u fio echo -e -n "fio\n${CIPHERTEXT}\n${CIPHERTEXT}\n" | passwd
+sudo -u fio echo -e -n "fio\n${CIPHERTEXT}\n${CIPHERTEXT}\n" | sudo -u fio passwd
