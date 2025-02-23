@@ -50,7 +50,8 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "You should see red, green, blue and white LEDs cycling\n"
     test-leds-hb.sh
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
