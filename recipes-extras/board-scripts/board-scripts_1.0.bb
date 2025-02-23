@@ -27,8 +27,8 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
 do_install() {
     install -d ${D}${sbindir}
     install -m 0755 ${WORKDIR}/*.sh ${D}${sbindir}
-    chmod 400 ${D}${sbindir}/set-fio-passwd.sh
-    chmod 400 ${D}${sbindir}/enable-firewall.sh
+    chmod 500 ${D}${sbindir}/set-fio-passwd.sh
+    chmod 500 ${D}${sbindir}/enable-firewall.sh
 }
 
 do_install:append:imx8mm-jaguar-sentai() {
