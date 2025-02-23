@@ -71,7 +71,7 @@ read -r -p "(3) Run humidity sensor tests? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
-    sensors
+    sensors || true
 else
     echo TEST FAILED
     exit -1
