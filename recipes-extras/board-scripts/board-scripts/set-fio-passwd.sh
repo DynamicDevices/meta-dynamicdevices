@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Check if running as root
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root by running this command with sudo 'sudo set-fio-passwd.sh' and entering the password"
+  exit
+fi
+
 SALT=DynamicDevices
 
 if [ -f /etc/salt ]; then
@@ -22,5 +28,5 @@ CIPHERTEXT=`echo "${SALT}|${SERIAL}|" | sha256sum | cut -f 1 -d ' '`
 
 echo Password: ${CIPHERTEXT}
 
-# Set the password
-echo -e -n "fio\n${CIPHERTEXT}\n${CIPHERTEXT}\n" | passwd
+# Set the password as the fio user
+sudo -u fio echo -e -n "fio\n${CIPHERTEXT}\n${CIPHERTEXT}\n" | passwd
