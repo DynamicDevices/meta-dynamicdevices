@@ -60,7 +60,8 @@ read -r -p "Did you see the correct LED colours with none missing? [y/N] " respo
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -72,7 +73,8 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
     sensors || true
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -82,7 +84,8 @@ read -r -p "Did a reasonable temperature and humidity value display? [y/N] " res
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -94,7 +97,8 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
     stusb4500-utils write --file /lib/firmware/stusb4500.dat
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -104,7 +108,8 @@ read -r -p "Did the programming step complete successfully ? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -129,7 +134,8 @@ then
         exit -1
     fi
     echo -e "Button press detected. Release the button now\n"
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -214,7 +220,8 @@ then
         echo TEST FAILED
         exit -1
     fi
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -229,7 +236,8 @@ then
     bluetoothctl --timeout 5 scan on
     bluetoothctl power off
     echo -e "\n^^^ You should have seen a number of MAC addresses and device names\n"
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -239,7 +247,8 @@ read -r -p "Did you see a number of bluetooth MAC addresses and device names ? [
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
@@ -259,7 +268,8 @@ then
     enable-firewall.sh
     echo -r "- Disable production WiFi connection [TODO]"
 #    nmcli c del SentaiProduction
-else
+elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+then
     echo TEST FAILED
     exit -1
 fi
