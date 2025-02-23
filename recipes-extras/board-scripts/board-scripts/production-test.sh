@@ -261,7 +261,7 @@ read -r -p "(8) Are you ready to secure the device? NOTE YOU CAN ONLY DO THIS ON
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
-    echo TBD - SECURING DEVICE
+    echo SECURING DEVICE
     echo -e "- Set secure password for fio user"
     sudo -u fio set-fio-passwd.sh
     sudo rm /etc/salt
