@@ -264,8 +264,9 @@ then
     echo -e "\n"
     echo SECURING DEVICE
     echo -e "- Set secure password for fio user"
-    sudo -u fio set-fio-passwd.sh
-    sudo rm /etc/salt
+    # TODO: Check if salt is present and error?
+    set-fio-passwd.sh
+    rm -f /etc/salt
     echo -e "- Enable firewall"
     enable-firewall.sh
     echo -r "- Disable production WiFi connection [TODO]"
