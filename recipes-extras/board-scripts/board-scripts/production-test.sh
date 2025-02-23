@@ -278,5 +278,6 @@ fi
 # Check app container is running
 
 echo -e "Production test successful\n"
+touch /etc/.production-test-successful
 su -c "paplay /usr/share/board-scripts/tests-all-completed.wav" fio
 exit 0
