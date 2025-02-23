@@ -257,13 +257,14 @@ fi
 
 # (8) Secure device
 echo -e "\n"
-read -r -p "(8) Are you ready to secure the device? [y/N] " response
+read -r -p "(8) Are you ready to secure the device? NOTE YOU CAN ONLY DO THIS ONCE [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
     echo TBD - SECURING DEVICE
     echo -e "- Set secure password for fio user"
     sudo -u fio set-fio-password.sh
+    sudo rm /etc/salt
     echo -e "- Enable firewall"
     enable-firewall.sh
     echo -r "- Disable production WiFi connection [TODO]"
