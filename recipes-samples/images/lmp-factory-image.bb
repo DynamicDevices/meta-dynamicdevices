@@ -94,6 +94,7 @@ CORE_IMAGE_BASE_INSTALL_GPLV3 = "\
 "
 
 CORE_IMAGE_BASE_INSTALL += " \
+    board-init \
     board-scripts \
     nano \
     lmp-auto-hostname \
