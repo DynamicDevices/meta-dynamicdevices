@@ -263,7 +263,7 @@ then
     echo -e "\n"
     echo TBD - SECURING DEVICE
     echo -e "- Set secure password for fio user"
-    sudo -u fio set-fio-password.sh
+    sudo -u fio set-fio-passwd.sh
     sudo rm /etc/salt
     echo -e "- Enable firewall"
     enable-firewall.sh
