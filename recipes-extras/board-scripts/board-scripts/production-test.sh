@@ -262,8 +262,8 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
     echo TBD - SECURING DEVICE
-    echo -e "- Set secure password"
-    set-fio-password.sh
+    echo -e "- Set secure password for fio user"
+    sudo -u fio set-fio-password.sh
     echo -e "- Enable firewall"
     enable-firewall.sh
     echo -r "- Disable production WiFi connection [TODO]"
