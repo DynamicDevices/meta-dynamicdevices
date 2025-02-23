@@ -9,9 +9,7 @@ set -e
 #
 #  - This test script must be run as the root user. e.g.
 #
-#    $ sudo su
-#    [ enter password ]
-#    # production-test.sh
+#    # sudo production-test.sh [enter password]
 #
 # Process:
 #
@@ -32,7 +30,7 @@ VERSION=0.1
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]
-  then echo "Please run as root by first executing 'sudo su' and entering the password"
+  then echo "Please run as root by running this command with sudo 'sudo production-test.sh' and entering the password"
   exit
 fi
 
@@ -260,7 +258,7 @@ then
     echo -e "- Enable firewall"
     enable-firewall.sh
     echo -r "- Disable production WiFi connection [TODO]"
-    nmcli c del SentaiProduction
+#    nmcli c del SentaiProduction
 else
     echo TEST FAILED
     exit -1
