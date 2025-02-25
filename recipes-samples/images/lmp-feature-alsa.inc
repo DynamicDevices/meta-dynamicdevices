@@ -1,5 +1,7 @@
 CORE_IMAGE_BASE_INSTALL += " \
   alsa-utils \
-  sox \
 "
 
+CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-sentai += " \
+  sox \
+"
