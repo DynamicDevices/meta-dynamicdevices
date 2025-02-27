@@ -11,11 +11,12 @@
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=535d3a1b7f971b2e6581673c210e768c"
 
-SRC_URI = "git://git@github.com/DynamicDevices/spi-lib.git;protocol=ssh;branch=main"
+SRCBRANCH = "okan/new"
+SRC_URI = "git://git@github.com/DynamicDevices/spi-lib.git;protocol=ssh;branch=${SRCBRANCH}"
 
 # Modify these as desired
 PV = "1.0+git${SRCPV}"
-SRCREV = "75bf82e902f6f18c26b523dd3afb37982f747b7a"
+SRCREV = "809fea9a04ea37f9bef42dd708ca0a6cbea8eee2"
 
 S = "${WORKDIR}/git"
 
@@ -23,3 +24,5 @@ inherit cmake
 
 # Specify any options you want to pass to cmake using EXTRA_OECMAKE:
 EXTRA_OECMAKE = ""
+
+TARGET_CFLAGS += "-Wno-c++11-narrowing" 
