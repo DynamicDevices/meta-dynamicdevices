@@ -21,7 +21,7 @@ local_conf_header:
      ACCEPT_FSL_EULA = "1"
      # We expect to be running in a kas container with a mapping to host /var/cache
      DL_DIR = "/var/cache/downloads"
-     STATE_DIR = "/var/cache/sstate"
+     SSTATE_DIR = "/var/cache/sstate"
      PERSISTENT_DIR="/var/cache/persistent"
      BB_GENERATE_MIRROR_TARBALLS = "1"
 
