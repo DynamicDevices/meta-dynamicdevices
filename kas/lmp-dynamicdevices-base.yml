@@ -19,12 +19,14 @@ machine: imx8mm-jaguar-sentai
 local_conf_header:
   meta-dynamicdevices: |
      ACCEPT_FSL_EULA = "1"
-     # TODO: We are building lmp-base so shouldn't be signing anything
-     #       Yet the build system checks for the presence of these files
-     #       For now we just give it a dummy file we know is present...
-#     SIGNING_UBOOT_SIGN_KEY="${TOPDIR}/bitbake.lock"
-#     SIGNING_UBOOT_SIGN_CRT="${TOPDIR}/bitbake.lock"
-#     SIGNING_UBOOT_SPL_SIGN_KEY="${TOPDIR}/bitbake.lock"
-#     SIGNING_UBOOT_SPL_SIGN_CRT="${TOPDIR}/bitbake.lock"
-#     SIGNING_UEFI_SIGN_KEY="${TOPDIR}/bitbake.lock"
-#     SIGNING_UEFI_SIGN_CRT="${TOPDIR}/bitbake.lock"
+     # We expect to be running in a kas container with a mapping to host /var/cache
+     DL_DIR = "/var/cache/downloads"
+     STATE_DIR = "/var/cache/sstate"
+     PERSISTENT_DIR="/var/cache/persistent"
+     BB_GENERATE_MIRROR_TARBALLS = "1"
+
+#     SIGN_ENABLE = "0"
+#     UBOOT_SIGN_ENABLE = "0"
+#     UBOOT_SPL_SIGN_ENABLE = "0"
+#     TF_A_SIGN_ENABLE = "0"
+#     UEFI_SIGN_ENABLE = "0"

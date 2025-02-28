@@ -2,6 +2,12 @@
 
 Common core for Dynamic Devices Yocto board support
 
+Support for local kas build is a work in progress. Some notes:
+
+- it is expected that `kas-container` is used for builds
+- the `lmp-dynamicdevices-base.yml` file expects three persisent folders to be present and mapped outside the container
+- there is a script `kas-build-base.sh` which sets up folders with permissions for the container to access
+
 # Board Support
 
 ## Jaguar Sentai
@@ -10,7 +16,7 @@ AI audio STT and TTS development platform. For details see [here](https://github
 
 To build `lmp-dynamicdevces-base` with Kas:
 
-`KAS_MACHINE=imx8mm-jaguar-sentai kas-container build kas/lmp-dynamicdevices-base.yml`
+`KAS_MACHINE=imx8mm-jaguar-sentai ./kas-build-base.sh`
 
 To program the image:
 
