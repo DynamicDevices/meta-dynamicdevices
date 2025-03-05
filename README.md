@@ -10,7 +10,12 @@ Support for local kas build is a work in progress. Some notes:
 
 # Board Support
 
-NOTE: We're building an unsigned image for testing but there's an issue with the build process that requires you to copy your `factory-keys` folder and sub-directories to `build/conf/factory-keys` for now
+NOTE: We're building an unsigned image for testing but there's an issue with the build process that requires you to copy your `factory-keys` folder and sub-directories to `build/conf/factory-keys` for now. If you see the error below this is the problem.
+
+```
+| make[2]: *** No rule to make target '/build/conf/factory-keys/opteedev.key', needed by '/build/tmp/work/imx8mm_jaguar_phasora-lmp-linux/optee-test/3.21.0-r0/build/ta/create_fail_test/c3f6e2c0-3548-11e1-b86c-0800200c9a66.ta'.  Stop.
+```
+
 
 ## Jaguar Sentai
 
