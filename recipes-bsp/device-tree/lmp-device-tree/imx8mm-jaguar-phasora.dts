@@ -184,8 +184,8 @@
         	};
 		adci-fpga-hog {
 			gpio-hog;
-			gpios = <1 GPIO_ACTIVE_HIGH>;
-			output-low;
+			gpios = <1 GPIO_ACTIVE_LOW>;
+			output-high;
 			line-name = "adci-fpga";
         	};
 		ssd-pwr-en-hog {
