@@ -170,7 +170,7 @@
 
 &i2c1 {
 	gpio@20 {
-		compatible = "nxp,pca953x";
+		compatible = "nxp,pcal6416";
 		reg = <0x20>;
 		gpio-controller;
 		#gpio-cells = <2>;
