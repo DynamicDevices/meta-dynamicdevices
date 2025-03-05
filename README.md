@@ -10,6 +10,8 @@ Support for local kas build is a work in progress. Some notes:
 
 # Board Support
 
+NOTE: We're building an unsigned image for testing but there's an issue with the build process that requires you to copy your `factory-keys` folder and sub-directories to `build/conf/factory-keys` for now
+
 ## Jaguar Sentai
 
 AI audio STT and TTS development platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Jaguar-Sentai-Board).
