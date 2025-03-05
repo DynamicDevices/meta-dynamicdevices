@@ -169,11 +169,61 @@
 //};
 
 &i2c1 {
-	gpio@ {
-	    compatible = "nxp,pca953x";
-	    reg = <0x20>;
-	    gpio-controller;
-	    #gpio-cells = <2>;
+	gpio@20 {
+		compatible = "nxp,pca953x";
+		reg = <0x20>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "ok";
+
+		red-led-hog {
+			gpio-hog;
+			gpios = <0 GPIO_ACTIVE_HIGH>;
+			output-high;
+			line-name = "red-led";
+        	};
+		adci-fpga-hog {
+			gpio-hog;
+			gpios = <1 GPIO_ACTIVE_HIGH>;
+			output-low;
+			line-name = "adci-fpga";
+        	};
+		ssd-pwr-en-hog {
+			gpio-hog;
+			gpios = <2 GPIO_ACTIVE_HIGH>;
+			output-high;
+			line-name = "ssd-pwr-en";
+        	};
+		wifi-pwr-en-hog {
+			gpio-hog;
+			gpios = <3 GPIO_ACTIVE_HIGH>;
+			output-high;
+			line-name = "wifi-pwr-en";
+        	};
+		cell1-rst-hog {
+			gpio-hog;
+			gpios = <4 GPIO_ACTIVE_LOW>;
+			output-low;
+			line-name = "cell1-rst";
+        	};
+		cell1-pwr-en-hog {
+			gpio-hog;
+			gpios = <5 GPIO_ACTIVE_HIGH>;
+			output-high;
+			line-name = "cell1-pwr-en";
+        	};
+		cell2-rst-hog {
+			gpio-hog;
+			gpios = <6 GPIO_ACTIVE_LOW>;
+			output-low;
+			line-name = "cell2-rst";
+        	};
+		cell2-pwr-en-hog {
+			gpio-hog;
+			gpios = <7 GPIO_ACTIVE_HIGH>;
+			output-high;
+			line-name = "cell2-pwr-en";
+        	};
 	};
 };
 
