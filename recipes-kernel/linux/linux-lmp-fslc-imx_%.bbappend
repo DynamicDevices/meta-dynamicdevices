@@ -80,6 +80,7 @@ SRC_URI:append:imx8mm-jaguar-handheld = " \
 SRC_URI:append:imx8mm-jaguar-phasora = " \
 		file://enable_i2c-dev.cfg \
 		file://enable_ksz9563.cfg \
+		file://enable_pca953x.cfg \
 		file://imx8mm-jaguar-phasora.dts \
                 file://0003-enable-st7701.cfg \
                 file://0006-enable-edt-ft5x06.cfg \
