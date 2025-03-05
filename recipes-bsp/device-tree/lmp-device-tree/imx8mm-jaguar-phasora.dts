@@ -168,6 +168,15 @@
 //	};
 //};
 
+&i2c1 {
+	gpio@ {
+	    compatible = "nxp,pca953x";
+	    reg = <0x20>;
+	    gpio-controller;
+	    #gpio-cells = <2>;
+	};
+};
+
 &i2c2 { 
         clock_frequency = <100000>;
         pinctrl-names = "default";
