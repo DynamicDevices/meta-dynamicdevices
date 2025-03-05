@@ -14,25 +14,37 @@ Support for local kas build is a work in progress. Some notes:
 
 AI audio STT and TTS development platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Jaguar-Sentai-Board).
 
-To build `lmp-dynamicdevces-base` with Kas:
+To build `lmp-dynamicdevices-base` with Kas:
 
 `KAS_MACHINE=imx8mm-jaguar-sentai ./kas-build-base.sh`
 
 To program the image:
 
-`cd program && ./program_linux.sh`
+`KAS_MACHINE=imx8mm-jaguar-sentai ./program.sh`
 
 ## Jaguar Phasora
 
-MACHINE=imx8mm-jaguar-phasora is building and under TEST
+To build `lmp-dynamicdevices-base` with Kas:
 
-## Jaguar Handheld
+`KAS_MACHINE=imx8mm-jaguar-phasora ./kas-build-base.sh`
 
-MACHINE=imx8mm-jaguar-handheld is building and under TEST
+To program the image:
+
+`KAS_MACHINE=imx8mm-jaguar-phasora ./program.sh`
+
+## Jaguar INST
+
+To build `lmp-dynamicdevices-base` with Kas:
+
+`KAS_MACHINE=imx8mm-jaguar-inst ./kas-build-base.sh`
+
+To program the image:
+
+`KAS_MACHINE=imx8mm-jaguar-inst ./program.sh`
 
 ## i.MX8ULP EVK
 
-MACHINE=imx8ulp-lpddr4-evk is building and under TEST
+TBD
 
 # Useful Scripts
 

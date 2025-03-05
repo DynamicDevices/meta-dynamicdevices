@@ -9,11 +9,11 @@ SDPV: jump
 FB: ucmd setenv fastboot_dev mmc
 FB: ucmd setenv mmcdev ${emmc_dev}
 FB: ucmd mmc dev ${emmc_dev} 1; mmc erase 0 0x2000
-FB: flash -raw2sparse all ../build/tmp/deploy/images/imx8mm-jaguar-MACHINE/lmp-factory-image-imx8mm-jaguar-MACHINE.wic.gz/*
-FB: flash bootloader ../build/tmp/deploy/images/imx8mm-jaguar-MACHINE/imx-boot-imx8mm-jaguar-MACHINE
-FB: flash bootloader2 ../build/tmp/deploy/images/imx8mm-jaguar-MACHINE/u-boot-imx8mm-jaguar-MACHINE.itb
-FB: flash bootloader_s ../build/tmp/deploy/images/imx8mm-jaguar-MACHINE/imx-boot-imx8mm-jaguar-MACHINE
-FB: flash bootloader2_s ../build/tmp/deploy/images/imx8mm-jaguar-MACHINE/u-boot-imx8mm-jaguar-MACHINE.itb
+FB: flash -raw2sparse all ../build/tmp/deploy/images/$KAS_MACHINE/lmp-factory-image-$KAS_MACHINE.wic.gz/*
+FB: flash bootloader ../build/tmp/deploy/images/$KAS_MACHINE/imx-boot-$KAS_MACHINE
+FB: flash bootloader2 ../build/tmp/deploy/images/$KAS_MACHINE/u-boot-$KAS_MACHINE.itb
+FB: flash bootloader_s ../build/tmp/deploy/images/$KAS_MACHINE/imx-boot-$KAS_MACHINE
+FB: flash bootloader2_s ../build/tmp/deploy/images/$KAS_MACHINE/u-boot-$KAS_MACHINE.itb
 FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
 FB: ucmd mmc partconf ${emmc_dev} ${emmc_ack} 1 0
 FB: done
