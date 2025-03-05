@@ -168,8 +168,18 @@
 //	};
 //};
 
+leds {
+	compatible = "gpio-leds";
+	heartbeat {
+                label = "heartbeat"
+		gpios = <&gpio_expander 0 GPIO_ACTIVE_HIGH>;
+		linux,default-trigger = "heartbeat";
+		function = LED_FUNCTION_HEARTBEAT;
+	};
+};
+
 &i2c1 {
-	gpio@20 {
+	gpio_expander@20 {
 		compatible = "nxp,pcal6416";
 		reg = <0x20>;
 		gpio-controller;
