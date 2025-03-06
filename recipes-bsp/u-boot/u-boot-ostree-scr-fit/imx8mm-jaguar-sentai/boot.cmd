@@ -26,7 +26,7 @@ setenv bootloader2_s_image ${bootloader2_image}
 setenv uboot_hwpart 1
 
 # Set LEDs on
-i2c dev 1
+i2c dev 0
 i2c mw 28 0.1 40
 i2c mw 28 d.1 8f
 i2c mw 28 e.1 8f
