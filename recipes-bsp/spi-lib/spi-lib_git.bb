@@ -11,12 +11,13 @@
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=535d3a1b7f971b2e6581673c210e768c"
 
-SRCBRANCH = "okan/new"
+SRCBRANCH = "ajl/integration"
 SRC_URI = "git://git@github.com/DynamicDevices/spi-lib.git;protocol=ssh;branch=${SRCBRANCH}"
+#SRC_URI = "git:///spi-lib.git;protocol=file;branch=${SRCBRANCH}"
 
 # Modify these as desired
 PV = "1.0+git${SRCPV}"
-SRCREV = "b36780f877a2486cca4b40598fecf3fa921f6de1"
+SRCREV = "b9b82b2031fb78ca3e93fc52cdb23a69c4b7b4f2"
 
 S = "${WORKDIR}/git"
 
@@ -26,3 +27,5 @@ inherit cmake
 EXTRA_OECMAKE = ""
 
 TARGET_CFLAGS += "-Wno-c++11-narrowing" 
+
+INSANE_SKIP = "dev-deps dev-elf"
