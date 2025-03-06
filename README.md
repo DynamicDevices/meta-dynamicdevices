@@ -29,15 +29,9 @@ To program the image:
 
 `KAS_MACHINE=imx8mm-jaguar-sentai ./program.sh`
 
-## Jaguar Phasora
+## Jaguar EV
 
-To build `lmp-dynamicdevices-base` with Kas:
-
-`KAS_MACHINE=imx8mm-jaguar-phasora ./kas-build-base.sh`
-
-To program the image:
-
-`KAS_MACHINE=imx8mm-jaguar-phasora ./program.sh`
+TBD
 
 ## Jaguar INST
 
