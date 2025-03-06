@@ -20,6 +20,7 @@ SRC_URI:append:imx8mm-jaguar-handheld = " \
 SRC_URI:append:imx8mm-jaguar-phasora = " \
     file://custom-dtb.cfg \
     file://01-customise-dtb.patch \
+    file://enable-i2c.cfg \
 "
 
 # TODO: Add u-boot DTB customisation patch
