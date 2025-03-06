@@ -11,7 +11,7 @@
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=535d3a1b7f971b2e6581673c210e768c"
 
-SRCBRANCH = "ajl/integration"
+SRCBRANCH = "devtool"
 SRC_URI = "git://git@github.com/DynamicDevices/spi-lib.git;protocol=ssh;branch=${SRCBRANCH}"
 #SRC_URI = "git:///spi-lib.git;protocol=file;branch=${SRCBRANCH}"
 
