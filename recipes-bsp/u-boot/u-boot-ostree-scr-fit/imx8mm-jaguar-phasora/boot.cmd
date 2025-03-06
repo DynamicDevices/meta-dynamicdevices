@@ -25,5 +25,11 @@ setenv bootloader2_image "u-boot.itb"
 setenv bootloader2_s_image ${bootloader2_image}
 setenv uboot_hwpart 1
 
+i2c dev 0
+i2c mw 20 2.1 ad
+i2c mw 20 3.1 00
+i2c mw 20 5.1 00
+i2c mw 20 6.1 00
+
 @@INCLUDE_COMMON_IMX@@
 @@INCLUDE_COMMON@@
