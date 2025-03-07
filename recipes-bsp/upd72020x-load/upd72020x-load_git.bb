@@ -40,9 +40,9 @@ do_compile () {
 }
 
 do_install () {
-  install -d ${D}${bindir}
-  install -m 755 ${B}/upd72020x-load ${D}${bindir}
-  install -m 755 ${B}/upd72020x-check-and-init ${D}${bindir}
+  install -d ${D}${sbindir}
+  install -m 755 ${B}/upd72020x-load ${D}${sbindir}
+  install -m 755 ${B}/upd72020x-check-and-init ${D}${sbindir}
   install -d ${D}lib/firmware
   install -m 0644 ${WORKDIR}/UPDATE.mem.2.0.2.6 ${D}lib/firmware
   install -d ${D}${systemd_unitdir}/system
