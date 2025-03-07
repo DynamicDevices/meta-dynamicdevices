@@ -26,17 +26,17 @@ setenv bootloader2_s_image ${bootloader2_image}
 setenv uboot_hwpart 1
 
 # Set LEDs on
-i2c dev 0
-i2c mw 28 0.1 40
-i2c mw 28 d.1 8f
-i2c mw 28 e.1 8f
-i2c mw 28 2.1 3f
-i2c mw 28 21.1 ff
-i2c mw 28 22.1 ff
-i2c mw 28 23.1 ff
-i2c mw 28 24.1 ff
-i2c mw 28 25.1 ff
-i2c mw 28 26.1 ff
+#i2c dev 0
+#i2c mw 28 0.1 40
+#i2c mw 28 d.1 8f
+#i2c mw 28 e.1 8f
+#i2c mw 28 2.1 3f
+#i2c mw 28 21.1 ff
+#i2c mw 28 22.1 ff
+#i2c mw 28 23.1 ff
+#i2c mw 28 24.1 ff
+#i2c mw 28 25.1 ff
+#i2c mw 28 26.1 ff
 
 @@INCLUDE_COMMON_IMX@@
 @@INCLUDE_COMMON@@
