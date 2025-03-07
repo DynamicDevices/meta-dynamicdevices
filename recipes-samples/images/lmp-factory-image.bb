@@ -65,6 +65,9 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'bgt60', 'recipes-samples/image
 # Enable NXP IW612 related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'nxpiw612-sdio', 'recipes-samples/images/lmp-feature-iw612.inc', '', d)}
 
+# Enable Renesas upd72020x related recipes if required by MACHINE
+require ${@bb.utils.contains('MACHINE_FEATURES', 'upd72020x', 'recipes-samples/images/lmp-feature-upd72020x.inc', '', d)}
+
 # Enable alsa related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'zigbee', 'recipes-samples/images/lmp-feature-zigbee.inc', '', d)}
 
