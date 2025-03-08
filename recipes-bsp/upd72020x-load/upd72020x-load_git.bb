@@ -28,7 +28,7 @@ SRC_URI = "git://github.com/markusj/upd72020x-load;protocol=https;branch=master 
 
 # Modify these as desired
 PV = "1.0+git${SRCPV}"
-SRCREV = "2e03ca45765b26de68e0ed8b01dc1a183cfb7e43"
+SRCREV = "62689b2721c330823bec3680bc7ae9569819d529"
 
 S = "${WORKDIR}/git"
 
