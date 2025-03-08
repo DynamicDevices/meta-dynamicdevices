@@ -256,26 +256,26 @@
 	};
 };
 
-&i2c2 { 
-        clock_frequency = <100000>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_i2c2>;
-        status = "disabled";
-
-	/delete-node/ hdmi;
-
-        polytouch: edt-ft5x06@38 {
-                compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
-                reg = <0x38>;
-                pinctrl-names = "default";
-                pinctrl-0 = <&pinctrl_i2c2_synaptics_dsx_io>;
-                interrupt-parent = <&gpio1>;
-                interrupts = <9 IRQ_TYPE_LEVEL_LOW>;
-
-                touchscreen-size-x = <360>;
-                touchscreen-size-y = <640>;
-        };
-};
+//&i2c2 { 
+//        clock_frequency = <100000>;
+//        pinctrl-names = "default";
+//        pinctrl-0 = <&pinctrl_i2c2>;
+//        status = "disabled";
+//
+//	/delete-node/ hdmi;
+//
+//        polytouch: edt-ft5x06@38 {
+//                compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
+//                reg = <0x38>;
+//                pinctrl-names = "default";
+//                pinctrl-0 = <&pinctrl_i2c2_synaptics_dsx_io>;
+//                interrupt-parent = <&gpio1>;
+//                interrupts = <9 IRQ_TYPE_LEVEL_LOW>;
+//
+//                touchscreen-size-x = <360>;
+//                touchscreen-size-y = <640>;
+//        };
+//};
 
 &i2c3 {
 	status = "disabled";
