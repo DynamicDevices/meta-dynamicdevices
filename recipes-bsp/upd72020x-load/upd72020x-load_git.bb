@@ -23,6 +23,7 @@ SYSTEMD_SERVICE:${PN} = "upd72020x-fwload.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 SRC_URI = "git://github.com/markusj/upd72020x-load;protocol=https;branch=master \
+           file://01-patch-vendor-device-ids.patch \
            file://K2026.mem \
 "
 

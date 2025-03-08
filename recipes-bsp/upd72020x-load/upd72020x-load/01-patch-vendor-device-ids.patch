@@ -1,0 +1,13 @@
+diff --git a/upd72020x-load.c b/upd72020x-load.c
+index 077a247..b890b88 100644
+--- a/upd72020x-load.c
++++ b/upd72020x-load.c
+@@ -550,7 +550,7 @@ void usage() {
+ }
+ 
+ int main(int argc, char **argv) {
+-    unsigned char pcidevid_x1[] = { 0x12, 0x19, 0x14, 0x00 }; //uPD720201 vendor id = 1912 devid = 0014
++    unsigned char pcidevid_x1[] = { 0xC3, 0x16, 0xCD, 0xAB }; //uPD720201 vendor id = 16C3 devid = ABCD
+     unsigned char pcidevid_x2[] = { 0x12, 0x19, 0x15, 0x00 }; //uPD720202 vendor id = 1912 devid = 0015
+     unsigned char buf[100];
+     unsigned int len;
