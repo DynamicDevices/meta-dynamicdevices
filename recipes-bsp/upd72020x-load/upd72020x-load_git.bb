@@ -23,7 +23,7 @@ SYSTEMD_SERVICE:${PN} = "upd72020x-fwload.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 SRC_URI = "git://github.com/markusj/upd72020x-load;protocol=https;branch=master \
-           file://UPDATE.mem.2.0.2.6 \
+           file://K2026.mem \
 "
 
 # Modify these as desired
@@ -43,11 +43,11 @@ do_install () {
   install -d ${D}${sbindir}
   install -m 755 ${B}/upd72020x-load ${D}${sbindir}
   install -m 755 ${B}/upd72020x-check-and-init ${D}${sbindir}
-  install -d ${D}lib/firmware
-  install -m 0644 ${WORKDIR}/UPDATE.mem.2.0.2.6 ${D}lib/firmware
+  install -d ${D}${libdir}/firmware/renesas
+  install -m 0644 ${WORKDIR}/K2026.mem ${D}${libdir}/firmware/renesas/K2026.mem
   install -d ${D}${systemd_unitdir}/system
   install -m 0644 ${S}/systemd/upd72020x-fwload.service ${D}${systemd_unitdir}/system/upd72020x-fwload.service
 }
 
+FILES:${PN} += "${libdir}/firmware/renesas/K2026.mem"
 RDEPENDS:${PN} = "bash"
-
