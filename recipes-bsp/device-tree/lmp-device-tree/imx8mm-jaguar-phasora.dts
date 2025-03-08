@@ -309,3 +309,9 @@
 &flexspi {
 	status = "disabled";
 };
+
+// USB-C port
+&usbotg1 {
+        dr_mode = "host";
+        status = "okay";
+};
