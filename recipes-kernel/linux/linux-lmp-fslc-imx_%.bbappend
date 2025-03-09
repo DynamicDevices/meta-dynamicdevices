@@ -81,6 +81,7 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 		file://enable_i2c-dev.cfg \
 		file://enable_ksz9563.cfg \
 		file://enable_pca953x.cfg \
+		file://enable_dwc3.cfg \
 		file://enable_upd72020x_fw.cfg \
 		file://imx8mm-jaguar-phasora.dts \
                 file://0003-enable-st7701.cfg \
