@@ -23,6 +23,7 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
     file://01-customise-dtb.patch \
     file://enable-i2c.cfg \
     file://enable-pci.cfg \
+    file://boot.cmd \
 "
 
 # TODO: Add u-boot DTB customisation patch
