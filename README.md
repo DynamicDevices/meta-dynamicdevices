@@ -1,6 +1,6 @@
 # meta-dynamicdevices
 
-Common core for Dynamic Devices Yocto board support
+Common core for Active Edge Solutions "Edge" Yocto board support
 
 Support for local kas build is a work in progress. Some notes:
 
@@ -8,18 +8,17 @@ Support for local kas build is a work in progress. Some notes:
 - the `lmp-dynamicdevices-base.yml` file expects three persisent folders to be present and mapped outside the container
 - there is a script `kas-build-base.sh` which sets up folders with permissions for the container to access
 
-# Board Support
-
 NOTE: We're building an unsigned image for testing but there's an issue with the build process that requires you to copy your `factory-keys` folder and sub-directories to `build/conf/factory-keys` for now. If you see the error below this is the problem.
 
 ```
 | make[2]: *** No rule to make target '/build/conf/factory-keys/opteedev.key', needed by '/build/tmp/work/imx8mm_jaguar_phasora-lmp-linux/optee-test/3.21.0-r0/build/ta/create_fail_test/c3f6e2c0-3548-11e1-b86c-0800200c9a66.ta'.  Stop.
 ```
 
+# Board Support
 
-## Jaguar Sentai
+## Edge AI
 
-AI audio STT and TTS development platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Jaguar-Sentai-Board).
+AI audio STT and TTS development platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-AI-Board).
 
 To build `lmp-dynamicdevices-base` with Kas:
 
@@ -29,11 +28,21 @@ To program the image:
 
 `KAS_MACHINE=imx8mm-jaguar-sentai ./program.sh`
 
-## Jaguar EV
+## Edge EV
 
-TBD
+Energy metering and control platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EV-Board).
 
-## Jaguar INST
+To build `lmp-dynamicdevices-base` with Kas:
+
+`KAS_MACHINE=imx8mm-jaguar-sentai ./kas-build-base.sh`
+
+To program the image:
+
+`KAS_MACHINE=imx8mm-jaguar-sentai ./program.sh`
+
+## Edge GW
+
+Flexible communications gateway platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-GW-Board).
 
 To build `lmp-dynamicdevices-base` with Kas:
 
