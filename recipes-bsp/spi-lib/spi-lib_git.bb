@@ -11,13 +11,13 @@
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=535d3a1b7f971b2e6581673c210e768c"
 
-SRCBRANCH = "devtool"
+SRCBRANCH = "okan/development"
 SRC_URI = "git://git@github.com/DynamicDevices/spi-lib.git;protocol=ssh;branch=${SRCBRANCH}"
 #SRC_URI = "git:///spi-lib.git;protocol=file;branch=${SRCBRANCH}"
 
 # Modify these as desired
 PV = "1.0+git${SRCPV}"
-SRCREV = "4b1a25549733e7c577212bee55c3a9cb1e54262f"
+SRCREV = "8bbcaca28b8d6750c305a5fcff66a1ac0c82fd98"
 
 S = "${WORKDIR}/git"
 
