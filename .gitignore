@@ -6,3 +6,4 @@ openembedded-core
 .swp
 *.log
 .kas_shell_history
+program/program_full_image.uuu
