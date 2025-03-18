@@ -38,7 +38,7 @@ inherit systemd
 SYSTEMD_SERVICE:${PN} = "radar-presence.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-do_install() {
+do_install:append() {
   install -d ${D}${systemd_unitdir}/system
   install -m 0644 ${WORKDIR}/radar-presence.service ${D}${systemd_unitdir}/system/radar-presence.service
 }
