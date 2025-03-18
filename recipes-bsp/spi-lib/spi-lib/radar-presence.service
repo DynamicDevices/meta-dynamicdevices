@@ -1,0 +1,12 @@
+[Unit]
+Description=Radar Presence Detecting Application
+Before=basic.target
+After=local-fs.target sysinit.target
+DefaultDependencies=no
+
+[Service]
+User=root
+ExecStart=/usr/bin/seamless_dev_spi spi.mode="presence"
+
+[Install]
+WantedBy=basic.target
