@@ -20,7 +20,7 @@ SRC_URI = "git://git@github.com/DynamicDevices/spi-lib.git;protocol=ssh;branch=$
 
 # Modify these as desired
 PV = "1.0+git${SRCPV}"
-SRCREV = "79bd970af11e8b9752708c460c5c88496fd27296"
+SRCREV = "a602fb50e821fe7f4e8fc95071d52907cb768895"
 
 S = "${WORKDIR}/git"
 
