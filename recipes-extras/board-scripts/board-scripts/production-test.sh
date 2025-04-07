@@ -257,22 +257,22 @@ fi
 # Check we are on the Foundries cloud
 
 # (8) Unmask update service
-echo -e "\n"
-read -r -p "(8) Are you ready to enable the Foundries.io update service [y/N] " response
-if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
-then
-    echo -e "\n"
-    echo Enabling Foundries.io update service
-    systemctl unmask aktualizr-lite
-elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
-then
-    echo TEST FAILED
-    exit -1
-fi
+#echo -e "\n"
+#read -r -p "(8) Are you ready to enable the Foundries.io update service [y/N] " response
+#if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
+#then
+#    echo -e "\n"
+#    echo Enabling Foundries.io update service
+#    systemctl unmask aktualizr-lite
+#elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
+#then
+#    echo TEST FAILED
+#    exit -1
+#fi
 
-# (9) Secure device
+# (8) Secure device
 echo -e "\n"
-read -r -p "(9) Are you ready to secure the device? NOTE YOU CAN ONLY DO THIS ONCE [y/N] " response
+read -r -p "(8) Are you ready to secure the device? NOTE YOU CAN ONLY DO THIS ONCE [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     echo -e "\n"
