@@ -70,6 +70,11 @@ repos:
     commit: 8b356b91ed0d4bcab72350a2ddcef880f4fa5c26
     path: layers/meta-virtualisation
 
+  meta-tensorflow:
+    url: https://git.yoctoproject.org/meta-tensorflow
+    commit: 66e15527851c87f8e1ddeb0e451aa10f73456ac1
+    path: layers/meta-tensorflow
+
   openembedded-core:
     url: https://github.com/lmp-mirrors/openembedded-core
     commit: 8e650506885bc4465f9569b3ccdc327eb83d90db
