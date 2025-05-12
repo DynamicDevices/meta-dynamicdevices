@@ -62,7 +62,7 @@ repos:
 
   meta-tensorflow:
     url: https://git.yoctoproject.org/meta-tensorflow
-    commit: 66e15527851c87f8e1ddeb0e451aa10f73456ac1
+    commit: c382865206fe925a02a1cdbdd856e16310bc9dbc
     path: layers/meta-tensorflow
 
   openembedded-core:
