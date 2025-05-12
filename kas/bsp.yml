@@ -4,7 +4,7 @@ header:
 repos:
   meta-arm:
     url: https://github.com/lmp-mirrors/meta-arm
-    commit: 668df530a50580927a147fe633187cd8ae0a72db
+    commit: f3640941c600d03ea53ce5b9254f0fead18f8bc0
     path: layers/meta-arm
     layers:
       meta-arm:
@@ -13,32 +13,27 @@ repos:
 
   meta-freescale:
     url: https://github.com/lmp-mirrors/meta-freescale
-    commit: 84be484645cdcc12bc12591874bfebd24cc0c9a6
+    commit: dd3733cd91f5c85db83e49edeb3c644f424b7c7a
     path: layers/meta-freescale
 
   meta-freescale-3rdparty:
     url: https://github.com/lmp-mirrors/meta-freescale-3rdparty
-    commit: 8b61684f0b1ba8bacdf3a69d993445e9791d4932
+    commit: 1dfc65dd2006b51d156be5bcda0e3c72c936ad0a
     path: layers/meta-freescale-3rdparty
 
   meta-intel:
     url: https://github.com/lmp-mirrors/meta-intel
-    commit: 5cfefd9a8ff1f5a3534c1ba9d7d7f6971ed5d56f
+    commit: 1a7ccdcaedc965f019a9263364437356b8a2ba29
     path: layers/meta-intel
 
   meta-raspberrypi:
     url: https://github.com/lmp-mirrors/meta-raspberrypi
-    commit: e6d2ff0b0cbb925157c95b07327c2a7dc145fabe
+    commit: 3b27c95c163a042f8056066ec3d27edfcc42da7f
     path: layers/meta-raspberrypi
-
-  meta-st-stm32mp:
-    url: https://github.com/lmp-mirrors/meta-st-stm32mp
-    commit: b0af85c466d96d5f794b125b2542b7a0ea4c91de
-    path: layers/meta-st-stm32mp
 
   meta-yocto:
     url: https://github.com/lmp-mirrors/meta-yocto
-    commit: 70d8f77cf21e92d2f610d1b73f24d3faf6d96982
+    commit: 7f1be5a930554ea5036d2c806aa752ae0b2de826
     path: layers/meta-yocto
     layers:
       meta-yocto-bsp:
@@ -55,12 +50,12 @@ repos:
 
   meta-tegra:
     url: https://github.com/lmp-mirrors/meta-tegra
-    commit: 1d8374835411c63c0d7f9121f850c10b8baa9718
+    commit: e836736de0a439c8893ede4cef6973bd6347affa
     path: layers/meta-tegra
 
   meta-ti:
     url: https://github.com/lmp-mirrors/meta-ti
-    commit: 1de40ea7ee8ff136dce163b4ad1c1eddf35852a7
+    commit: 71f4340b0ba3b50e2a51875df3a3e020e92b5b40
     path: layers/meta-ti
     layers:
       meta-ti-bsp:
