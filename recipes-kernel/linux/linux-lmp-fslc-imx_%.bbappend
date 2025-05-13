@@ -1,13 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-#KERNEL_REPO = "git://github.com/DynamicDevices/linux-fslc.git"
-#KERNEL_BRANCH = "ajl/6.1-2.2.x-imx"
-#SRCREV_machine = "b7a6070a84787c49e9891a24bddbc4faaff35a53"
-
-#SRC_URI:append:imx8mm-lpddr4-evk = " \
-#		file://backport-tcpm-driver.patch \
-#"
-
 SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://enable_i2c-dev.cfg \
 		file://enable_lp50xx.cfg \
@@ -19,7 +11,7 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://imx8mm-jaguar-sentai.dts \
                 file://01-fix-enable-lp50xx.patch \
 		file://02-disable-wifi-scan-msg.patch \
-		file://03-add-st-mems-support.patch \
+		file://03-enable-lis2dh12.cfg \
 		file://04-enable-usb-gadgets.cfg \
 		file://05-patch-led-defaults.patch \
 "
