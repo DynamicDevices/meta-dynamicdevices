@@ -37,7 +37,7 @@ SRC_URI = "git://github.com/DynamicDevices/radar-sdk.git;protocol=https;branch=m
 
 # Modify these as desired
 PV = "3.6.4"
-SRCREV = "add1349d53d260737e75cda4d40cb9f0b391e63b"
+SRCREV = "d8ab072eb711de2e1399b9c5af0058eb8c7eecfb"
 
 S = "${WORKDIR}/git"
 
