@@ -11,7 +11,7 @@
         model = "i.MX8MM Jaguar Sentai board";
 
 	// Regulators
-	reg-vddext: regulator-vddext {
+	regulator-vddext {
 		compatible = "regulator-fixed";
 		regulator-name = "VDDEXT_3V3";
 		regulator-min-microvolt = <3300000>;
