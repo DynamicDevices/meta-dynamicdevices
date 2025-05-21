@@ -4,7 +4,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 #        file://imx8mm-jaguar-sentai.dts \
 #"
 
-#COMPATIBLE_MACHINE:imx8mm-jaguar-sentai = ".*"
+COMPATIBLE_MACHINE:imx8mm-jaguar-sentai = ".*"
 
 SRC_URI:append:imx8mm-jaguar-inst = " \
         file://imx8mm-jaguar-inst.dts \
