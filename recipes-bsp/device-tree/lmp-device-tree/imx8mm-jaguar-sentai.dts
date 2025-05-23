@@ -278,14 +278,6 @@
 };
 
 &i2c3 {
-	lis2dh12: lis2dh12@19 {
-		compatible = "st,lis2dh12_accel";
-                reg = <0x19>;
-		status = "okay";
-		interrupt-parent = <&gpio4>;
-		interrupts = <7 IRQ_TYPE_LEVEL_HIGH>;
-	};
-
 	stts22h: stts22h@3F {
 		compatible = "st,stts22h";
                 reg = <0x3f>;
