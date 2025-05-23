@@ -1,4 +1,4 @@
-echo "Using imx8mm-evkb.dtb"
+echo "Using imx8mm-jaguar-sentai.dtb"
 
 # Default boot type and device
 setenv bootlimit 3
@@ -8,7 +8,7 @@ setenv bootpart 1
 setenv rootpart 2
 
 # Boot image files
-setenv fdt_file_final imx8mm-evkb.dtb
+setenv fdt_file_final imx8mm-jaguar-sentai.dtb
 setenv fit_addr ${initrd_addr}
 
 # Boot firmware updates

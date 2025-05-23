@@ -3,7 +3,7 @@
  * Copyright 2020 NXP
  */
 
-#include "freescale/imx8mm-evkb.dts"
+#include "freescale/imx8mm-evk.dts"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/leds/common.h>
 

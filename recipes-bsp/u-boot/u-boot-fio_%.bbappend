@@ -2,11 +2,11 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 inherit lmp-signing-override
 
-#SRC_URI:append:imx8mm-jaguar-sentai = " \
-#    file://custom-dtb.cfg \
-#    file://01-customise-dtb.patch \
-#    file://enable-i2c.cfg \
-#"
+SRC_URI:append:imx8mm-jaguar-sentai = " \
+    file://custom-dtb.cfg \
+    file://01-customise-dtb.patch \
+    file://enable-i2c.cfg \
+"
 
 SRC_URI:append:imx8mm-jaguar-inst = " \
     file://custom-dtb.cfg \
