@@ -189,9 +189,9 @@
 	};
 	lte-reset-hog {
 		gpio-hog;
-		gpios = <8 GPIO_ACTIVE_LOW>;
+		gpios = <8 GPIO_ACTIVE_HIGH>;
 		output-low;
-		line-name = "lte-reset#";
+		line-name = "lte-reset";
 	};
 //	zb-reset-hog {
 //		gpio-hog;
@@ -213,7 +213,7 @@
 		gpio-hog;
 		gpios = <7 GPIO_ACTIVE_LOW>;
 		output-low;
-		line-name = "wlan-power-down";
+		line-name = "wlan-power-down#";
 	};
 	bt-wake-host-hog {
 		gpio-hog;
