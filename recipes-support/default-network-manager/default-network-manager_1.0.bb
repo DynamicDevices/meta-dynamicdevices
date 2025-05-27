@@ -19,5 +19,5 @@ do_install() {
   install -m 0644 ${WORKDIR}/setup-default-connections.service ${D}${systemd_unitdir}/system/setup-default-connections.service
 }
 
-FILES:${PN} = "${bindir}/setup-default-connections.sh ${system_unitdir}/system/setup-default-connections.service"
+FILES:${PN} = "${bindir}/setup-default-connections.sh ${systemd_unitdir}/system/setup-default-connections.service"
 
