@@ -8,10 +8,13 @@ CORE_IMAGE_BASE_INSTALL += " \
    git \
    vim \
    default-network-manager \
-   imx-test \
    spidev-test \
    minicom \
    gpio-utils \
    htop \
    gst-instruments \
+"
+
+CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-sentai = " \
+   imx-test \
 "
