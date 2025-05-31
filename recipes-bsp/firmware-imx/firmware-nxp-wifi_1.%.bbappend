@@ -2,6 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI:append = "\
     file://wifi-disable-power-saving.conf \
+    file://does-not-exist.conf \
 "
 
 do_install:append() {
