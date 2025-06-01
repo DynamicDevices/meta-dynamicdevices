@@ -14,4 +14,6 @@ CORE_IMAGE_BASE_INSTALL += " \
    gpio-utils \
    htop \
    gst-instruments \
+   tcpdump \
 "
+
