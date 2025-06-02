@@ -13,9 +13,6 @@ do_install:append:imx8mm-jaguar-sentai() {
     install -m 0744 ${S}/bin/zb_mux ${D}${sbindir}
     install -m 0744 ${S}/zb_mux.sh ${D}${sbindir}
     install -m 0744 ${S}/scripts/*.sh ${D}${sbindir}
-#    install -d ${D}${sysconfdir}/default
-#    install -m 0644 ${S}/zb_app.env ${D}${sysconfdir}/default
-#    install -m 0644 ${S}/scripts/ota-client.cfg ${D}${sysconfdir}/default
     install -d ${D}/etc/default
     install -m 0644 ${S}/zb_app.env ${D}/etc/default
     install -m 0644 ${S}/scripts/ota-client.cfg ${D}/etc/default
