@@ -5,6 +5,7 @@ inherit systemd
 SRC_URI:append:imx8mm-jaguar-sentai = " \
   file://zb_mux.sh \
   file://zb_config.service \
+  file://zb_app.env \
 "
 
 do_install:append:imx8mm-jaguar-sentai() {
@@ -13,9 +14,11 @@ do_install:append:imx8mm-jaguar-sentai() {
     install -m 0744 ${S}/zb_mux.sh ${D}${sbindir}
     install -m 0744 ${S}/scripts/*.sh ${D}${sbindir}
     install -d ${D}${sysconfdir}/default
+    install -m 0644 ${S}/zb_app.env ${D}${sysconfdir}/default
     install -m 0644 ${S}/scripts/ota-client.cfg ${D}${sysconfdir}/default
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/zb_config.service ${D}${systemd_unitdir}/system/zb_config.service
+    install -d ${D}${localstatedir}/zboss/ota-server-files
 }
 
 # Not sure if the apps are installed with the SDK or the separate APP recipe ???
