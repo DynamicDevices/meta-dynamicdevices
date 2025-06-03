@@ -186,12 +186,12 @@
 		output-high;
 		line-name = "bt-wake-dev";
 	};
-        zb-reset-hog {
-                gpio-hog;
-                gpios = <11 GPIO_ACTIVE_LOW>;
-                output-low;
-                line-name = "zb-reset";
-        };
+//        zb-reset-hog {
+//                gpio-hog;
+//                gpios = <11 GPIO_ACTIVE_LOW>;
+//                output-low;
+//                line-name = "zb-reset";
+//        };
 };
 
 &gpio3 {
