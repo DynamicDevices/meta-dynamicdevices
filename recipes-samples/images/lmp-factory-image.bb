@@ -110,6 +110,7 @@ CORE_IMAGE_BASE_INSTALL += " \
     nodejs \
     nodejs-npm \
     python3-pyserial \
+    python3-paho-mqtt \
     packagegroup-core-full-cmdline-extended \
     ${@bb.utils.contains('LMP_DISABLE_GPLV3', '1', '', '${CORE_IMAGE_BASE_INSTALL_GPLV3}', d)} \
 "
