@@ -109,6 +109,7 @@ CORE_IMAGE_BASE_INSTALL += " \
     tzdata-europe \
     nodejs \
     nodejs-npm \
+    python3-pyserial \
     packagegroup-core-full-cmdline-extended \
     ${@bb.utils.contains('LMP_DISABLE_GPLV3', '1', '', '${CORE_IMAGE_BASE_INSTALL_GPLV3}', d)} \
 "
