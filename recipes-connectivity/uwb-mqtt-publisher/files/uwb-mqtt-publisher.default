@@ -1,0 +1,28 @@
+# Default configuration for UWB MQTT Publisher Service
+# This file is sourced by systemd service
+
+# Serial port configuration
+UART_PORT="/dev/ttyUSB0"
+
+# Node list (JSON format) - empty list by default
+NODE_LIST="[]"
+
+# MQTT broker configuration
+MQTT_BROKER="mqtt.dynamicdevices.co.uk"
+MQTT_PORT="8883"
+MQTT_TOPIC="uwb/positions"
+
+# Rate limiting (seconds between publishes)
+MQTT_RATE_LIMIT="10.0"
+
+# Additional arguments (space-separated)
+# Available options:
+#   --disable-mqtt      : Disable MQTT publishing entirely
+#   --verbose          : Enable verbose logging
+#   --quiet            : Enable quiet mode (minimal logging)
+EXTRA_ARGS=""
+
+# Examples:
+# EXTRA_ARGS="--verbose"
+# EXTRA_ARGS="--quiet"
+# EXTRA_ARGS="--disable-mqtt --verbose"
