@@ -14,13 +14,7 @@ S = "${WORKDIR}"
 RDEPENDS:${PN} = "python3 \
                   python3-pyserial \
                   python3-paho-mqtt \
-                  python3-json \
-                  python3-threading \
-                  python3-ssl \
-                  python3-struct \
-                  python3-math \
-                  python3-time \
-                  python3-sys"
+"
 
 # Systemd service
 inherit systemd
