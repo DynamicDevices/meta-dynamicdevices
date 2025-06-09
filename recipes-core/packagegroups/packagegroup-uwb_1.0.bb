@@ -25,20 +25,11 @@ RDEPENDS:packagegroup-uwb-dev = "\
     python3-pip \
 "
 
-# Optional MQTT broker for local testing
-RDEPENDS:packagegroup-uwb-broker = "\
-    ${RDEPENDS:packagegroup-uwb} \
-    mosquitto \
-    mosquitto-misc \
-"
-
 PACKAGES = "\
     packagegroup-uwb \
     packagegroup-uwb-dev \
-    packagegroup-uwb-broker \
 "
 
 # Allow empty packages (no actual files, just dependencies)
 ALLOW_EMPTY:packagegroup-uwb = "1"
 ALLOW_EMPTY:packagegroup-uwb-dev = "1"
-ALLOW_EMPTY:packagegroup-uwb-broker = "1"
