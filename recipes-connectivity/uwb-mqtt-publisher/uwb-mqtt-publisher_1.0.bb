@@ -18,7 +18,6 @@ RDEPENDS:${PN} = "python3 \
                   python3-threading \
                   python3-ssl \
                   python3-struct \
-                  python3-argparse \
                   python3-math \
                   python3-time \
                   python3-sys"
