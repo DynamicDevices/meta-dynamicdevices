@@ -11,7 +11,7 @@ SRC_URI[sha256sum] = "c85bc0e4f44417c429d799008d3444e1045785e82f96efb2cddbd812b9
 S = "${WORKDIR}/git"
 EXTRA_OECMAKE = ""
 DEPENDS += "python python3 python3-pip lxc python3-pkgconfig python3-pycairo python3-pygobject"
-#RDEPENDS:${PN} += "glib-2.0 libglibutil libgbinder gbinder-python"
+RDEPENDS:${PN} += "glib-2.0 libglibutil libgbinder gbinder-python"
 
 do_configure () {
     # Specify any needed configure commands here
