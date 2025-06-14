@@ -23,6 +23,7 @@ RRECOMMENDS:${PN} += "\
 
 SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=https \
     file://gbinder.conf \
+    file://waydroid-net.sh \
 "
 S = "${WORKDIR}/git"
 
@@ -76,6 +77,12 @@ do_install:append:qemux86-64() {
 
 do_install:append:imx8mm-lpddr4-evk() {
     install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
+    install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
+}
+
+do_install:append:raspberrypi4-64() {
+    install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
+    install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
 }
 
 FILES:${PN} += " \
