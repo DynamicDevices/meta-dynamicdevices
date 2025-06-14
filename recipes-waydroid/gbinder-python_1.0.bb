@@ -14,7 +14,7 @@ S = "${WORKDIR}/git"
 
 EXTRA_OECMAKE = ""
 DEPENDS += "python3-native python3 python3-pip python3-cython python-cython glib-2.0 libglibutil libgbinder "
-RDEPENDS_${PN} += "python3 python3-pip python3-cython python-cython glib-2.0 libglibutil libgbinder "
+RDEPENDS:${PN} += "python3 python3-pip python3-cython python-cython glib-2.0 libglibutil libgbinder "
 
 inherit pkgconfig lib_package setuptools3
 

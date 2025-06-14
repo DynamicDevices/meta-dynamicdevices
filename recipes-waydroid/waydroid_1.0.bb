@@ -11,7 +11,7 @@ SRC_URI[sha256sum] = "c85bc0e4f44417c429d799008d3444e1045785e82f96efb2cddbd812b9
 S = "${WORKDIR}/git"
 EXTRA_OECMAKE = ""
 DEPENDS += "python python3 python3-pip lxc python3-pkgconfig python3-pycairo python3-pygobject"
-#RDEPENDS_${PN} += "glib-2.0 libglibutil libgbinder gbinder-python"
+#RDEPENDS:${PN} += "glib-2.0 libglibutil libgbinder gbinder-python"
 
 do_configure () {
     # Specify any needed configure commands here
@@ -28,11 +28,11 @@ do_install () {
     oe_runmake install_apparmor DESTDIR=${D} SBINDIR=${sbindir} MANDIR=${mandir} INCLUDEDIR=${includedir}	
 }
 
-FILES_${PN} = " \
+FILES:${PN} = " \
   /usr/bin/* \
   /usr/lib/* \
   /usr/share/metainfo/* \
   /usr/share/applications/* \
   /usr/lib/waydroid/* \
-        ${systemd_unitdir}/system/waydroid-container.service \
+  ${systemd_unitdir}/system/waydroid-container.service \
 "
