@@ -3,7 +3,7 @@ HOMEPAGE = "https://waydro.id/"
 LICENSE = "CLOSED"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1ebbd3e34237af26da5dc08a4e440464"
 
-SRCREV = "cd0a81cf28bfa990bb85d660c239a9e45bcb48a6"
+SRCREV = "d8c700bbb8b7bd992b9fe9b43de8a2f3d8e8587f"
 
 SRC_URI = "git://github.com/waydroid/waydroid.git;protocol=https;branch=main"
 SRC_URI[sha256sum] = "c85bc0e4f44417c429d799008d3444e1045785e82f96efb2cddbd812b9633f61"
