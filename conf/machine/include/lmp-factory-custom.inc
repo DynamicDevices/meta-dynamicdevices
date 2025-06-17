@@ -33,3 +33,6 @@ MACHINE_FEATURES:append:imx8mm-jaguar-sentai = " se05x"
 
 SE05X_OEFID:imx8mm-jaguar-inst = "0xA1F4"
 MACHINE_FEATURES:append:imx8mm-jaguar-inst = " se05x"
+
+# When a new bootloader is used, e.g. moving to a new LMP up-rev here
+LMP_BOOT_FIRMWARE_VERSION:imx8mm-jaguar-sentai = "2"
