@@ -13,8 +13,5 @@ CORE_IMAGE_BASE_INSTALL += " \
    gpio-utils \
    htop \
    gst-instruments \
-"
-
-CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-sentai = " \
-   imx-test \
+   tcpdump \
 "

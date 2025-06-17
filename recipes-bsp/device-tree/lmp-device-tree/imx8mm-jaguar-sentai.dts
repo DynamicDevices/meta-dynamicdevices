@@ -3,7 +3,7 @@
  * Copyright 2020 NXP
  */
 
-#include "freescale/imx8mm-evkb.dts"
+#include "freescale/imx8mm-evk.dts"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/leds/common.h>
 
@@ -11,7 +11,7 @@
         model = "i.MX8MM Jaguar Sentai board";
 
 	// Regulators
-	reg_vddext_3v3: regulator-vddext {
+	regulator-vddext {
 		compatible = "regulator-fixed";
 		regulator-name = "VDDEXT_3V3";
 		regulator-min-microvolt = <3300000>;
@@ -187,18 +187,12 @@
 		output-high;
 		line-name = "bt-wake-dev";
 	};
-	lte-reset-hog {
-		gpio-hog;
-		gpios = <8 GPIO_ACTIVE_HIGH>;
-		output-low;
-		line-name = "lte-reset";
-	};
-//	zb-reset-hog {
-//		gpio-hog;
-//		gpios = <11 GPIO_ACTIVE_LOW>;
-//		output-low;
-//		line-name = "zb-reset";
-//	};
+//        zb-reset-hog {
+//                gpio-hog;
+//                gpios = <11 GPIO_ACTIVE_LOW>;
+//                output-low;
+//                line-name = "zb-reset";
+//        };
 };
 
 &gpio3 {
@@ -285,14 +279,6 @@
 };
 
 &i2c3 {
-	lis2dh12: lis2dh12@19 {
-		compatible = "st,lis2dh12_accel";
-                reg = <0x19>;
-		status = "okay";
-		interrupt-parent = <&gpio4>;
-		interrupts = <7 IRQ_TYPE_LEVEL_HIGH>;
-	};
-
 	stts22h: stts22h@3F {
 		compatible = "st,stts22h";
                 reg = <0x3f>;

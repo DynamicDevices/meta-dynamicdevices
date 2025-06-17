@@ -4,7 +4,7 @@ header:
 repos:
   bitbake:
     url: https://github.com/lmp-mirrors/bitbake
-    commit: 5a90927f31c4f9fccbe5d9d07d08e6e69485baa8
+    commit: 696c2c1ef095f8b11c7d2eff36fae50f58c62e5e
     layers:
       .: excluded
 
@@ -18,19 +18,19 @@ repos:
   meta-lmp:
     url: https://github.com/foundriesio/meta-lmp
     path: layers/meta-lmp
-    commit: e77988839dfa6806c9cb7f2ac32f59028ca07d73
+    commit: 4dffdff79b4df49c683c9a7faea406595cb7e9ca
     layers:
       meta-lmp-base:
       meta-lmp-bsp:
 
   meta-clang:
     url: https://github.com/lmp-mirrors/meta-clang
-    commit: 557663d9e9fa34fa2b860696ce5a5d8744ade8f6
+    commit: eaa08939eaec9f620b14742ff3ac568553683034
     path: layers/meta-clang
 
   meta-openembedded:
     url: https://github.com/lmp-mirrors/meta-openembedded
-    commit: 6ff0748a4741517519a281985fc3cd95dadb633e
+    commit: e92d0173a80ea7592c866618ef5293203c50544c
     path: layers/meta-openembedded
     layers:
       meta-oe:
@@ -40,19 +40,9 @@ repos:
       meta-python:
       meta-multimedia:
 
-  meta-lts-mixins-go:
-    url: https://github.com/lmp-mirrors/meta-lts-mixins
-    commit: 6b10782a1e5760d1dd5d33d561e6367b5f971d8e
-    path: layers/meta-lts-mixins-go
-
-  meta-lts-mixins-rust:
-    url: https://github.com/lmp-mirrors/meta-lts-mixins
-    commit: 1a6746a81da4d5bf2e5640fd2fa8f3ea453d40bf
-    path: layers/meta-lts-mixins-rust
-
   meta-security:
     url: https://github.com/lmp-mirrors/meta-security
-    commit: 353078bc06c8b471736daab6ed193e30d533d1f1
+    commit: bc865c5276c2ab4031229916e8d7c20148dfbac3
     path: layers/meta-security
     layers:
       .:
@@ -62,22 +52,22 @@ repos:
 
   meta-updater:
     url: https://github.com/lmp-mirrors/meta-updater
-    commit: 6c4feab2db70cb0c8ddce7e18dc7b851ad475b32
+    commit: d57b19f885fe11916c91569e20288581eff512aa
     path: layers/meta-updater
 
   meta-virtualization:
     url: https://github.com/lmp-mirrors/meta-virtualization
-    commit: 8b356b91ed0d4bcab72350a2ddcef880f4fa5c26
+    commit: 9e040ee8dd6025558ea60ac9db60c41bfeddf221
     path: layers/meta-virtualisation
 
   meta-tensorflow:
     url: https://git.yoctoproject.org/meta-tensorflow
-    commit: 66e15527851c87f8e1ddeb0e451aa10f73456ac1
+    commit: c382865206fe925a02a1cdbdd856e16310bc9dbc
     path: layers/meta-tensorflow
 
   openembedded-core:
     url: https://github.com/lmp-mirrors/openembedded-core
-    commit: 8e650506885bc4465f9569b3ccdc327eb83d90db
+    commit: 87cadf62ba0d6b0fc3dc0151a5d320919b7eb1ab
     path: openembedded-core
     layers:
       meta:

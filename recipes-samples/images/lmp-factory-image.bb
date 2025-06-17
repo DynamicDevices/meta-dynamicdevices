@@ -44,17 +44,11 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'ima', 'recipes-samples/images/
 # Enable Xenomai4 related recipes if provided by the image
 require ${@bb.utils.contains('MACHINE_FEATURES', 'xeno4', 'recipes-samples/images/lmp-feature-xeno4.inc', '', d)}
 
-# Enable jailhouse related recipes if provided by the machine
-require ${@bb.utils.contains('MACHINE_FEATURES', 'jailhouse', 'recipes-samples/images/lmp-feature-jailhouse.inc', '', d)}
-
 # Enable Intel AX210 WiFi related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'ax210', 'recipes-samples/images/lmp-feature-ax210.inc', '', d)}
 
 # Enable TI tas2563 related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'tas2563', 'recipes-samples/images/lmp-feature-tas2563.inc', '', d)}
-
-# Enable TI tas2781 related recipes if required by MACHINE
-require ${@bb.utils.contains('MACHINE_FEATURES', 'tas2781', 'recipes-samples/images/lmp-feature-tas2781.inc', '', d)}
 
 # Enable ST usb4500 related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'stusb4500', 'recipes-samples/images/lmp-feature-stusb4500.inc', '', d)}
