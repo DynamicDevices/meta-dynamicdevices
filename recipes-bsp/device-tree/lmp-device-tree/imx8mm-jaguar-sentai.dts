@@ -494,7 +494,7 @@
 
         spidev1: spi@0 {
 		compatible = "rohm,dh2228fv";
-                spi-max-frequency = <50000000>;
+                spi-max-frequency = <12000000>;
                 reg = <0>;
         };
 };
