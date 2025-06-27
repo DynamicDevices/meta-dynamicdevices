@@ -1,15 +1,12 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-# Recipe created by recipetool
-# This is the basis of a recipe and may need further editing in order to be fully functional.
-# (Feel free to remove these comments when editing.)
+SUMMARY = "SPI library for radar presence detection"
+DESCRIPTION = "A C++ library providing SPI communication interface for radar sensors \
+and presence detection functionality with systemd service integration."
+HOMEPAGE = "https://github.com/DynamicDevices/spi-lib"
+SECTION = "libs"
+AUTHOR = "Dynamic Devices Ltd"
 
-# WARNING: the following LICENSE and LIC_FILES_CHKSUM values are best guesses - it is
-# your responsibility to verify that the values are complete and correct.
-#
-# The following license files were not able to be identified and are
-# represented as "Unknown" below, you will need to check them yourself:
-#   3rd_party/licenses.md
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=535d3a1b7f971b2e6581673c210e768c"
 
@@ -26,11 +23,10 @@ S = "${WORKDIR}/git"
 
 inherit cmake
 
-# Specify any options you want to pass to cmake using EXTRA_OECMAKE:
-EXTRA_OECMAKE = ""
+# TODO: Fix C++11 narrowing conversion warnings in source code
+TARGET_CFLAGS += "-Wno-c++11-narrowing"
 
-TARGET_CFLAGS += "-Wno-c++11-narrowing" 
-
+# TODO: Address QA check failures instead of skipping them
 INSANE_SKIP = "dev-deps dev-elf"
 
 inherit systemd
