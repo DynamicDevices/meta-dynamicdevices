@@ -9,6 +9,7 @@ SRC_URI:append = " \
   file://test-leds-rc.sh \
   file://set-fio-passwd.sh \
   file://enable-firewall.sh \
+  file://record-audio.sh \
 "
 
 SRC_URI:append:imx8mm-jaguar-sentai = " \
