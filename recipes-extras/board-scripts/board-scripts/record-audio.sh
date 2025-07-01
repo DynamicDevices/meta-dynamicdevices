@@ -368,7 +368,38 @@ counter=1
 audio_count=0
 silence_count=0
 
-# Function to check if a key has been pressed
+# Record session start time for elapsed time calculation
+SESSION_START_TIME=$(date +%s)
+
+# Function to calculate and format elapsed time
+format_elapsed_time() {
+    local current_time=$(date +%s)
+    local elapsed_seconds=$((current_time - SESSION_START_TIME))
+    local hours=$((elapsed_seconds / 3600))
+    local minutes=$(((elapsed_seconds % 3600) / 60))
+    local seconds=$((elapsed_seconds % 60))
+    
+    if [ $hours -gt 0 ]; then
+        printf "%02d:%02d:%02d" $hours $minutes $seconds
+    else
+        printf "%02d:%02d" $minutes $seconds
+    fi
+}
+
+# Function to log message with elapsed time to console, regular timestamp to file
+log_message_with_elapsed() {
+    local message="$1"
+    local elapsed_time=$(format_elapsed_time)
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    # Print to console with elapsed time
+    echo "[$elapsed_time] $message"
+    
+    # Log to file with regular timestamp if specified
+    if [ -n "$LOG_FILE" ]; then
+        echo "[$timestamp] $message" >> "$LOG_FILE"
+    fi
+}
 check_keypress() {
     read -t 0.1 -n 1 key 2>/dev/null
     if [ $? = 0 ]; then
@@ -384,7 +415,7 @@ while true; do
     timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
     filename="audio_${timestamp}.wav"
     
-    log_message "Recording: $filename"
+    log_message_with_elapsed "Recording: $filename"
     
     # Record audio for specified duration
     # -D specifies the audio device
@@ -394,9 +425,9 @@ while true; do
     
     if [ $? -eq 0 ]; then
         if [ "$SAVE_FILES" = true ]; then
-            log_message "✓ Saved: $filename"
+            log_message_with_elapsed "✓ Saved: $filename"
         else
-            log_message "✓ Recorded and analyzing: $filename"
+            log_message_with_elapsed "✓ Recorded and analyzing: $filename"
         fi
         
         # Analyze volume using multiple tools in order of preference
@@ -411,14 +442,14 @@ while true; do
                 
                 silence_threshold=0.01
                 if (( $(echo "$rms_amplitude < $silence_threshold" | bc -l) )); then
-                    log_message "  📊 Volume: ${rms_percent}% RMS (⚠️  LIKELY SILENCE)"
+                    log_message_with_elapsed "  📊 Volume: ${rms_percent}% RMS (⚠️  LIKELY SILENCE)"
                     ((silence_count++))
                 else
-                    log_message "  📊 Volume: ${rms_percent}% RMS (✓ Audio detected)"
+                    log_message_with_elapsed "  📊 Volume: ${rms_percent}% RMS (✓ Audio detected)"
                     ((audio_count++))
                 fi
             else
-                log_message "  📊 Volume analysis failed"
+                log_message_with_elapsed "  📊 Volume analysis failed"
             fi
             
         elif command -v ffmpeg >/dev/null 2>&1; then
@@ -428,14 +459,14 @@ while true; do
             
             if [ ! -z "$mean_volume" ]; then
                 if (( $(echo "$mean_volume < -60" | bc -l) )); then
-                    log_message "  📊 Volume: ${mean_volume}dB mean (⚠️  LIKELY SILENCE)"
+                    log_message_with_elapsed "  📊 Volume: ${mean_volume}dB mean (⚠️  LIKELY SILENCE)"
                     ((silence_count++))
                 else
-                    log_message "  📊 Volume: ${mean_volume}dB mean (✓ Audio detected)"
+                    log_message_with_elapsed "  📊 Volume: ${mean_volume}dB mean (✓ Audio detected)"
                     ((audio_count++))
                 fi
             else
-                log_message "  📊 Volume analysis failed"
+                log_message_with_elapsed "  📊 Volume analysis failed"
             fi
             
         elif command -v mediainfo >/dev/null 2>&1; then
@@ -444,10 +475,10 @@ while true; do
             bitrate=$(mediainfo --Inform="Audio;%BitRate%" "$filename" 2>/dev/null)
             
             if [ ! -z "$duration" ] && [ "$duration" -gt 0 ]; then
-                log_message "  📊 Duration: ${duration}ms, Bitrate: ${bitrate}bps (✓ File has audio data)"
+                log_message_with_elapsed "  📊 Duration: ${duration}ms, Bitrate: ${bitrate}bps (✓ File has audio data)"
                 ((audio_count++))
             else
-                log_message "  📊 No audio data detected (⚠️  LIKELY SILENCE)"
+                log_message_with_elapsed "  📊 No audio data detected (⚠️  LIKELY SILENCE)"
                 ((silence_count++))
             fi
             
@@ -460,14 +491,14 @@ while true; do
                 sample_data=$(dd if="$filename" bs=1 skip=44 count=1000 2>/dev/null | hexdump -v -e '/1 "%02x"' | grep -v "^00*$" | head -5)
                 
                 if [ -n "$sample_data" ]; then
-                    log_message "  📊 Audio data detected (✓ Non-zero samples found)"
+                    log_message_with_elapsed "  📊 Audio data detected (✓ Non-zero samples found)"
                     ((audio_count++))
                 else
-                    log_message "  📊 All samples appear to be zero (⚠️  LIKELY SILENCE)"
+                    log_message_with_elapsed "  📊 All samples appear to be zero (⚠️  LIKELY SILENCE)"
                     ((silence_count++))
                 fi
             else
-                log_message "  📊 Invalid audio file format (⚠️  ERROR)"
+                log_message_with_elapsed "  📊 Invalid audio file format (⚠️  ERROR)"
             fi
             
         elif command -v hexdump >/dev/null 2>&1; then
@@ -477,10 +508,10 @@ while true; do
             non_zero_bytes=$(echo "$audio_data" | grep -v "^00*$" | wc -l)
             
             if [ "$non_zero_bytes" -gt 10 ]; then
-                log_message "  📊 Non-zero audio data detected (✓ Audio samples present)"
+                log_message_with_elapsed "  📊 Non-zero audio data detected (✓ Audio samples present)"
                 ((audio_count++))
             else
-                log_message "  📊 Mostly zero audio data (⚠️  LIKELY SILENCE)"
+                log_message_with_elapsed "  📊 Mostly zero audio data (⚠️  LIKELY SILENCE)"
                 ((silence_count++))
             fi
             
@@ -491,16 +522,16 @@ while true; do
                 non_zero_samples=$(dd if="$filename" bs=1 skip=44 count=1000 2>/dev/null | od -t u1 | awk '{for(i=2;i<=NF;i++) if($i>5) print $i}' | wc -l)
                 
                 if [ "$non_zero_samples" -gt 20 ]; then
-                    log_message "  📊 Audio samples detected (✓ Non-zero data found)"
+                    log_message_with_elapsed "  📊 Audio samples detected (✓ Non-zero data found)"
                     ((audio_count++))
                 else
-                    log_message "  📊 Very quiet audio data (⚠️  LIKELY SILENCE)"
+                    log_message_with_elapsed "  📊 Very quiet audio data (⚠️  LIKELY SILENCE)"
                     ((silence_count++))
                 fi
             else
                 # Final fallback: just confirm file was created
                 file_size=$(stat -f%z "$filename" 2>/dev/null || stat -c%s "$filename" 2>/dev/null)
-                log_message "  📊 File created: ${file_size} bytes (⚠️  Cannot analyse audio content)"
+                log_message_with_elapsed "  📊 File created: ${file_size} bytes (⚠️  Cannot analyse audio content)"
                 # Count as unknown/audio since we can't determine silence
                 ((audio_count++))
             fi
@@ -511,10 +542,11 @@ while true; do
             rm -f "$filename"
         fi
         
-        # Show running totals
-        log_message "  📈 Running totals: Audio=${audio_count}, Silence=${silence_count}, Total=$((audio_count + silence_count))"
+        # Show running totals with elapsed time
+        current_elapsed=$(format_elapsed_time)
+        log_message_with_elapsed "  📈 Running totals: Audio=${audio_count}, Silence=${silence_count}, Total time=${current_elapsed}"
     else
-        log_message "✗ Error recording $filename"
+        log_message_with_elapsed "✗ Error recording $filename"
     fi
     
     # Check if a key was pressed during or after recording
@@ -560,10 +592,15 @@ if [ "$SAVE_FILES" = true ]; then
 else
     log_message "Total audio samples analyzed: $((counter-1))"
 fi
+
+# Calculate final elapsed time
+final_elapsed=$(format_elapsed_time)
+
 log_message "📊 Final Statistics:"
 log_message "  ✓ Samples with audio detected: $audio_count"
 log_message "  ⚠️  Samples with silence detected: $silence_count"
 log_message "  📈 Total samples processed: $((audio_count + silence_count))"
+log_message "  ⏱️  Total session time: $final_elapsed"
 if [ $((audio_count + silence_count)) -gt 0 ]; then
     audio_percentage=$(echo "scale=1; $audio_count * 100 / ($audio_count + $silence_count)" | bc -l 2>/dev/null || echo "0")
     silence_percentage=$(echo "scale=1; $silence_count * 100 / ($audio_count + $silence_count)" | bc -l 2>/dev/null || echo "0")
