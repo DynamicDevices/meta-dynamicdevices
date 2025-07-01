@@ -284,19 +284,16 @@ cleanup() {
 # Set up trap to catch Ctrl+C and cleanup
 trap cleanup SIGINT SIGTERM
 
-# Create directory for audio files only if saving files
-if [ "$SAVE_FILES" = true ]; then
-    mkdir -p audio_recordings
-    cd audio_recordings
-    files_location="$(pwd)"
-else
-    # Use /tmp for temporary analysis files
-    cd /tmp
-    files_location="/tmp (temporary analysis files)"
-fi
+# Store the original working directory for log file
+ORIGINAL_DIR="$(pwd)"
 
-# Initialize log file if specified
+# Initialize log file if specified (before changing directories)
 if [ -n "$LOG_FILE" ]; then
+    # If relative path, make it relative to original directory
+    if [[ "$LOG_FILE" != /* ]]; then
+        LOG_FILE="$ORIGINAL_DIR/$LOG_FILE"
+    fi
+    
     # Create log directory if it doesn't exist
     log_dir=$(dirname "$LOG_FILE")
     if [ "$log_dir" != "." ] && [ "$log_dir" != "$LOG_FILE" ]; then
@@ -311,13 +308,27 @@ if [ -n "$LOG_FILE" ]; then
         echo "Error: Cannot write to log file: $LOG_FILE"
         exit 1
     fi
-    
-    # Add session header to log file
+fi
+
+# Create directory for audio files only if saving files
+if [ "$SAVE_FILES" = true ]; then
+    mkdir -p audio_recordings
+    cd audio_recordings
+    files_location="$(pwd)"
+else
+    # Use /tmp for temporary analysis files
+    cd /tmp
+    files_location="/tmp (temporary analysis files)"
+fi
+
+# Add session header to log file (after we know the files location)
+if [ -n "$LOG_FILE" ]; then
     echo "" >> "$LOG_FILE"
     echo "========================================" >> "$LOG_FILE"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting new recording session" >> "$LOG_FILE"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Duration: ${DURATION}s, Interval: ${INTERVAL}s, Device: $AUDIO_DEVICE" >> "$LOG_FILE"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Save files: $SAVE_FILES, Location: $files_location" >> "$LOG_FILE"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Log file: $LOG_FILE" >> "$LOG_FILE"
     echo "========================================" >> "$LOG_FILE"
 fi
 
@@ -519,18 +530,22 @@ while true; do
     
     # Configurable delay between recordings
     if [ "$INTERVAL" -gt 0 ]; then
-        log_message "Waiting ${INTERVAL} seconds before next recording..."
-        for (( i=INTERVAL; i>=1; i-- )); do
-            log_progress "\rNext recording in: %2d seconds (press any key to stop)" $i
-            sleep 1
+        echo "Waiting ${INTERVAL} seconds before next recording..."
+        for (( i=INTERVAL; i>=0; i-- )); do
+            printf "\rNext recording in: %2d seconds (press any key to stop)" $i
+            
+            # Don't sleep after showing 0
+            if [ $i -gt 0 ]; then
+                sleep 1
+            fi
             
             # Check for keypress during countdown
             if check_keypress; then
-                log_message "\nKey pressed - stopping recording"
+                log_message "Key pressed - stopping recording"
                 cleanup
             fi
         done
-        log_message "" # New line after countdown
+        echo "" # New line after countdown
     else
         # No interval - check for immediate keypress
         if check_keypress; then
@@ -560,11 +575,6 @@ fi
 
 # Add session end to log file
 if [ -n "$LOG_FILE" ]; then
-    if [ "$SAVE_FILES" = true ]; then
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Recording session ended. Total files saved: $((counter-1))" >> "$LOG_FILE"
-    else
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Monitoring session ended. Total samples analyzed: $((counter-1))" >> "$LOG_FILE"
-    fi
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Audio samples: $audio_count, Silence samples: $silence_count" >> "$LOG_FILE"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Session ended - see final statistics above" >> "$LOG_FILE"
     echo "========================================" >> "$LOG_FILE"
 fi
