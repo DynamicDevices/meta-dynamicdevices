@@ -9,6 +9,7 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://enable_lis2dh.cfg \
 		file://enable_sht4x.cfg \
 		file://imx8mm-jaguar-sentai.dts \
+		file://01-remove-wifi-warning.patch \
 		file://01-fix-evkb-duplicate-label.patch \
                 file://01-fix-enable-lp50xx.patch \
 		file://02-disable-wifi-scan-msg.patch \
