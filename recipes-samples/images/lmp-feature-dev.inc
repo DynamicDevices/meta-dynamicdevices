@@ -15,4 +15,5 @@ CORE_IMAGE_BASE_INSTALL += " \
    gst-instruments \
    tcpdump \
    pv \
+   sysstat \
 "
