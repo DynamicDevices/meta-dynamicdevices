@@ -14,4 +14,5 @@ CORE_IMAGE_BASE_INSTALL += " \
    htop \
    gst-instruments \
    tcpdump \
+   pv \
 "
