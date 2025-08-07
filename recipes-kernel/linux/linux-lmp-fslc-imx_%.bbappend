@@ -3,7 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://enable_i2c-dev.cfg \
 		file://enable_lp50xx.cfg \
-                file://enable_usb_modem.cfg \
+        file://enable_usb_modem.cfg \
 		file://enable_gpio_key.cfg \
 		file://enable_stts22h.cfg \
 		file://enable_lis2dh.cfg \
@@ -11,12 +11,12 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
 		file://imx8mm-jaguar-sentai.dts \
 		file://01-remove-wifi-warning.patch \
 		file://01-fix-evkb-duplicate-label.patch \
-                file://01-fix-enable-lp50xx.patch \
+        file://01-fix-enable-lp50xx.patch \
 		file://02-disable-wifi-scan-msg.patch \
 		file://03-enable-lis2dh12.cfg \
 		file://04-enable-usb-gadgets.cfg \
 		file://05-patch-led-defaults.patch \
-                file://06-enable-tas256x_2781.cfg \
+        file://06-enable-tas256x_2781.cfg \
 "
 
 # NOTE: This DTB file is created as a default for use with local development
