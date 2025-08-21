@@ -8,3 +8,4 @@ openembedded-core
 .kas_shell_history
 program/program_full_image.uuu
 imx93
+conf/factory-keys
