@@ -13,7 +13,7 @@ then
   echo KAS_MACHINE=sentai ./program.sh
   echo KAS_MACHINE=inst ./program.sh
   echo KAS_MACHINE=phasora ./program.sh
-  echo
+  echo KAS_MACHINE=imx93-11x11-lpddr4x-evk ./program.sh
   exit 1
 fi
 

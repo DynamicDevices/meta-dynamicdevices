@@ -84,6 +84,18 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 		file://0007-load-firmware-to-synopsys-usb3.patch \
 "
 
+SRC_URI:append:imx93-jaguar-eink = " \
+		file://imx93-jaguar-eink.dts \
+"
+
+# NOTE: This DTB file is created as a default for use with local development
+#       when building lmp-base. It is NOT used by the lmp build or under CI
+#       which uses the DTS in lmp-device-tree
+do_configure:append:imx93-jaguar-eink(){
+ cp ${WORKDIR}/imx93-jaguar-eink.dts ${S}/arch/arm64/boot/dts
+ echo "dtb-y += imx93-jaguar-eink.dtb" >> ${S}/arch/arm64/boot/dts/Makefile
+}
+
 #do_configure:append:imx8mm-jaguar-phasora() {
 #   for i in ../*.cfg; do
 #      [ -f "$i" ] || break

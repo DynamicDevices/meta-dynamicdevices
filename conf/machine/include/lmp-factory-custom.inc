@@ -26,6 +26,7 @@ TF_A_SIGN_KEY_PATH = "${TOPDIR}/conf/factory-keys/tf-a/privkey_ec_prime256v1.pem
 PREFERRED_PROVIDER_virtual/dtb ?= "lmp-device-tree"
 
 PACKAGECONFIG:append:pn-networkmanager:imx8mm-jaguar-sentai = " modemmanager ppp"
+PACKAGECONFIG:append:pn-networkmanager:imx93-jaguar-eink = " modemmanager ppp"
 
 # Support SE050
 SE05X_OEFID:imx8mm-jaguar-sentai = "0xA1F4"

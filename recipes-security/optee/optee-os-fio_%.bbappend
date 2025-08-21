@@ -33,6 +33,14 @@ EXTRA_OEMAKE:append:imx8mm-jaguar-sentai = " \
     '', d)} \
 "
 
+# SE05X for imx93-jaguar-eink requires CFG_CRYPTO_DRIVER=y for SE050 crypto support
+# This overrides the removal in optee-os-fio-se05x.inc which is designed for CAAM conflicts
+EXTRA_OEMAKE:append:imx93-jaguar-eink = " \
+    ${@bb.utils.contains('MACHINE_FEATURES', \
+    'se05x', \
+    'CFG_IMX_I2C=y CFG_CORE_SE05X=y CFG_CRYPTO_DRIVER=y CFG_NXP_SE05X_RNG_DRV=n CFG_NXP_CAAM_RSA_DRV=n CFG_NUM_THREADS=1 CFG_CORE_SE05X_DISPLAY_INFO=n CFG_CORE_SE05X_I2C_BUS=3 CFG_CORE_SE05X_SCP03_EARLY=y CFG_CORE_SE05X_SCP03_PROVISION_ON_INIT=n CFG_CORE_SE05X_SCP03_PROVISION=y CFG_CORE_SE05X_INIT_NVM=n CFG_CORE_SE05X_OEFID=0xA200', \
+    '', d)} \
+"
 EXTRA_OEMAKE:append:imx8mm-jaguar-inst = " \
     ${@bb.utils.contains('MACHINE_FEATURES', \
     'se05x', \

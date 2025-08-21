@@ -18,6 +18,10 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
     file://boot.cmd \
 "
 
+SRC_URI:append:imx93-jaguar-eink = " \
+    file://boot.cmd \
+"
+
 #SRC_URI:append:imx8ulp-lpddr4-evk = " \
 #    file://boot.cmd \
 #"
