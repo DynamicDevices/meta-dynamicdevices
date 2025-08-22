@@ -4,30 +4,35 @@
 SUMMARY = "LMP E-ink board power management features"
 
 # Power management packages
+# Temporarily remove ALL power management packages to debug shutdown issue
+# IMAGE_INSTALL:append = " \
+#     wifi-power-management \
+#     eink-power-management \
+#     pm-utils \
+#     powertop \
+#     cpufrequtils \
+#     ethtool \
+#     wireless-tools \
+#     iw \
+# "
+
+# Basic connectivity tools only
 IMAGE_INSTALL:append = " \
-    wifi-power-management \
-    eink-power-management \
-    pm-utils \
-    powertop \
-    cpufrequtils \
     ethtool \
     wireless-tools \
     iw \
 "
 
-# Temporarily disable fast-boot-optimization to debug shutdown issue
-# IMAGE_INSTALL:append = " fast-boot-optimization"
-
 # Enable systemd power management features
 SYSTEMD_DEFAULT_TARGET = "multi-user.target"
 
-# Kernel modules for power management
-KERNEL_MODULE_AUTOLOAD:append = " \
-    cpufreq_conservative \
-    cpufreq_powersave \
-    cpufreq_ondemand \
-    governor_performance \
-"
+# Temporarily disable power management kernel modules
+# KERNEL_MODULE_AUTOLOAD:append = " \
+#     cpufreq_conservative \
+#     cpufreq_powersave \
+#     cpufreq_ondemand \
+#     governor_performance \
+# "
 
 # Remove power-hungry features not needed for eink use case
 IMAGE_INSTALL:remove = " \
