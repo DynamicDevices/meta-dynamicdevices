@@ -1,12 +1,33 @@
-build
-layers
-lmp-tools
-bitbake
-openembedded-core
+# Build artifacts and temporary directories
+build/
+build-*/
+layers/
+lmp-tools/
+bitbake/
+openembedded-core/
+lmp-docker/
+
+# Generated binaries and images
+imx93/
+imx93-eink/
+program/program_full_image.uuu
+
+# Security keys and certificates
+conf/factory-keys/
+
+# Temporary files
 .swp
 *.log
 .kas_shell_history
-program/program_full_image.uuu
-imx93
-imx93-eink
-conf/factory-keys
+*~
+.*.sw*
+
+# Docker and container files
+lmp-dynamicdevices-mfgtool.yml
+
+# Documentation artifacts
+"Eink 13inch.txt"
+
+# Build configuration that gets generated
+conf/bblayers.conf.sample
+conf/local.conf.sample
