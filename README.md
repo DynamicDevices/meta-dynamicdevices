@@ -82,7 +82,11 @@ For i.MX93 platforms, manufacturing tool (mfgtool) images can be built for board
 To build mfgtool images for i.MX93:
 
 ```bash
+# For imx93-11x11-lpddr4x-evk (base EVK)
 KAS_MACHINE=imx93-11x11-lpddr4x-evk ./kas-build-mfgtools.sh
+
+# For imx93-jaguar-eink (Dynamic Devices custom board)
+KAS_MACHINE=imx93-jaguar-eink ./kas-build-mfgtools.sh
 ```
 
 This creates special boot images that can be used with NXP's UUU (Universal Update Utility) tool for board recovery and initial programming.

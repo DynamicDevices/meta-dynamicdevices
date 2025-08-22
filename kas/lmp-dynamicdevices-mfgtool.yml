@@ -1,7 +1,11 @@
 #
-# To build mfgtool with Kas use:
+# To build mfgtool with Kas use the convenience script:
 #
-# `KAS_MACHINE=imx93-11x11-lpddr4x-evk kas-container build lmp-dynamicdevices-mfgtool.yml`
+# `KAS_MACHINE=imx93-jaguar-eink ./kas-build-mfgtools.sh`
+# `KAS_MACHINE=imx93-11x11-lpddr4x-evk ./kas-build-mfgtools.sh`
+#
+# Or directly with kas-container:
+# `KAS_MACHINE=imx93-jaguar-eink kas-container build lmp-dynamicdevices-mfgtool.yml`
 #
 # For details contact Alex Lennon <ajlennon@dynamicdevices.co.uk>
 
