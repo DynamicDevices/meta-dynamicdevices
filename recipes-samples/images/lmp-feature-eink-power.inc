@@ -7,7 +7,6 @@ SUMMARY = "LMP E-ink board power management features"
 IMAGE_INSTALL:append = " \
     wifi-power-management \
     eink-power-management \
-    fast-boot-optimization \
     pm-utils \
     powertop \
     cpufrequtils \
@@ -15,6 +14,9 @@ IMAGE_INSTALL:append = " \
     wireless-tools \
     iw \
 "
+
+# Temporarily disable fast-boot-optimization to debug shutdown issue
+# IMAGE_INSTALL:append = " fast-boot-optimization"
 
 # Enable systemd power management features
 SYSTEMD_DEFAULT_TARGET = "multi-user.target"
