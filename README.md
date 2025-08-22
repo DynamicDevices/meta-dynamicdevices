@@ -69,6 +69,18 @@ To program the image:
 - The machine builds successfully without SE05X features
 - If SE05X support is needed, the `CFG_CRYPTO_DRIVER` configuration conflict needs to be resolved in the OP-TEE recipe
 
+**Fast Boot Optimizations**:
+- The i.MX93 eInk board includes optimized boot configuration for faster startup times
+- U-Boot boot delay reduced to 1 second with silent console
+- Kernel module autoloading limited to essential modules (`i2c-dev`, `spidev`)
+- Fast boot optimizations are machine-specific and don't affect other boards
+- Full wireless connectivity (WiFi/BT/802.15.4) loaded after initial boot for optimal startup speed
+
+**Troubleshooting**:
+- If you encounter `"distro_bootcmd" not defined` errors, ensure you're using the latest U-Boot configuration
+- Boot issues may require reflashing the bootloader: `sudo dd if=build/tmp/deploy/images/imx93-jaguar-eink/imx-boot-imx93-jaguar-eink-sd.bin-flash_singleboot_spl of=/dev/sdX bs=1k seek=32 conv=fsync`
+- The machine configuration has been optimized for eInk display functionality with essential graphics drivers enabled
+
 ## i.MX8ULP EVK
 
 TBD
