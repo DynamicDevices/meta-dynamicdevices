@@ -86,6 +86,11 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 
 SRC_URI:append:imx93-jaguar-eink = " \
 		file://imx93-jaguar-eink.dts \
+		file://enable_iw612_wifi.cfg \
+		file://enable_iw612_bluetooth.cfg \
+		file://enable_802154.cfg \
+		file://enable_lte_modem.cfg \
+		file://enable_spi.cfg \
 "
 
 # NOTE: This DTB file is created as a default for use with local development

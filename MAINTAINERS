@@ -1,0 +1,74 @@
+# MAINTAINERS file for meta-dynamicdevices
+#
+# This file contains information about the people who maintain
+# and are responsible for particular areas of the meta-dynamicdevices layer.
+
+# Global maintainers
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+M: Dynamic Devices Team <info@dynamicdevices.co.uk>
+
+# Layer-wide responsibilities
+F: *
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# i.MX8MM Jaguar platforms
+F: conf/machine/imx8mm-jaguar-*.conf
+F: recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-*.dts
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# i.MX93 Jaguar eInk platform  
+F: conf/machine/imx93-jaguar-eink.conf
+F: recipes-bsp/device-tree/lmp-device-tree/imx93-jaguar-eink.dts
+F: recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Board support packages
+F: recipes-bsp/
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Kernel and device tree
+F: recipes-kernel/
+F: recipes-bsp/device-tree/
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Multimedia and audio
+F: recipes-multimedia/
+F: recipes-kernel/kernel-modules/kernel-module-tas2563*
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Connectivity and wireless
+F: recipes-connectivity/
+F: recipes-kernel/kernel-modules/kernel-module-nxp-wlan*
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Python packages
+F: recipes-devtools/python/
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Container and virtualization support
+F: recipes-containers/
+F: recipes-support/waydroid/
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Factory images and features
+F: recipes-samples/images/
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Build system and configuration
+F: conf/
+F: classes/
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Testing and quality assurance
+F: recipes-support/ce-testing-scripts/
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Documentation and release management
+F: README.md
+F: MAINTAINERS
+F: CONTRIBUTING.md
+M: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+
+# Legend:
+# M: Maintainer - person who maintains this area
+# F: File pattern - files and directories this entry applies to

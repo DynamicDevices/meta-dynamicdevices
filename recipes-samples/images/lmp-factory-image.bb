@@ -1,4 +1,7 @@
 SUMMARY = "Minimal factory image which includes OTA Lite, Docker and optional development support such as OpenSSH"
+DESCRIPTION = "Factory image for Dynamic Devices edge computing platforms with OTA capabilities, Docker containers and optional development tools"
+
+LICENSE = "MIT"
 
 require recipes-samples/images/lmp-image-common.inc
 

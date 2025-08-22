@@ -8,7 +8,7 @@ setenv bootpart 1
 setenv rootpart 2
 
 # Boot image files
-setenv fdt_file_final imx93-jaguar-sentai.dtb
+setenv fdt_file_final imx93-jaguar-eink.dtb
 setenv fit_addr ${initrd_addr}
 
 # Boot firmware updates
