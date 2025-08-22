@@ -52,9 +52,45 @@ To program the image:
 
 `KAS_MACHINE=imx8mm-jaguar-inst ./program.sh`
 
+## Edge eInk (i.MX93)
+
+Next-generation low-power display platform with i.MX93 processor. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-eInk-Board).
+
+To build `lmp-dynamicdevices-base` with Kas:
+
+`KAS_MACHINE=imx93-jaguar-eink ./kas-build-base.sh`
+
+To program the image:
+
+`KAS_MACHINE=imx93-jaguar-eink ./program.sh`
+
+**Important Notes**:
+- SE05X secure element support is currently disabled for this machine to avoid build conflicts with CAAM crypto drivers
+- The machine builds successfully without SE05X features
+- If SE05X support is needed, the `CFG_CRYPTO_DRIVER` configuration conflict needs to be resolved in the OP-TEE recipe
+
 ## i.MX8ULP EVK
 
 TBD
+
+# Manufacturing Tools Support
+
+For i.MX93 platforms, manufacturing tool (mfgtool) images can be built for board programming and recovery.
+
+## Building mfgtool Images
+
+To build mfgtool images for i.MX93:
+
+```bash
+KAS_MACHINE=imx93-11x11-lpddr4x-evk ./kas-build-mfgtools.sh
+```
+
+This creates special boot images that can be used with NXP's UUU (Universal Update Utility) tool for board recovery and initial programming.
+
+The mfgtool build:
+- Uses the `lmp-mfgtool` distro instead of `lmp`
+- Generates compressed initramfs images (`.cpio.gz`) instead of fitImages
+- Creates specialized bootloader configurations for manufacturing
 
 # Useful Scripts
 
