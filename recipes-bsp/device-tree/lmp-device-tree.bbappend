@@ -35,3 +35,9 @@ SRC_URI:append:imx93-jaguar-eink = " \
 "
 
 COMPATIBLE_MACHINE:imx93-jaguar-eink = ".*"
+
+SRC_URI:append:imx93-11x11-lpddr4x-evk = " \
+        file://imx93-11x11-evk.dts \
+"
+
+COMPATIBLE_MACHINE:imx93-11x11-lpddr4x-evk = ".*"

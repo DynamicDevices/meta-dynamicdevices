@@ -1,7 +1,7 @@
 #
-# To build with Kas use:
+# To build mfgtool with Kas use:
 #
-# `KAS_MACHINE=imx8mm-jaguar-foo kas-container build lmp-dynamicdevices-base.yml`
+# `KAS_MACHINE=imx93-11x11-lpddr4x-evk kas-container build lmp-dynamicdevices-mfgtool.yml`
 #
 # For details contact Alex Lennon <ajlennon@dynamicdevices.co.uk>
 
@@ -12,9 +12,9 @@ header:
     - bsp.yml
     - dynamicdevices.yml
 
-distro: lmp-dynamicdevices-base
-target: lmp-factory-image
-machine: imx8mm-jaguar-sentai
+distro: lmp-mfgtool
+target: mfgtool-files
+machine: imx93-11x11-lpddr4x-evk
 
 local_conf_header:
   meta-dynamicdevices: |
@@ -25,11 +25,3 @@ local_conf_header:
      SSTATE_DIR = "/var/cache/sstate"
      PERSISTENT_DIR="/var/cache/persistent"
      BB_GENERATE_MIRROR_TARBALLS = "1"
-#     IMAGE_INSTALL:append = "mfgtool-files"
-#     OPTEE_TA_SIGN_ENABLE = "0"
-#     OPTEE_TA_SIGN_KEY = "dummy-optee-sign.key"
-#     SIGN_ENABLE = "0"
-#     UBOOT_SIGN_ENABLE = "0"
-#     UBOOT_SPL_SIGN_ENABLE = "0"
-#     TF_A_SIGN_ENABLE = "0"
-#     UEFI_SIGN_ENABLE = "0"
