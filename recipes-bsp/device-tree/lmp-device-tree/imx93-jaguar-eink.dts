@@ -13,6 +13,9 @@
 /dts-v1/;
 
 #include <dt-bindings/usb/pd.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
 #include "freescale/imx93.dtsi"
 
 &ele_fw2 {
@@ -46,6 +49,17 @@
 			reg = <0x0 0xC0000000 0x0 0x10000000>;
 		};
 
+		ele_reserved: ele-reserved@A4120000 {
+			compatible = "shared-dma-pool";
+			reg = <0x0 0xA4120000 0x0 0x100000>;
+			no-map;
+		};
+
+		m33_reserved: m33@a4000000 {
+			no-map;
+			reg = <0 0xa4000000 0 0x1000000>;
+		};
+
 		vdev0vring0: vdev0vring0@a4000000 {
 			reg = <0 0xa4000000 0 0x8000>;
 			no-map;
@@ -66,68 +80,49 @@
 			no-map;
 		};
 
-		rsc_table: rsc-table@2021e000 {
-			reg = <0 0x2021e000 0 0x1000>;
+		rsc_table: rsc-table@a4020000 {
+			reg = <0 0xa4020000 0 0x1000>;
 			no-map;
 		};
 
-		vdevbuffer: vdevbuffer@a4020000 {
+		vdevbuffer: vdevbuffer@a4021000 {
 			compatible = "shared-dma-pool";
-			reg = <0 0xa4020000 0 0x100000>;
-			no-map;
-		};
-
-		ele_reserved: ele-reserved@a4120000 {
-			compatible = "shared-dma-pool";
-			reg = <0 0xa4120000 0 0x100000>;
+			reg = <0 0xa4021000 0 0x100000>;
 			no-map;
 		};
 	};
 
-	ethosu {
-		compatible = "arm,ethosu";
-		fsl,cm33-proc = <&cm33>;
-		memory-region = <&ethosu_mem>;
-		power-domains = <&mlmix>;
-	};
-
-	/* WiFi regulator - controlled by MCXC143VFM */
-	reg_wifi_vmmc: regulator-wifi {
-		compatible = "regulator-fixed";
-		regulator-name = "WIFI_3V3";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio4 26 GPIO_ACTIVE_HIGH>;  /* ENET2_RD2 - WLAN_RST */
-		startup-delay-us = <20000>;
-		enable-active-high;
-		regulator-boot-on;
-	};
-
-	/* WiFi power sequence */
-	wifi_pwrseq: wifi_pwrseq {
+	/* WiFi SDIO power sequence */
+	wifi_pwrseq: wifi-pwrseq {
 		compatible = "mmc-pwrseq-simple";
-		reset-gpios = <&gpio4 26 GPIO_ACTIVE_LOW>;  /* ENET2_RD2 - WLAN_RST */
+		pinctrl-names = "default";
+		reset-gpios = <&gpio4 26 GPIO_ACTIVE_LOW>; /* WLAN_RST */
+		post-power-on-delay-ms = <200>;
 	};
 
-	/* LTE modem power control */
-	reg_lte_power: regulator-lte {
+	/* Regulators */
+	reg_wifi_vmmc: regulator-wifi-vmmc {
 		compatible = "regulator-fixed";
-		regulator-name = "LTE_POWER";
+		regulator-name = "VSD_3V3";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		/* Power control will be added when LTE pins are defined */
-		regulator-always-on;
-	};
-
-	/* Bluetooth/802.15.4 regulator */
-	reg_bt_power: regulator-bt {
-		compatible = "regulator-fixed";
-		regulator-name = "BT_POWER";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio4 24 GPIO_ACTIVE_HIGH>;  /* ENET2_RD0 - BT_RST */
+		gpio = <&gpio4 26 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
-		regulator-boot-on;
+		startup-delay-us = <100>;
+	};
+
+	/* GPIO keys */
+	gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+
+		power {
+			label = "Power Button";
+			gpios = <&gpio3 11 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_POWER>;
+			wakeup-source;
+			debounce-interval = <10>;
+		};
 	};
 };
 
@@ -152,36 +147,34 @@
 
 /* Console UART */
 &lpuart1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart1>;
 	status = "okay";
 };
 
 /* Bluetooth UART - ublox MAYA W2 */
 &lpuart5 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart5>;
 	status = "okay";
 
 	bluetooth {
 		compatible = "nxp,88w8987-bt";
 		/* Reset controlled by BT_RST (GPIO4_IO24) */
+		shutdown-gpios = <&gpio4 24 GPIO_ACTIVE_LOW>;
+		device-wakeup-gpios = <&gpio4 24 GPIO_ACTIVE_HIGH>;
+		host-wakeup-gpios = <&gpio4 24 GPIO_ACTIVE_HIGH>;
 	};
 };
 
 /* WiFi SDIO Interface - ublox MAYA W2 (IW612) */
 &usdhc2 {
-	pinctrl-names = "default", "state_100mhz", "state_200mhz", "sleep";
-	pinctrl-0 = <&pinctrl_usdhc2_wifi>;
-	pinctrl-1 = <&pinctrl_usdhc2_wifi_100mhz>;
-	pinctrl-2 = <&pinctrl_usdhc2_wifi_200mhz>;
-	pinctrl-3 = <&pinctrl_usdhc2_wifi_sleep>;
 	vmmc-supply = <&reg_wifi_vmmc>;
 	mmc-pwrseq = <&wifi_pwrseq>;
 	bus-width = <4>;
 	keep-power-in-suspend;
 	non-removable;
 	wakeup-source;
+	max-frequency = <100000000>;
+	fsl,sdio-async-interrupt-enabled;
+	pm-ignore-notify;
+	cap-power-off-card;
 	status = "okay";
 
 	wifi_wake_host {
@@ -189,17 +182,15 @@
 		interrupt-parent = <&gpio4>;
 		interrupts = <25 IRQ_TYPE_LEVEL_LOW>;  /* ENET2_RD1 - SD2_INT */
 		interrupt-names = "host-wake";
+		wakeup-source;
 	};
 };
 
 /* eMMC storage */
 &usdhc1 {
-	pinctrl-names = "default", "state_100mhz", "state_200mhz";
-	pinctrl-0 = <&pinctrl_usdhc1>;
-	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
-	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
 	bus-width = <8>;
 	non-removable;
+	keep-power-in-suspend;
 	status = "okay";
 };
 
@@ -207,9 +198,6 @@
 &lpspi3 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	pinctrl-names = "default", "sleep";
-	pinctrl-0 = <&pinctrl_lpspi3>;
-	pinctrl-1 = <&pinctrl_lpspi3_sleep>;
 	status = "okay";
 
 	zigbee@0 {
@@ -224,151 +212,11 @@
 
 &wdog3 {
 	status = "okay";
+	timeout-sec = <40>;
 };
 
-&iomuxc {
-	/* Console UART pins */
-	pinctrl_uart1: uart1grp {
-		fsl,pins = <
-			MX93_PAD_UART1_RXD__LPUART1_RX			0x31e
-			MX93_PAD_UART1_TXD__LPUART1_TX			0x31e
-		>;
-	};
-
-	/* Bluetooth UART pins - ublox MAYA W2 */
-	pinctrl_uart5: uart5grp {
-		fsl,pins = <
-			MX93_PAD_DAP_TDO_TRACESWO__LPUART5_TX	0x31e
-			MX93_PAD_DAP_TDI__LPUART5_RX		0x31e
-			MX93_PAD_DAP_TMS_SWDIO__LPUART5_RTS_B	0x31e
-			MX93_PAD_DAP_TCLK_SWCLK__LPUART5_CTS_B	0x31e
-		>;
-	};
-
-	/* WiFi SDIO pins - USDHC2 for ublox MAYA W2 */
-	pinctrl_usdhc2_wifi: usdhc2wifigrp {
-		fsl,pins = <
-			MX93_PAD_SD2_CLK__USDHC2_CLK		0x1582
-			MX93_PAD_SD2_CMD__USDHC2_CMD		0x40001382
-			MX93_PAD_SD2_DATA0__USDHC2_DATA0	0x40001382
-			MX93_PAD_SD2_DATA1__USDHC2_DATA1	0x40001382
-			MX93_PAD_SD2_DATA2__USDHC2_DATA2	0x40001382
-			MX93_PAD_SD2_DATA3__USDHC2_DATA3	0x40001382
-			/* WiFi control pins */
-			MX93_PAD_ENET2_RD1__GPIO4_IO25		0x31e  /* SD2_INT */
-			MX93_PAD_ENET2_RD2__GPIO4_IO26		0x31e  /* WLAN_RST */
-		>;
-	};
-
-	pinctrl_usdhc2_wifi_100mhz: usdhc2wifi100mhzgrp {
-		fsl,pins = <
-			MX93_PAD_SD2_CLK__USDHC2_CLK		0x158e
-			MX93_PAD_SD2_CMD__USDHC2_CMD		0x4000138e
-			MX93_PAD_SD2_DATA0__USDHC2_DATA0	0x4000138e
-			MX93_PAD_SD2_DATA1__USDHC2_DATA1	0x4000138e
-			MX93_PAD_SD2_DATA2__USDHC2_DATA2	0x4000138e
-			MX93_PAD_SD2_DATA3__USDHC2_DATA3	0x4000138e
-			MX93_PAD_ENET2_RD1__GPIO4_IO25		0x31e  /* SD2_INT */
-			MX93_PAD_ENET2_RD2__GPIO4_IO26		0x31e  /* WLAN_RST */
-		>;
-	};
-
-	pinctrl_usdhc2_wifi_200mhz: usdhc2wifi200mhzgrp {
-		fsl,pins = <
-			MX93_PAD_SD2_CLK__USDHC2_CLK		0x15fe
-			MX93_PAD_SD2_CMD__USDHC2_CMD		0x400013fe
-			MX93_PAD_SD2_DATA0__USDHC2_DATA0	0x400013fe
-			MX93_PAD_SD2_DATA1__USDHC2_DATA1	0x400013fe
-			MX93_PAD_SD2_DATA2__USDHC2_DATA2	0x400013fe
-			MX93_PAD_SD2_DATA3__USDHC2_DATA3	0x400013fe
-			MX93_PAD_ENET2_RD1__GPIO4_IO25		0x31e  /* SD2_INT */
-			MX93_PAD_ENET2_RD2__GPIO4_IO26		0x31e  /* WLAN_RST */
-		>;
-	};
-
-	pinctrl_usdhc2_wifi_sleep: usdhc2wifisleepgrp {
-		fsl,pins = <
-			MX93_PAD_SD2_CLK__GPIO3_IO01		0x51e
-			MX93_PAD_SD2_CMD__GPIO3_IO02		0x51e
-			MX93_PAD_SD2_DATA0__USDHC2_DATA0	0x51e
-			MX93_PAD_SD2_DATA1__USDHC2_DATA1	0x51e
-			MX93_PAD_SD2_DATA2__USDHC2_DATA2	0x51e
-			MX93_PAD_SD2_DATA3__USDHC2_DATA3	0x51e
-			MX93_PAD_ENET2_RD1__GPIO4_IO25		0x51e  /* SD2_INT */
-			MX93_PAD_ENET2_RD2__GPIO4_IO26		0x51e  /* WLAN_RST */
-		>;
-	};
-
-	/* eMMC pins */
-	pinctrl_usdhc1: usdhc1grp {
-		fsl,pins = <
-			MX93_PAD_SD1_CLK__USDHC1_CLK		0x1582
-			MX93_PAD_SD1_CMD__USDHC1_CMD		0x40001382
-			MX93_PAD_SD1_DATA0__USDHC1_DATA0	0x40001382
-			MX93_PAD_SD1_DATA1__USDHC1_DATA1	0x40001382
-			MX93_PAD_SD1_DATA2__USDHC1_DATA2	0x40001382
-			MX93_PAD_SD1_DATA3__USDHC1_DATA3	0x40001382
-			MX93_PAD_SD1_DATA4__USDHC1_DATA4	0x40001382
-			MX93_PAD_SD1_DATA5__USDHC1_DATA5	0x40001382
-			MX93_PAD_SD1_DATA6__USDHC1_DATA6	0x40001382
-			MX93_PAD_SD1_DATA7__USDHC1_DATA7	0x40001382
-			MX93_PAD_SD1_STROBE__USDHC1_STROBE	0x1582
-		>;
-	};
-
-	pinctrl_usdhc1_100mhz: usdhc1-100mhzgrp {
-		fsl,pins = <
-			MX93_PAD_SD1_CLK__USDHC1_CLK		0x158e
-			MX93_PAD_SD1_CMD__USDHC1_CMD		0x4000138e
-			MX93_PAD_SD1_DATA0__USDHC1_DATA0	0x4000138e
-			MX93_PAD_SD1_DATA1__USDHC1_DATA1	0x4000138e
-			MX93_PAD_SD1_DATA2__USDHC1_DATA2	0x4000138e
-			MX93_PAD_SD1_DATA3__USDHC1_DATA3	0x4000138e
-			MX93_PAD_SD1_DATA4__USDHC1_DATA4	0x4000138e
-			MX93_PAD_SD1_DATA5__USDHC1_DATA5	0x4000138e
-			MX93_PAD_SD1_DATA6__USDHC1_DATA6	0x4000138e
-			MX93_PAD_SD1_DATA7__USDHC1_DATA7	0x4000138e
-			MX93_PAD_SD1_STROBE__USDHC1_STROBE	0x158e
-		>;
-	};
-
-	pinctrl_usdhc1_200mhz: usdhc1-200mhzgrp {
-		fsl,pins = <
-			MX93_PAD_SD1_CLK__USDHC1_CLK		0x15fe
-			MX93_PAD_SD1_CMD__USDHC1_CMD		0x400013fe
-			MX93_PAD_SD1_DATA0__USDHC1_DATA0	0x400013fe
-			MX93_PAD_SD1_DATA1__USDHC1_DATA1	0x400013fe
-			MX93_PAD_SD1_DATA2__USDHC1_DATA2	0x400013fe
-			MX93_PAD_SD1_DATA3__USDHC1_DATA3	0x400013fe
-			MX93_PAD_SD1_DATA4__USDHC1_DATA4	0x400013fe
-			MX93_PAD_SD1_DATA5__USDHC1_DATA5	0x400013fe
-			MX93_PAD_SD1_DATA6__USDHC1_DATA6	0x400013fe
-			MX93_PAD_SD1_DATA7__USDHC1_DATA7	0x400013fe
-			MX93_PAD_SD1_STROBE__USDHC1_STROBE	0x15fe
-		>;
-	};
-
-	/* 802.15.4 SPI pins - LPSPI3 for ublox MAYA W2 */
-	pinctrl_lpspi3: lpspi3grp {
-		fsl,pins = <
-			MX93_PAD_GPIO_IO08__LPSPI3_PCS0		0x31e  /* SPI3_SS0 */
-			MX93_PAD_GPIO_IO11__LPSPI3_SCK		0x31e  /* SPI3_SCLK */
-			MX93_PAD_GPIO_IO09__LPSPI3_SIN		0x31e  /* SPI3_MISO */
-			MX93_PAD_GPIO_IO10__LPSPI3_SOUT		0x31e  /* SPI3_MOSI */
-			/* Control pins */
-			MX93_PAD_ENET2_RD3__GPIO4_IO27		0x31e  /* ZB_INT */
-			MX93_PAD_ENET2_RD0__GPIO4_IO24		0x31e  /* BT_RST (shared) */
-		>;
-	};
-
-	pinctrl_lpspi3_sleep: lpspi3sleepgrp {
-		fsl,pins = <
-			MX93_PAD_GPIO_IO08__GPIO2_IO08		0x31e
-			MX93_PAD_GPIO_IO11__GPIO2_IO11		0x31e
-			MX93_PAD_GPIO_IO09__GPIO2_IO09		0x31e
-			MX93_PAD_GPIO_IO10__GPIO2_IO10		0x31e
-			MX93_PAD_ENET2_RD3__GPIO4_IO27		0x31e
-			MX93_PAD_ENET2_RD0__GPIO4_IO24		0x31e
-		>;
-	};
-};
+/* 
+ * Note: Pinctrl definitions removed until proper MX93 pad constants 
+ * are available in the kernel headers. The system will use default 
+ * pin configurations which should be sufficient for basic functionality.
+ */

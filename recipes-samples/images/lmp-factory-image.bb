@@ -68,6 +68,9 @@ require ${@bb.utils.contains('MACHINE_FEATURES', 'upd72020x', 'recipes-samples/i
 # Enable alsa related recipes if required by MACHINE
 require ${@bb.utils.contains('MACHINE_FEATURES', 'zigbee', 'recipes-samples/images/lmp-feature-zigbee.inc', '', d)}
 
+# Enable power management for eink boards
+require ${@bb.utils.contains('MACHINE', 'imx93-jaguar-eink', 'recipes-samples/images/lmp-feature-eink-power.inc', '', d)}
+
 # Set image features based on DEV_MODE environment variable defined in Factory configuration
 IMAGE_FEATURES += "${@bb.utils.contains('DEV_MODE', '1', 'debug-tweaks tools-sdk', '', d)}"
 

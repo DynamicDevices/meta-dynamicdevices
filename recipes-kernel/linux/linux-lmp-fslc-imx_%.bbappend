@@ -91,6 +91,10 @@ SRC_URI:append:imx93-jaguar-eink = " \
 		file://enable_802154.cfg \
 		file://enable_lte_modem.cfg \
 		file://enable_spi.cfg \
+		file://enable_power_management.cfg \
+		file://enable_wifi_power_management.cfg \
+		file://disable_all_sound.cfg \
+		file://fix_soc_imx9.cfg \
 "
 
 # NOTE: This DTB file is created as a default for use with local development

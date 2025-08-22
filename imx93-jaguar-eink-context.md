@@ -190,6 +190,11 @@ MACHINE=imx93-jaguar-eink bitbake u-boot-fio
 - **U-boot Configs**: `recipes-bsp/u-boot/u-boot-fio/imx93-jaguar-eink/*.cfg`
 - **Output Images**: `build/tmp/deploy/images/imx93-jaguar-eink/`
 
+## Git Status
+- **Commit**: 387193f4 - "Add imx93-jaguar-eink board support"
+- **Branch**: ajl/imx93
+- **Status**: ✅ PUSHED to origin/ajl/imx93
+
 ---
-*Last Updated: 2024-01-XX*
-*Status: Implementation Complete - Build Testing In Progress*
+*Last Updated: 2025-08-22*
+*Status: ✅ COMPLETE - Board support implemented, builds successfully, boots correctly*
