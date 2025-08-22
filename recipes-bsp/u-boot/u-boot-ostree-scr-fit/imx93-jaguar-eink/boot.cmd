@@ -3,7 +3,7 @@ echo "Using imx93-jaguar-eink.dtb"
 # Default boot type and device
 setenv bootlimit 3
 setenv devtype mmc
-setenv devnum 2
+setenv devnum 0
 setenv bootpart 1
 setenv rootpart 2
 
