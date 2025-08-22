@@ -111,8 +111,8 @@
 		startup-delay-us = <100>;
 	};
 
-	/* GPIO keys */
-	gpio-keys {
+	/* GPIO keys - temporarily disabled to debug shutdown issue */
+	/* gpio-keys {
 		compatible = "gpio-keys";
 		autorepeat;
 
@@ -123,7 +123,7 @@
 			wakeup-source;
 			debounce-interval = <10>;
 		};
-	};
+	}; */
 };
 
 &cm33 {
