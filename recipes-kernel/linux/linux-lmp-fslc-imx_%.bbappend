@@ -86,6 +86,8 @@ SRC_URI:append:imx8mm-jaguar-phasora = " \
 
 SRC_URI:append:imx93-jaguar-eink = " \
 		file://imx93-jaguar-eink.dts \
+		file://essential_drivers_only.cfg \
+		file://enable_eink_display.cfg \
 		file://enable_iw612_wifi.cfg \
 		file://enable_iw612_bluetooth.cfg \
 		file://enable_802154.cfg \
@@ -94,7 +96,9 @@ SRC_URI:append:imx93-jaguar-eink = " \
 		file://enable_power_management.cfg \
 		file://enable_wifi_power_management.cfg \
 		file://disable_all_sound.cfg \
+		file://disable_unused_drivers.cfg \
 		file://fix_soc_imx9.cfg \
+		file://enable_fast_boot.cfg \
 "
 
 # NOTE: This DTB file is created as a default for use with local development

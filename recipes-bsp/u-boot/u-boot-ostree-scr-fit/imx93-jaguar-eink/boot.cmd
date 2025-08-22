@@ -1,4 +1,5 @@
-echo "Using imx93-jaguar-eink.dtb"
+# Fast boot for imx93-jaguar-eink - minimal output
+setenv silent 1
 
 # Default boot type and device
 setenv bootlimit 3
