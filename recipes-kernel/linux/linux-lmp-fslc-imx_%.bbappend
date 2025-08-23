@@ -96,10 +96,10 @@ SRC_URI:append:imx93-jaguar-eink = " \
 		file://disable_all_sound.cfg \
 		file://disable_unused_drivers.cfg \
 		file://fix_soc_imx9.cfg \
+		file://enable_power_management.cfg \
+		file://enable_wifi_power_management.cfg \
+		file://enable_fast_boot.cfg \
 "
-
-# NOTE: Power management configs temporarily removed to debug shutdown issue:
-# enable_power_management.cfg, enable_wifi_power_management.cfg, enable_fast_boot.cfg
 
 # NOTE: This DTB file is created as a default for use with local development
 #       when building lmp-base. It is NOT used by the lmp build or under CI
