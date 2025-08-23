@@ -1,0 +1,2 @@
+# Rename WiFi interface from wfd0 to wlan0 for IW612
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="*", ATTR{dev_id}=="0x0", ATTR{type}=="1", KERNEL=="wfd*", NAME="wlan0"
