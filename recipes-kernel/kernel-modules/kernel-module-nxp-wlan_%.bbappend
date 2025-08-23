@@ -30,9 +30,7 @@ FILES:${PN}:imx8mm-jaguar-sentai += "${systemd_unitdir}/system/*.service ${bindi
 # Add UAP ignore configuration for imx93-jaguar-eink
 SRC_URI:append:imx93-jaguar-eink = " file://99-ignore-uap.conf"
 
-# Configure WiFi module parameters for imx93-jaguar-eink
-KERNEL_MODULE_PROBECONF:append:imx93-jaguar-eink = " moal"
-module_conf_moal:imx93-jaguar-eink = "options moal sta_name=wlan0 drvdbg=0"
+# WiFi module parameters are configured in the machine configuration
 
 do_install:append:imx93-jaguar-eink() {
     install -d ${D}${sysconfdir}/NetworkManager/conf.d
