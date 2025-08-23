@@ -2,8 +2,8 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://01-disable-scan-in-progress-warning.patch"
 
-# Disable scan debug messages for imx93-jaguar-eink to reduce kernel message spam
-# Note: Using sed in do_configure instead of patch due to line number variations
+# Configure WiFi module parameters for imx93-jaguar-eink
+# Set interface name to wlan0 and disable debug logging
 
 inherit systemd
 
@@ -27,25 +27,22 @@ do_install:append:imx8mm-jaguar-sentai() {
 
 FILES:${PN}:imx8mm-jaguar-sentai += "${systemd_unitdir}/system/*.service ${bindir}/*.sh ${sysconfdir}/NetworkManager/conf.d/99-ignore-uap.conf"
 
-# Add UAP ignore configuration for imx93-jaguar-eink
-SRC_URI:append:imx93-jaguar-eink = " file://99-ignore-uap.conf"
+# Add UAP ignore configuration and module parameters for imx93-jaguar-eink
+SRC_URI:append:imx93-jaguar-eink = " file://99-ignore-uap.conf file://70-wifi-interface-rename.rules"
+
+# Configure WiFi module parameters for imx93-jaguar-eink
+KERNEL_MODULE_PROBECONF:append:imx93-jaguar-eink = " moal"
+module_conf_moal:imx93-jaguar-eink = "options moal sta_name=wlan0 drvdbg=0"
 
 do_install:append:imx93-jaguar-eink() {
     install -d ${D}${sysconfdir}/NetworkManager/conf.d
     install -D -m 0644 ${WORKDIR}/99-ignore-uap.conf ${D}${sysconfdir}/NetworkManager/conf.d/99-ignore-uap.conf
+    
+    # Install udev rule for interface renaming (backup method)
+    install -d ${D}${sysconfdir}/udev/rules.d
+    install -D -m 0644 ${WORKDIR}/70-wifi-interface-rename.rules ${D}${sysconfdir}/udev/rules.d/70-wifi-interface-rename.rules
 }
 
-FILES:${PN}:imx93-jaguar-eink += "${sysconfdir}/NetworkManager/conf.d/99-ignore-uap.conf"
+FILES:${PN}:imx93-jaguar-eink += "${sysconfdir}/NetworkManager/conf.d/99-ignore-uap.conf ${sysconfdir}/udev/rules.d/70-wifi-interface-rename.rules"
 
-# Disable scan debug messages for imx93-jaguar-eink using sed during configure
-# Temporarily disabled to debug mlan0 interface issue
-#do_configure:append:imx93-jaguar-eink() {
-#    # Comment out the START SCAN debug message - more specific pattern
-#    sed -i 's/\tPRINTM(MINFO, "wlan: %s START SCAN\\n", priv->netdev->name);/\t\/\* PRINTM(MINFO, "wlan: %s START SCAN\\n", priv->netdev->name); \*\//' ${S}/mlinux/moal_main.c
-#    
-#    # Comment out the SCAN COMPLETED debug message in moal_scan.c if it exists
-#    # Use a more specific multi-line pattern to avoid affecting other code
-#    if [ -f ${S}/mlinux/moal_scan.c ]; then
-#        sed -i '/PRINTM(MINFO, "SCAN COMPLETED: scanned AP count=%d\\n",/{N;s/PRINTM(MINFO, "SCAN COMPLETED: scanned AP count=%d\\n",\n\t       scan_resp->num_in_scan_table);/\/\* PRINTM(MINFO, "SCAN COMPLETED: scanned AP count=%d\\n",\n\t       scan_resp->num_in_scan_table); \*\//;}' ${S}/mlinux/moal_scan.c
-#    fi
-#}
+# Debug messages are now disabled via drvdbg=0 module parameter
