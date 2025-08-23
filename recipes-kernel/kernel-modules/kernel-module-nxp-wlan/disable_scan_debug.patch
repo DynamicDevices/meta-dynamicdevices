@@ -1,0 +1,28 @@
+diff --git mxm_wifiex/wlan_src/mlinux/moal_main.c mxm_wifiex/wlan_src/mlinux/moal_main.c
+index a1b2c3d..e8f5c2a 100644
+--- mxm_wifiex/wlan_src/mlinux/moal_main.c
++++ mxm_wifiex/wlan_src/mlinux/moal_main.c
+@@ -3651,7 +3651,7 @@ static mlan_status woal_start_scan(moal_private *priv, t_u8 wait_option,
+ 	if (scan_cfg)
+ 		woal_set_scan_time(priv, scan_cfg);
+ 
+-	PRINTM(MINFO, "wlan: %s START SCAN\n", priv->netdev->name);
++	// PRINTM(MINFO, "wlan: %s START SCAN\n", priv->netdev->name);
+ 	status = mlan_scan_networks(priv->phandle, &ioctl_req);
+ 	if (status != MLAN_STATUS_PENDING)
+ 		kfree(ioctl_req);
+diff --git mxm_wifiex/wlan_src/mlinux/moal_scan.c mxm_wifiex/wlan_src/mlinux/moal_scan.c
+index b2c4d5e..f8a1c9d 100644
+--- mxm_wifiex/wlan_src/mlinux/moal_scan.c
++++ mxm_wifiex/wlan_src/mlinux/moal_scan.c
+@@ -2341,8 +2341,8 @@ static int woal_get_scan_table(moal_private *priv, t_u8 wait_option,
+ 	}
+ 	scan_resp = (mlan_scan_resp *)ioctl_req->pbuf;
+ 
+-	PRINTM(MINFO, "SCAN COMPLETED: scanned AP count=%d\n",
+-	       scan_resp->num_in_scan_table);
++	// PRINTM(MINFO, "SCAN COMPLETED: scanned AP count=%d\n",
++	//        scan_resp->num_in_scan_table);
+ 	/* Update the current scan table to the Wireless Extensions database */
+ 	bp = current_ev = extra;
+ 

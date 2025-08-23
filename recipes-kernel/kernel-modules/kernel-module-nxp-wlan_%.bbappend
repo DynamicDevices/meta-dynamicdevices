@@ -2,8 +2,8 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://01-disable-scan-in-progress-warning.patch"
 
-# Disable debug logging for imx93-jaguar-eink to reduce kernel message spam
-SRC_URI:append:imx93-jaguar-eink = " file://disable_debug_logging.patch"
+# Disable scan debug messages for imx93-jaguar-eink to reduce kernel message spam
+SRC_URI:append:imx93-jaguar-eink = " file://disable_scan_debug.patch"
 
 inherit systemd
 
