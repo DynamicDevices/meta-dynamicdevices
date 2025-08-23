@@ -2,6 +2,9 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://01-disable-scan-in-progress-warning.patch"
 
+# Disable debug logging for imx93-jaguar-eink to reduce kernel message spam
+SRC_URI:append:imx93-jaguar-eink = " file://disable_debug_logging.patch"
+
 inherit systemd
 
 SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-sentai = "enable-wifi.service"
@@ -23,3 +26,13 @@ do_install:append:imx8mm-jaguar-sentai() {
 }
 
 FILES:${PN}:imx8mm-jaguar-sentai += "${systemd_unitdir}/system/*.service ${bindir}/*.sh ${sysconfdir}/NetworkManager/conf.d/99-ignore-uap.conf"
+
+# Add UAP ignore configuration for imx93-jaguar-eink
+SRC_URI:append:imx93-jaguar-eink = " file://99-ignore-uap.conf"
+
+do_install:append:imx93-jaguar-eink() {
+    install -d ${D}${sysconfdir}/NetworkManager/conf.d
+    install -D -m 0644 ${WORKDIR}/99-ignore-uap.conf ${D}${sysconfdir}/NetworkManager/conf.d/99-ignore-uap.conf
+}
+
+FILES:${PN}:imx93-jaguar-eink += "${sysconfdir}/NetworkManager/conf.d/99-ignore-uap.conf"
