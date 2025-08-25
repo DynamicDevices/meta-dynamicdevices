@@ -730,7 +730,7 @@ jobs:
     needs: [setup, validate]
     if: needs.setup.outputs.should_build == 'true'
     strategy:
-      fail-fast: false
+      fail-fast: true  # Cancel all matrix jobs if any build fails - saves resources and provides faster feedback
       matrix:
         machine: ${{ fromJSON(needs.setup.outputs.machines) }}
         build_type: [base, mfgtool]
@@ -1268,6 +1268,7 @@ jobs:
     # Only create programming packages if the build job succeeded
     if: needs.setup.outputs.should_build == 'true' && needs.build.result == 'success'
     strategy:
+      fail-fast: true  # Cancel remaining packaging jobs if any fails
       matrix:
         machine: ${{ fromJSON(needs.setup.outputs.machines) }}
     steps:
