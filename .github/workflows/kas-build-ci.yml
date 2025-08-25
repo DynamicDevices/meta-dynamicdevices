@@ -858,6 +858,9 @@ jobs:
           echo "UBOOT_SPL_SIGN_ENABLE=0" >> $GITHUB_ENV
           echo "TF_A_SIGN_ENABLE=0" >> $GITHUB_ENV
           echo "UEFI_SIGN_ENABLE=0" >> $GITHUB_ENV
+          # Additional signing variables to completely disable key checks
+          echo "SIGNING_UBOOT_SIGN_ENABLE=0" >> $GITHUB_ENV
+          echo "SIGNING_UBOOT_SPL_SIGN_ENABLE=0" >> $GITHUB_ENV
 
       - name: Build with KAS
         timeout-minutes: 240  # 4 hour timeout
@@ -886,7 +889,9 @@ jobs:
                            -e UBOOT_SIGN_ENABLE=$UBOOT_SIGN_ENABLE \
                            -e UBOOT_SPL_SIGN_ENABLE=$UBOOT_SPL_SIGN_ENABLE \
                            -e TF_A_SIGN_ENABLE=$TF_A_SIGN_ENABLE \
-                           -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE" \
+                           -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE \
+                           -e SIGNING_UBOOT_SIGN_ENABLE=$SIGNING_UBOOT_SIGN_ENABLE \
+                           -e SIGNING_UBOOT_SPL_SIGN_ENABLE=$SIGNING_UBOOT_SPL_SIGN_ENABLE" \
             build "$kas_config"
 
       - name: Collect BitBake-generated SBOM
