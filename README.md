@@ -5,6 +5,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![License: Commercial](https://img.shields.io/badge/License-Commercial-green.svg)](mailto:licensing@dynamicdevices.co.uk)
 [![Yocto Compatible](https://img.shields.io/badge/Yocto-scarthgap%20|%20kirkstone-orange.svg)](https://www.yoctoproject.org/)
+[![Foundries.io LMP](https://img.shields.io/badge/Foundries.io-v95%20(Scarthgap)-purple.svg)](https://foundries.io/products/releases/95/)
 
 [![KAS Build CI](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml/badge.svg)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 [![GitHub Issues](https://img.shields.io/github/issues/DynamicDevices/meta-dynamicdevices)](https://github.com/DynamicDevices/meta-dynamicdevices/issues)
