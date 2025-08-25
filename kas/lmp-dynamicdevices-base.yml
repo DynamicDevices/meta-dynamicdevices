@@ -23,7 +23,6 @@ local_conf_header:
      # We expect to be running in a kas container with a mapping to host /var/cache
      DL_DIR = "/var/cache/downloads"
      SSTATE_DIR = "/var/cache/sstate"
-     PERSISTENT_DIR="/var/cache/persistent"
      BB_GENERATE_MIRROR_TARBALLS = "1"
 #     IMAGE_INSTALL:append = "mfgtool-files"
 #     OPTEE_TA_SIGN_ENABLE = "0"
