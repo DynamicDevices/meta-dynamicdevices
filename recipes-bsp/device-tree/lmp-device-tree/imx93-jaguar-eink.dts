@@ -150,16 +150,34 @@
 	status = "okay";
 };
 
-/* Bluetooth UART - ublox MAYA W2 */
-&lpuart5 {
+/* Pin configuration for LPUART5 Bluetooth */
+&iomuxc {
+	pinctrl_lpuart5: lpuart5grp {
+		fsl,pins = <
+			MX93_PAD_DAP_TDO_TRACESWO__LPUART5_TX	0x31e  /* BT UART RX - Output from iMX93 */
+			MX93_PAD_DAP_TDI__LPUART5_RX		0x31e  /* BT UART TX - Input to iMX93 */
+			MX93_PAD_DAP_TCLK_SWCLK__LPUART5_CTS_B	0x31e  /* BT UART CTS - Output from iMX93 */
+			MX93_PAD_DAP_TMS_SWDIO__LPUART5_RTS_B	0x31e  /* BT UART RTS - Input to iMX93 */
+		>;
+	};
+
+	pinctrl_bluetooth_gpio: bluetooth_gpio_grp {
+		fsl,pins = <
+			MX93_PAD_ENET2_RD0__GPIO4_IO24		0x31e  /* BT_RST - Active Low, controlled by MCXC143VFM */
+		>;
+	};
+};
+
+/* Bluetooth UART - ublox MAYA W2 - LPUART5 is at 42590000 on iMX93 */
+&lpuart4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lpuart5>;  /* Still using LPUART5 pin config (DAP pins) */
+	fsl,uart-has-rtscts;  /* Enable RTS/CTS hardware flow control */
 	status = "okay";
 
 	bluetooth {
-		compatible = "nxp,88w8987-bt";
-		/* Reset controlled by BT_RST (GPIO4_IO24) */
-		shutdown-gpios = <&gpio4 24 GPIO_ACTIVE_LOW>;
-		device-wakeup-gpios = <&gpio4 24 GPIO_ACTIVE_HIGH>;
-		host-wakeup-gpios = <&gpio4 24 GPIO_ACTIVE_HIGH>;
+		compatible = "nxp,88w8997-bt";
+		fw-init-baudrate = <3000000>;
 	};
 };
 
@@ -194,29 +212,12 @@
 	status = "okay";
 };
 
-/* 802.15.4 SPI Interface - ublox MAYA W2 */
+/* SPI Interface disabled - no longer needed */
 &lpspi3 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-
-	zigbee@0 {
-		compatible = "nxp,iw612-zigbee";
-		reg = <0>;
-		spi-max-frequency = <4000000>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;  /* ENET2_RD3 - ZB_INT */
-		reset-gpios = <&gpio4 24 GPIO_ACTIVE_LOW>;  /* ENET2_RD0 - shared with BT */
-	};
+	status = "disabled";
 };
 
 &wdog3 {
 	status = "okay";
 	timeout-sec = <40>;
 };
-
-/* 
- * Note: Pinctrl definitions removed until proper MX93 pad constants 
- * are available in the kernel headers. The system will use default 
- * pin configurations which should be sufficient for basic functionality.
- */

@@ -10,6 +10,8 @@ SRC_URI = " \
     file://eink-resume.service \
     file://eink-power-config.sh \
     file://eink-power-config.service \
+    file://setup-wowlan.sh \
+    file://setup-wowlan.service \
 "
 
 S = "${WORKDIR}"
@@ -18,7 +20,7 @@ RDEPENDS:${PN} = "bash iw wireless-tools"
 
 inherit systemd
 
-SYSTEMD_SERVICE:${PN} = "eink-suspend.service eink-resume.service eink-power-config.service"
+SYSTEMD_SERVICE:${PN} = "eink-suspend.service eink-resume.service eink-power-config.service setup-wowlan.service"
 SYSTEMD_AUTO_ENABLE = "enable"
 
 do_install() {
@@ -27,19 +29,23 @@ do_install() {
     install -m 0644 ${WORKDIR}/eink-suspend.service ${D}${systemd_system_unitdir}/
     install -m 0644 ${WORKDIR}/eink-resume.service ${D}${systemd_system_unitdir}/
     install -m 0644 ${WORKDIR}/eink-power-config.service ${D}${systemd_system_unitdir}/
+    install -m 0644 ${WORKDIR}/setup-wowlan.service ${D}${systemd_system_unitdir}/
 
     # Install scripts
     install -d ${D}${bindir}
     install -m 0755 ${WORKDIR}/eink-suspend.sh ${D}${bindir}/
     install -m 0755 ${WORKDIR}/eink-resume.sh ${D}${bindir}/
     install -m 0755 ${WORKDIR}/eink-power-config.sh ${D}${bindir}/
+    install -m 0755 ${WORKDIR}/setup-wowlan.sh ${D}${bindir}/
 }
 
 FILES:${PN} = " \
     ${systemd_system_unitdir}/eink-suspend.service \
     ${systemd_system_unitdir}/eink-resume.service \
     ${systemd_system_unitdir}/eink-power-config.service \
+    ${systemd_system_unitdir}/setup-wowlan.service \
     ${bindir}/eink-suspend.sh \
     ${bindir}/eink-resume.sh \
     ${bindir}/eink-power-config.sh \
+    ${bindir}/setup-wowlan.sh \
 "

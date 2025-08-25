@@ -136,14 +136,14 @@ configure_power_controller() {
     
     # Configure GPIO pins for power controller interface
     if [ -d "/sys/class/gpio" ]; then
-        # WiFi reset/power control (GPIO4_26)
-        if [ ! -d "/sys/class/gpio/gpio122" ]; then
-            echo 122 > /sys/class/gpio/export 2>/dev/null || log_message "Failed to export WiFi power GPIO"
+        # WiFi reset/power control (GPIO4_26) - IMX93: 608 + 26 = 634
+        if [ ! -d "/sys/class/gpio/gpio634" ]; then
+            echo 634 > /sys/class/gpio/export 2>/dev/null || log_message "Failed to export WiFi power GPIO"
         fi
         
-        # BT/ZigBee reset control (GPIO4_24)  
-        if [ ! -d "/sys/class/gpio/gpio120" ]; then
-            echo 120 > /sys/class/gpio/export 2>/dev/null || log_message "Failed to export BT power GPIO"
+        # BT reset control (GPIO4_24) - IMX93: 608 + 24 = 632
+        if [ ! -d "/sys/class/gpio/gpio632" ]; then
+            echo 632 > /sys/class/gpio/export 2>/dev/null || log_message "Failed to export BT power GPIO"
         fi
         
         log_message "Configured power controller GPIO interfaces"
@@ -180,12 +180,15 @@ FRAMEBUFFER_POWER=auto
 
 # Suspend Configuration
 SUSPEND_MODE=s2idle
-WAKEUP_SOURCES=wifi,zigbee,usb
+WAKEUP_SOURCES=usb,wifi-magic
+# WiFi wake configured for magic packets only - prevents unwanted wakeups from network scans/broadcasts  
+# Allows intentional remote wake via Wake-on-LAN while maintaining power efficiency for eink displays
+# Magic packet format: 6 bytes of 0xFF followed by 16 repetitions of target MAC address
 
 # MCXC143VFM Controller
 POWER_CONTROLLER=enabled
-WIFI_POWER_GPIO=122
-BT_POWER_GPIO=120
+WIFI_POWER_GPIO=634
+BT_POWER_GPIO=632
 
 EOF
 

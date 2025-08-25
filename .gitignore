@@ -31,3 +31,7 @@ lmp-dynamicdevices-mfgtool.yml
 # Build configuration that gets generated
 conf/bblayers.conf.sample
 conf/local.conf.sample
+
+# Local testing configuration files (not to be committed)
+*.local
+recipes-support/default-network-manager/default-network-manager/wifi-config.local

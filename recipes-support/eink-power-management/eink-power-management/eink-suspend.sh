@@ -23,10 +23,18 @@ prepare_wifi_suspend() {
         # Enable power save mode before suspend
         iw dev "$WIFI_INTERFACE" set power_save on || log_message "Failed to enable power save"
         
-        # Configure wake patterns if supported
+        # Configure selective WiFi wake - magic packet only (no broadcast/scan wakeups)
+        # This allows intentional remote wake while preventing unwanted network noise
+        if command -v iw > /dev/null 2>&1; then
+            # Enable WoWLAN with magic packet only - selective wake for eink displays
+            iw phy wlan0 wowlan enable magic-packet || log_message "Failed to enable magic packet wake"
+            log_message "Enabled selective WiFi wake (magic packet only) - prevents unwanted network wakeups"
+        fi
+        
+        # Enable device-level wakeup for magic packets
         if [ -f "/sys/class/net/$WIFI_INTERFACE/device/power/wakeup" ]; then
             echo enabled > "/sys/class/net/$WIFI_INTERFACE/device/power/wakeup"
-            log_message "Enabled WiFi wakeup"
+            log_message "Enabled WiFi device wakeup for magic packets"
         fi
     else
         log_message "No WiFi interface found"
@@ -87,15 +95,14 @@ prepare_system_suspend() {
 configure_gpio_wakeup() {
     log_message "Configuring GPIO wakeup sources..."
     
-    # Enable wakeup for WiFi interrupt (GPIO4_25)
-    if [ -d "/sys/class/gpio/gpio121" ]; then  # GPIO4_25 = 4*32 + 25 = 121
-        echo 1 > /sys/class/gpio/gpio121/edge || log_message "Failed to configure WiFi GPIO wakeup"
+    # WiFi GPIO wake enabled for magic packets only
+    # GPIO4_25 (633) is the WiFi out-of-band wake signal (IRQ 95)
+    # WoWLAN filtering ensures only magic packets trigger this GPIO interrupt
+    if [ -d "/sys/class/gpio/gpio633" ]; then
+        echo rising > /sys/class/gpio/gpio633/edge || log_message "Failed to enable WiFi GPIO wake"
+        log_message "WiFi GPIO wake enabled for WoWLAN magic packets (IRQ 95)"
     fi
-    
-    # Enable wakeup for ZigBee interrupt (GPIO4_27)  
-    if [ -d "/sys/class/gpio/gpio123" ]; then  # GPIO4_27 = 4*32 + 27 = 123
-        echo 1 > /sys/class/gpio/gpio123/edge || log_message "Failed to configure ZigBee GPIO wakeup"
-    fi
+
 }
 
 # Main suspend preparation

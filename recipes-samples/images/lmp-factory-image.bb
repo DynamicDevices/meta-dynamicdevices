@@ -127,6 +127,10 @@ CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-inst = " \
        pciutils \
 "
 
+CORE_IMAGE_BASE_INSTALL:append:imx93-jaguar-eink = " \
+       default-network-manager \
+"
+
 IMAGE_FEATURES += "ssh-server-openssh"
 
 #CORE_IMAGE_BASE_INSTALL:append:imx8mm-jaguar-phasora = " \
