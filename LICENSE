@@ -1,17 +1,59 @@
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+DUAL LICENSE
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+This software is available under two different license options:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+================================================================================
+OPTION 1: GNU GENERAL PUBLIC LICENSE (GPL) v3
+================================================================================
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+================================================================================
+OPTION 2: COMMERCIAL LICENSE
+================================================================================
+
+For those who prefer not to use GPL v3 licensing terms, commercial licenses
+are available from Dynamic Devices Ltd.
+
+Commercial licensing allows:
+- Distribution of derivative works without source code disclosure
+- Integration into proprietary software products
+- Custom support and maintenance agreements
+- Freedom from GPL copyleft requirements
+
+For commercial licensing terms and pricing, please contact:
+Dynamic Devices Ltd
+Email: licensing@dynamicdevices.co.uk
+Web: https://www.dynamicdevices.co.uk
+
+================================================================================
+LICENSE SELECTION
+================================================================================
+
+You may choose which license to apply when using this software:
+
+1. If you comply with the GPL v3 terms, you may use this software under GPL v3
+2. If you require different terms, you must obtain a commercial license
+
+The choice of license is binding for your specific use case and must be 
+consistently applied throughout your project.
+
+================================================================================
+COPYRIGHT NOTICE
+================================================================================
+
+Copyright (c) 2024 Dynamic Devices Ltd. All rights reserved.
+
+This dual-licensing approach allows the software to be used in both open source
+and commercial environments while protecting the rights of the copyright holder.
