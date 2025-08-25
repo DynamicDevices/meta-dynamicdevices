@@ -179,8 +179,7 @@ jobs:
             find scripts/ -name "*.sh" | sed 's|^|  - |'
             # Run shellcheck on all scripts in a single container invocation for speed
             # Use find to generate the file list and pass it to shellcheck
-            docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable \
-              sh -c 'find /mnt/scripts -name "*.sh" -exec shellcheck {} +'
+            docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable sh -c 'find /mnt/scripts -name "*.sh" -exec shellcheck {} +'
           else
             echo "⚠️ No shell scripts found to lint"
           fi
