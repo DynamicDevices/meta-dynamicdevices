@@ -987,6 +987,11 @@ jobs:
           echo "🏷️  Keys contain Dynamic Devices Ltd copyright and contact information"
           echo "⚖️  Commercial use without license will be traceable in firmware"
 
+      - name: Validate dummy keys licensing metadata
+        run: |
+          echo "🔍 Validating dummy signing keys contain proper licensing metadata..."
+          ./scripts/validate-dummy-keys.sh
+
       - name: Build with KAS
         timeout-minutes: 240  # 4 hour timeout
         run: |
