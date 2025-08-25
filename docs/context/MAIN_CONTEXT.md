@@ -18,13 +18,19 @@ This repository contains BSP (Board Support Package) layers for Dynamic Devices 
 meta-dynamicdevices/
 ├── docs/                    # Documentation and context files
 │   ├── context/            # Main and project-specific context
-│   └── projects/           # Project-specific documentation
+│   ├── projects/           # Project-specific documentation
+│   ├── RECIPE_TEMPLATE.bb  # Template for creating new recipes
+│   └── YOCTO_BSP_BEST_PRACTICES.md # Professional development guidelines
 ├── scripts/                # Utility scripts and tools
 ├── wiki/                   # Wiki submodule (GitHub wiki)
 ├── conf/                   # Layer and machine configurations
 ├── recipes-*/              # Yocto recipes organized by category
 ├── kas/                    # KAS build configuration files
 ├── program/                # Board programming utilities
+├── CHANGELOG.md            # Project changelog
+├── VERSION                 # Current version number
+├── MAINTAINERS            # Maintainer contact information
+├── LICENSE                # Dual GPL-3.0/Commercial licensing
 └── [build artifacts are git-ignored]
 ```
 

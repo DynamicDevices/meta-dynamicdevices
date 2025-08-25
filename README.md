@@ -1,145 +1,92 @@
 # meta-dynamicdevices
 
-Common core for Active Edge Solutions "Edge" Yocto board support
+**Professional Yocto BSP Layer for Dynamic Devices Edge Computing Platforms**
 
-Support for local kas build is a work in progress. Some notes:
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: Commercial](https://img.shields.io/badge/License-Commercial-green.svg)](mailto:licensing@dynamicdevices.co.uk)
+[![Yocto Compatible](https://img.shields.io/badge/Yocto-scarthgap%20|%20kirkstone-orange.svg)](https://www.yoctoproject.org/)
 
-- it is expected that `kas-container` is used for builds
-- the `lmp-dynamicdevices-base.yml` file expects three persisent folders to be present and mapped outside the container
-- there is a script `kas-build-base.sh` which sets up folders with permissions for the container to access
+This BSP layer provides comprehensive board support for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
 
-NOTE: We're building an unsigned image for testing but there's an issue with the build process that requires you to copy your `factory-keys` folder and sub-directories to `build/conf/factory-keys` for now. If you see the error below this is the problem.
+## 📋 Quick Start
 
-```
-| make[2]: *** No rule to make target '/build/conf/factory-keys/opteedev.key', needed by '/build/tmp/work/imx8mm_jaguar_phasora-lmp-linux/optee-test/3.21.0-r0/build/ta/create_fail_test/c3f6e2c0-3548-11e1-b86c-0800200c9a66.ta'.  Stop.
-```
+### Supported Boards
 
-# Building Yocto firmware images
+| Board | Machine | Platform | Description |
+|-------|---------|----------|-------------|
+| **[Edge AI](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-AI-Board)** | `imx8mm-jaguar-sentai` | i.MX8MM | AI audio STT/TTS platform |
+| **[Edge EInk](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EInk-Board)** | `imx93-jaguar-eink` | i.MX93 | Low-power e-ink controller |
+| **[Edge EV](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EV-Board)** | `imx8mm-jaguar-phasora` | i.MX8MM | Energy management |
+| **[Edge GW](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-GW-Board)** | `imx8mm-jaguar-inst` | i.MX8MM | Communications gateway |
 
-## Edge AI
-
-AI audio STT and TTS development platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-AI-Board).
-
-To build `lmp-dynamicdevices-base` with Kas:
-
-`KAS_MACHINE=imx8mm-jaguar-sentai ./kas-build-base.sh`
-
-To program the image:
-
-`KAS_MACHINE=imx8mm-jaguar-sentai ./program.sh`
-
-## Edge EV
-
-Energy metering and control platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EV-Board).
-
-To build `lmp-dynamicdevices-base` with Kas:
-
-`KAS_MACHINE=imx8mm-jaguar-sentai ./kas-build-base.sh`
-
-To program the image:
-
-`KAS_MACHINE=imx8mm-jaguar-sentai ./program.sh`
-
-## Edge GW
-
-Flexible communications gateway platform. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-GW-Board).
-
-To build `lmp-dynamicdevices-base` with Kas:
-
-`KAS_MACHINE=imx8mm-jaguar-inst ./kas-build-base.sh`
-
-To program the image:
-
-`KAS_MACHINE=imx8mm-jaguar-inst ./program.sh`
-
-## Edge eInk (i.MX93)
-
-Next-generation low-power display platform with i.MX93 processor. For details see [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-eInk-Board).
-
-To build `lmp-dynamicdevices-base` with Kas:
-
-`KAS_MACHINE=imx93-jaguar-eink ./kas-build-base.sh`
-
-To program the image:
-
-`KAS_MACHINE=imx93-jaguar-eink ./program.sh`
-
-**Important Notes**:
-- SE05X secure element support is currently disabled for this machine to avoid build conflicts with CAAM crypto drivers
-- The machine builds successfully without SE05X features
-- If SE05X support is needed, the `CFG_CRYPTO_DRIVER` configuration conflict needs to be resolved in the OP-TEE recipe
-
-**Fast Boot Optimizations**:
-- The i.MX93 eInk board includes optimized boot configuration for faster startup times
-- U-Boot boot delay reduced to 1 second with silent console
-- Kernel module autoloading limited to essential modules (`i2c-dev`, `spidev`)
-- Fast boot optimizations are machine-specific and don't affect other boards
-- Full wireless connectivity (WiFi/BT/802.15.4) loaded after initial boot for optimal startup speed
-
-**Troubleshooting**:
-- If you encounter `"distro_bootcmd" not defined` errors, ensure you're using the latest U-Boot configuration
-- Boot issues may require reflashing the bootloader: `sudo dd if=build/tmp/deploy/images/imx93-jaguar-eink/imx-boot-imx93-jaguar-eink-sd.bin-flash_singleboot_spl of=/dev/sdX bs=1k seek=32 conv=fsync`
-- The machine configuration has been optimized for eInk display functionality with essential graphics drivers enabled
-
-## i.MX8ULP EVK
-
-TBD
-
-# Manufacturing Tools Support
-
-For i.MX93 platforms, manufacturing tool (mfgtool) images can be built for board programming and recovery.
-
-## Building mfgtool Images
-
-To build mfgtool images for i.MX93:
+### Build & Flash
 
 ```bash
-# For imx93-11x11-lpddr4x-evk (base EVK)
-KAS_MACHINE=imx93-11x11-lpddr4x-evk ./kas-build-mfgtools.sh
+# Set target machine
+export KAS_MACHINE=imx8mm-jaguar-sentai
 
-# For imx93-jaguar-eink (Dynamic Devices custom board)
-KAS_MACHINE=imx93-jaguar-eink ./kas-build-mfgtools.sh
+# Build image
+./scripts/kas-build-base.sh
+
+# Program board
+./scripts/program.sh
 ```
 
-This creates special boot images that can be used with NXP's UUU (Universal Update Utility) tool for board recovery and initial programming.
+## 📚 Documentation
 
-The mfgtool build:
-- Uses the `lmp-mfgtool` distro instead of `lmp`
-- Generates compressed initramfs images (`.cpio.gz`) instead of fitImages
-- Creates specialized bootloader configurations for manufacturing
+### Hardware Documentation
+- **[Edge AI Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-AI-Board)** - TAS2563 audio, sensors, pin mappings
+- **[Edge EInk Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EInk-Board)** - Power management, WoWLAN, hardware specs
+- **[Edge EV Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EV-Board)** - Energy metering and control
+- **[Edge GW Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-GW-Board)** - Communications gateway
 
-# Useful Scripts
+### Development Guides
+- **[Flashing Boards](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Flashing-an-Edge-board-with-a-Yocto-Embedded-Linux-image)** - Programming and recovery procedures
+- **[WiFi Onboarding](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Onboarding-to-WiFi-with-BLE-Serial-using-Improv)** - BLE-based WiFi configuration
+- **[Security](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Securing-Edge-Boards)** - Security features and configuration
+- **[Troubleshooting](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Troubleshooting:-(Re‐)registering-with-Foundries.io)** - Common issues and solutions
 
-## Board Info
+### Developer Resources
+- **[docs/YOCTO_BSP_BEST_PRACTICES.md](docs/YOCTO_BSP_BEST_PRACTICES.md)** - Professional development guidelines
+- **[docs/RECIPE_TEMPLATE.bb](docs/RECIPE_TEMPLATE.bb)** - Template for new recipes
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+- **[MAINTAINERS](MAINTAINERS)** - Maintainer contact information
 
-Run the `board-info.sh` script for general board info including board unique ID (from SOC), WiFi MAC address and modem IMEI
+## ⚡ Prerequisites
 
-e.g.
+- **KAS** - Use `kas-container` for reproducible builds
+- **Docker** - Container runtime for isolated build environment
+- **USB-C Power** - Required for proper board operation
+- **UUU Tool** - For board programming and recovery
 
-```
-BOARD DETAILS
-=============
+## 🔒 Licensing
 
-**************************************
-Machine: i.MX8MM Jaguar Sentai board
-Serial: 07130A09DAB86563
-WLAN MAC: dc:bd:cc:d1:80:99
-Modem Present: true
-Modem SIM State: state: enabled
-Modem IMEI: d: 867752050572
-Modem F/W: n: EM05EFAR06A06
-Modem MSISDN: 46719121279982
-**************************************
-Done
-```
-# Board Testing (fiotest)
+This BSP layer is available under dual licensing:
 
-TBD
+- **[GPL v3](LICENSE)** - For open source projects
+- **[Commercial](mailto:licensing@dynamicdevices.co.uk)** - For proprietary applications
 
-# Power
+## 🛠 Development
 
-Note that USB-A does not provide enough power for the system e.g. when a speaker is operating. The unit should be powered from an appropriate USB-C adaptor.
+### Professional Standards
+- Semantic versioning with detailed changelog
+- Comprehensive documentation in wiki
+- Professional recipe templates and best practices
+- Clear maintainer ownership and contact information
 
-# Reflashing a board
+### Contributing
+1. Review [best practices guide](docs/YOCTO_BSP_BEST_PRACTICES.md)
+2. Use [recipe template](docs/RECIPE_TEMPLATE.bb) for new components
+3. Update documentation and changelog
+4. Follow professional development standards
 
-See details [here](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Flashing-a-Jaguar-board-with-a-Yocto-Embedded-Linux-image).
+## 📞 Support
+
+- **Technical Issues**: [GitHub Issues](https://github.com/DynamicDevices/meta-dynamicdevices/issues)
+- **Commercial Licensing**: licensing@dynamicdevices.co.uk
+- **General Inquiries**: info@dynamicdevices.co.uk
+- **Wiki**: [Comprehensive Documentation](https://github.com/DynamicDevices/meta-dynamicdevices/wiki)
+
+---
+
+*For detailed hardware specifications, software features, and development guides, please refer to the [comprehensive wiki documentation](https://github.com/DynamicDevices/meta-dynamicdevices/wiki).*
