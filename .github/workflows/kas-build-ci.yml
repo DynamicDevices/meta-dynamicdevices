@@ -357,8 +357,8 @@ jobs:
                 
                 # Run yocto-check-layer on our meta layer
                 cd /repo
-                echo "🔧 Running: $YOCTO_CHECK_CMD --layer /repo --machines imx8mm-jaguar-sentai"
-                "$YOCTO_CHECK_CMD" --layer /repo --machines imx8mm-jaguar-sentai \
+                echo "🔧 Running: $YOCTO_CHECK_CMD --layers /repo --machines imx8mm-jaguar-sentai"
+                "$YOCTO_CHECK_CMD" --layers /repo --machines imx8mm-jaguar-sentai \
                   || echo "⚠️  VALIDATION WARNING: Some compatibility issues found - see output above for details"
                 
                 echo ""
@@ -368,7 +368,7 @@ jobs:
               else
                 echo "❌ yocto-check-layer script not found in build environment"
                 echo "📝 Manual validation recommended using:"
-                echo "   yocto-check-layer --layer-path . --machine <MACHINE>"
+                echo "   yocto-check-layer --layers . --machines <MACHINE>"
                 echo ""
                 echo "🔗 For manual validation, see:"
                 echo "   https://docs.yoctoproject.org/test-manual/yocto-project-compatible.html"
