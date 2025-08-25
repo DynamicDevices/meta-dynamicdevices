@@ -268,6 +268,7 @@ Our CI pipeline includes enterprise-grade validation across all layers:
 - **Repository**: https://github.com/DynamicDevices/meta-dynamicdevices
 - **Branch Compatibility**: scarthgap, kirkstone
 - **Yocto Project Compatible**: In Progress
+- **OpenEmbedded Index**: [Registered](https://layers.openembedded.org/layerindex/branch/master/layer/meta-dynamicdevices/)
 
 ### Layer Origin & Purpose
 This layer was created by Dynamic Devices Ltd to provide comprehensive board support for our Edge Computing platform family. The layer includes:
@@ -316,6 +317,7 @@ This layer is designed to be compatible with other Yocto Project layers:
 - **Network Access**: Only during do_fetch using BitBake fetcher APIs
 - **Non-Invasive**: Does not change system behavior without explicit configuration
 - **Separation**: Hardware, distro, and software components are properly separated
+- **OpenEmbedded Registered**: [Official layer index entry](https://layers.openembedded.org/layerindex/branch/master/layer/meta-dynamicdevices/)
 
 ## 📞 Support
 
