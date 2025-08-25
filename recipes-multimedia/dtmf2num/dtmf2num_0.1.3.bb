@@ -10,7 +10,7 @@ SRCREV = "80b0b249d4656a217645346be84bff64460cf7ab"
 S = "${WORKDIR}/git"
 
 do_compile () {
-	oe_runmake
+    oe_runmake
 }
 
 do_install () {

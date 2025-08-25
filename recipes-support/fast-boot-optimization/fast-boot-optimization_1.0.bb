@@ -17,11 +17,10 @@ do_install() {
     # Install systemd service for delayed wireless loading
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/delayed-wireless.service ${D}${systemd_unitdir}/system/
-    
+
     # Install script for delayed wireless loading
     install -d ${D}${bindir}
     install -m 0755 ${WORKDIR}/delayed-wireless.sh ${D}${bindir}/
-    
     # Install systemd configuration optimizations
     install -d ${D}${sysconfdir}/systemd/system.conf.d
     install -m 0644 ${WORKDIR}/fast-boot.conf ${D}${sysconfdir}/systemd/system.conf.d/

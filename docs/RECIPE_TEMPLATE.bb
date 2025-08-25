@@ -50,7 +50,7 @@ EXTRA_OECONF = "--enable-feature"
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/example ${D}${bindir}/
-    
+
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/example.service ${D}${systemd_unitdir}/system/
 }

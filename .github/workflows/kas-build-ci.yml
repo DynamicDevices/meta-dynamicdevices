@@ -172,96 +172,168 @@ jobs:
           # Check for common Yocto recipe issues
           echo "Checking for recipe syntax issues..."
           
+          # Initialize counters
+          total_files=0
+          issues_found=0
+          
           # Check .bb and .bbappend files for common issues
-          find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.conf" | while read -r file; do
-            echo "Checking: $file"
+          while IFS= read -r -d '' file; do
+            total_files=$((total_files + 1))
+            echo "📋 Checking: $file"
             
             # Check for common syntax issues
             if grep -n "^[[:space:]]*=" "$file" >/dev/null 2>&1; then
-              echo "⚠️  Potential assignment issue in $file (line starts with whitespace + =)"
-              grep -n "^[[:space:]]*=" "$file" || true
+              echo "  ⚠️  Potential assignment issue (line starts with whitespace + =)"
+              grep -n "^[[:space:]]*=" "$file" | head -3 | sed 's/^/    /' || true
+              issues_found=$((issues_found + 1))
             fi
             
             # Check for tabs vs spaces consistency
             if grep -P "\t" "$file" >/dev/null 2>&1 && grep "^    " "$file" >/dev/null 2>&1; then
-              echo "⚠️  Mixed tabs and spaces in $file"
+              echo "  ⚠️  Mixed tabs and spaces detected"
+              issues_found=$((issues_found + 1))
             fi
             
             # Check for trailing whitespace
             if grep -n "[[:space:]]$" "$file" >/dev/null 2>&1; then
-              echo "⚠️  Trailing whitespace in $file"
-              grep -n "[[:space:]]$" "$file" | head -5 || true
+              trailing_count=$(grep -c "[[:space:]]$" "$file" || echo "0")
+              echo "  ⚠️  Trailing whitespace found ($trailing_count lines)"
+              grep -n "[[:space:]]$" "$file" | head -3 | sed 's/^/    /' || true
+              issues_found=$((issues_found + 1))
             fi
             
             # Check for proper SRC_URI format
-            if grep -n "SRC_URI.*=" "$file" | grep -v "file://" | grep -v "git://" | grep -v "https://" | grep -v "http://" | grep -v "ftp://" >/dev/null 2>&1; then
-              echo "⚠️  Potential SRC_URI format issue in $file"
+            if grep -q "SRC_URI.*=" "$file" 2>/dev/null; then
+              if grep "SRC_URI.*=" "$file" | grep -v "file://" | grep -v "git://" | grep -v "https://" | grep -v "http://" | grep -v "ftp://" >/dev/null 2>&1; then
+                echo "  ⚠️  Potential SRC_URI format issue detected"
+                grep -n "SRC_URI.*=" "$file" | head -2 | sed 's/^/    /' || true
+                issues_found=$((issues_found + 1))
+              fi
             fi
-          done
+            
+          done < <(find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.conf" -print0 2>/dev/null)
           
-          echo "✅ Yocto recipe validation complete"
+          echo ""
+          echo "📊 Yocto recipe validation summary:"
+          echo "  Files checked: $total_files"
+          echo "  Issues found: $issues_found"
+          
+          if [ $issues_found -eq 0 ]; then
+            echo "✅ Yocto recipe validation complete - no issues found"
+          else
+            echo "⚠️  Yocto recipe validation complete - $issues_found issues found"
+          fi
 
       - name: Check layer compatibility
         run: |
           echo "🔍 Checking layer compatibility and dependencies..."
           
+          # Initialize counters
+          layer_files=0
+          layer_issues=0
+          recipe_files=0
+          circular_deps=0
+          
           # Validate layer.conf files
-          find . -name "layer.conf" | while read -r layerconf; do
-            echo "Validating layer config: $layerconf"
+          echo "📋 Validating layer configuration files..."
+          while IFS= read -r -d '' layerconf; do
+            layer_files=$((layer_files + 1))
+            echo "  Checking: $layerconf"
             
             # Check for required variables
             for var in BBPATH BBFILES BBFILE_COLLECTIONS; do
               if ! grep -q "^$var" "$layerconf"; then
-                echo "⚠️  Missing $var in $layerconf"
+                echo "    ⚠️  Missing required variable: $var"
+                layer_issues=$((layer_issues + 1))
               fi
             done
             
             # Check for proper priority setting
             if ! grep -q "BBFILE_PRIORITY" "$layerconf"; then
-              echo "⚠️  Missing BBFILE_PRIORITY in $layerconf"
+              echo "    ⚠️  Missing BBFILE_PRIORITY setting"
+              layer_issues=$((layer_issues + 1))
             fi
-          done
+            
+          done < <(find . -name "layer.conf" -print0 2>/dev/null)
           
           # Check for circular dependencies in .bb files
-          echo "Checking for potential circular dependencies..."
-          find recipes* bbappends* -name "*.bb" -o -name "*.bbappend" | while read -r recipe; do
+          echo ""
+          echo "🔄 Checking for potential circular dependencies..."
+          while IFS= read -r -d '' recipe; do
+            recipe_files=$((recipe_files + 1))
+            
             # Extract package name from filename
             pkg_name=$(basename "$recipe" | sed 's/_.*\.bb.*//')
             
             # Check if package depends on itself
             if grep -q "DEPENDS.*$pkg_name" "$recipe" 2>/dev/null; then
-              echo "⚠️  Potential circular dependency in $recipe"
+              echo "  ⚠️  Potential circular dependency in: $recipe"
+              echo "    Package '$pkg_name' may depend on itself"
+              circular_deps=$((circular_deps + 1))
             fi
-          done
+            
+          done < <(find recipes* bbappends* -name "*.bb" -o -name "*.bbappend" -print0 2>/dev/null)
           
-          echo "✅ Layer compatibility check complete"
+          echo ""
+          echo "📊 Layer compatibility summary:"
+          echo "  Layer files checked: $layer_files"
+          echo "  Layer configuration issues: $layer_issues"
+          echo "  Recipe files checked: $recipe_files"
+          echo "  Circular dependencies found: $circular_deps"
+          
+          total_issues=$((layer_issues + circular_deps))
+          if [ $total_issues -eq 0 ]; then
+            echo "✅ Layer compatibility check complete - no issues found"
+          else
+            echo "⚠️  Layer compatibility check complete - $total_issues issues found"
+          fi
 
       - name: Validate device tree syntax
         run: |
           echo "🔍 Validating device tree files..."
           
+          # Initialize counters
+          dt_files=0
+          dt_issues=0
+          
           # Check .dts files for common issues
-          find . -name "*.dts" -o -name "*.dtsi" | while read -r dtfile; do
-            echo "Checking device tree: $dtfile"
+          while IFS= read -r -d '' dtfile; do
+            dt_files=$((dt_files + 1))
+            echo "📋 Checking device tree: $dtfile"
             
             # Check for proper node naming
             if grep -n "[^a-zA-Z0-9_-]@[^0-9a-fA-F]" "$dtfile" >/dev/null 2>&1; then
-              echo "⚠️  Invalid node naming in $dtfile"
+              echo "  ⚠️  Invalid node naming detected"
+              grep -n "[^a-zA-Z0-9_-]@[^0-9a-fA-F]" "$dtfile" | head -2 | sed 's/^/    /' || true
+              dt_issues=$((dt_issues + 1))
             fi
             
             # Check for missing semicolons
             if grep -n "^\s*[a-zA-Z_-].*=" "$dtfile" | grep -v ";" >/dev/null 2>&1; then
-              echo "⚠️  Potential missing semicolon in $dtfile"
-              grep -n "^\s*[a-zA-Z_-].*=" "$dtfile" | grep -v ";" | head -3 || true
+              semicolon_count=$(grep -c "^\s*[a-zA-Z_-].*=" "$dtfile" | grep -v ";" || echo "0")
+              echo "  ⚠️  Potential missing semicolons ($semicolon_count lines)"
+              grep -n "^\s*[a-zA-Z_-].*=" "$dtfile" | grep -v ";" | head -3 | sed 's/^/    /' || true
+              dt_issues=$((dt_issues + 1))
             fi
             
             # Check for proper indentation consistency
             if grep -P "^\t" "$dtfile" >/dev/null 2>&1 && grep "^    " "$dtfile" >/dev/null 2>&1; then
-              echo "⚠️  Mixed tabs and spaces indentation in $dtfile"
+              echo "  ⚠️  Mixed tabs and spaces indentation detected"
+              dt_issues=$((dt_issues + 1))
             fi
-          done
+            
+          done < <(find . -name "*.dts" -o -name "*.dtsi" -print0 2>/dev/null)
           
-          echo "✅ Device tree validation complete"
+          echo ""
+          echo "📊 Device tree validation summary:"
+          echo "  Device tree files checked: $dt_files"
+          echo "  Issues found: $dt_issues"
+          
+          if [ $dt_issues -eq 0 ]; then
+            echo "✅ Device tree validation complete - no issues found"
+          else
+            echo "⚠️  Device tree validation complete - $dt_issues issues found"
+          fi
 
       - name: CVE and security scanning
         run: |
