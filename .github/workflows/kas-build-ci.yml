@@ -88,27 +88,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install validation dependencies
+      - name: Setup Docker for validation
         run: |
-          # Check if jq is available, install if needed
-          if ! command -v jq >/dev/null 2>&1; then
-            echo "Installing jq for JSON parsing..."
-            if command -v apt-get >/dev/null 2>&1; then
-              apt-get update -qq && apt-get install -y jq
-            elif command -v yum >/dev/null 2>&1; then
-              yum install -y jq
-            elif command -v apk >/dev/null 2>&1; then
-              apk add jq
-            else
-              echo "⚠️ Cannot install jq automatically. Please install manually."
-              echo "Attempting to download jq binary..."
-              wget -O jq https://github.com/stedolan/jq/releases/latest/download/jq-linux64
-              chmod +x jq
-              export PATH="$PWD:$PATH"
-            fi
-          else
-            echo "✅ jq is already available"
+          # We'll use Docker containers for all operations, including validation
+          # This avoids installing tools on the host runner
+          echo "🐳 Using Docker containers for validation and builds"
+          
+          # Verify Docker is available
+          if ! command -v docker >/dev/null 2>&1; then
+            echo "❌ Docker not available on self-hosted runner"
+            exit 1
           fi
+          
+          echo "✅ Docker is available"
+          docker --version
 
       - name: Validate KAS configurations
         run: |
@@ -139,8 +132,8 @@ jobs:
           machines='${{ needs.setup.outputs.machines }}'
           echo "Machines to validate: $machines"
           
-          # Extract machine names from JSON array
-          machine_list=$(echo "$machines" | jq -r '.[]')
+          # Use Docker with jq to parse JSON (no host installation needed)
+          machine_list=$(echo "$machines" | docker run --rm -i alpine/jq -r '.[]')
           
           for machine in $machine_list; do
             conf_file="conf/machine/${machine}.conf"
@@ -154,13 +147,14 @@ jobs:
 
       - name: Lint scripts
         run: |
-          echo "🔍 Linting shell scripts..."
+          echo "🔍 Linting shell scripts with Docker..."
           
-          # Check if shellcheck is available
-          if command -v shellcheck >/dev/null 2>&1; then
-            find scripts/ -name "*.sh" -exec shellcheck {} +
+          # Use shellcheck via Docker container (no host installation needed)
+          if find scripts/ -name "*.sh" | head -1 | grep -q "."; then
+            echo "Running shellcheck on shell scripts..."
+            find scripts/ -name "*.sh" -exec docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable {} +
           else
-            echo "⚠️ shellcheck not available, skipping script linting"
+            echo "⚠️ No shell scripts found to lint"
           fi
 
   # Main build job with matrix strategy
@@ -200,72 +194,63 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Install dependencies
+      - name: Setup Docker environment for Yocto builds
         run: |
-          # Install required tools for self-hosted runner (without sudo)
+          echo "🐳 Setting up Docker environment for Yocto builds"
           
-          # Check and install jq
-          if ! command -v jq >/dev/null 2>&1; then
-            echo "Installing jq..."
-            if command -v apt-get >/dev/null 2>&1; then
-              apt-get update -qq && apt-get install -y jq curl
-            else
-              echo "Downloading jq binary..."
-              wget -O jq https://github.com/stedolan/jq/releases/latest/download/jq-linux64
-              chmod +x jq
-              mkdir -p ~/.local/bin
-              mv jq ~/.local/bin/
-              export PATH="$HOME/.local/bin:$PATH"
-              echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
-            fi
-          else
-            echo "✅ jq is already available"
+          # Verify Docker is available on self-hosted runner
+          if ! command -v docker >/dev/null 2>&1; then
+            echo "❌ Docker not available on self-hosted runner"
+            exit 1
           fi
           
-          # Check and install curl
-          if ! command -v curl >/dev/null 2>&1; then
-            echo "⚠️ curl not found - may need manual installation"
-          else
-            echo "✅ curl is available"
-          fi
+          echo "✅ Docker is available"
+          docker --version
           
-          # Install kas-container
+          # Download kas-container script (minimal host dependency)
           if ! command -v kas-container >/dev/null 2>&1; then
-            echo "Installing kas-container..."
-            curl -L https://raw.githubusercontent.com/siemens/kas/master/kas-container -o kas-container
+            echo "📥 Downloading kas-container script..."
+            wget -O kas-container https://raw.githubusercontent.com/siemens/kas/master/kas-container
             chmod +x kas-container
-            mkdir -p ~/.local/bin
-            mv kas-container ~/.local/bin/
-            export PATH="$HOME/.local/bin:$PATH"
-            echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+            # Add to PATH for this workflow
+            echo "$PWD" >> $GITHUB_PATH
           else
-            echo "✅ kas-container already installed"
+            echo "✅ kas-container already available"
           fi
+          
+          # Test kas-container works with Docker
+          echo "🧪 Testing kas-container with Docker..."
+          ./kas-container --help > /dev/null
+          echo "✅ kas-container is ready"
 
-      - name: Setup persistent cache for self-hosted runner
+      - name: Setup persistent cache for Docker builds
         run: |
-          echo "🗄️ Setting up persistent build cache for self-hosted runner"
+          echo "🗄️ Setting up persistent build cache for Docker-based Yocto builds"
           
           # Use a persistent cache directory on the self-hosted runner
+          # This will be mounted into the Docker container by kas-container
           CACHE_BASE="$HOME/yocto-cache"
+          BUILD_DIR="$HOME/yocto-builds"
           
-          # Create persistent cache directories if they don't exist
+          # Create persistent cache and build directories
           mkdir -p "$CACHE_BASE"/{downloads,sstate}
-          
-          # Create symlinks to the standard locations
-          mkdir -p ~/yocto
-          if [ ! -L ~/yocto/downloads ]; then
-            ln -sf "$CACHE_BASE/downloads" ~/yocto/downloads
-          fi
-          if [ ! -L ~/yocto/sstate ]; then
-            ln -sf "$CACHE_BASE/sstate" ~/yocto/sstate
-          fi
+          mkdir -p "$BUILD_DIR"
           
           echo "📊 Cache directory sizes:"
           du -sh "$CACHE_BASE"/* 2>/dev/null || echo "Cache directories are empty (first run)"
           
-          # Set environment variable for the build
-          echo "YOCTO_CACHE_DIR=$CACHE_BASE" >> $GITHUB_ENV
+          echo "🏗️ Build directory:"
+          ls -la "$BUILD_DIR" 2>/dev/null || echo "Build directory is empty (first run)"
+          
+          # Export paths for kas-container to use
+          echo "KAS_WORK_DIR=$BUILD_DIR" >> $GITHUB_ENV
+          echo "DL_DIR=$CACHE_BASE/downloads" >> $GITHUB_ENV
+          echo "SSTATE_DIR=$CACHE_BASE/sstate" >> $GITHUB_ENV
+          
+          echo "✅ Docker build environment configured:"
+          echo "   Work dir: $BUILD_DIR"
+          echo "   Downloads: $CACHE_BASE/downloads"
+          echo "   SSstate: $CACHE_BASE/sstate"
 
       - name: Set up build environment for self-hosted runner
         run: |
@@ -317,10 +302,13 @@ jobs:
           echo "Using KAS config: $kas_config"
           echo "Machine: $KAS_MACHINE"
           
-          # Run KAS build with optimized configuration for self-hosted runner
+          # Run KAS build in Docker container (all tools and dependencies included)
           kas-container \
-            --runtime-args "-v ${YOCTO_CACHE_DIR:-${HOME}/yocto}:/var/cache \
+            --runtime-args "-v $DL_DIR:/downloads \
+                           -v $SSTATE_DIR:/sstate \
                            -e KAS_MACHINE=$KAS_MACHINE \
+                           -e DL_DIR=/downloads \
+                           -e SSTATE_DIR=/sstate \
                            -e BB_NUMBER_THREADS=$BB_NUMBER_THREADS \
                            -e PARALLEL_MAKE='$PARALLEL_MAKE' \
                            -e OPTEE_TA_SIGN_ENABLE=$OPTEE_TA_SIGN_ENABLE \
@@ -340,8 +328,8 @@ jobs:
           mkdir -p artifacts/${{ matrix.machine }}/${{ matrix.build_type }}
           mkdir -p programming-packages/${{ matrix.machine }}
           
-          # Define deploy directory
-          deploy_dir="$HOME/yocto/persistent/build/tmp/deploy/images/${{ matrix.machine }}"
+          # Define deploy directory (inside the kas work directory)
+          deploy_dir="$KAS_WORK_DIR/build/tmp/deploy/images/${{ matrix.machine }}"
           
           if [ -d "$deploy_dir" ]; then
             echo "✅ Deploy directory found: $deploy_dir"
@@ -549,8 +537,10 @@ jobs:
             
           else
             echo "❌ Deploy directory not found: $deploy_dir"
-            echo "Available directories:"
-            ls -la "$HOME/yocto/persistent/build/tmp/deploy/" || echo "No deploy directory found"
+            echo "Available directories in kas work dir:"
+            ls -la "$KAS_WORK_DIR/build/tmp/deploy/" 2>/dev/null || echo "No deploy directory found"
+            echo "Available directories in kas work dir build:"
+            ls -la "$KAS_WORK_DIR/build/" 2>/dev/null || echo "No build directory found"
           fi
 
       - name: Upload build artifacts
