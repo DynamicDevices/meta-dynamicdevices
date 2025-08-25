@@ -325,38 +325,38 @@ jobs:
               
               # Find yocto-check-layer script
               if command -v yocto-check-layer >/dev/null 2>&1; then
-                echo "✅ Found yocto-check-layer command"
+                echo "✅ Found yocto-check-layer command in PATH"
                 YOCTO_CHECK_CMD="yocto-check-layer"
+                YOCTO_CHECK_FOUND=1
               elif [ -f "openembedded-core/scripts/yocto-check-layer" ]; then
                 echo "✅ Found yocto-check-layer script in OE-Core"
                 YOCTO_CHECK_CMD="openembedded-core/scripts/yocto-check-layer"
+                YOCTO_CHECK_FOUND=1
               else
                 echo "⚠️  yocto-check-layer not found, searching in build environment..."
                 find . -name "yocto-check-layer" -type f 2>/dev/null | head -1
                 YOCTO_CHECK_CMD=$(find . -name "yocto-check-layer" -type f 2>/dev/null | head -1)
+                if [ -n "$YOCTO_CHECK_CMD" ] && [ -f "$YOCTO_CHECK_CMD" ]; then
+                  echo "✅ Found yocto-check-layer script at: $YOCTO_CHECK_CMD"
+                  YOCTO_CHECK_FOUND=1
+                else
+                  YOCTO_CHECK_FOUND=0
+                fi
               fi
               
-              if [ -n "$YOCTO_CHECK_CMD" ] && [ -f "$YOCTO_CHECK_CMD" ]; then
+              if [ "$YOCTO_CHECK_FOUND" = "1" ]; then
                 echo "🏅 Running Yocto Project Compatible layer validation..."
                 echo "📂 Validating layer: meta-dynamicdevices"
                 
                 # Run yocto-check-layer on our meta layer
                 cd /repo
-                python3 "$YOCTO_CHECK_CMD" \
-                  --layer-path . \
-                  --output-log yocto-layer-check.log \
-                  --machine imx8mm-jaguar-sentai \
-                  --additional-layers openembedded-core/meta \
-                  || echo "⚠️  Some compatibility issues found - see log for details"
+                echo "🔧 Running: $YOCTO_CHECK_CMD --layer /repo --machines imx8mm-jaguar-sentai"
+                "$YOCTO_CHECK_CMD" --layer /repo --machines imx8mm-jaguar-sentai \
+                  || echo "⚠️  Some compatibility issues found - see output above for details"
                 
                 echo ""
                 echo "📊 Yocto Project Compatibility Results:"
-                if [ -f yocto-layer-check.log ]; then
-                  echo "📋 Full validation log:"
-                  cat yocto-layer-check.log
-                else
-                  echo "⚠️  No log file generated"
-                fi
+                echo "✅ Layer validation completed - see output above for any issues"
                 
               else
                 echo "❌ yocto-check-layer script not found in build environment"
