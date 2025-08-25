@@ -15,19 +15,111 @@
 
 This BSP layer provides comprehensive board support for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
 
-## 🔄 Continuous Integration
+## 🔐 Enterprise-Grade Security & Device Management
 
-Our automated CI/CD pipeline builds and validates all board variants on every commit:
+Dynamic Devices board platforms, in partnership with **Foundries.io**, deliver a comprehensive security-first approach to edge computing with professional-grade device lifecycle management.
 
-- **🚀 Automated Builds**: All 5 board variants built in parallel using self-hosted runners
-- **📦 Programming Packages**: Complete board programming artifacts generated automatically  
-- **🧪 Quality Assurance**: Shellcheck linting, configuration validation, and build testing
-- **🎯 Multi-Board Matrix**: Simultaneous builds for imx8mm and imx93 platforms
-- **⚡ Optimized Performance**: Persistent cache and CPU-optimized parallel builds
+### 🛡️ **Secure Boot Foundation**
+- **Hardware Root of Trust**: i.MX8MM/i.MX93 High Assurance Boot (HAB) with secure key storage
+- **Verified Boot Chain**: U-Boot → Linux kernel → Root filesystem integrity validation
+- **Anti-Rollback Protection**: Prevents downgrade attacks through secure version control
+- **Encrypted Storage**: LUKS disk encryption for sensitive data protection
 
-[**View Latest Builds →**](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
+### 🌐 **Remote Device Management**
+- **Zero-Touch Provisioning**: Automated device registration and configuration
+- **Secure Remote Access**: VPN-less device connectivity through Foundries.io gateway
+- **Fleet Monitoring**: Real-time device health, performance metrics, and diagnostics
+- **Role-Based Access Control**: Fine-grained permissions for development teams
 
-## 📋 Quick Start
+### 📦 **Container-First Architecture**
+- **Docker Integration**: Native container runtime with hardware-accelerated features
+- **Application Isolation**: Secure sandboxing for customer applications
+- **Resource Management**: CPU, memory, and GPU allocation controls
+- **Multi-Tenant Support**: Run multiple isolated customer workloads safely
+
+### 🚀 **Over-the-Air (OTA) Updates**
+- **Atomic Updates**: All-or-nothing deployment prevents bricked devices
+- **Rollback Capability**: Automatic recovery from failed updates
+- **Delta Updates**: Bandwidth-efficient incremental deployments
+- **Staged Rollouts**: Controlled deployment to device groups with A/B testing
+- **Continuous Delivery**: Direct integration with CI/CD pipelines
+
+### 📊 **Production-Ready Benefits**
+- **📈 Scalability**: Manage thousands of devices from a single dashboard
+- **🔍 Observability**: Comprehensive logging, metrics, and alerting
+- **🛠️ DevOps Integration**: GitOps workflow for configuration and application deployment
+- **🏢 Enterprise Support**: Professional SLA with Foundries.io partnership
+- **🌍 Global Infrastructure**: Edge-optimized content delivery network
+
+### 💼 **Customer Application Deployment**
+```bash
+# Deploy containerized applications securely
+fioctl targets update --apps myapp:v1.2.3 production-fleet
+
+# Monitor deployment across device fleet
+fioctl devices list --factory mycompany
+
+# Secure remote debugging (development only)
+fioctl devices access mydevice-001
+```
+
+**Learn More**: [Foundries.io Platform Overview](https://foundries.io/platform/) | [Security Whitepaper](https://foundries.io/security/) | [Getting Started Guide](https://docs.foundries.io/)
+
+## 📋 Quick Start - Get Running in Minutes
+
+> **🚀 Ready to Go**: All boards come with pre-built production images and comprehensive programming packages for immediate deployment.
+
+### ⚡ **Zero to Running Board in 4 Steps**
+
+#### **Step 1: Download Programming Package** 📦
+```bash
+# Visit our CI builds and download the latest programming package for your board
+# https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml
+# Download: programming-package-[your-board-name].zip
+```
+
+#### **Step 2: Setup Board for Programming** 🔌
+```bash
+# 1. Power OFF your board
+# 2. Set DIP switches to download/recovery mode (see board manual)
+# 3. Connect USB cable between board and your computer
+# 4. Power ON your board
+```
+
+#### **Step 3: Program Your Board** ⚡
+```bash
+# Extract the programming package
+unzip programming-package-imx8mm-jaguar-sentai.zip  # (or your board)
+cd programming-package-imx8mm-jaguar-sentai/
+
+# Install UUU programming tool (Ubuntu/Debian)
+sudo apt install uuu
+
+# Program the board (takes ~3-5 minutes)
+./program-imx8mm-jaguar-sentai.sh --flash
+```
+
+#### **Step 4: First Boot** 🎉
+```bash
+# 1. Set DIP switches back to normal boot mode
+# 2. Power cycle the board
+# 3. Board boots to login prompt (user: root, no password)
+# 4. Connect Ethernet or setup WiFi
+# 5. Start developing immediately!
+
+# Verify everything works
+docker --version      # Docker ready for containers
+iwconfig              # WiFi available  
+systemctl status       # All services running
+```
+
+### 🎯 **What You Get Out-of-the-Box**
+- **Full Linux System**: Yocto-based embedded Linux with all drivers
+- **Container Runtime**: Docker pre-installed for application deployment
+- **Networking**: WiFi, Bluetooth, Ethernet configured and ready
+- **Development Tools**: SSH, package managers, debugging utilities
+- **Security**: Secure boot chain and encrypted storage support
+- **Remote Management**: Foundries.io integration for fleet management
 
 ### Supported Boards
 
@@ -84,6 +176,18 @@ This BSP layer is available under dual licensing:
 
 - **[GPL v3](LICENSE)** - For open source projects
 - **[Commercial](mailto:licensing@dynamicdevices.co.uk)** - For proprietary applications
+
+## 🔄 Continuous Integration
+
+Our automated CI/CD pipeline builds and validates all board variants on every commit:
+
+- **🚀 Automated Builds**: All 5 board variants built in parallel using self-hosted runners
+- **📦 Programming Packages**: Complete board programming artifacts generated automatically  
+- **🧪 Quality Assurance**: Shellcheck linting, configuration validation, and build testing
+- **🎯 Multi-Board Matrix**: Simultaneous builds for imx8mm and imx93 platforms
+- **⚡ Optimized Performance**: Persistent cache and CPU-optimized parallel builds
+
+[**View Latest Builds →**](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
 ## 🛠 Development
 
