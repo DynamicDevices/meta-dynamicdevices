@@ -104,6 +104,19 @@ jobs:
           
           echo "✅ Docker is available"
           docker --version
+          
+          # Install kas-container for Yocto validation
+          echo "📦 Installing kas-container for Yocto validation..."
+          if ! command -v kas-container >/dev/null 2>&1; then
+            # Download kas-container script
+            curl -o kas-container https://raw.githubusercontent.com/siemens/kas/master/kas-container
+            chmod +x kas-container
+            # Add to PATH for this job
+            echo "$PWD" >> $GITHUB_PATH
+            echo "✅ kas-container installed"
+          else
+            echo "✅ kas-container already available"
+          fi
 
       - name: Validate KAS configurations
         run: |
