@@ -6,7 +6,25 @@
 [![License: Commercial](https://img.shields.io/badge/License-Commercial-green.svg)](mailto:licensing@dynamicdevices.co.uk)
 [![Yocto Compatible](https://img.shields.io/badge/Yocto-scarthgap%20|%20kirkstone-orange.svg)](https://www.yoctoproject.org/)
 
+[![KAS Build CI](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml/badge.svg)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
+[![GitHub Issues](https://img.shields.io/github/issues/DynamicDevices/meta-dynamicdevices)](https://github.com/DynamicDevices/meta-dynamicdevices/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/DynamicDevices/meta-dynamicdevices)](https://github.com/DynamicDevices/meta-dynamicdevices/pulls)
+[![Latest Release](https://img.shields.io/github/v/release/DynamicDevices/meta-dynamicdevices?include_prereleases)](https://github.com/DynamicDevices/meta-dynamicdevices/releases)
+[![Code Quality](https://img.shields.io/badge/code%20quality-shellcheck%20✓-brightgreen)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
+
 This BSP layer provides comprehensive board support for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
+
+## 🔄 Continuous Integration
+
+Our automated CI/CD pipeline builds and validates all board variants on every commit:
+
+- **🚀 Automated Builds**: All 5 board variants built in parallel using self-hosted runners
+- **📦 Programming Packages**: Complete board programming artifacts generated automatically  
+- **🧪 Quality Assurance**: Shellcheck linting, configuration validation, and build testing
+- **🎯 Multi-Board Matrix**: Simultaneous builds for imx8mm and imx93 platforms
+- **⚡ Optimized Performance**: Persistent cache and CPU-optimized parallel builds
+
+[**View Latest Builds →**](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
 ## 📋 Quick Start
 
