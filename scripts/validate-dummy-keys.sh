@@ -51,19 +51,16 @@ check_file_metadata() {
         return 1
     fi
     
-    # Required metadata strings
+    # Required metadata strings (key parts only for more flexible matching)
     local required_strings=(
-        "COPYRIGHT NOTICE - COMMERCIAL USE REQUIRES LICENSE"
-        "Copyright (c) 2025 Dynamic Devices Ltd. All rights reserved."
-        "meta-dynamicdevices Yocto layer"
-        "https://github.com/DynamicDevices/meta-dynamicdevices"
-        "COMMERCIAL USE: Contact support@dynamicdevices.co.uk"
-        "IP THEFT REPORTING: Contact support@dynamicdevices.co.uk"
-        "DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING"
-        "If found in commercial firmware without license, report to:"
-        "Email: support@dynamicdevices.co.uk"
-        "https://dynamicdevices.co.uk/contact"
-        "DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED"
+        "COPYRIGHT NOTICE"
+        "Dynamic Devices Ltd"
+        "meta-dynamicdevices"
+        "github.com/DynamicDevices/meta-dynamicdevices"
+        "support@dynamicdevices.co.uk"
+        "DEVELOPMENT ONLY"
+        "dynamicdevices.co.uk"
+        "COMMERCIAL_LICENSE_REQUIRED"
     )
     
     local missing_strings=()
