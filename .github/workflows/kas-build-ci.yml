@@ -32,7 +32,7 @@ on:
           - 'imx8mm-jaguar-phasora'
           - 'imx8mm-jaguar-handheld'
           - 'imx93-jaguar-eink'
-          - 'imx93-11x11-lpddr4x-evk'
+
         default: 'all'
 
 env:
@@ -76,7 +76,7 @@ jobs:
           if [ "${{ github.event.inputs.machine }}" != "" ] && [ "${{ github.event.inputs.machine }}" != "all" ]; then
             echo "machines=[\"${{ github.event.inputs.machine }}\"]" >> $GITHUB_OUTPUT
           else
-            echo 'machines=["imx8mm-jaguar-sentai","imx8mm-jaguar-inst","imx8mm-jaguar-phasora","imx8mm-jaguar-handheld","imx93-jaguar-eink","imx93-11x11-lpddr4x-evk"]' >> $GITHUB_OUTPUT
+            echo 'machines=["imx8mm-jaguar-sentai","imx8mm-jaguar-inst","imx8mm-jaguar-phasora","imx8mm-jaguar-handheld","imx93-jaguar-eink"]' >> $GITHUB_OUTPUT
           fi
 
   # Validation job - quick checks before expensive builds
