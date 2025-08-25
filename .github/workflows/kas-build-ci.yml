@@ -132,16 +132,21 @@ jobs:
           machines='${{ needs.setup.outputs.machines }}'
           echo "Machines to validate: $machines"
           
-          # Use Docker with jq to parse JSON (no host installation needed)
-          machine_list=$(echo "$machines" | docker run --rm -i alpine/jq -r '.[]')
+          # Parse JSON manually to avoid Docker complexity in validation
+          # Extract machine names from JSON array format like ["machine1","machine2"]
+          machine_list=$(echo "$machines" | sed 's/\[//g' | sed 's/\]//g' | sed 's/"//g' | tr ',' '\n')
           
           for machine in $machine_list; do
-            conf_file="conf/machine/${machine}.conf"
-            if [ ! -f "$conf_file" ]; then
-              echo "❌ Missing machine config: $conf_file"
-              exit 1
-            else
-              echo "✅ Found machine config: $conf_file"
+            # Trim whitespace
+            machine=$(echo "$machine" | xargs)
+            if [ -n "$machine" ]; then
+              conf_file="conf/machine/${machine}.conf"
+              if [ ! -f "$conf_file" ]; then
+                echo "❌ Missing machine config: $conf_file"
+                exit 1
+              else
+                echo "✅ Found machine config: $conf_file"
+              fi
             fi
           done
 
@@ -150,9 +155,10 @@ jobs:
           echo "🔍 Linting shell scripts with Docker..."
           
           # Use shellcheck via Docker container (no host installation needed)
-          if find scripts/ -name "*.sh" | head -1 | grep -q "."; then
+          if find scripts/ -name "*.sh" -print -quit | grep -q .; then
             echo "Running shellcheck on shell scripts..."
-            find scripts/ -name "*.sh" -exec docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable {} +
+            # Run shellcheck on each script individually to avoid path issues
+            find scripts/ -name "*.sh" -exec bash -c 'docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable "/mnt/$1"' _ {} \;
           else
             echo "⚠️ No shell scripts found to lint"
           fi
@@ -616,7 +622,8 @@ jobs:
   create-programming-packages:
     runs-on: self-hosted
     needs: [setup, build]
-    if: always() && needs.setup.outputs.should_build == 'true'
+    # Only create programming packages if the build job succeeded
+    if: needs.setup.outputs.should_build == 'true' && needs.build.result == 'success'
     strategy:
       matrix:
         machine: ${{ fromJSON(needs.setup.outputs.machines) }}
@@ -626,65 +633,84 @@ jobs:
         with:
           name: build-artifacts-${{ matrix.machine }}-base
           path: base-artifacts/
-        continue-on-error: true
+        continue-on-error: false  # Fail if base artifacts missing
 
       - name: Download mfgtool build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts-${{ matrix.machine }}-mfgtool
           path: mfgtool-artifacts/
-        continue-on-error: true
+        continue-on-error: false  # Fail if mfgtool artifacts missing
 
       - name: Create complete programming package
         run: |
           echo "📦 Creating complete programming package for ${{ matrix.machine }}"
           
+          # Verify both base and mfgtool artifacts are available
+          if [ ! -d "base-artifacts/${{ matrix.machine }}/base" ]; then
+            echo "❌ Base build artifacts missing for ${{ matrix.machine }}"
+            exit 1
+          fi
+          
+          if [ ! -d "mfgtool-artifacts/${{ matrix.machine }}/mfgtool" ]; then
+            echo "❌ Mfgtool build artifacts missing for ${{ matrix.machine }}"
+            exit 1
+          fi
+          
+          echo "✅ Both base and mfgtool artifacts found for ${{ matrix.machine }}"
+          
           # Create programming package directory
           mkdir -p programming-packages/${{ matrix.machine }}
           
-          # Copy base build files if available
-          if [ -d "base-artifacts/${{ matrix.machine }}/base" ]; then
-            echo "📋 Adding base build files..."
-            
-            # Files needed for UUU programming
-            base_files=(
-              "lmp-factory-image-${{ matrix.machine }}.wic.gz"
-              "imx-boot-${{ matrix.machine }}"
-              "u-boot-${{ matrix.machine }}.itb"
-            )
-            
-            for file in "${base_files[@]}"; do
-              if [ -f "base-artifacts/${{ matrix.machine }}/base/$file" ]; then
-                cp "base-artifacts/${{ matrix.machine }}/base/$file" "programming-packages/${{ matrix.machine }}/"
-                echo "✅ Added: $file"
-              else
-                echo "⚠️  Missing base file: $file"
-              fi
-            done
-          else
-            echo "❌ Base build artifacts not found"
+          # Copy base build files (already verified to exist)
+          echo "📋 Adding base build files..."
+          
+          # Files needed for UUU programming
+          base_files=(
+            "lmp-factory-image-${{ matrix.machine }}.wic.gz"
+            "imx-boot-${{ matrix.machine }}"
+            "u-boot-${{ matrix.machine }}.itb"
+          )
+          
+          missing_base_files=()
+          for file in "${base_files[@]}"; do
+            if [ -f "base-artifacts/${{ matrix.machine }}/base/$file" ]; then
+              cp "base-artifacts/${{ matrix.machine }}/base/$file" "programming-packages/${{ matrix.machine }}/"
+              echo "✅ Added: $file"
+            else
+              missing_base_files+=("$file")
+            fi
+          done
+          
+          if [ ${#missing_base_files[@]} -gt 0 ]; then
+            echo "❌ Missing base files:"
+            printf '  - %s\n' "${missing_base_files[@]}"
+            exit 1
           fi
           
-          # Copy mfgtool files if available
-          if [ -d "mfgtool-artifacts/${{ matrix.machine }}/mfgtool" ]; then
-            echo "📋 Adding mfgtool files..."
-            
-            # Mfgtool files
-            mfgtool_files=(
-              "imx-boot-mfgtool"
-              "u-boot-mfgtool.itb"
-            )
-            
-            for file in "${mfgtool_files[@]}"; do
-              if [ -f "mfgtool-artifacts/${{ matrix.machine }}/mfgtool/$file" ]; then
-                cp "mfgtool-artifacts/${{ matrix.machine }}/mfgtool/$file" "programming-packages/${{ matrix.machine }}/"
-                echo "✅ Added: $file"
-              else
-                echo "⚠️  Missing mfgtool file: $file"
-              fi
-            done
-          else
-            echo "❌ Mfgtool build artifacts not found"
+          # Copy mfgtool files (already verified to exist)
+          echo "📋 Adding mfgtool files..."
+          
+          # Mfgtool files
+          mfgtool_files=(
+            "imx-boot-mfgtool"
+            "u-boot-mfgtool.itb"
+          )
+          
+          missing_mfgtool_files=()
+          for file in "${mfgtool_files[@]}"; do
+            if [ -f "mfgtool-artifacts/${{ matrix.machine }}/mfgtool/$file" ]; then
+              cp "mfgtool-artifacts/${{ matrix.machine }}/mfgtool/$file" "programming-packages/${{ matrix.machine }}/"
+              echo "✅ Added: $file"
+            else
+              missing_mfgtool_files+=("$file")
+            fi
+          done
+          
+          if [ ${#missing_mfgtool_files[@]} -gt 0 ]; then
+            echo "❌ Missing mfgtool files:"
+            printf '  - %s\n' "${missing_mfgtool_files[@]}"
+            exit 1
           fi
           
           # Create programming script
