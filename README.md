@@ -181,7 +181,7 @@ This BSP layer is available under dual licensing:
 
 Our automated CI/CD pipeline builds and validates all board variants on every commit:
 
-- **🚀 Automated Builds**: All 5 board variants built in parallel using self-hosted runners
+- **🚀 Automated Builds**: Active board variants built in parallel using self-hosted runners
 - **📦 Programming Packages**: Complete board programming artifacts generated automatically  
 - **🧪 Multi-Layer Quality**: Comprehensive validation across all code layers
 - **🎯 Multi-Board Matrix**: Simultaneous builds for imx8mm and imx93 platforms

@@ -22,16 +22,17 @@ on:
   workflow_dispatch:
     inputs:
       machine:
-        description: 'Specific machine to build (optional - builds all if not specified)'
+        description: 'Specific machine to build (optional - builds all active machines if not specified)'
         required: false
         type: choice
         options:
           - 'all'
           - 'imx8mm-jaguar-sentai'
-          - 'imx8mm-jaguar-inst'
-          - 'imx8mm-jaguar-phasora'
-          - 'imx8mm-jaguar-handheld'
           - 'imx93-jaguar-eink'
+          # Temporarily disabled:
+          # - 'imx8mm-jaguar-inst'
+          # - 'imx8mm-jaguar-phasora'
+          # - 'imx8mm-jaguar-handheld'
 
         default: 'all'
 
@@ -76,7 +77,8 @@ jobs:
           if [ "${{ github.event.inputs.machine }}" != "" ] && [ "${{ github.event.inputs.machine }}" != "all" ]; then
             echo "machines=[\"${{ github.event.inputs.machine }}\"]" >> $GITHUB_OUTPUT
           else
-            echo 'machines=["imx8mm-jaguar-sentai","imx8mm-jaguar-inst","imx8mm-jaguar-phasora","imx8mm-jaguar-handheld","imx93-jaguar-eink"]' >> $GITHUB_OUTPUT
+            # Temporarily disabled: imx8mm-jaguar-inst, imx8mm-jaguar-phasora, imx8mm-jaguar-handheld
+            echo 'machines=["imx8mm-jaguar-sentai","imx93-jaguar-eink"]' >> $GITHUB_OUTPUT
           fi
 
   # Validation job - quick checks before expensive builds
