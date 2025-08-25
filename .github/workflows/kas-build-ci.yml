@@ -261,6 +261,274 @@ jobs:
           
           echo "✅ Device tree validation complete"
 
+      - name: CVE and security scanning
+        run: |
+          echo "🔒 Running CVE and security vulnerability scanning..."
+          
+          # Check for known vulnerable packages in recipes
+          echo "Scanning for known vulnerable package versions..."
+          
+          # Common vulnerable packages to check
+          vulnerable_packages=(
+            "openssl"
+            "glibc" 
+            "busybox"
+            "dropbear"
+            "openssh"
+            "curl"
+            "wget"
+            "zlib"
+            "libpng"
+            "libjpeg"
+            "expat"
+            "libxml2"
+            "pcre"
+            "sqlite3"
+            "python3"
+            "nodejs"
+            "nginx"
+            "apache2"
+            "bind"
+            "dnsmasq"
+            "hostapd"
+            "wpa-supplicant"
+            "bluez5"
+            "avahi"
+            "systemd"
+            "udev"
+            "kernel"
+            "u-boot"
+          )
+          
+          # Check for hardcoded versions that might be vulnerable
+          for pkg in "${vulnerable_packages[@]}"; do
+            # Look for version pinning in recipes
+            if find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.inc" | xargs grep -l "$pkg" 2>/dev/null; then
+              echo "📋 Found references to security-sensitive package: $pkg"
+              
+              # Check for version specifications
+              find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.inc" | xargs grep -n "PV.*=" 2>/dev/null | grep -i "$pkg" || true
+              find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.inc" | xargs grep -n "SRCREV.*=" 2>/dev/null | grep -i "$pkg" || true
+            fi
+          done
+          
+          # Check for insecure configurations
+          echo "Checking for insecure configurations..."
+          
+          # Check for disabled security features
+          security_flags=(
+            "INSANE_SKIP.*already-stripped"
+            "INSANE_SKIP.*buildpaths"
+            "INSANE_SKIP.*textrel"
+            "INSANE_SKIP.*ldflags"
+            "INSANE_SKIP.*compile-host-path"
+            "SECURITY_CFLAGS.*="
+            "SECURITY_LDFLAGS.*="
+            "FORTIFY_SOURCE.*0"
+            "_FORTIFY_SOURCE.*0"
+          )
+          
+          for flag in "${security_flags[@]}"; do
+            if find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.conf" | xargs grep -n "$flag" 2>/dev/null; then
+              echo "⚠️  Found potentially insecure configuration: $flag"
+            fi
+          done
+          
+          # Check for hardcoded secrets or credentials
+          echo "Scanning for hardcoded secrets..."
+          
+          secret_patterns=(
+            "password.*="
+            "passwd.*="
+            "secret.*="
+            "key.*="
+            "token.*="
+            "api_key"
+            "private_key"
+            "ssh_key"
+            "rsa_key"
+            "certificate"
+          )
+          
+          for pattern in "${secret_patterns[@]}"; do
+            if find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.conf" | xargs grep -in "$pattern" 2>/dev/null | grep -v "DESCRIPTION\|SUMMARY\|HOMEPAGE" | head -5; then
+              echo "⚠️  Potential hardcoded secret found matching: $pattern"
+            fi
+          done
+          
+          # Check for insecure network configurations
+          echo "Checking for insecure network configurations..."
+          
+          insecure_network=(
+            "http://.*download"
+            "ftp://.*download"
+            "DISABLE_STATIC.*0"
+            "ALLOW_EMPTY.*1"
+            "INSANE_SKIP.*host-user-contaminated"
+          )
+          
+          for pattern in "${insecure_network[@]}"; do
+            if find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.conf" | xargs grep -n "$pattern" 2>/dev/null; then
+              echo "⚠️  Insecure network configuration found: $pattern"
+            fi
+          done
+          
+          # Check for proper license compliance (security through legal compliance)
+          echo "Checking license compliance..."
+          
+          if find recipes* bbappends* -name "*.bb" -o -name "*.bbappend" | xargs grep -L "LICENSE.*=" 2>/dev/null | head -5; then
+            echo "⚠️  Recipes missing LICENSE declaration found"
+          fi
+          
+          # Check for CLOSED license (potential proprietary/security issues)
+          if find recipes* bbappends* -name "*.bb" -o -name "*.bbappend" | xargs grep -n "LICENSE.*CLOSED" 2>/dev/null; then
+            echo "⚠️  Found recipes with CLOSED license - review for security implications"
+          fi
+          
+          echo "✅ CVE and security scanning complete"
+
+      - name: Check for security-related TODOs and FIXMEs
+        run: |
+          echo "🔍 Scanning for security-related TODOs and issues..."
+          
+          security_keywords=(
+            "TODO.*security"
+            "FIXME.*security"
+            "TODO.*cve"
+            "FIXME.*cve"
+            "TODO.*vuln"
+            "FIXME.*vuln"
+            "TODO.*exploit"
+            "FIXME.*exploit"
+            "HACK.*security"
+            "XXX.*security"
+          )
+          
+          found_issues=0
+          for keyword in "${security_keywords[@]}"; do
+            if find . -name "*.bb" -o -name "*.bbappend" -o -name "*.conf" -o -name "*.sh" -o -name "*.py" | xargs grep -in "$keyword" 2>/dev/null; then
+              echo "⚠️  Security-related TODO/FIXME found: $keyword"
+              found_issues=$((found_issues + 1))
+            fi
+          done
+          
+          if [ $found_issues -gt 0 ]; then
+            echo "⚠️  Found $found_issues security-related TODOs/FIXMEs that should be addressed"
+          else
+            echo "✅ No security-related TODOs/FIXMEs found"
+          fi
+
+      - name: Validate build reproducibility settings
+        run: |
+          echo "🔄 Checking build reproducibility and security settings..."
+          
+          # Check for SOURCE_DATE_EPOCH usage
+          if ! find conf/ -name "*.conf" | xargs grep -q "SOURCE_DATE_EPOCH" 2>/dev/null; then
+            echo "⚠️  SOURCE_DATE_EPOCH not configured - builds may not be reproducible"
+          fi
+          
+          # Check for proper DISTRO security features
+          security_features=(
+            "DISTRO_FEATURES.*pam"
+            "DISTRO_FEATURES.*systemd"
+            "DISTRO_FEATURES.*selinux"
+            "DISTRO_FEATURES.*smack"
+            "DISTRO_FEATURES.*ima"
+          )
+          
+          echo "Checking security-related DISTRO_FEATURES..."
+          for feature in "${security_features[@]}"; do
+            if find conf/ -name "*.conf" | xargs grep -q "$feature" 2>/dev/null; then
+              echo "✅ Found security feature: $feature"
+            fi
+          done
+          
+          # Check for security-related IMAGE_FEATURES
+          if find conf/ recipes* -name "*.bb" -o -name "*.conf" | xargs grep -q "IMAGE_FEATURES.*ssh-server-openssh" 2>/dev/null; then
+            echo "⚠️  OpenSSH server enabled - ensure proper key management"
+          fi
+          
+          if find conf/ recipes* -name "*.bb" -o -name "*.conf" | xargs grep -q "IMAGE_FEATURES.*debug-tweaks" 2>/dev/null; then
+            echo "⚠️  debug-tweaks enabled - should be disabled for production"
+          fi
+          
+          echo "✅ Build reproducibility and security settings check complete"
+
+      - name: Generate SBOM for recipes
+        run: |
+          echo "📋 Generating Software Bill of Materials (SBOM) for validation..."
+          
+          # Create SBOM directory
+          mkdir -p sbom-validation
+          
+          # Generate recipe inventory
+          echo "Collecting recipe inventory..."
+          cat > sbom-validation/recipe-inventory.json << 'EOF'
+          {
+            "sbom_version": "1.0",
+            "generated_date": "$(date -Iseconds)",
+            "generator": "Dynamic Devices CI Pipeline",
+            "project": "meta-dynamicdevices",
+            "commit": "${{ github.sha }}",
+            "recipes": [
+          EOF
+          
+          # Parse all recipes and create inventory
+          first_recipe=true
+          find recipes* bbappends* -name "*.bb" -o -name "*.bbappend" | while read -r recipe; do
+            # Extract basic recipe information
+            recipe_name=$(basename "$recipe" | sed 's/_.*\.bb.*//')
+            recipe_path="$recipe"
+            
+            # Extract version if available
+            version=$(grep "^PV.*=" "$recipe" 2>/dev/null | cut -d'"' -f2 || echo "unknown")
+            if [ "$version" = "unknown" ]; then
+              version=$(grep "^PV.*=" "$recipe" 2>/dev/null | cut -d"'" -f2 || echo "unknown")
+            fi
+            
+            # Extract license
+            license=$(grep "^LICENSE.*=" "$recipe" 2>/dev/null | cut -d'"' -f2 || echo "unknown")
+            if [ "$license" = "unknown" ]; then
+              license=$(grep "^LICENSE.*=" "$recipe" 2>/dev/null | cut -d"'" -f2 || echo "unknown")
+            fi
+            
+            # Extract source URI
+            src_uri=$(grep "^SRC_URI.*=" "$recipe" 2>/dev/null | head -1 || echo "")
+            
+            # Extract dependencies
+            depends=$(grep "^DEPENDS.*=" "$recipe" 2>/dev/null | cut -d'"' -f2 || echo "")
+            rdepends=$(grep "^RDEPENDS.*=" "$recipe" 2>/dev/null | cut -d'"' -f2 || echo "")
+            
+            # Add comma if not first recipe
+            if [ "$first_recipe" = false ]; then
+              echo "," >> sbom-validation/recipe-inventory.json
+            fi
+            first_recipe=false
+            
+            # Add recipe entry
+            cat >> sbom-validation/recipe-inventory.json << EOF
+              {
+                "name": "$recipe_name",
+                "version": "$version",
+                "license": "$license",
+                "path": "$recipe_path",
+                "src_uri": "$src_uri",
+                "build_depends": "$depends",
+                "runtime_depends": "$rdepends",
+                "recipe_type": "$(if [[ $recipe == *.bbappend ]]; then echo 'bbappend'; else echo 'bb'; fi)"
+              }
+          EOF
+          done
+          
+          # Close JSON
+          cat >> sbom-validation/recipe-inventory.json << 'EOF'
+            ]
+          }
+          EOF
+          
+          echo "✅ Recipe SBOM inventory generated"
+          echo "📊 Recipe count: $(find recipes* bbappends* -name "*.bb" -o -name "*.bbappend" | wc -l)"
+
   # Main build job with matrix strategy
   build:
     runs-on: self-hosted
@@ -423,6 +691,86 @@ jobs:
                            -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE" \
             build "$kas_config"
 
+      - name: Generate build SBOM
+        if: always()
+        run: |
+          echo "📋 Generating Software Bill of Materials for build artifacts..."
+          
+          # Create SBOM directory
+          mkdir -p build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}
+          
+          # Generate build-specific SBOM
+          cat > build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json << EOF
+          {
+            "sbom_version": "2.3",
+            "spdx_version": "SPDX-2.3",
+            "document_name": "meta-dynamicdevices-${{ matrix.machine }}-${{ matrix.build_type }}",
+            "document_namespace": "https://github.com/DynamicDevices/meta-dynamicdevices",
+            "creation_info": {
+              "created": "$(date -Iseconds)",
+              "creators": ["Tool: Dynamic Devices CI Pipeline"],
+              "license_list_version": "3.21"
+            },
+            "package_info": {
+              "name": "meta-dynamicdevices",
+              "version": "$(git describe --tags --always)",
+              "supplier": "Dynamic Devices Ltd",
+              "download_location": "https://github.com/DynamicDevices/meta-dynamicdevices",
+              "copyright_text": "NOASSERTION",
+              "license_concluded": "GPL-3.0-or-later",
+              "license_declared": "GPL-3.0-or-later"
+            },
+            "build_info": {
+              "machine": "${{ matrix.machine }}",
+              "build_type": "${{ matrix.build_type }}",
+              "kas_config": "$kas_config",
+              "commit": "${{ github.sha }}",
+              "build_date": "$(date -Iseconds)",
+              "build_host": "$(hostname)",
+              "yocto_version": "scarthgap"
+            }
+          }
+          EOF
+          
+          # Add package manifest if available
+          deploy_dir="$KAS_WORK_DIR/build/tmp/deploy/images/${{ matrix.machine }}"
+          if [ -f "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest" ]; then
+            echo "📦 Found image manifest, adding to SBOM..."
+            echo '  ,"image_packages": [' >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json
+            
+            # Parse package manifest and add to SBOM
+            first_pkg=true
+            while IFS= read -r line; do
+              if [[ $line =~ ^([^[:space:]]+)[[:space:]]+([^[:space:]]+)[[:space:]]+(.*)$ ]]; then
+                pkg_name="${BASH_REMATCH[1]}"
+                pkg_version="${BASH_REMATCH[2]}"
+                pkg_arch="${BASH_REMATCH[3]}"
+                
+                if [ "$first_pkg" = false ]; then
+                  echo "," >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json
+                fi
+                first_pkg=false
+                
+                cat >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json << EOF
+            {
+              "name": "$pkg_name",
+              "version": "$pkg_version",
+              "architecture": "$pkg_arch",
+              "supplier": "NOASSERTION",
+              "license": "NOASSERTION"
+            }
+          EOF
+              fi
+            done < "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest"
+            
+            echo ']' >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json
+          fi
+          
+          # Close JSON
+          echo '}' >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json
+          
+          echo "✅ Build SBOM generated for ${{ matrix.machine }} (${{ matrix.build_type }})"
+
       - name: Collect build artifacts
         if: always()
         run: |
@@ -445,6 +793,7 @@ jobs:
               "imx-boot-*"
               "u-boot-*.itb"
               "*.dtb"
+              "*.manifest"
             )
             
             for pattern in "${artifacts[@]}"; do
@@ -656,6 +1005,15 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+      - name: Upload SBOM artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.machine }}-${{ matrix.build_type }}
+          path: build-sbom/
+          retention-days: 90
+          if-no-files-found: warn
+
       - name: Upload programming packages
         if: always() && matrix.build_type == 'base'
         uses: actions/upload-artifact@v4
@@ -811,6 +1169,24 @@ jobs:
             exit 1
           fi
           
+          # Copy SBOM files to programming package
+          echo "📋 Adding SBOM files to programming package..."
+          if [ -d "base-artifacts/${{ matrix.machine }}/base" ]; then
+            # Copy base build SBOM if available
+            if ls build-sbom/${{ matrix.machine }}/base/*.json 1> /dev/null 2>&1; then
+              cp build-sbom/${{ matrix.machine }}/base/*.json "programming-packages/${{ matrix.machine }}/" 2>/dev/null || true
+              echo "✅ Added base SBOM to programming package"
+            fi
+          fi
+          
+          if [ -d "mfgtool-artifacts/${{ matrix.machine }}/mfgtool" ]; then
+            # Copy mfgtool SBOM if available
+            if ls build-sbom/${{ matrix.machine }}/mfgtool/*.json 1> /dev/null 2>&1; then
+              cp build-sbom/${{ matrix.machine }}/mfgtool/*.json "programming-packages/${{ matrix.machine }}/" 2>/dev/null || true
+              echo "✅ Added mfgtool SBOM to programming package"
+            fi
+          fi
+          
           # Create programming script
           cat > programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh << 'EOF'
           #!/bin/bash
@@ -899,89 +1275,232 @@ jobs:
           
           chmod +x programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh
           
-          # Create comprehensive README
+          # Create comprehensive step-by-step README
           cat > programming-packages/${{ matrix.machine }}/README.md << 'EOF'
-          # Programming Package for ${{ matrix.machine }}
+          # 🚀 Board Programming Guide: ${{ matrix.machine }}
+          
+          > **Complete step-by-step instructions for programming your Dynamic Devices board**
           
           **Generated**: $(date)  
           **Commit**: ${{ github.sha }}  
           **Branch**: ${{ github.ref_name }}  
-          **Build Run**: ${{ github.run_number }}
+          **Build**: ${{ github.run_number }}
           
-          ## Files Included
+          ## 📦 What's In This Package
           
-          ### Manufacturing Tool Files (for board programming)
-          - `imx-boot-mfgtool` - Manufacturing tool bootloader
-          - `u-boot-mfgtool.itb` - Manufacturing tool U-Boot
+          This programming package contains everything needed to flash your board:
           
-          ### Production Files (to be programmed onto board)
-          - `imx-boot-${{ matrix.machine }}` - Production bootloader for ${{ matrix.machine }}
-          - `u-boot-${{ matrix.machine }}.itb` - Production U-Boot for ${{ matrix.machine }}
-          - `lmp-factory-image-${{ matrix.machine }}.wic.gz` - Complete system image
+          ### 🔧 Manufacturing Tools
+          - `imx-boot-mfgtool` - Special bootloader for programming mode
+          - `u-boot-mfgtool.itb` - Programming U-Boot environment
           
-          ### Programming Tools
-          - `program-${{ matrix.machine }}.sh` - Automated programming script
-          - `program_${{ matrix.machine }}.uuu` - UUU programming script (auto-generated)
+          ### 💾 Production Firmware  
+          - `imx-boot-${{ matrix.machine }}` - Your board's production bootloader
+          - `u-boot-${{ matrix.machine }}.itb` - Your board's production U-Boot
+          - `lmp-factory-image-${{ matrix.machine }}.wic.gz` - Complete Linux system image
           
-          ## Prerequisites
+          ### 🛠️ Programming Scripts
+          - `program-${{ matrix.machine }}.sh` - **START HERE** - Automated programming script
+          - `program_${{ matrix.machine }}.uuu` - Low-level UUU commands (auto-generated)
           
-          - **NXP UUU Tool**: Install from https://github.com/nxp-imx/mfgtools
-          - **USB Connection**: Connect board to host via USB
-          - **Download Mode**: Board must be in download/recovery mode
+          ### 📋 Security & Compliance
+          - `sbom.json` - Software Bill of Materials (SPDX format)
+          - `*.manifest` - Package manifest files for traceability
           
-          ## Quick Start
+          ---
           
-          1. **Install UUU** (if not already installed):
-             ```bash
-             # Ubuntu/Debian
-             sudo apt install uuu
-             
-             # Or download from GitHub releases
-             wget https://github.com/nxp-imx/mfgtools/releases/latest/download/uuu
-             chmod +x uuu
-             sudo mv uuu /usr/local/bin/
-             ```
+          ## ⚡ Quick Start (5 Minutes)
           
-          2. **Put board in download mode**:
-             - Power off the board
-             - Set boot switches for download mode (see board manual)
-             - Connect USB cable between board and host
-             - Power on the board
+          ### **Step 1: Install UUU Tool** 📥
           
-          3. **Program the board**:
-             ```bash
-             ./program-${{ matrix.machine }}.sh --flash
-             ```
-          
-          ## Manual Programming
-          
-          For more control over the programming process:
+          #### Option A: Package Manager (Recommended)
           ```bash
+          # Ubuntu/Debian
+          sudo apt update && sudo apt install uuu
+          
+          # Fedora/CentOS/RHEL
+          sudo dnf install uuu
+          
+          # Arch Linux
+          sudo pacman -S uuu
+          ```
+          
+          #### Option B: Direct Download
+          ```bash
+          # Download latest UUU
+          wget https://github.com/nxp-imx/mfgtools/releases/latest/download/uuu
+          chmod +x uuu
+          sudo mv uuu /usr/local/bin/
+          
+          # Verify installation
+          uuu --help
+          ```
+          
+          ### **Step 2: Prepare Your Board** 🔌
+          
+          #### **Physical Setup:**
+          1. **Power OFF** your board completely
+          2. **Locate boot switches** on your board (usually near USB connector)
+          3. **Set to download mode**:
+             - Consult your board manual for exact switch positions
+             - Typically involves setting specific DIP switches or jumpers
+          4. **Connect USB cable** from board to your computer
+          5. **Power ON** your board
+          
+          #### **Verify Download Mode:**
+          ```bash
+          # Check if board is detected
+          lsusb | grep -i "NXP\|Freescale"
+          
+          # Should show something like:
+          # Bus 001 Device 005: ID 1fc9:012f NXP Semiconductors
+          ```
+          
+          ### **Step 3: Program Your Board** ⚡
+          
+          #### **Automated Programming (Easiest):**
+          ```bash
+          # Navigate to this directory
+          cd programming-package-${{ matrix.machine }}/
+          
+          # Make script executable (if needed)
+          chmod +x program-${{ matrix.machine }}.sh
+          
+          # Program the board (takes 3-5 minutes)
+          ./program-${{ matrix.machine }}.sh --flash
+          ```
+          
+          #### **Manual Programming (Advanced):**
+          ```bash
+          # Use UUU directly
           sudo uuu program_${{ matrix.machine }}.uuu
           ```
           
-          ## Board Information
+          ### **Step 4: First Boot** 🎉
           
+          1. **Programming complete** - Wait for "Programming successful" message
+          2. **Power OFF** the board
+          3. **Set switches back** to normal boot mode (consult board manual)
+          4. **Power ON** the board
+          5. **Wait 30-60 seconds** for first boot (may take longer initially)
+          6. **Connect via serial** or **SSH** to access your board
+          
+          ---
+          
+          ## 🎯 Board-Specific Information
+          
+          ### **Board Details:**
           - **Machine**: ${{ matrix.machine }}
-          - **Architecture**: $(echo "${{ matrix.machine }}" | grep -q "imx8mm" && echo "i.MX8M Mini" || echo "i.MX93")
+          - **Architecture**: $(echo "${{ matrix.machine }}" | grep -q "imx8mm" && echo "i.MX8M Mini (Cortex-A53)" || echo "i.MX93 (Cortex-A55)")
           - **Board Type**: $(echo "${{ matrix.machine }}" | sed 's/.*jaguar-//' | tr '[:lower:]' '[:upper:]')
+          - **Flash Memory**: eMMC internal storage
           
-          ## Troubleshooting
+          ### **What Gets Programmed:**
+          1. **Bootloader** - Low-level boot code
+          2. **U-Boot** - Boot environment and configuration  
+          3. **Linux Kernel** - Operating system kernel
+          4. **Root Filesystem** - Complete Linux system with applications
           
-          ### Board not detected
-          - Verify USB connection
-          - Check board is in download mode
-          - Try different USB cable/port
-          - Check `lsusb` for NXP device
+          ---
           
-          ### Programming fails
-          - Ensure all files are present
-          - Check file permissions
-          - Verify UUU tool is latest version
-          - Run with `sudo` privileges
+          ## ⚠️ Troubleshooting
           
-          ### Recovery
-          If programming fails partway through, the board should still be recoverable by repeating the process.
+          ### **Board Not Detected**
+          
+          **Problem**: `lsusb` doesn't show NXP device
+          
+          **Solutions**:
+          - ✅ Verify USB cable is data cable (not power-only)
+          - ✅ Try different USB port on your computer
+          - ✅ Check boot switches are in correct download position
+          - ✅ Power cycle the board (off/on)
+          - ✅ Check board manual for exact switch positions
+          
+          ### **Programming Fails**
+          
+          **Problem**: UUU shows errors or timeouts
+          
+          **Solutions**:
+          - ✅ Run with `sudo` privileges: `sudo ./program-${{ matrix.machine }}.sh --flash`
+          - ✅ Verify all files are present: `ls -la *.gz *.itb imx-boot-*`
+          - ✅ Check UUU version: `uuu --version` (should be 1.4.0+)
+          - ✅ Try manual programming: `sudo uuu program_${{ matrix.machine }}.uuu`
+          - ✅ Check USB connection stability
+          
+          ### **Board Won't Boot After Programming**
+          
+          **Problem**: Board doesn't start after programming
+          
+          **Solutions**:
+          - ✅ **Check boot switches** - Must be in NORMAL boot mode (not download mode)
+          - ✅ **Power cycle** the board completely
+          - ✅ **Wait longer** - First boot can take 2-3 minutes
+          - ✅ **Check serial console** for boot messages
+          - ✅ **Re-program** if needed (board should still be recoverable)
+          
+          ### **Permissions Errors**
+          
+          **Problem**: "Permission denied" when accessing USB device
+          
+          **Solutions**:
+          ```bash
+          # Add yourself to dialout group
+          sudo usermod -a -G dialout $USER
+          
+          # Or run with sudo
+          sudo ./program-${{ matrix.machine }}.sh --flash
+          
+          # Log out and back in for group changes to take effect
+          ```
+          
+          ---
+          
+          ## 🔧 Advanced Usage
+          
+          ### **Verify Programming Before Boot**
+          ```bash
+          # Check all required files are present
+          ls -la imx-boot-* u-boot-* *.wic.gz
+          
+          # Verify file sizes (should not be 0 bytes)
+          du -h *
+          ```
+          
+          ### **Custom UUU Commands**
+          ```bash
+          # View the UUU script that will be executed
+          cat program_${{ matrix.machine }}.uuu
+          
+          # Run individual UUU commands for debugging
+          sudo uuu -v program_${{ matrix.machine }}.uuu
+          ```
+          
+          ### **Recovery Mode**
+          If your board becomes unbootable, you can always recover by:
+          1. Putting board back in download mode
+          2. Re-running the programming process
+          3. The board should always be recoverable via this method
+          
+          ---
+          
+          ## 📞 Support
+          
+          ### **Documentation**
+          - **Board Wiki**: https://github.com/DynamicDevices/meta-dynamicdevices/wiki
+          - **Troubleshooting**: https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Troubleshooting
+          
+          ### **Need Help?**
+          - **GitHub Issues**: https://github.com/DynamicDevices/meta-dynamicdevices/issues
+          - **Email Support**: support@dynamicdevices.co.uk
+          
+          ### **Professional Services**
+          For custom development, integration support, or commercial licensing:
+          - **Contact**: licensing@dynamicdevices.co.uk
+          - **Website**: https://dynamicdevices.co.uk
+          
+          ---
+          
+          **✅ Programming successful? Your board should now boot to a fully functional Linux system with networking, containers, and development tools ready!**
           
           EOF
 

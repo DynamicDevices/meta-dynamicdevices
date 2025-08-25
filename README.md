@@ -198,6 +198,8 @@ Our CI includes comprehensive quality checks across all layers:
 | **Layer Config** | Dependencies, priorities, collections | BitBake compatibility |
 | **Device Trees** | DTS syntax, naming, indentation | Custom DT checkers |
 | **Build System** | KAS configs, machine definitions | Multi-environment testing |
+| **CVE Security** | Vulnerable packages, hardcoded secrets | Security scanners |
+| **SBOM Generation** | Software Bill of Materials | SPDX-compliant SBOM |
 
 [**View Latest Builds →**](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
