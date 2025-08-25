@@ -42,7 +42,7 @@ env:
 jobs:
   # Job to determine which machines to build
   setup:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       machines: ${{ steps.machines.outputs.machines }}
       should_build: ${{ steps.changes.outputs.should_build }}
@@ -81,7 +81,7 @@ jobs:
 
   # Validation job - quick checks before expensive builds
   validate:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: setup
     if: needs.setup.outputs.should_build == 'true'
     steps:
@@ -136,15 +136,14 @@ jobs:
           
           # Check if shellcheck is available
           if command -v shellcheck >/dev/null 2>&1; then
-            echo "🔍 Running shellcheck (warnings allowed for now)"
-            find scripts/ -name "*.sh" -exec shellcheck {} + || echo "⚠️ shellcheck found issues - will be addressed in separate issue"
+            find scripts/ -name "*.sh" -exec shellcheck {} +
           else
             echo "⚠️ shellcheck not available, skipping script linting"
           fi
 
   # Main build job with matrix strategy
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup, validate]
     if: needs.setup.outputs.should_build == 'true'
     strategy:
@@ -152,31 +151,24 @@ jobs:
       matrix:
         machine: ${{ fromJSON(needs.setup.outputs.machines) }}
         build_type: [base, mfgtool]
-        exclude:
-          # Only build mfgtool for i.MX93 machines
-          - machine: imx8mm-jaguar-sentai
-            build_type: mfgtool
-          - machine: imx8mm-jaguar-inst
-            build_type: mfgtool
-          - machine: imx8mm-jaguar-phasora
-            build_type: mfgtool
-          - machine: imx8mm-jaguar-handheld
-            build_type: mfgtool
+        # Build mfgtool for all machines - needed for board programming
     
     env:
       KAS_MACHINE: ${{ matrix.machine }}
       BUILD_TYPE: ${{ matrix.build_type }}
     
     steps:
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 2048
-          swap-size-mb: 1024
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
+      - name: Clean up workspace for self-hosted runner
+        run: |
+          echo "🧹 Cleaning up workspace for self-hosted runner"
+          # Clean up any previous build artifacts to free space
+          if [ -d "${{ github.workspace }}" ]; then
+            cd "${{ github.workspace }}"
+            # Remove any large build directories from previous runs
+            rm -rf build tmp-glibc deploy artifacts programming-packages || true
+            # Clean docker containers and images if any
+            docker system prune -f || true
+          fi
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -193,29 +185,55 @@ jobs:
           chmod +x kas-container
           sudo mv kas-container /usr/local/bin/
 
-      - name: Cache build artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/yocto/downloads
-            ~/yocto/sstate
-          key: yocto-cache-${{ matrix.machine }}-${{ matrix.build_type }}-${{ hashFiles('kas/**/*.yml', 'conf/**/*') }}
-          restore-keys: |
-            yocto-cache-${{ matrix.machine }}-${{ matrix.build_type }}-
-            yocto-cache-${{ matrix.machine }}-
-            yocto-cache-
+      - name: Setup persistent cache for self-hosted runner
+        run: |
+          echo "🗄️ Setting up persistent build cache for self-hosted runner"
+          
+          # Use a persistent cache directory on the self-hosted runner
+          CACHE_BASE="/var/cache/yocto-builds"
+          
+          # Create persistent cache directories if they don't exist
+          sudo mkdir -p "$CACHE_BASE"/{downloads,sstate}
+          sudo chown -R "$(id -u):$(id -g)" "$CACHE_BASE"
+          
+          # Create symlinks to the standard locations
+          mkdir -p ~/yocto
+          if [ ! -L ~/yocto/downloads ]; then
+            ln -sf "$CACHE_BASE/downloads" ~/yocto/downloads
+          fi
+          if [ ! -L ~/yocto/sstate ]; then
+            ln -sf "$CACHE_BASE/sstate" ~/yocto/sstate
+          fi
+          
+          echo "📊 Cache directory sizes:"
+          du -sh "$CACHE_BASE"/* 2>/dev/null || echo "Cache directories are empty (first run)"
+          
+          # Set environment variable for the build
+          echo "YOCTO_CACHE_DIR=$CACHE_BASE" >> $GITHUB_ENV
 
-      - name: Set up build environment
+      - name: Set up build environment for self-hosted runner
         run: |
           echo "🚀 Setting up build environment for ${{ matrix.machine }} (${{ matrix.build_type }})"
           
-          # Create yocto cache directories
-          mkdir -p ~/yocto/{downloads,sstate,persistent}
-          chmod 755 ~/yocto/{downloads,sstate,persistent}
+          # Create yocto cache directories (persistent symlinks already created)
+          mkdir -p ~/yocto/persistent
+          chmod 755 ~/yocto/persistent
           
-          # Set environment variables for build optimization
-          echo "BB_NUMBER_THREADS=4" >> $GITHUB_ENV
-          echo "PARALLEL_MAKE=-j4" >> $GITHUB_ENV
+          # Detect available CPU cores for optimal parallel builds
+          NPROC=$(nproc)
+          # Use 75% of available cores to leave some for system
+          BUILD_THREADS=$((NPROC * 3 / 4))
+          BUILD_THREADS=${BUILD_THREADS:-4}  # Minimum 4 threads
+          
+          echo "🖥️ Self-hosted runner specs:"
+          echo "  CPU cores: $NPROC"
+          echo "  Build threads: $BUILD_THREADS"
+          echo "  RAM: $(free -h | awk '/^Mem:/ {print $2}')"
+          echo "  Disk space: $(df -h . | awk 'NR==2 {print $4}')"
+          
+          # Set optimized environment variables for self-hosted runner
+          echo "BB_NUMBER_THREADS=$BUILD_THREADS" >> $GITHUB_ENV
+          echo "PARALLEL_MAKE=-j$BUILD_THREADS" >> $GITHUB_ENV
           
           # Disable interactive features
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
@@ -243,9 +261,9 @@ jobs:
           echo "Using KAS config: $kas_config"
           echo "Machine: $KAS_MACHINE"
           
-          # Run KAS build with comprehensive logging
+          # Run KAS build with optimized configuration for self-hosted runner
           kas-container \
-            --runtime-args "-v ${HOME}/yocto:/var/cache \
+            --runtime-args "-v ${YOCTO_CACHE_DIR:-${HOME}/yocto}:/var/cache \
                            -e KAS_MACHINE=$KAS_MACHINE \
                            -e BB_NUMBER_THREADS=$BB_NUMBER_THREADS \
                            -e PARALLEL_MAKE='$PARALLEL_MAKE' \
@@ -262,8 +280,9 @@ jobs:
         run: |
           echo "📦 Collecting build artifacts for ${{ matrix.machine }} (${{ matrix.build_type }})"
           
-          # Create artifacts directory
+          # Create artifacts directories
           mkdir -p artifacts/${{ matrix.machine }}/${{ matrix.build_type }}
+          mkdir -p programming-packages/${{ matrix.machine }}
           
           # Define deploy directory
           deploy_dir="$HOME/yocto/persistent/build/tmp/deploy/images/${{ matrix.machine }}"
@@ -271,7 +290,7 @@ jobs:
           if [ -d "$deploy_dir" ]; then
             echo "✅ Deploy directory found: $deploy_dir"
             
-            # Copy key artifacts
+            # Copy all build artifacts
             artifacts=(
               "*.wic.gz"
               "*.wic.bmap"
@@ -283,11 +302,180 @@ jobs:
             for pattern in "${artifacts[@]}"; do
               if ls "$deploy_dir"/$pattern 1> /dev/null 2>&1; then
                 cp "$deploy_dir"/$pattern artifacts/${{ matrix.machine }}/${{ matrix.build_type }}/
-                echo "📁 Copied: $pattern"
+                echo "📁 Copied to artifacts: $pattern"
               fi
             done
             
-            # Create artifact summary
+            # Create board-specific programming package
+            if [ "${{ matrix.build_type }}" = "base" ]; then
+              echo "📦 Creating programming package for ${{ matrix.machine }}"
+              
+              # Files needed for UUU programming (from program_full_image.uuu.in)
+              programming_files=(
+                "lmp-factory-image-${{ matrix.machine }}.wic.gz"
+                "imx-boot-${{ matrix.machine }}"
+                "u-boot-${{ matrix.machine }}.itb"
+              )
+              
+              # Copy programming files
+              for file in "${programming_files[@]}"; do
+                if [ -f "$deploy_dir/$file" ]; then
+                  cp "$deploy_dir/$file" programming-packages/${{ matrix.machine }}/
+                  echo "📋 Added to programming package: $file"
+                else
+                  echo "⚠️  Programming file not found: $file"
+                fi
+              done
+              
+              # Note: mfgtool files will be added by the mfgtool build job
+              echo "📋 Base build complete - mfgtool files will be added by mfgtool build"
+            elif [ "${{ matrix.build_type }}" = "mfgtool" ]; then
+              echo "📦 Adding mfgtool files to programming package for ${{ matrix.machine }}"
+              
+              # Mfgtool files needed for UUU programming  
+              mfgtool_files=(
+                "imx-boot-mfgtool"
+                "u-boot-mfgtool.itb"
+              )
+              
+              # Add mfgtool files to existing programming package
+              for file in "${mfgtool_files[@]}"; do
+                if [ -f "$deploy_dir/$file" ]; then
+                  cp "$deploy_dir/$file" programming-packages/${{ matrix.machine }}/
+                  echo "📋 Added mfgtool file: $file"
+                else
+                  echo "⚠️  Mfgtool file not found: $file"
+                fi
+              done
+              
+              # Update the programming script to indicate mfgtool files are now available
+              if [ -f "programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh" ]; then
+                echo "📋 Mfgtool files added to existing programming package"
+              else
+                echo "⚠️  Programming package not found - base build may have failed"
+              fi
+              
+              # Create programming script for this machine
+              cat > programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh << 'EOF'
+          #!/bin/bash
+          # Board Programming Script for ${{ matrix.machine }}
+          # Generated automatically by CI build
+          
+          set -e
+          
+          MACHINE="${{ matrix.machine }}"
+          SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          
+          echo "🚀 Programming $MACHINE board..."
+          echo "📁 Using files from: $SCRIPT_DIR"
+          
+          # Verify required files exist
+          required_files=(
+              "imx-boot-mfgtool"
+              "u-boot-mfgtool.itb"
+              "lmp-factory-image-$MACHINE.wic.gz"
+              "imx-boot-$MACHINE"
+              "u-boot-$MACHINE.itb"
+          )
+          
+          for file in "${required_files[@]}"; do
+              if [ ! -f "$SCRIPT_DIR/$file" ]; then
+                  echo "❌ Required file missing: $file"
+                  exit 1
+              fi
+          done
+          
+          # Create UUU script
+          cat > "$SCRIPT_DIR/program_$MACHINE.uuu" << UUU_EOF
+          uuu_version 1.2.39
+          
+          SDP: boot -f imx-boot-mfgtool
+          
+          SDPV: delay 1000
+          SDPV: write -f u-boot-mfgtool.itb
+          SDPV: jump
+          
+          FB: ucmd setenv fastboot_dev mmc
+          FB: ucmd setenv mmcdev \${emmc_dev}
+          FB: ucmd mmc dev \${emmc_dev} 1; mmc erase 0 0x2000
+          FB: flash -raw2sparse all lmp-factory-image-$MACHINE.wic.gz/*
+          FB: flash bootloader imx-boot-$MACHINE
+          FB: flash bootloader2 u-boot-$MACHINE.itb
+          FB: flash bootloader_s imx-boot-$MACHINE
+          FB: flash bootloader2_s u-boot-$MACHINE.itb
+          FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
+          FB: ucmd mmc partconf \${emmc_dev} \${emmc_ack} 1 0
+          FB: done
+          UUU_EOF
+          
+          echo "✅ Created UUU script: program_$MACHINE.uuu"
+          echo "🔌 Connect board in download mode and run:"
+          echo "   sudo uuu program_$MACHINE.uuu"
+          
+          # Optionally run UUU if requested
+          if [ "${1:-}" = "--flash" ]; then
+              echo "🚀 Starting board programming..."
+              sudo uuu "program_$MACHINE.uuu"
+          fi
+          EOF
+              
+              chmod +x programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh
+              
+              # Create README for programming package
+              cat > programming-packages/${{ matrix.machine }}/README.md << 'EOF'
+          # Programming Package for ${{ matrix.machine }}
+          
+          **Generated**: $(date)  
+          **Commit**: ${{ github.sha }}  
+          **Branch**: ${{ github.ref_name }}
+          
+          ## Files Included
+          
+          ### Bootloaders
+          - `imx-boot-mfgtool` - Manufacturing tool bootloader
+          - `u-boot-mfgtool.itb` - Manufacturing tool U-Boot
+          - `imx-boot-${{ matrix.machine }}` - Production bootloader  
+          - `u-boot-${{ matrix.machine }}.itb` - Production U-Boot
+          
+          ### System Image
+          - `lmp-factory-image-${{ matrix.machine }}.wic.gz` - Complete system image
+          
+          ### Programming Tools
+          - `program-${{ matrix.machine }}.sh` - Automated programming script
+          - `program_${{ matrix.machine }}.uuu` - UUU programming script (auto-generated)
+          
+          ## Usage
+          
+          ### Prerequisites
+          - Install NXP UUU tool
+          - Connect ${{ matrix.machine }} board via USB in download mode
+          
+          ### Programming Steps
+          
+          1. **Put board in download mode**
+          2. **Connect USB cable**
+          3. **Run programming script**:
+             ```bash
+             ./program-${{ matrix.machine }}.sh --flash
+             ```
+          
+          ### Manual Programming
+          
+          If you prefer manual control:
+          ```bash
+          sudo uuu program_${{ matrix.machine }}.uuu
+          ```
+          
+          ## Board-Specific Notes
+          
+          - **Machine**: ${{ matrix.machine }}
+          - **Architecture**: $(echo "${{ matrix.machine }}" | grep -q "imx8mm" && echo "i.MX8M Mini" || echo "i.MX93")
+          - **Board Type**: $(echo "${{ matrix.machine }}" | sed 's/.*jaguar-//' | tr '[:lower:]' '[:upper:]')
+          
+          EOF
+            fi
+            
+            # Create build artifact summary
             echo "# Build Artifacts for ${{ matrix.machine }} (${{ matrix.build_type }})" > artifacts/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
             echo "Generated on: $(date)" >> artifacts/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
             echo "Commit: ${{ github.sha }}" >> artifacts/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
@@ -316,6 +504,15 @@ jobs:
           name: build-artifacts-${{ matrix.machine }}-${{ matrix.build_type }}
           path: artifacts/
           retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload programming packages
+        if: always() && matrix.build_type == 'base'
+        uses: actions/upload-artifact@v4
+        with:
+          name: programming-package-${{ matrix.machine }}
+          path: programming-packages/${{ matrix.machine }}/
+          retention-days: 90
           if-no-files-found: warn
 
       - name: Generate build report
@@ -369,10 +566,267 @@ jobs:
           path: build-report-${{ matrix.machine }}-${{ matrix.build_type }}.md
           retention-days: 90
 
+  # Create final programming packages combining base + mfgtool artifacts
+  create-programming-packages:
+    runs-on: self-hosted
+    needs: [setup, build]
+    if: always() && needs.setup.outputs.should_build == 'true'
+    strategy:
+      matrix:
+        machine: ${{ fromJSON(needs.setup.outputs.machines) }}
+    steps:
+      - name: Download base build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ matrix.machine }}-base
+          path: base-artifacts/
+        continue-on-error: true
+
+      - name: Download mfgtool build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ matrix.machine }}-mfgtool
+          path: mfgtool-artifacts/
+        continue-on-error: true
+
+      - name: Create complete programming package
+        run: |
+          echo "📦 Creating complete programming package for ${{ matrix.machine }}"
+          
+          # Create programming package directory
+          mkdir -p programming-packages/${{ matrix.machine }}
+          
+          # Copy base build files if available
+          if [ -d "base-artifacts/${{ matrix.machine }}/base" ]; then
+            echo "📋 Adding base build files..."
+            
+            # Files needed for UUU programming
+            base_files=(
+              "lmp-factory-image-${{ matrix.machine }}.wic.gz"
+              "imx-boot-${{ matrix.machine }}"
+              "u-boot-${{ matrix.machine }}.itb"
+            )
+            
+            for file in "${base_files[@]}"; do
+              if [ -f "base-artifacts/${{ matrix.machine }}/base/$file" ]; then
+                cp "base-artifacts/${{ matrix.machine }}/base/$file" "programming-packages/${{ matrix.machine }}/"
+                echo "✅ Added: $file"
+              else
+                echo "⚠️  Missing base file: $file"
+              fi
+            done
+          else
+            echo "❌ Base build artifacts not found"
+          fi
+          
+          # Copy mfgtool files if available
+          if [ -d "mfgtool-artifacts/${{ matrix.machine }}/mfgtool" ]; then
+            echo "📋 Adding mfgtool files..."
+            
+            # Mfgtool files
+            mfgtool_files=(
+              "imx-boot-mfgtool"
+              "u-boot-mfgtool.itb"
+            )
+            
+            for file in "${mfgtool_files[@]}"; do
+              if [ -f "mfgtool-artifacts/${{ matrix.machine }}/mfgtool/$file" ]; then
+                cp "mfgtool-artifacts/${{ matrix.machine }}/mfgtool/$file" "programming-packages/${{ matrix.machine }}/"
+                echo "✅ Added: $file"
+              else
+                echo "⚠️  Missing mfgtool file: $file"
+              fi
+            done
+          else
+            echo "❌ Mfgtool build artifacts not found"
+          fi
+          
+          # Create programming script
+          cat > programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh << 'EOF'
+          #!/bin/bash
+          # Board Programming Script for ${{ matrix.machine }}
+          # Generated automatically by CI build
+          
+          set -e
+          
+          MACHINE="${{ matrix.machine }}"
+          SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          
+          echo "🚀 Programming $MACHINE board..."
+          echo "📁 Using files from: $SCRIPT_DIR"
+          
+          # Verify required files exist
+          required_files=(
+              "imx-boot-mfgtool"
+              "u-boot-mfgtool.itb"
+              "lmp-factory-image-$MACHINE.wic.gz"
+              "imx-boot-$MACHINE"
+              "u-boot-$MACHINE.itb"
+          )
+          
+          missing_files=()
+          for file in "${required_files[@]}"; do
+              if [ ! -f "$SCRIPT_DIR/$file" ]; then
+                  missing_files+=("$file")
+              fi
+          done
+          
+          if [ ${#missing_files[@]} -gt 0 ]; then
+              echo "❌ Missing required files:"
+              printf '  - %s\n' "${missing_files[@]}"
+              echo ""
+              echo "Available files:"
+              ls -la "$SCRIPT_DIR"
+              exit 1
+          fi
+          
+          echo "✅ All required files present"
+          
+          # Create UUU script
+          cat > "$SCRIPT_DIR/program_$MACHINE.uuu" << UUU_EOF
+          uuu_version 1.2.39
+          
+          SDP: boot -f imx-boot-mfgtool
+          
+          SDPV: delay 1000
+          SDPV: write -f u-boot-mfgtool.itb
+          SDPV: jump
+          
+          FB: ucmd setenv fastboot_dev mmc
+          FB: ucmd setenv mmcdev \${emmc_dev}
+          FB: ucmd mmc dev \${emmc_dev} 1; mmc erase 0 0x2000
+          FB: flash -raw2sparse all lmp-factory-image-$MACHINE.wic.gz/*
+          FB: flash bootloader imx-boot-$MACHINE
+          FB: flash bootloader2 u-boot-$MACHINE.itb
+          FB: flash bootloader_s imx-boot-$MACHINE
+          FB: flash bootloader2_s u-boot-$MACHINE.itb
+          FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
+          FB: ucmd mmc partconf \${emmc_dev} \${emmc_ack} 1 0
+          FB: done
+          UUU_EOF
+          
+          echo "✅ Created UUU script: program_$MACHINE.uuu"
+          echo ""
+          echo "🔌 To program the board:"
+          echo "  1. Put board in download mode"
+          echo "  2. Connect USB cable"
+          echo "  3. Run: sudo uuu program_$MACHINE.uuu"
+          echo ""
+          echo "Or use this script with --flash to program automatically:"
+          echo "  ./program-$MACHINE.sh --flash"
+          
+          # Optionally run UUU if requested
+          if [ "${1:-}" = "--flash" ]; then
+              echo "🚀 Starting board programming..."
+              if command -v uuu >/dev/null 2>&1; then
+                  sudo uuu "program_$MACHINE.uuu"
+              else
+                  echo "❌ UUU tool not found. Please install NXP UUU tool first."
+                  exit 1
+              fi
+          fi
+          EOF
+          
+          chmod +x programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh
+          
+          # Create comprehensive README
+          cat > programming-packages/${{ matrix.machine }}/README.md << 'EOF'
+          # Programming Package for ${{ matrix.machine }}
+          
+          **Generated**: $(date)  
+          **Commit**: ${{ github.sha }}  
+          **Branch**: ${{ github.ref_name }}  
+          **Build Run**: ${{ github.run_number }}
+          
+          ## Files Included
+          
+          ### Manufacturing Tool Files (for board programming)
+          - `imx-boot-mfgtool` - Manufacturing tool bootloader
+          - `u-boot-mfgtool.itb` - Manufacturing tool U-Boot
+          
+          ### Production Files (to be programmed onto board)
+          - `imx-boot-${{ matrix.machine }}` - Production bootloader for ${{ matrix.machine }}
+          - `u-boot-${{ matrix.machine }}.itb` - Production U-Boot for ${{ matrix.machine }}
+          - `lmp-factory-image-${{ matrix.machine }}.wic.gz` - Complete system image
+          
+          ### Programming Tools
+          - `program-${{ matrix.machine }}.sh` - Automated programming script
+          - `program_${{ matrix.machine }}.uuu` - UUU programming script (auto-generated)
+          
+          ## Prerequisites
+          
+          - **NXP UUU Tool**: Install from https://github.com/nxp-imx/mfgtools
+          - **USB Connection**: Connect board to host via USB
+          - **Download Mode**: Board must be in download/recovery mode
+          
+          ## Quick Start
+          
+          1. **Install UUU** (if not already installed):
+             ```bash
+             # Ubuntu/Debian
+             sudo apt install uuu
+             
+             # Or download from GitHub releases
+             wget https://github.com/nxp-imx/mfgtools/releases/latest/download/uuu
+             chmod +x uuu
+             sudo mv uuu /usr/local/bin/
+             ```
+          
+          2. **Put board in download mode**:
+             - Power off the board
+             - Set boot switches for download mode (see board manual)
+             - Connect USB cable between board and host
+             - Power on the board
+          
+          3. **Program the board**:
+             ```bash
+             ./program-${{ matrix.machine }}.sh --flash
+             ```
+          
+          ## Manual Programming
+          
+          For more control over the programming process:
+          ```bash
+          sudo uuu program_${{ matrix.machine }}.uuu
+          ```
+          
+          ## Board Information
+          
+          - **Machine**: ${{ matrix.machine }}
+          - **Architecture**: $(echo "${{ matrix.machine }}" | grep -q "imx8mm" && echo "i.MX8M Mini" || echo "i.MX93")
+          - **Board Type**: $(echo "${{ matrix.machine }}" | sed 's/.*jaguar-//' | tr '[:lower:]' '[:upper:]')
+          
+          ## Troubleshooting
+          
+          ### Board not detected
+          - Verify USB connection
+          - Check board is in download mode
+          - Try different USB cable/port
+          - Check `lsusb` for NXP device
+          
+          ### Programming fails
+          - Ensure all files are present
+          - Check file permissions
+          - Verify UUU tool is latest version
+          - Run with `sudo` privileges
+          
+          ### Recovery
+          If programming fails partway through, the board should still be recoverable by repeating the process.
+          
+          EOF
+
+      - name: Upload complete programming package
+        uses: actions/upload-artifact@v4
+        with:
+          name: programming-package-${{ matrix.machine }}
+          path: programming-packages/${{ matrix.machine }}/
+          retention-days: 90
+          if-no-files-found: warn
+
   # Summary job that creates overall build status
   summary:
-    runs-on: ubuntu-latest
-    needs: [setup, build]
+    runs-on: self-hosted
+    needs: [setup, build, create-programming-packages]
     if: always() && needs.setup.outputs.should_build == 'true'
     steps:
       - name: Generate build summary
