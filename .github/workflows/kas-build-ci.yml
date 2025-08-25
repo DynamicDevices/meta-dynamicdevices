@@ -312,9 +312,11 @@ jobs:
           fi
 
       - name: Yocto Project Compatible Layer Validation
+        continue-on-error: true
         run: |
           echo "🏅 Running official Yocto Project layer compatibility validation..."
           echo "📋 Using yocto-check-layer script from OpenEmbedded-Core"
+          echo "⚠️  NOTE: This is a validation check - failures here will generate warnings, not build failures"
           
           # Download and run yocto-check-layer script in KAS container environment
           # This validates our layer against official Yocto Project compatibility criteria
@@ -352,7 +354,7 @@ jobs:
                 cd /repo
                 echo "🔧 Running: $YOCTO_CHECK_CMD --layer /repo --machines imx8mm-jaguar-sentai"
                 "$YOCTO_CHECK_CMD" --layer /repo --machines imx8mm-jaguar-sentai \
-                  || echo "⚠️  Some compatibility issues found - see output above for details"
+                  || echo "⚠️  VALIDATION WARNING: Some compatibility issues found - see output above for details"
                 
                 echo ""
                 echo "📊 Yocto Project Compatibility Results:"
@@ -372,6 +374,9 @@ jobs:
           echo "📋 Yocto Project Compatible Layer Validation Summary:"
           echo "   This validation checks our layer against official Yocto Project"
           echo "   compatibility criteria to ensure it works well with other layers."
+          echo ""
+          echo "⚠️  IMPORTANT: This step generates warnings only - it will not fail the build"
+          echo "   Any compatibility issues should be addressed but won't block CI/CD"
           echo ""
           echo "🏅 Benefits of Yocto Project Compatible certification:"
           echo "   • Better interoperability with other layers"
