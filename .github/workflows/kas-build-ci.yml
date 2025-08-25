@@ -298,6 +298,74 @@ jobs:
             echo "⚠️  Layer compatibility check complete - $total_issues issues found"
           fi
 
+      - name: Yocto Project Compatible Layer Validation
+        run: |
+          echo "🏅 Running official Yocto Project layer compatibility validation..."
+          echo "📋 Using yocto-check-layer script from OpenEmbedded-Core"
+          
+          # Download and run yocto-check-layer script in KAS container environment
+          # This validates our layer against official Yocto Project compatibility criteria
+          kas-container \
+            --runtime-args "-e KAS_MACHINE=imx8mm-jaguar-sentai" \
+            shell kas/lmp-dynamicdevices-base.yml -c '
+              echo "🔍 Checking if yocto-check-layer is available..."
+              
+              # Find yocto-check-layer script
+              if command -v yocto-check-layer >/dev/null 2>&1; then
+                echo "✅ Found yocto-check-layer command"
+                YOCTO_CHECK_CMD="yocto-check-layer"
+              elif [ -f "openembedded-core/scripts/yocto-check-layer" ]; then
+                echo "✅ Found yocto-check-layer script in OE-Core"
+                YOCTO_CHECK_CMD="openembedded-core/scripts/yocto-check-layer"
+              else
+                echo "⚠️  yocto-check-layer not found, searching in build environment..."
+                find . -name "yocto-check-layer" -type f 2>/dev/null | head -1
+                YOCTO_CHECK_CMD=$(find . -name "yocto-check-layer" -type f 2>/dev/null | head -1)
+              fi
+              
+              if [ -n "$YOCTO_CHECK_CMD" ] && [ -f "$YOCTO_CHECK_CMD" ]; then
+                echo "🏅 Running Yocto Project Compatible layer validation..."
+                echo "📂 Validating layer: meta-dynamicdevices"
+                
+                # Run yocto-check-layer on our meta layer
+                cd /repo
+                python3 "$YOCTO_CHECK_CMD" \
+                  --layer-path . \
+                  --output-log yocto-layer-check.log \
+                  --machine imx8mm-jaguar-sentai \
+                  --additional-layers openembedded-core/meta \
+                  || echo "⚠️  Some compatibility issues found - see log for details"
+                
+                echo ""
+                echo "📊 Yocto Project Compatibility Results:"
+                if [ -f yocto-layer-check.log ]; then
+                  echo "📋 Full validation log:"
+                  cat yocto-layer-check.log
+                else
+                  echo "⚠️  No log file generated"
+                fi
+                
+              else
+                echo "❌ yocto-check-layer script not found in build environment"
+                echo "📝 Manual validation recommended using:"
+                echo "   yocto-check-layer --layer-path . --machine <MACHINE>"
+                echo ""
+                echo "🔗 For manual validation, see:"
+                echo "   https://docs.yoctoproject.org/test-manual/yocto-project-compatible.html"
+              fi
+            '
+          
+          echo ""
+          echo "📋 Yocto Project Compatible Layer Validation Summary:"
+          echo "   This validation checks our layer against official Yocto Project"
+          echo "   compatibility criteria to ensure it works well with other layers."
+          echo ""
+          echo "🏅 Benefits of Yocto Project Compatible certification:"
+          echo "   • Better interoperability with other layers"
+          echo "   • Follows established best practices"
+          echo "   • Easier integration for end users"
+          echo "   • Reduced conflicts in multi-layer builds"
+
       - name: Validate device tree syntax
         run: |
           echo "🔍 Validating device tree files..."

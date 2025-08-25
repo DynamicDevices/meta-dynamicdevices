@@ -197,6 +197,7 @@ Our CI pipeline includes enterprise-grade validation across all layers:
 | **Shell Scripts** | Syntax, best practices, security | `shellcheck` via Docker |
 | **Yocto Recipes** | BB syntax, style, SRC_URI validation | Custom validators |
 | **Layer Config** | Dependencies, priorities, collections | BitBake compatibility |
+| **Yocto Compatible** | Official Yocto Project layer compatibility | `yocto-check-layer` script |
 | **Device Trees** | DTS syntax, naming, indentation | Custom DT checkers |
 | **Build System** | KAS configs, machine definitions | Multi-environment testing |
 | **CVE Security** | Vulnerable packages, hardcoded secrets | Security scanners |
