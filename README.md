@@ -12,6 +12,7 @@
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/DynamicDevices/meta-dynamicdevices)](https://github.com/DynamicDevices/meta-dynamicdevices/pulls)
 [![Latest Release](https://img.shields.io/github/v/release/DynamicDevices/meta-dynamicdevices?include_prereleases)](https://github.com/DynamicDevices/meta-dynamicdevices/releases)
 [![Code Quality](https://img.shields.io/badge/code%20quality-multi--layer%20✓-brightgreen)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
+[![Security Scanning](https://img.shields.io/badge/security-CVE%20%2B%20SBOM%20✓-blue)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
 This BSP layer provides comprehensive board support for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
 
@@ -187,9 +188,9 @@ Our automated CI/CD pipeline builds and validates all board variants on every co
 - **🎯 Multi-Board Matrix**: Simultaneous builds for imx8mm and imx93 platforms
 - **⚡ Optimized Performance**: Persistent cache and CPU-optimized parallel builds
 
-### 🔍 **Code Quality Validation**
+### 🔍 **Comprehensive Quality & Security Validation**
 
-Our CI includes comprehensive quality checks across all layers:
+Our CI pipeline includes enterprise-grade validation across all layers:
 
 | **Layer** | **Checks** | **Tools** |
 |-----------|------------|-----------|
@@ -200,6 +201,46 @@ Our CI includes comprehensive quality checks across all layers:
 | **Build System** | KAS configs, machine definitions | Multi-environment testing |
 | **CVE Security** | Vulnerable packages, hardcoded secrets | Security scanners |
 | **SBOM Generation** | Software Bill of Materials | SPDX-compliant SBOM |
+
+### 🔒 **Security & CVE Validation**
+
+#### **Vulnerability Scanning**
+- **30+ Critical Packages**: OpenSSL, glibc, BusyBox, SSH, curl, systemd, kernel, U-Boot
+- **Version Analysis**: Detection of pinned versions that may contain known vulnerabilities
+- **Security Configuration**: Validation of FORTIFY_SOURCE, security CFLAGS/LDFLAGS
+- **Network Security**: Detection of insecure HTTP/FTP downloads and configurations
+
+#### **Secret & Credential Detection**
+- **Hardcoded Secrets**: Scans for passwords, API keys, tokens, certificates in recipes
+- **Configuration Security**: Identifies disabled security features and insecure settings
+- **License Compliance**: Validates LICENSE declarations and identifies proprietary components
+- **Technical Debt**: Tracks security-related TODOs and FIXMEs requiring attention
+
+#### **Build Security & Reproducibility**
+- **Reproducible Builds**: Validates SOURCE_DATE_EPOCH configuration
+- **Security Features**: Checks for PAM, systemd, SELinux, SMACK, IMA integration
+- **Debug Features**: Warns about debug-tweaks and development features in production
+- **Host Contamination**: Prevents host system contamination in builds
+
+### 📋 **SBOM & Supply Chain Transparency**
+
+#### **SPDX-Compliant Documentation**
+- **SPDX 2.3 Standard**: Industry-standard Software Bill of Materials format
+- **Complete Inventory**: All recipes, versions, licenses, and dependencies tracked
+- **Package Manifests**: Runtime package information from Yocto builds
+- **Build Metadata**: Machine type, configuration, commit hash, timestamps
+
+#### **Supply Chain Security**
+- **Artifact Inclusion**: SBOM included in every programming package
+- **Long-term Retention**: 90-day artifact retention for compliance auditing
+- **Multi-Build Coverage**: Separate SBOMs for base and manufacturing tool builds
+- **Traceability**: Complete source-to-deployment component tracking
+
+#### **Compliance & Auditing**
+- **Regulatory Compliance**: Supports software supply chain regulations
+- **Vendor Management**: Clear component sourcing and licensing information
+- **Security Audits**: Detailed vulnerability and component analysis
+- **Risk Assessment**: Enables comprehensive security risk evaluation
 
 [**View Latest Builds →**](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
