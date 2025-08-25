@@ -169,11 +169,18 @@ jobs:
         run: |
           echo "🔍 Linting shell scripts with Docker..."
           
+          # Pre-pull shellcheck Docker image once for efficiency
+          echo "📦 Pulling shellcheck Docker image..."
+          docker pull koalaman/shellcheck:stable
+          
           # Use shellcheck via Docker container (no host installation needed)
           if find scripts/ -name "*.sh" -print -quit | grep -q .; then
-            echo "Running shellcheck on shell scripts..."
-            # Run shellcheck on each script individually to avoid path issues
-            find scripts/ -name "*.sh" -exec bash -c 'docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable "/mnt/$1"' _ {} \;
+            echo "Running shellcheck on shell scripts:"
+            find scripts/ -name "*.sh" | sed 's|^|  - |'
+            # Run shellcheck on all scripts in a single container invocation for speed
+            # Use find to generate the file list and pass it to shellcheck
+            docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable \
+              sh -c 'find /mnt/scripts -name "*.sh" -exec shellcheck {} +'
           else
             echo "⚠️ No shell scripts found to lint"
           fi
