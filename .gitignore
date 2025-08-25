@@ -1,37 +1,55 @@
-# Build artifacts and temporary directories
+# Build outputs and layers (these are downloaded by KAS)
 build/
-build-*/
+tmp/
+tmp-glibc/
+cache/
+downloads/
+sstate-cache/
+bitbake/
 layers/
 lmp-tools/
-bitbake/
 openembedded-core/
-lmp-docker/
 
-# Generated binaries and images
+# Build artifacts  
+archive/
 imx93/
 imx93-eink/
-program/program_full_image.uuu
+*.tgz
+*.tar.gz
+*.zip
 
-# Security keys and certificates
-conf/factory-keys/
-
-# Temporary files
-.swp
-*.log
-.kas_shell_history
-*~
-.*.sw*
-
-# Docker and container files
-lmp-dynamicdevices-mfgtool.yml
-
-# Documentation artifacts
-"Eink 13inch.txt"
-
-# Build configuration that gets generated
-conf/bblayers.conf.sample
-conf/local.conf.sample
-
-# Local testing configuration files (not to be committed)
+# Local configuration files
 *.local
-recipes-support/default-network-manager/default-network-manager/wifi-config.local
+
+# Temporary and log files
+*.log
+logs/
+temp/
+
+# Editor files
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local testing files
+test-*.conf
+test-*.rules
+
+# Device tree build artifacts  
+*.dtb
+*.dts.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Local development
+local/
+scratch/
