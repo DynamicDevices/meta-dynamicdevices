@@ -24,7 +24,5 @@ local_conf_header:
   meta-dynamicdevices: |
      ACCEPT_FSL_EULA = "1"
      DEV_MODE = "1"
-     # We expect to be running in a kas container with a mapping to host /var/cache
-     DL_DIR = "/var/cache/downloads"
-     SSTATE_DIR = "/var/cache/sstate"
+     # Use default cache directories - kas-container will handle cache mapping
      BB_GENERATE_MIRROR_TARBALLS = "1"
