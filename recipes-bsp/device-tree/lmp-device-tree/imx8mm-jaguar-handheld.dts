@@ -25,17 +25,29 @@
 
 &iomuxc {
         pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hog>;
+	pinctrl-0 = <&pinctrl_wireless &pinctrl_ui &pinctrl_zigbee>;
 
-	// TODO: Break these out better?
-	pinctrl_hog: hoggrp {
+	// Wireless Connectivity (WiFi/Bluetooth)
+	pinctrl_wireless: wirelessgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_SD1_DATA4_GPIO2_IO6	0x140  // WL_WAKE_DEV
 			MX8MM_IOMUXC_SD1_DATA5_GPIO2_IO7	0x140  // BT_WAKE_DEV
                         MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7      0x140  // WIFI_PD#
 			MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8	0x140  // BT_WAKE_HOST
                         MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9      0x140  // BT_RST#
+		>;
+	};
+
+	// User Interface (LED)
+	pinctrl_ui: uigrp {
+		fsl,pins = <
                         MX8MM_IOMUXC_SAI1_RXD7_GPIO4_IO9        0x140  // LED_ENABLE
+		>;
+	};
+
+	// 802.15.4/Zigbee Control
+	pinctrl_zigbee: zigbeegrp {
+		fsl,pins = <
                         MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11      0x140  // ZB_RST#
                         MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12     0x140  // ZB_INT
 		>;
