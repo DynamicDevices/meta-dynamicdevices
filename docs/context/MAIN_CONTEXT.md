@@ -7,8 +7,10 @@ This repository contains BSP (Board Support Package) layers for Dynamic Devices 
 ## Supported Boards
 
 ### Edge Board Family
-- **Edge AI Board** (imx8mm-jaguar-sentai) - AI audio processing platform
-- **Edge EInk Board** (imx93-jaguar-eink) - Low-power e-ink display controller  
+- **Edge AI Board** (imx8mm-jaguar-sentai) - AI audio processing platform with TAS2563 dual codec
+- **Edge EInk Board** (imx93-jaguar-eink) - Low-power e-ink display controller with magic packet wake
+- **Edge EV Board** - Clean energy management (future)
+- **Edge GW Board** - Communications gateway (future)  
 
 ## Repository Structure
 
@@ -71,8 +73,17 @@ kas build kas/lmp-dynamicdevices.yml
 
 Individual projects have detailed context documentation:
 
-- **[Edge EInk Context](../projects/edge-eink-context.md)** - Power management and suspend/resume
-- **[WiFi Testing Guide](../projects/wifi-testing-guide.md)** - Local WiFi configuration
+- **[Edge EInk Context](../projects/edge-eink-context.md)** - Power management and suspend/resume implementation
+- **[WiFi Testing Guide](../projects/wifi-testing-guide.md)** - Local WiFi configuration for development
+- **[Power Management Summary](../projects/power-management-summary.md)** - Detailed power implementation guide
+
+## Board Documentation (Wiki)
+
+Comprehensive user documentation is maintained in the wiki:
+
+- **[Edge AI Board](../../wiki/Edge-AI-Board.md)** - Audio processing, TAS2563, sensors
+- **[Edge EInk Board](../../wiki/Edge-EInk-Board.md)** - Power management, hardware specs, connectivity
+- **[Edge EInk Power Management](../../wiki/Edge-EInk-Power-Management.md)** - Detailed implementation guide
 
 ## Contributing
 
