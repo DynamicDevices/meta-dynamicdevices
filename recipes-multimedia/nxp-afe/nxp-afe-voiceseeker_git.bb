@@ -49,6 +49,8 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 FILES:${PN} += "${libdir}/nxp-afe/* \
                 /unit_tests/* \
 "
+# QA Skip Justification: NXP VoiceSeeker library includes .so files in main package
+# for runtime voice processing functionality, not development files
 INSANE_SKIP:${PN} += "dev-so"
 
 COMPATIBLE_MACHINE = "(mx8-nxp-bsp|mx9-nxp-bsp)"

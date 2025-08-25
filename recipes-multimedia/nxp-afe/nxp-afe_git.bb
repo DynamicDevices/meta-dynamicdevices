@@ -42,6 +42,8 @@ do_install() {
 }
 
 FILES:${PN} += "/unit_tests ${sbindir} ${systemd_unitdir}/system"
+# QA Skip Justification: NXP AFE library includes .so files in main package
+# for runtime audio processing functionality, not development files
 INSANE_SKIP:${PN} += "dev-so"
 
 SYSTEMD_SERVICE:${PN} = "nxp-afe.service"

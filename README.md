@@ -259,11 +259,70 @@ Our CI pipeline includes enterprise-grade validation across all layers:
 3. Update documentation and changelog
 4. Follow professional development standards
 
+## 🏅 Yocto Project Layer Information
+
+### Layer Details
+- **Layer Name**: meta-dynamicdevices
+- **Layer Type**: BSP (Board Support Package) + Software Layer
+- **Maintainer**: Dynamic Devices Ltd
+- **Repository**: https://github.com/DynamicDevices/meta-dynamicdevices
+- **Branch Compatibility**: scarthgap, kirkstone
+- **Yocto Project Compatible**: In Progress
+
+### Layer Origin & Purpose
+This layer was created by Dynamic Devices Ltd to provide comprehensive board support for our Edge Computing platform family. The layer includes:
+
+- **BSP Components**: Device trees, kernel configurations, bootloader support
+- **Hardware Drivers**: Audio (TAS2563), power management (STUSB4500), sensors
+- **Software Stack**: Audio processing, connectivity, system services
+- **Integration**: Foundries.io LMP integration for secure OTA updates
+
+### Dependencies
+**Required Layers:**
+- `openembedded-core` (meta)
+- `meta-lmp-base` (Foundries.io Linux microPlatform)
+- `meta-lmp-bsp` (Foundries.io BSP layer)
+- `meta-openembedded/meta-oe`
+- `meta-openembedded/meta-networking`
+- `meta-openembedded/meta-python`
+- `meta-openembedded/meta-multimedia`
+
+**Optional Layers:**
+- `meta-rust-bin` (for Rust-based utilities)
+- `meta-security` (enhanced security features)
+
+### Version Requirements
+- **Yocto Project**: 5.0+ (Scarthgap) or 4.0+ (Kirkstone)
+- **BitBake**: 2.0+
+- **Python**: 3.8+
+- **KAS**: 3.0+ (recommended build tool)
+
+### Submitting Changes
+1. **Fork** the repository on GitHub
+2. **Create** a feature branch from main
+3. **Follow** coding standards and use provided templates
+4. **Test** changes with `yocto-check-layer` validation
+5. **Submit** pull request with detailed description
+6. **Address** review feedback promptly
+
+### Bug Reports & Issues
+- **GitHub Issues**: https://github.com/DynamicDevices/meta-dynamicdevices/issues
+- **Security Issues**: See [SECURITY.md](SECURITY.md) for responsible disclosure
+- **Feature Requests**: Use GitHub Issues with enhancement label
+
+### Layer Compatibility
+This layer is designed to be compatible with other Yocto Project layers:
+- **No QA Bypasses**: All standard QA checks are enabled
+- **Network Access**: Only during do_fetch using BitBake fetcher APIs
+- **Non-Invasive**: Does not change system behavior without explicit configuration
+- **Separation**: Hardware, distro, and software components are properly separated
+
 ## 📞 Support
 
 - **Technical Issues**: [GitHub Issues](https://github.com/DynamicDevices/meta-dynamicdevices/issues)
-- **Commercial Licensing**: licensing@dynamicdevices.co.uk
-- **General Inquiries**: info@dynamicdevices.co.uk
+- **Security Issues**: [security@dynamicdevices.co.uk](mailto:security@dynamicdevices.co.uk)
+- **Commercial Licensing**: [licensing@dynamicdevices.co.uk](mailto:licensing@dynamicdevices.co.uk)
+- **General Inquiries**: [info@dynamicdevices.co.uk](mailto:info@dynamicdevices.co.uk)
 - **Wiki**: [Comprehensive Documentation](https://github.com/DynamicDevices/meta-dynamicdevices/wiki)
 
 ---

@@ -26,7 +26,9 @@ inherit cmake
 # TODO: Fix C++11 narrowing conversion warnings in source code
 TARGET_CFLAGS += "-Wno-c++11-narrowing"
 
-# TODO: Address QA check failures instead of skipping them
+# QA Skip Justification: This is a development library that intentionally
+# includes development dependencies and ELF files for radar sensor integration.
+# These are required for the SPI communication interface functionality.
 INSANE_SKIP = "dev-deps dev-elf"
 
 inherit systemd

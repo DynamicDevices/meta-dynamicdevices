@@ -62,4 +62,7 @@ pkg_postinst_ontarget:${PN} () {
 #  rm /usr/share/waydroid-extra/images/vendor.img.*
 }
 
+# QA Skip Justification: Waydroid packages pre-built Android system images
+# which contain binaries for different architectures and complex dependencies
+# that cannot be analyzed by standard Yocto QA checks
 INSANE_SKIP:${PN} += "arch file-rdeps"
