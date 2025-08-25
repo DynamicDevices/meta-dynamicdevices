@@ -90,9 +90,25 @@ jobs:
 
       - name: Install validation dependencies
         run: |
-          # Install jq for JSON parsing in validation steps
-          sudo apt-get update -qq
-          sudo apt-get install -y jq
+          # Check if jq is available, install if needed
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "Installing jq for JSON parsing..."
+            if command -v apt-get >/dev/null 2>&1; then
+              apt-get update -qq && apt-get install -y jq
+            elif command -v yum >/dev/null 2>&1; then
+              yum install -y jq
+            elif command -v apk >/dev/null 2>&1; then
+              apk add jq
+            else
+              echo "⚠️ Cannot install jq automatically. Please install manually."
+              echo "Attempting to download jq binary..."
+              wget -O jq https://github.com/stedolan/jq/releases/latest/download/jq-linux64
+              chmod +x jq
+              export PATH="$PWD:$PATH"
+            fi
+          else
+            echo "✅ jq is already available"
+          fi
 
       - name: Validate KAS configurations
         run: |
@@ -186,17 +202,44 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install required tools for self-hosted runner
-          sudo apt-get update -qq
-          sudo apt-get install -y jq curl
+          # Install required tools for self-hosted runner (without sudo)
+          
+          # Check and install jq
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "Installing jq..."
+            if command -v apt-get >/dev/null 2>&1; then
+              apt-get update -qq && apt-get install -y jq curl
+            else
+              echo "Downloading jq binary..."
+              wget -O jq https://github.com/stedolan/jq/releases/latest/download/jq-linux64
+              chmod +x jq
+              mkdir -p ~/.local/bin
+              mv jq ~/.local/bin/
+              export PATH="$HOME/.local/bin:$PATH"
+              echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+            fi
+          else
+            echo "✅ jq is already available"
+          fi
+          
+          # Check and install curl
+          if ! command -v curl >/dev/null 2>&1; then
+            echo "⚠️ curl not found - may need manual installation"
+          else
+            echo "✅ curl is available"
+          fi
           
           # Install kas-container
           if ! command -v kas-container >/dev/null 2>&1; then
+            echo "Installing kas-container..."
             curl -L https://raw.githubusercontent.com/siemens/kas/master/kas-container -o kas-container
             chmod +x kas-container
-            sudo mv kas-container /usr/local/bin/
+            mkdir -p ~/.local/bin
+            mv kas-container ~/.local/bin/
+            export PATH="$HOME/.local/bin:$PATH"
+            echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
           else
-            echo "kas-container already installed"
+            echo "✅ kas-container already installed"
           fi
 
       - name: Setup persistent cache for self-hosted runner
@@ -204,11 +247,10 @@ jobs:
           echo "🗄️ Setting up persistent build cache for self-hosted runner"
           
           # Use a persistent cache directory on the self-hosted runner
-          CACHE_BASE="/var/cache/yocto-builds"
+          CACHE_BASE="$HOME/yocto-cache"
           
           # Create persistent cache directories if they don't exist
-          sudo mkdir -p "$CACHE_BASE"/{downloads,sstate}
-          sudo chown -R "$(id -u):$(id -g)" "$CACHE_BASE"
+          mkdir -p "$CACHE_BASE"/{downloads,sstate}
           
           # Create symlinks to the standard locations
           mkdir -p ~/yocto

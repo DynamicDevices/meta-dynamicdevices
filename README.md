@@ -92,8 +92,8 @@ fioctl devices access mydevice-001
 unzip programming-package-imx8mm-jaguar-sentai.zip  # (or your board)
 cd programming-package-imx8mm-jaguar-sentai/
 
-# Install UUU programming tool (Ubuntu/Debian)
-sudo apt install uuu
+# The programming package includes the correct UUU tool version
+# NO need to install system UUU - use the included one for compatibility
 
 # Program the board (takes ~3-5 minutes)
 ./program-imx8mm-jaguar-sentai.sh --flash
