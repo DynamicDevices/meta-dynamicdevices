@@ -265,10 +265,20 @@ jobs:
             # Extract package name from filename
             pkg_name=$(basename "$recipe" | sed 's/_.*\.bb.*//')
             
-            # Check if package depends on itself
-            if grep -q "DEPENDS.*$pkg_name" "$recipe" 2>/dev/null; then
+            # Check for actual circular dependencies (DEPENDS on exact same package name)
+            # Exclude RDEPENDS lines as they often reference sub-packages legitimately
+            if grep -E "^[[:space:]]*DEPENDS[[:space:]]*[+:=].*[[:space:]]${pkg_name}[[:space:]]*$" "$recipe" 2>/dev/null; then
               echo "  ⚠️  Potential circular dependency in: $recipe"
-              echo "    Package '$pkg_name' may depend on itself"
+              echo "    Package '$pkg_name' may depend on itself in DEPENDS"
+              grep -E "^[[:space:]]*DEPENDS[[:space:]]*[+:=].*[[:space:]]${pkg_name}[[:space:]]*$" "$recipe" | sed 's/^/      /'
+              circular_deps=$((circular_deps + 1))
+            fi
+            
+            # Check for obvious self-references in DEPENDS (but not RDEPENDS)
+            if grep -E "^[[:space:]]*DEPENDS[[:space:]]*[+:=].*[\"']${pkg_name}[\"']" "$recipe" 2>/dev/null; then
+              echo "  ⚠️  Potential circular dependency in: $recipe"
+              echo "    Package '$pkg_name' explicitly depends on itself"
+              grep -E "^[[:space:]]*DEPENDS[[:space:]]*[+:=].*[\"']${pkg_name}[\"']" "$recipe" | sed 's/^/      /'
               circular_deps=$((circular_deps + 1))
             fi
             
@@ -492,13 +502,16 @@ jobs:
             echo "✅ No security-related TODOs/FIXMEs found"
           fi
 
-      - name: Validate build reproducibility settings
+      - name: Validate build reproducibility and development settings
         run: |
-          echo "🔄 Checking build reproducibility and security settings..."
+          echo "🔄 Checking build reproducibility and development build settings..."
+          echo "📝 NOTE: These are DEBUG/DEVELOPMENT builds for CI validation - not production builds"
           
           # Check for SOURCE_DATE_EPOCH usage
           if ! find conf/ -name "*.conf" | xargs grep -q "SOURCE_DATE_EPOCH" 2>/dev/null; then
             echo "⚠️  SOURCE_DATE_EPOCH not configured - builds may not be reproducible"
+          else
+            echo "✅ SOURCE_DATE_EPOCH configured for reproducible builds"
           fi
           
           # Check for proper DISTRO security features
@@ -510,23 +523,45 @@ jobs:
             "DISTRO_FEATURES.*ima"
           )
           
-          echo "Checking security-related DISTRO_FEATURES..."
+          echo ""
+          echo "🔒 Checking security-related DISTRO_FEATURES..."
           for feature in "${security_features[@]}"; do
             if find conf/ -name "*.conf" | xargs grep -q "$feature" 2>/dev/null; then
               echo "✅ Found security feature: $feature"
             fi
           done
           
-          # Check for security-related IMAGE_FEATURES
+          # Check for development/debug IMAGE_FEATURES (expected in CI builds)
+          echo ""
+          echo "🛠️  Checking development features (expected in CI/debug builds):"
+          
           if find conf/ recipes* -name "*.bb" -o -name "*.conf" | xargs grep -q "IMAGE_FEATURES.*ssh-server-openssh" 2>/dev/null; then
-            echo "⚠️  OpenSSH server enabled - ensure proper key management"
+            echo "✅ OpenSSH server enabled (normal for development builds)"
+            echo "   📝 Production builds should use secure key management"
           fi
           
           if find conf/ recipes* -name "*.bb" -o -name "*.conf" | xargs grep -q "IMAGE_FEATURES.*debug-tweaks" 2>/dev/null; then
-            echo "⚠️  debug-tweaks enabled - should be disabled for production"
+            echo "✅ debug-tweaks enabled (normal for CI/development builds)"
+            echo "   📝 Production builds should disable debug-tweaks"
           fi
           
-          echo "✅ Build reproducibility and security settings check complete"
+          # Check for other development features
+          dev_features=(
+            "IMAGE_FEATURES.*package-management"
+            "IMAGE_FEATURES.*dev-pkgs"
+            "IMAGE_FEATURES.*dbg-pkgs"
+            "IMAGE_FEATURES.*tools-debug"
+          )
+          
+          for feature in "${dev_features[@]}"; do
+            if find conf/ recipes* -name "*.bb" -o -name "*.conf" | xargs grep -q "$feature" 2>/dev/null; then
+              echo "✅ Development feature found: $(echo $feature | sed 's/.*\*//')"
+            fi
+          done
+          
+          echo ""
+          echo "✅ Build configuration validation complete"
+          echo "🏭 Build Type: DEVELOPMENT/CI (includes debug features)"
 
       - name: Generate SBOM for recipes
         run: |
@@ -749,7 +784,6 @@ jobs:
           echo "Machine: $KAS_MACHINE"
           
           # Run KAS build in Docker container (all tools and dependencies included)
-          # Enable BitBake SBOM generation for comprehensive supply chain documentation
           kas-container \
             --runtime-args "-e KAS_MACHINE=$KAS_MACHINE \
                            -e DL_DIR=$DL_DIR \
@@ -761,9 +795,7 @@ jobs:
                            -e UBOOT_SIGN_ENABLE=$UBOOT_SIGN_ENABLE \
                            -e UBOOT_SPL_SIGN_ENABLE=$UBOOT_SPL_SIGN_ENABLE \
                            -e TF_A_SIGN_ENABLE=$TF_A_SIGN_ENABLE \
-                           -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE \
-                           -e INHERIT+='create-spdx' \
-                           -e SPDX_PRETTY=1" \
+                           -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE" \
             build "$kas_config"
 
       - name: Collect BitBake-generated SBOM
@@ -1090,6 +1122,8 @@ jobs:
           cat > build-report-${{ matrix.machine }}-${{ matrix.build_type }}.md << EOF
           # Build Report: ${{ matrix.machine }} (${{ matrix.build_type }})
           
+          **🛠️ BUILD TYPE: DEVELOPMENT/DEBUG BUILD FOR CI VALIDATION**
+          
           **Date:** $(date)
           **Commit:** ${{ github.sha }}
           **Branch:** ${{ github.ref_name }}
@@ -1100,18 +1134,27 @@ jobs:
           - **Machine:** ${{ matrix.machine }}
           - **Build Type:** ${{ matrix.build_type }}
           - **KAS Configuration:** $([ "${{ matrix.build_type }}" = "mfgtool" ] && echo "kas/lmp-dynamicdevices-mfgtool.yml" || echo "kas/lmp-dynamicdevices-base.yml")
+          - **Purpose:** CI Validation, Testing, Development
           
           ## Build Status
           - **Status:** ${{ job.status }}
           - **Duration:** \$(expr \$SECONDS / 60) minutes
           
           ## Build Environment
-          - **Runner:** ubuntu-latest
+          - **Runner:** self-hosted (Yocto Docker container)
           - **Parallel Jobs:** \$BB_NUMBER_THREADS
           - **Make Jobs:** \$PARALLEL_MAKE
           
-          ## Security Configuration
-          - **Signing Disabled:** Development build (CI environment)
+          ## Development Build Features
+          - **Debug Features:** Enabled (debug-tweaks, package management)
+          - **SSH Access:** Enabled for development/debugging
+          - **Signing:** Disabled (development build)
+          - **Package Management:** Enabled for runtime updates
+          
+          ## Production Build Notes
+          - **⚠️ NOT FOR PRODUCTION:** This is a debug/development build
+          - **Production builds should:** Disable debug-tweaks, enable signing, restrict SSH access
+          - **Security:** Development builds include debugging tools and relaxed security
           
           EOF
           
