@@ -749,12 +749,11 @@ jobs:
           echo "Machine: $KAS_MACHINE"
           
           # Run KAS build in Docker container (all tools and dependencies included)
+          # Enable BitBake SBOM generation for comprehensive supply chain documentation
           kas-container \
-            --runtime-args "-v $DL_DIR:/downloads \
-                           -v $SSTATE_DIR:/sstate \
-                           -e KAS_MACHINE=$KAS_MACHINE \
-                           -e DL_DIR=/downloads \
-                           -e SSTATE_DIR=/sstate \
+            --runtime-args "-e KAS_MACHINE=$KAS_MACHINE \
+                           -e DL_DIR=$DL_DIR \
+                           -e SSTATE_DIR=$SSTATE_DIR \
                            -e BB_NUMBER_THREADS=$BB_NUMBER_THREADS \
                            -e PARALLEL_MAKE='$PARALLEL_MAKE' \
                            -e OPTEE_TA_SIGN_ENABLE=$OPTEE_TA_SIGN_ENABLE \
@@ -762,88 +761,67 @@ jobs:
                            -e UBOOT_SIGN_ENABLE=$UBOOT_SIGN_ENABLE \
                            -e UBOOT_SPL_SIGN_ENABLE=$UBOOT_SPL_SIGN_ENABLE \
                            -e TF_A_SIGN_ENABLE=$TF_A_SIGN_ENABLE \
-                           -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE" \
+                           -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE \
+                           -e INHERIT+='create-spdx' \
+                           -e SPDX_PRETTY=1" \
             build "$kas_config"
 
-      - name: Generate build SBOM
+      - name: Collect BitBake-generated SBOM
         if: always()
         run: |
-          echo "📋 Generating Software Bill of Materials for build artifacts..."
+          echo "📋 Collecting BitBake-generated Software Bill of Materials..."
           
           # Create SBOM directory
           mkdir -p build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}
           
-          # Generate build-specific SBOM
-          cat > build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json << EOF
-          {
-            "sbom_version": "2.3",
-            "spdx_version": "SPDX-2.3",
-            "document_name": "meta-dynamicdevices-${{ matrix.machine }}-${{ matrix.build_type }}",
-            "document_namespace": "https://github.com/DynamicDevices/meta-dynamicdevices",
-            "creation_info": {
-              "created": "$(date -Iseconds)",
-              "creators": ["Tool: Dynamic Devices CI Pipeline"],
-              "license_list_version": "3.21"
-            },
-            "package_info": {
-              "name": "meta-dynamicdevices",
-              "version": "$(git describe --tags --always)",
-              "supplier": "Dynamic Devices Ltd",
-              "download_location": "https://github.com/DynamicDevices/meta-dynamicdevices",
-              "copyright_text": "NOASSERTION",
-              "license_concluded": "GPL-3.0-or-later",
-              "license_declared": "GPL-3.0-or-later"
-            },
-            "build_info": {
-              "machine": "${{ matrix.machine }}",
-              "build_type": "${{ matrix.build_type }}",
-              "kas_config": "$kas_config",
-              "commit": "${{ github.sha }}",
-              "build_date": "$(date -Iseconds)",
-              "build_host": "$(hostname)",
-              "yocto_version": "scarthgap"
-            }
-          }
-          EOF
-          
-          # Add package manifest if available
+          # BitBake with create-spdx generates comprehensive SPDX files
           deploy_dir="$KAS_WORK_DIR/build/tmp/deploy/images/${{ matrix.machine }}"
-          if [ -f "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest" ]; then
-            echo "📦 Found image manifest, adding to SBOM..."
-            echo '  ,"image_packages": [' >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json
+          spdx_dir="$KAS_WORK_DIR/build/tmp/deploy/spdx/${{ matrix.machine }}"
+          
+          if [ -d "$spdx_dir" ]; then
+            echo "✅ Found BitBake-generated SPDX/SBOM files"
             
-            # Parse package manifest and add to SBOM
-            first_pkg=true
-            while IFS= read -r line; do
-              if [[ $line =~ ^([^[:space:]]+)[[:space:]]+([^[:space:]]+)[[:space:]]+(.*)$ ]]; then
-                pkg_name="${BASH_REMATCH[1]}"
-                pkg_version="${BASH_REMATCH[2]}"
-                pkg_arch="${BASH_REMATCH[3]}"
-                
-                if [ "$first_pkg" = false ]; then
-                  echo "," >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json
-                fi
-                first_pkg=false
-                
-                cat >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json << EOF
-            {
-              "name": "$pkg_name",
-              "version": "$pkg_version",
-              "architecture": "$pkg_arch",
-              "supplier": "NOASSERTION",
-              "license": "NOASSERTION"
-            }
-          EOF
+            # Copy all SPDX files (these are the comprehensive SBOMs)
+            if [ -f "$spdx_dir/lmp-factory-image-${{ matrix.machine }}.spdx.json" ]; then
+              cp "$spdx_dir/lmp-factory-image-${{ matrix.machine }}.spdx.json" \
+                 "build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/image-sbom.spdx.json"
+              echo "📦 Copied image SPDX SBOM"
+            fi
+            
+            # Copy individual package SBOMs if available
+            find "$spdx_dir" -name "*.spdx.json" -exec cp {} "build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/" \;
+            
+            # Create summary of SBOM files
+            echo "## BitBake-Generated SBOM Files" > build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
+            echo "" >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
+            echo "**Machine**: ${{ matrix.machine }}" >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
+            echo "**Build Type**: ${{ matrix.build_type }}" >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
+            echo "**Generated**: $(date -Iseconds)" >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
+            echo "**Commit**: ${{ github.sha }}" >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
+            echo "" >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
+            echo "### SPDX 2.3 Compliant Files:" >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/README.md
+            
+            cd build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}
+            for file in *.spdx.json; do
+              if [ -f "$file" ]; then
+                size=$(du -h "$file" | cut -f1)
+                echo "- \`$file\` ($size)" >> README.md
               fi
-            done < "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest"
+            done
+            cd ../../../
             
-            echo ']' >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json
+            echo "✅ BitBake SBOM collection complete for ${{ matrix.machine }} (${{ matrix.build_type }})"
+          else
+            echo "⚠️  No BitBake SPDX files found - SBOM generation may have failed"
+            echo "Expected location: $spdx_dir"
+            
+            # Fallback: create basic manifest-based SBOM if image manifest exists
+            if [ -f "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest" ]; then
+              echo "📦 Creating basic SBOM from image manifest as fallback"
+              cp "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest" \
+                 "build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/package-manifest.txt"
+            fi
           fi
-          
-          # Close JSON
-          echo '}' >> build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom.json
-          
-          echo "✅ Build SBOM generated for ${{ matrix.machine }} (${{ matrix.build_type }})"
 
       - name: Collect build artifacts
         if: always()
@@ -1014,6 +992,12 @@ jobs:
           ### Programming Tools
           - `program-${{ matrix.machine }}.sh` - Automated programming script
           - `program_${{ matrix.machine }}.uuu` - UUU programming script (auto-generated)
+          
+          ### Software Bill of Materials (SBOM)
+          - `sbom/` - BitBake-generated SPDX 2.3 compliant SBOM files
+          - `sbom/image-sbom.spdx.json` - Complete image SBOM (if available)
+          - `sbom/*.spdx.json` - Individual package SBOMs
+          - `sbom/package-manifest.txt` - Package manifest (fallback)
           
           ## Usage
           
@@ -1243,21 +1227,31 @@ jobs:
             exit 1
           fi
           
-          # Copy SBOM files to programming package
-          echo "📋 Adding SBOM files to programming package..."
-          if [ -d "base-artifacts/${{ matrix.machine }}/base" ]; then
-            # Copy base build SBOM if available
-            if ls build-sbom/${{ matrix.machine }}/base/*.json 1> /dev/null 2>&1; then
-              cp build-sbom/${{ matrix.machine }}/base/*.json "programming-packages/${{ matrix.machine }}/" 2>/dev/null || true
-              echo "✅ Added base SBOM to programming package"
+          # Copy BitBake-generated SBOM files to programming package
+          echo "📋 Adding BitBake-generated SBOM files to programming package..."
+          
+          # Create SBOM directory in programming package
+          mkdir -p "programming-packages/${{ matrix.machine }}/sbom"
+          
+          # Copy base build SPDX SBOM files if available
+          if [ -d "build-sbom/${{ matrix.machine }}/base" ]; then
+            if ls build-sbom/${{ matrix.machine }}/base/*.spdx.json 1> /dev/null 2>&1; then
+              cp build-sbom/${{ matrix.machine }}/base/*.spdx.json "programming-packages/${{ matrix.machine }}/sbom/" 2>/dev/null || true
+              echo "✅ Added base build SPDX SBOM files"
+            fi
+            if ls build-sbom/${{ matrix.machine }}/base/*.txt 1> /dev/null 2>&1; then
+              cp build-sbom/${{ matrix.machine }}/base/*.txt "programming-packages/${{ matrix.machine }}/sbom/" 2>/dev/null || true
             fi
           fi
           
-          if [ -d "mfgtool-artifacts/${{ matrix.machine }}/mfgtool" ]; then
-            # Copy mfgtool SBOM if available
-            if ls build-sbom/${{ matrix.machine }}/mfgtool/*.json 1> /dev/null 2>&1; then
-              cp build-sbom/${{ matrix.machine }}/mfgtool/*.json "programming-packages/${{ matrix.machine }}/" 2>/dev/null || true
-              echo "✅ Added mfgtool SBOM to programming package"
+          # Copy mfgtool build SPDX SBOM files if available  
+          if [ -d "build-sbom/${{ matrix.machine }}/mfgtool" ]; then
+            if ls build-sbom/${{ matrix.machine }}/mfgtool/*.spdx.json 1> /dev/null 2>&1; then
+              cp build-sbom/${{ matrix.machine }}/mfgtool/*.spdx.json "programming-packages/${{ matrix.machine }}/sbom/" 2>/dev/null || true
+              echo "✅ Added mfgtool build SPDX SBOM files"
+            fi
+            if ls build-sbom/${{ matrix.machine }}/mfgtool/*.txt 1> /dev/null 2>&1; then
+              cp build-sbom/${{ matrix.machine }}/mfgtool/*.txt "programming-packages/${{ matrix.machine }}/sbom/" 2>/dev/null || true
             fi
           fi
           
