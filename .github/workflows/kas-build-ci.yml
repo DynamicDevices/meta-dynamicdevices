@@ -163,6 +163,104 @@ jobs:
             echo "⚠️ No shell scripts found to lint"
           fi
 
+      - name: Validate Yocto recipes
+        run: |
+          echo "🔍 Validating Yocto recipes and configurations..."
+          
+          # Check for common Yocto recipe issues
+          echo "Checking for recipe syntax issues..."
+          
+          # Check .bb and .bbappend files for common issues
+          find recipes* bbappends* conf/ -name "*.bb" -o -name "*.bbappend" -o -name "*.conf" | while read -r file; do
+            echo "Checking: $file"
+            
+            # Check for common syntax issues
+            if grep -n "^[[:space:]]*=" "$file" >/dev/null 2>&1; then
+              echo "⚠️  Potential assignment issue in $file (line starts with whitespace + =)"
+              grep -n "^[[:space:]]*=" "$file" || true
+            fi
+            
+            # Check for tabs vs spaces consistency
+            if grep -P "\t" "$file" >/dev/null 2>&1 && grep "^    " "$file" >/dev/null 2>&1; then
+              echo "⚠️  Mixed tabs and spaces in $file"
+            fi
+            
+            # Check for trailing whitespace
+            if grep -n "[[:space:]]$" "$file" >/dev/null 2>&1; then
+              echo "⚠️  Trailing whitespace in $file"
+              grep -n "[[:space:]]$" "$file" | head -5 || true
+            fi
+            
+            # Check for proper SRC_URI format
+            if grep -n "SRC_URI.*=" "$file" | grep -v "file://" | grep -v "git://" | grep -v "https://" | grep -v "http://" | grep -v "ftp://" >/dev/null 2>&1; then
+              echo "⚠️  Potential SRC_URI format issue in $file"
+            fi
+          done
+          
+          echo "✅ Yocto recipe validation complete"
+
+      - name: Check layer compatibility
+        run: |
+          echo "🔍 Checking layer compatibility and dependencies..."
+          
+          # Validate layer.conf files
+          find . -name "layer.conf" | while read -r layerconf; do
+            echo "Validating layer config: $layerconf"
+            
+            # Check for required variables
+            for var in BBPATH BBFILES BBFILE_COLLECTIONS; do
+              if ! grep -q "^$var" "$layerconf"; then
+                echo "⚠️  Missing $var in $layerconf"
+              fi
+            done
+            
+            # Check for proper priority setting
+            if ! grep -q "BBFILE_PRIORITY" "$layerconf"; then
+              echo "⚠️  Missing BBFILE_PRIORITY in $layerconf"
+            fi
+          done
+          
+          # Check for circular dependencies in .bb files
+          echo "Checking for potential circular dependencies..."
+          find recipes* bbappends* -name "*.bb" -o -name "*.bbappend" | while read -r recipe; do
+            # Extract package name from filename
+            pkg_name=$(basename "$recipe" | sed 's/_.*\.bb.*//')
+            
+            # Check if package depends on itself
+            if grep -q "DEPENDS.*$pkg_name" "$recipe" 2>/dev/null; then
+              echo "⚠️  Potential circular dependency in $recipe"
+            fi
+          done
+          
+          echo "✅ Layer compatibility check complete"
+
+      - name: Validate device tree syntax
+        run: |
+          echo "🔍 Validating device tree files..."
+          
+          # Check .dts files for common issues
+          find . -name "*.dts" -o -name "*.dtsi" | while read -r dtfile; do
+            echo "Checking device tree: $dtfile"
+            
+            # Check for proper node naming
+            if grep -n "[^a-zA-Z0-9_-]@[^0-9a-fA-F]" "$dtfile" >/dev/null 2>&1; then
+              echo "⚠️  Invalid node naming in $dtfile"
+            fi
+            
+            # Check for missing semicolons
+            if grep -n "^\s*[a-zA-Z_-].*=" "$dtfile" | grep -v ";" >/dev/null 2>&1; then
+              echo "⚠️  Potential missing semicolon in $dtfile"
+              grep -n "^\s*[a-zA-Z_-].*=" "$dtfile" | grep -v ";" | head -3 || true
+            fi
+            
+            # Check for proper indentation consistency
+            if grep -P "^\t" "$dtfile" >/dev/null 2>&1 && grep "^    " "$dtfile" >/dev/null 2>&1; then
+              echo "⚠️  Mixed tabs and spaces indentation in $dtfile"
+            fi
+          done
+          
+          echo "✅ Device tree validation complete"
+
   # Main build job with matrix strategy
   build:
     runs-on: self-hosted

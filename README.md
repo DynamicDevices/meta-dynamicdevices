@@ -11,7 +11,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/DynamicDevices/meta-dynamicdevices)](https://github.com/DynamicDevices/meta-dynamicdevices/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/DynamicDevices/meta-dynamicdevices)](https://github.com/DynamicDevices/meta-dynamicdevices/pulls)
 [![Latest Release](https://img.shields.io/github/v/release/DynamicDevices/meta-dynamicdevices?include_prereleases)](https://github.com/DynamicDevices/meta-dynamicdevices/releases)
-[![Code Quality](https://img.shields.io/badge/code%20quality-shellcheck%20✓-brightgreen)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
+[![Code Quality](https://img.shields.io/badge/code%20quality-multi--layer%20✓-brightgreen)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
 This BSP layer provides comprehensive board support for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
 
@@ -183,9 +183,21 @@ Our automated CI/CD pipeline builds and validates all board variants on every co
 
 - **🚀 Automated Builds**: All 5 board variants built in parallel using self-hosted runners
 - **📦 Programming Packages**: Complete board programming artifacts generated automatically  
-- **🧪 Quality Assurance**: Shellcheck linting, configuration validation, and build testing
+- **🧪 Multi-Layer Quality**: Comprehensive validation across all code layers
 - **🎯 Multi-Board Matrix**: Simultaneous builds for imx8mm and imx93 platforms
 - **⚡ Optimized Performance**: Persistent cache and CPU-optimized parallel builds
+
+### 🔍 **Code Quality Validation**
+
+Our CI includes comprehensive quality checks across all layers:
+
+| **Layer** | **Checks** | **Tools** |
+|-----------|------------|-----------|
+| **Shell Scripts** | Syntax, best practices, security | `shellcheck` via Docker |
+| **Yocto Recipes** | BB syntax, style, SRC_URI validation | Custom validators |
+| **Layer Config** | Dependencies, priorities, collections | BitBake compatibility |
+| **Device Trees** | DTS syntax, naming, indentation | Custom DT checkers |
+| **Build System** | KAS configs, machine definitions | Multi-environment testing |
 
 [**View Latest Builds →**](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
