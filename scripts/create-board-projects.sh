@@ -5,7 +5,7 @@
 
 set -e
 
-REPO="DynamicDevices/meta-dynamicdevices"
+# REPO variable removed as it was unused
 
 echo "Creating board-specific GitHub Projects..."
 

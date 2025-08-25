@@ -31,7 +31,7 @@ if [ $# -eq 0 ]; then
     echo ""
     echo "Available machines in build directory:"
     if [ -d "build/tmp/deploy/images" ]; then
-        ls -1 build/tmp/deploy/images/ 2>/dev/null | sed 's/^/  /' || echo "  No machines found"
+        find build/tmp/deploy/images/ -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sed 's/^/  /' || echo "  No machines found"
     else
         echo "  No build directory found (build/tmp/deploy/images/)"
     fi

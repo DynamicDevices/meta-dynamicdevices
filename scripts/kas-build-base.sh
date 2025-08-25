@@ -8,9 +8,13 @@
 
 if [ ! -d ~/yocto ]
 then
-  mkdir -p -m 777 ~/yocto
-  mkdir -p -m 777 ~/yocto/downloads
-  mkdir -p -m 777 ~/yocto/persistent
-  mkdir -p -m 777 ~/yocto/sstate
+  mkdir -p ~/yocto
+  mkdir -p ~/yocto/downloads
+  mkdir -p ~/yocto/persistent
+  mkdir -p ~/yocto/sstate
+  chmod 755 ~/yocto
+  chmod 755 ~/yocto/downloads
+  chmod 755 ~/yocto/persistent
+  chmod 755 ~/yocto/sstate
 fi
 kas-container --runtime-args "-v ${HOME}/yocto:/var/cache" build kas/lmp-dynamicdevices-base.yml

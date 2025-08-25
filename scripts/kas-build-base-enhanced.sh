@@ -186,7 +186,7 @@ parse_arguments() {
     local TEMP
     TEMP=$(getopt -o 'm:c:j:vh' --long 'machine:,cache-dir:,jobs:,verbose,help' -n "$0" -- "$@")
     
-    if [ $? -ne 0 ]; then
+    if ! getopt -o 'm:c:j:vh' --long 'machine:,cache-dir:,jobs:,verbose,help' -n "$0" -- "$@" >/dev/null; then
         show_usage
         exit 1
     fi
@@ -307,7 +307,8 @@ show_build_artifacts() {
         
         for artifact in "${artifacts[@]}"; do
             if [ -f "$deploy_dir/$artifact" ]; then
-                local size=$(du -h "$deploy_dir/$artifact" | cut -f1)
+                local size
+                size=$(du -h "$deploy_dir/$artifact" | cut -f1)
                 log_info "  - $artifact ($size)"
             fi
         done

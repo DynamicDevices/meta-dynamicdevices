@@ -6,7 +6,7 @@
 if [ -z "${KAS_MACHINE}" ]
 then
   echo
-  echo Set environment variable ${KAS_MACHINE} to one of the supported machine builds:
+  echo "Set environment variable \${KAS_MACHINE} to one of the supported machine builds:"
   echo
   echo e.g.
   echo
@@ -18,11 +18,12 @@ then
 fi
 
 # Customise the uuu script for the MACHINE
-sed 's/$KAS_MACHINE/'${KAS_MACHINE}'/g' program/program_full_image.uuu.in > program/program_full_image.uuu
+sed "s/\$KAS_MACHINE/${KAS_MACHINE}/g" program/program_full_image.uuu.in > program/program_full_image.uuu
 
 # Program the board
-export DIRNAME=`dirname ${0}`/program
-sudo ${DIRNAME}/uuu ${DIRNAME}/program_full_image.uuu
+DIRNAME=$(dirname "${0}")/program
+export DIRNAME
+sudo "${DIRNAME}"/uuu "${DIRNAME}"/program_full_image.uuu
 
 # Tidy up
-rm ${DIRNAME}/program_full_image.uuu
+rm "${DIRNAME}"/program_full_image.uuu
