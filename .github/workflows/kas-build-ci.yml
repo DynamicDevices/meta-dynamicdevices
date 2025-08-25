@@ -180,10 +180,18 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Install required tools for self-hosted runner
+          sudo apt-get update -qq
+          sudo apt-get install -y jq curl
+          
           # Install kas-container
-          curl -L https://raw.githubusercontent.com/siemens/kas/master/kas-container -o kas-container
-          chmod +x kas-container
-          sudo mv kas-container /usr/local/bin/
+          if ! command -v kas-container >/dev/null 2>&1; then
+            curl -L https://raw.githubusercontent.com/siemens/kas/master/kas-container -o kas-container
+            chmod +x kas-container
+            sudo mv kas-container /usr/local/bin/
+          else
+            echo "kas-container already installed"
+          fi
 
       - name: Setup persistent cache for self-hosted runner
         run: |

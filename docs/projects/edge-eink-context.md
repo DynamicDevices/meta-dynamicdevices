@@ -1,5 +1,12 @@
 # imx93-jaguar-eink Board Implementation Context
 
+**🔗 Related GitHub Issues**: [Edge EInk Board Milestone](https://github.com/DynamicDevices/meta-dynamicdevices/milestone/2)
+
+**📋 Key Active Issues**:
+- [Issue #11](https://github.com/DynamicDevices/meta-dynamicdevices/issues/11): Device Tree Pinctrl Configuration Cleanup (✅ Completed for imx93-jaguar-eink)
+- Issue #X: Power Management Integration (pending)
+- Issue #X: EInk Display Driver Integration (pending)
+
 ## Project Overview
 Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with focus on wireless connectivity using the ublox MAYA W2 module (IW612 chipset).
 

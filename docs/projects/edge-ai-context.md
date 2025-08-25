@@ -1,5 +1,11 @@
 # Edge AI Board (imx8mm-jaguar-sentai) Project Context
 
+**🔗 Related GitHub Issues**: [Edge AI Board Milestone](https://github.com/DynamicDevices/meta-dynamicdevices/milestone/1)
+
+**📋 Key Active Issues**:
+- [Issue #13](https://github.com/DynamicDevices/meta-dynamicdevices/issues/13): TAS2563 DSP Firmware for Noise Reduction
+- [Issue #10](https://github.com/DynamicDevices/meta-dynamicdevices/issues/10): STUSB4500 Power Controller Device Tree Integration
+
 ## Project Overview
 Development of audio processing capabilities for the Edge AI board using TAS2563 audio codecs with dual microphone support for speech-to-text and text-to-speech applications.
 
