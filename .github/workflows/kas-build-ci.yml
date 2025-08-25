@@ -875,12 +875,12 @@ jobs:
           # This key is part of meta-dynamicdevices Yocto layer
           # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
           # 
-          # COMMERCIAL USE: Contact licensing@dynamicdevices.co.uk
-          # IP THEFT REPORTING: Contact legal@dynamicdevices.co.uk
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
           # 
           # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
           # If found in commercial firmware without license, report to:
-          # Email: legal@dynamicdevices.co.uk
+          # Email: support@dynamicdevices.co.uk
           # Web: https://dynamicdevices.co.uk/contact
           #
           DUMMY_UBOOT_KEY_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
@@ -894,12 +894,12 @@ jobs:
           # This key is part of meta-dynamicdevices Yocto layer
           # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
           # 
-          # COMMERCIAL USE: Contact licensing@dynamicdevices.co.uk
-          # IP THEFT REPORTING: Contact legal@dynamicdevices.co.uk
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
           # 
           # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
           # If found in commercial firmware without license, report to:
-          # Email: legal@dynamicdevices.co.uk
+          # Email: support@dynamicdevices.co.uk
           # Web: https://dynamicdevices.co.uk/contact
           #
           DUMMY_SPL_KEY_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
@@ -913,12 +913,12 @@ jobs:
           # This key is part of meta-dynamicdevices Yocto layer
           # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
           # 
-          # COMMERCIAL USE: Contact licensing@dynamicdevices.co.uk
-          # IP THEFT REPORTING: Contact legal@dynamicdevices.co.uk
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
           # 
           # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
           # If found in commercial firmware without license, report to:
-          # Email: legal@dynamicdevices.co.uk
+          # Email: support@dynamicdevices.co.uk
           # Web: https://dynamicdevices.co.uk/contact
           #
           DUMMY_UEFI_KEY_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
@@ -933,12 +933,12 @@ jobs:
           # This certificate is part of meta-dynamicdevices Yocto layer
           # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
           # 
-          # COMMERCIAL USE: Contact licensing@dynamicdevices.co.uk
-          # IP THEFT REPORTING: Contact legal@dynamicdevices.co.uk
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
           # 
           # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
           # If found in commercial firmware without license, report to:
-          # Email: legal@dynamicdevices.co.uk
+          # Email: support@dynamicdevices.co.uk
           # Web: https://dynamicdevices.co.uk/contact
           #
           DUMMY_UBOOT_CERT_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
@@ -952,12 +952,12 @@ jobs:
           # This certificate is part of meta-dynamicdevices Yocto layer
           # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
           # 
-          # COMMERCIAL USE: Contact licensing@dynamicdevices.co.uk
-          # IP THEFT REPORTING: Contact legal@dynamicdevices.co.uk
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
           # 
           # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
           # If found in commercial firmware without license, report to:
-          # Email: legal@dynamicdevices.co.uk
+          # Email: support@dynamicdevices.co.uk
           # Web: https://dynamicdevices.co.uk/contact
           #
           DUMMY_SPL_CERT_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
@@ -971,12 +971,12 @@ jobs:
           # This certificate is part of meta-dynamicdevices Yocto layer
           # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
           # 
-          # COMMERCIAL USE: Contact licensing@dynamicdevices.co.uk
-          # IP THEFT REPORTING: Contact legal@dynamicdevices.co.uk
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
           # 
           # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
           # If found in commercial firmware without license, report to:
-          # Email: legal@dynamicdevices.co.uk
+          # Email: support@dynamicdevices.co.uk
           # Web: https://dynamicdevices.co.uk/contact
           #
           DUMMY_UEFI_CERT_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
