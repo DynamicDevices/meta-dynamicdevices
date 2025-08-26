@@ -26,3 +26,24 @@ local_conf_header:
      DEV_MODE = "1"
      # Use default cache directories - kas-container will handle cache mapping
      BB_GENERATE_MIRROR_TARBALLS = "1"
+     
+     # Disable all signing for CI/development builds
+     OPTEE_TA_SIGN_ENABLE = "0"
+     SIGN_ENABLE = "0"
+     UBOOT_SIGN_ENABLE = "0"
+     UBOOT_SPL_SIGN_ENABLE = "0"
+     TF_A_SIGN_ENABLE = "0"
+     UEFI_SIGN_ENABLE = "0"
+     
+     # Override signing key paths to use dummy files that always exist
+     # This prevents build failures when keys are checked but not used
+     SIGNING_UBOOT_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+     SIGNING_UBOOT_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+     SIGNING_UBOOT_SPL_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+     SIGNING_UBOOT_SPL_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+     SIGNING_UEFI_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+     SIGNING_UEFI_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+     SIGNING_MODSIGN_PRIVKEY = "${TOPDIR}/bitbake.lock"
+     SIGNING_MODSIGN_X509 = "${TOPDIR}/bitbake.lock"
+     OPTEE_TA_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+     TF_A_SIGN_KEY_PATH = "${TOPDIR}/bitbake.lock"
