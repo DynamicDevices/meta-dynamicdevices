@@ -1147,6 +1147,26 @@ jobs:
           echo "Using KAS config: $kas_config"
           echo "Machine: $KAS_MACHINE"
           
+          # Debug: Verify keys exist before starting build
+          echo "🔍 Verifying signing keys before build..."
+          echo "Current working directory: $(pwd)"
+          echo "Contents of conf/factory-keys:"
+          find conf/factory-keys -type f -ls 2>/dev/null || echo "No factory-keys directory found"
+          
+          # Test if keys are readable
+          if [ -f "conf/factory-keys/ubootdev.key" ]; then
+            echo "✅ ubootdev.key exists and is readable"
+            ls -la conf/factory-keys/ubootdev.key
+          else
+            echo "❌ ubootdev.key not found or not readable"
+          fi
+          
+          # Test KAS container access to keys
+          echo "🧪 Testing KAS container access to signing keys..."
+          kas-container \
+            --runtime-args "-e KAS_MACHINE=$KAS_MACHINE" \
+            shell "$kas_config" -c "ls -la /repo/conf/factory-keys/ || echo 'Keys not accessible in container'" || true
+          
           # Run KAS build in Docker container with progress monitoring
           echo "🚀 Starting build at $(date)"
           echo "📊 System resources before build:"
