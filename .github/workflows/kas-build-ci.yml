@@ -886,6 +886,7 @@ jobs:
           
           # Create factory-keys directory structure
           mkdir -p conf/factory-keys/uefi
+          mkdir -p conf/factory-keys/tf-a
           
           # Create watermarked dummy private keys with copyright and contact information
           # These contain IP protection metadata for commercial use tracking
@@ -1004,15 +1005,132 @@ jobs:
           -----END CERTIFICATE-----
           EOF
           
+          # Create additional required keys for OP-TEE, kernel modules, and TF-A
+          cat > conf/factory-keys/opteedev.key << 'EOF'
+          -----BEGIN PRIVATE KEY-----
+          # COPYRIGHT NOTICE - COMMERCIAL USE REQUIRES LICENSE
+          # Copyright (c) 2025 Dynamic Devices Ltd. All rights reserved.
+          # This key is part of meta-dynamicdevices Yocto layer
+          # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
+          # 
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
+          # 
+          # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
+          # If found in commercial firmware without license, report to:
+          # Email: support@dynamicdevices.co.uk
+          # Web: https://dynamicdevices.co.uk/contact
+          #
+          DUMMY_OPTEE_KEY_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
+          -----END PRIVATE KEY-----
+          EOF
+          
+          cat > conf/factory-keys/privkey_modsign.pem << 'EOF'
+          -----BEGIN PRIVATE KEY-----
+          # COPYRIGHT NOTICE - COMMERCIAL USE REQUIRES LICENSE
+          # Copyright (c) 2025 Dynamic Devices Ltd. All rights reserved.
+          # This key is part of meta-dynamicdevices Yocto layer
+          # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
+          # 
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
+          # 
+          # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
+          # If found in commercial firmware without license, report to:
+          # Email: support@dynamicdevices.co.uk
+          # Web: https://dynamicdevices.co.uk/contact
+          #
+          DUMMY_MODSIGN_KEY_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
+          -----END PRIVATE KEY-----
+          EOF
+          
+          cat > conf/factory-keys/x509_modsign.crt << 'EOF'
+          -----BEGIN CERTIFICATE-----
+          # COPYRIGHT NOTICE - COMMERCIAL USE REQUIRES LICENSE
+          # Copyright (c) 2025 Dynamic Devices Ltd. All rights reserved.
+          # This certificate is part of meta-dynamicdevices Yocto layer
+          # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
+          # 
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
+          # 
+          # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
+          # If found in commercial firmware without license, report to:
+          # Email: support@dynamicdevices.co.uk
+          # Web: https://dynamicdevices.co.uk/contact
+          #
+          DUMMY_MODSIGN_CERT_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
+          -----END CERTIFICATE-----
+          EOF
+          
+          cat > conf/factory-keys/tf-a/privkey_ec_prime256v1.pem << 'EOF'
+          -----BEGIN PRIVATE KEY-----
+          # COPYRIGHT NOTICE - COMMERCIAL USE REQUIRES LICENSE
+          # Copyright (c) 2025 Dynamic Devices Ltd. All rights reserved.
+          # This key is part of meta-dynamicdevices Yocto layer
+          # Repository: https://github.com/DynamicDevices/meta-dynamicdevices
+          # 
+          # COMMERCIAL USE: Contact support@dynamicdevices.co.uk
+          # IP THEFT REPORTING: Contact support@dynamicdevices.co.uk
+          # 
+          # DEVELOPMENT ONLY - NOT FOR PRODUCTION SIGNING
+          # If found in commercial firmware without license, report to:
+          # Email: support@dynamicdevices.co.uk
+          # Web: https://dynamicdevices.co.uk/contact
+          #
+          DUMMY_TFA_KEY_DYNAMIC_DEVICES_COPYRIGHT_2025_COMMERCIAL_LICENSE_REQUIRED
+          -----END PRIVATE KEY-----
+          EOF
+          
           echo "✅ Copyright-protected dummy signing keys created for development"
           echo "🏷️  Keys contain Dynamic Devices Ltd copyright and contact information"
           echo "⚖️  Commercial use without license will be traceable in firmware"
+          echo "📁 Created key files:"
+          echo "   - conf/factory-keys/ubootdev.key/.crt"
+          echo "   - conf/factory-keys/spldev.key/.crt"
+          echo "   - conf/factory-keys/uefi/DB.key/.crt"
+          echo "   - conf/factory-keys/opteedev.key"
+          echo "   - conf/factory-keys/privkey_modsign.pem"
+          echo "   - conf/factory-keys/x509_modsign.crt"
+          echo "   - conf/factory-keys/tf-a/privkey_ec_prime256v1.pem"
 
       - name: Validate dummy keys licensing metadata
         run: |
           echo "🔍 Validating dummy signing keys contain proper licensing metadata..."
           echo "⚠️  Validation temporarily disabled for debugging"
           # ./scripts/validate-dummy-keys.sh
+          
+          # Verify all required key files exist
+          echo "🔍 Verifying all required key files are present..."
+          required_keys=(
+            "conf/factory-keys/ubootdev.key"
+            "conf/factory-keys/ubootdev.crt"
+            "conf/factory-keys/spldev.key"
+            "conf/factory-keys/spldev.crt"
+            "conf/factory-keys/uefi/DB.key"
+            "conf/factory-keys/uefi/DB.crt"
+            "conf/factory-keys/opteedev.key"
+            "conf/factory-keys/privkey_modsign.pem"
+            "conf/factory-keys/x509_modsign.crt"
+            "conf/factory-keys/tf-a/privkey_ec_prime256v1.pem"
+          )
+          
+          all_keys_present=true
+          for key_file in "${required_keys[@]}"; do
+            if [ -f "$key_file" ]; then
+              echo "✅ Found: $key_file"
+            else
+              echo "❌ Missing: $key_file"
+              all_keys_present=false
+            fi
+          done
+          
+          if [ "$all_keys_present" = true ]; then
+            echo "✅ All required signing keys are present"
+          else
+            echo "❌ Some required signing keys are missing"
+            exit 1
+          fi
 
       - name: Build with KAS
         timeout-minutes: 360  # 6 hour timeout for complex Yocto builds
