@@ -77,8 +77,8 @@ jobs:
           if [ "${{ github.event.inputs.machine }}" != "" ] && [ "${{ github.event.inputs.machine }}" != "all" ]; then
             echo "machines=[\"${{ github.event.inputs.machine }}\"]" >> $GITHUB_OUTPUT
           else
-            # Temporarily disabled: imx8mm-jaguar-inst, imx8mm-jaguar-phasora, imx8mm-jaguar-handheld, imx93-jaguar-eink
-            echo 'machines=["imx8mm-jaguar-sentai"]' >> $GITHUB_OUTPUT
+            # Temporarily disabled: imx8mm-jaguar-inst, imx8mm-jaguar-phasora, imx8mm-jaguar-handheld
+            echo 'machines=["imx8mm-jaguar-sentai", "imx93-jaguar-eink"]' >> $GITHUB_OUTPUT
           fi
 
   # Validation job - quick checks before expensive builds
