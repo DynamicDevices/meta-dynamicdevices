@@ -735,7 +735,7 @@ jobs:
     needs: [setup, validate]
     if: needs.setup.outputs.should_build == 'true'
     strategy:
-      fail-fast: true  # Cancel all matrix jobs if any build fails - saves resources and provides faster feedback
+      fail-fast: false  # Allow other builds to continue if one fails - better for debugging
       matrix:
         machine: ${{ fromJSON(needs.setup.outputs.machines) }}
         build_type: [base, mfgtool]
@@ -811,6 +811,18 @@ jobs:
           echo "📊 Cache directory sizes:"
           du -sh "$CACHE_BASE"/* 2>/dev/null || echo "Cache directories are empty (first run)"
           
+          # Clean up old cache if it's too large (keep under 50GB total)
+          cache_size=$(du -s "$CACHE_BASE" 2>/dev/null | cut -f1 || echo "0")
+          cache_size_gb=$((cache_size / 1024 / 1024))
+          if [ $cache_size_gb -gt 50 ]; then
+            echo "⚠️  Cache size is ${cache_size_gb}GB, cleaning up old files..."
+            # Remove files older than 30 days from downloads
+            find "$CACHE_BASE/downloads" -type f -mtime +30 -delete 2>/dev/null || true
+            # Remove old sstate files (keep last 7 days)
+            find "$CACHE_BASE/sstate" -type f -mtime +7 -delete 2>/dev/null || true
+            echo "✅ Cache cleanup completed"
+          fi
+          
           echo "🏗️ Build directory:"
           ls -la "$BUILD_DIR" 2>/dev/null || echo "Build directory is empty (first run)"
           
@@ -834,9 +846,13 @@ jobs:
           
           # Detect available CPU cores for optimal parallel builds
           NPROC=$(nproc)
-          # Use 75% of available cores to leave some for system
+          # Use 75% of available cores to leave some for system, but cap at reasonable limit
           BUILD_THREADS=$((NPROC * 3 / 4))
           BUILD_THREADS=${BUILD_THREADS:-4}  # Minimum 4 threads
+          # Cap at 16 threads to avoid memory issues on high-core systems
+          if [ $BUILD_THREADS -gt 16 ]; then
+            BUILD_THREADS=16
+          fi
           
           echo "🖥️ Self-hosted runner specs:"
           echo "  CPU cores: $NPROC"
@@ -847,6 +863,11 @@ jobs:
           # Set optimized environment variables for self-hosted runner
           echo "BB_NUMBER_THREADS=$BUILD_THREADS" >> $GITHUB_ENV
           echo "PARALLEL_MAKE=-j$BUILD_THREADS" >> $GITHUB_ENV
+          
+          # Add additional Yocto optimization variables
+          echo "BB_GENERATE_MIRROR_TARBALLS=0" >> $GITHUB_ENV  # Skip mirror tarballs for CI
+          echo "INHERIT_remove=rm_work" >> $GITHUB_ENV  # Keep work dirs for debugging
+          echo "BB_DISKMON_DIRS=STOPTASKS,\${TMPDIR},1G,100K STOPTASKS,\${DL_DIR},1G,100K STOPTASKS,\${SSTATE_DIR},1G,100K" >> $GITHUB_ENV
           
           # Disable interactive features
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
@@ -994,7 +1015,7 @@ jobs:
           # ./scripts/validate-dummy-keys.sh
 
       - name: Build with KAS
-        timeout-minutes: 240  # 4 hour timeout
+        timeout-minutes: 360  # 6 hour timeout for complex Yocto builds
         run: |
           echo "🔨 Starting KAS build: ${{ matrix.machine }} (${{ matrix.build_type }})"
           
@@ -1008,8 +1029,15 @@ jobs:
           echo "Using KAS config: $kas_config"
           echo "Machine: $KAS_MACHINE"
           
-          # Run KAS build in Docker container (all tools and dependencies included)
-          kas-container \
+          # Run KAS build in Docker container with progress monitoring
+          echo "🚀 Starting build at $(date)"
+          echo "📊 System resources before build:"
+          echo "   CPU: $(nproc) cores"
+          echo "   RAM: $(free -h | awk '/^Mem:/ {print $2 " total, " $7 " available"}')"
+          echo "   Disk: $(df -h . | awk 'NR==2 {print $4 " available"}')"
+          
+          # Start build with timeout wrapper and progress monitoring
+          timeout 21600 kas-container \
             --runtime-args "-e KAS_MACHINE=$KAS_MACHINE \
                            -e DL_DIR=$DL_DIR \
                            -e SSTATE_DIR=$SSTATE_DIR \
@@ -1021,15 +1049,50 @@ jobs:
                            -e UBOOT_SPL_SIGN_ENABLE=$UBOOT_SPL_SIGN_ENABLE \
                            -e TF_A_SIGN_ENABLE=$TF_A_SIGN_ENABLE \
                            -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE" \
-            build "$kas_config"
+            build "$kas_config" &
+          
+          # Monitor build progress
+          build_pid=$!
+          echo "🔄 Build started with PID: $build_pid"
+          
+          # Progress monitoring loop
+          while kill -0 $build_pid 2>/dev/null; do
+            sleep 300  # Check every 5 minutes
+            echo "⏱️  Build still running at $(date)"
+            echo "📊 Current system usage:"
+            echo "   Load: $(uptime | awk -F'load average:' '{print $2}')"
+            echo "   RAM: $(free -h | awk '/^Mem:/ {print $3 " used / " $2 " total"}')"
+            echo "   Disk: $(df -h . | awk 'NR==2 {print $3 " used / " $2 " total"}')"
+            
+            # Check if build directory exists and show some progress
+            if [ -d "$KAS_WORK_DIR/build" ]; then
+              echo "   Build dir size: $(du -sh $KAS_WORK_DIR/build 2>/dev/null | cut -f1 || echo 'N/A')"
+            fi
+          done
+          
+          # Wait for build to complete and get exit code
+          wait $build_pid
+          build_exit_code=$?
+          
+          echo "🏁 Build completed at $(date) with exit code: $build_exit_code"
+          
+          if [ $build_exit_code -ne 0 ]; then
+            echo "❌ Build failed with exit code: $build_exit_code"
+            exit $build_exit_code
+          else
+            echo "✅ Build completed successfully"
+          fi
 
       - name: Collect BitBake-generated SBOM
         if: always()
         run: |
           echo "📋 Collecting BitBake-generated Software Bill of Materials..."
           
-          # Create SBOM directory
+          # Create SBOM directory with proper permissions
           mkdir -p build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}
+          chmod -R 755 build-sbom/
+          
+          echo "✅ Created SBOM directory: build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}"
           
           # BitBake with create-spdx generates comprehensive SPDX files
           deploy_dir="$KAS_WORK_DIR/build/tmp/deploy/images/${{ matrix.machine }}"
@@ -1077,6 +1140,11 @@ jobs:
               echo "📦 Creating basic SBOM from image manifest as fallback"
               cp "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest" \
                  "build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/package-manifest.txt"
+            else
+              echo "⚠️  No manifest found either, creating placeholder SBOM"
+              echo "# SBOM Generation Failed" > "build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom-failed.txt"
+              echo "Build failed or did not complete successfully" >> "build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom-failed.txt"
+              echo "Generated at: $(date)" >> "build-sbom/${{ matrix.machine }}/${{ matrix.build_type }}/sbom-failed.txt"
             fi
           fi
 
@@ -1085,9 +1153,14 @@ jobs:
         run: |
           echo "📦 Collecting build artifacts for ${{ matrix.machine }} (${{ matrix.build_type }})"
           
-          # Create artifacts directories
+          # Create artifacts directories with proper permissions
           mkdir -p artifacts/${{ matrix.machine }}/${{ matrix.build_type }}
           mkdir -p programming-packages/${{ matrix.machine }}
+          chmod -R 755 artifacts/ programming-packages/
+          
+          echo "✅ Created artifact directories:"
+          echo "   - artifacts/${{ matrix.machine }}/${{ matrix.build_type }}"
+          echo "   - programming-packages/${{ matrix.machine }}"
           
           # Define deploy directory (inside the kas work directory)
           deploy_dir="$KAS_WORK_DIR/build/tmp/deploy/images/${{ matrix.machine }}"
@@ -1305,6 +1378,19 @@ jobs:
             
           else
             echo "❌ Deploy directory not found: $deploy_dir"
+            echo "Build may have failed - creating placeholder artifacts"
+            
+            # Create placeholder files to prevent upload failures
+            echo "# Build Failed" > "artifacts/${{ matrix.machine }}/${{ matrix.build_type }}/build-failed.txt"
+            echo "Deploy directory not found: $deploy_dir" >> "artifacts/${{ matrix.machine }}/${{ matrix.build_type }}/build-failed.txt"
+            echo "Generated at: $(date)" >> "artifacts/${{ matrix.machine }}/${{ matrix.build_type }}/build-failed.txt"
+            
+            # Check if any build logs exist and copy them
+            if [ -d "$KAS_WORK_DIR/build/tmp/log" ]; then
+              echo "📋 Copying build logs for debugging"
+              cp -r "$KAS_WORK_DIR/build/tmp/log" "artifacts/${{ matrix.machine }}/${{ matrix.build_type }}/build-logs" || true
+            fi
+            
             echo "Available directories in kas work dir:"
             ls -la "$KAS_WORK_DIR/build/tmp/deploy/" 2>/dev/null || echo "No deploy directory found"
             echo "Available directories in kas work dir build:"
