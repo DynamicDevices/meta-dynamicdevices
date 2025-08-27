@@ -90,6 +90,13 @@ jobs:
           
           echo "✅ BitBake environment verified"
           
+          # Remove BitBake test data to avoid collection conflicts
+          echo "🔧 Removing BitBake test data to avoid collection conflicts..."
+          if [ -d "build/layers/bitbake/lib/layerindexlib/tests/testdata" ]; then
+            rm -rf build/layers/bitbake/lib/layerindexlib/tests/testdata
+            echo "✅ Removed BitBake test data"
+          fi
+          
           # Run yocto-check-layer with --no-auto-dependency to disable automatic layer discovery
           echo '🔧 Validating layers with disabled auto-discovery:'
           echo '   - . (meta-dynamicdevices)'
