@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    # Run weekly on Sundays at 2 AM UTC
+    # Run weekly on Sundays at 2 AM UTC (scarthgap only)
     - cron: '0 2 * * 0'
   workflow_dispatch:
     inputs:
@@ -30,15 +30,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        yocto_branch: [scarthgap, kirkstone]
+        yocto_branch: [scarthgap]
         layer: [meta-dynamicdevices-bsp, meta-dynamicdevices-distro]
         include:
           - yocto_branch: scarthgap
             oe_core_branch: scarthgap
             bitbake_branch: 2.8
-          - yocto_branch: kirkstone  
-            oe_core_branch: kirkstone
-            bitbake_branch: 2.0
     
     steps:
     - name: Checkout Repository
