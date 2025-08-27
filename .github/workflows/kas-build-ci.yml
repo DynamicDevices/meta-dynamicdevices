@@ -46,6 +46,25 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Cache KAS layers
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/layers
+            build/cache
+          key: kas-layers-${{ hashFiles('kas/lmp-dynamicdevices-base.yml') }}-${{ github.sha }}
+          restore-keys: |
+            kas-layers-${{ hashFiles('kas/lmp-dynamicdevices-base.yml') }}-
+            kas-layers-
+
+      - name: Cache Yocto downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/yocto/downloads
+          key: yocto-downloads-${{ runner.os }}-${{ hashFiles('kas/lmp-dynamicdevices-base.yml') }}
+          restore-keys: |
+            yocto-downloads-${{ runner.os }}-
+
       - name: Validate Yocto Layers
         run: |
           echo "🏅 Validating Yocto layers using yocto-check-layer"
@@ -148,6 +167,48 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Cache KAS layers
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/layers
+            build/cache
+          key: kas-layers-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}-${{ github.sha }}
+          restore-keys: |
+            kas-layers-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}-
+            kas-layers-
+
+      - name: Cache Yocto downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/yocto/downloads
+          key: yocto-downloads-${{ runner.os }}-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}
+          restore-keys: |
+            yocto-downloads-${{ runner.os }}-
+
+      - name: Cache Yocto sstate
+        uses: actions/cache@v4
+        with:
+          path: ~/yocto/sstate
+          key: yocto-sstate-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}-${{ hashFiles('recipes-**') }}
+          restore-keys: |
+            yocto-sstate-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}-
+            yocto-sstate-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-
+            yocto-sstate-${{ runner.os }}-${{ matrix.machine }}-
+            yocto-sstate-${{ runner.os }}-
+
+      - name: Cache build tmp directory
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/yocto/persistent
+            build/tmp/cache
+          key: yocto-build-cache-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-${{ hashFiles('recipes-**') }}
+          restore-keys: |
+            yocto-build-cache-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-
+            yocto-build-cache-${{ runner.os }}-${{ matrix.machine }}-
+            yocto-build-cache-${{ runner.os }}-
 
       - name: Setup build cache
         run: |
