@@ -191,20 +191,36 @@ jobs:
           # Strict validation approach - fail if dependencies can't be resolved
           # Build minimal but sufficient layer list to resolve dependencies
           
-          # Essential layers for dependency resolution
+          # Essential layers for dependency resolution (relative to validation-build directory)
           CORE_LAYERS="../build/layers/openembedded-core/meta"
-          OE_ESSENTIAL="../build/layers/meta-openembedded/meta-oe"
-          LMP_BASE="../build/layers/meta-lmp/meta-lmp-base"
+          OE_LAYERS="../build/layers/meta-openembedded/meta-oe ../build/layers/meta-openembedded/meta-filesystems ../build/layers/meta-openembedded/meta-python ../build/layers/meta-openembedded/meta-networking ../build/layers/meta-openembedded/meta-perl"
+          SECURITY_LAYERS="../build/layers/meta-security"
+          UPDATER_LAYERS="../build/layers/meta-updater"
+          VIRT_LAYERS="../build/layers/meta-virtualisation"
+          LMP_LAYERS="../build/layers/meta-lmp/meta-lmp-base ../build/layers/meta-lmp/meta-lmp-bsp"
+          
+          # Combine all dependency layers
+          ALL_DEPS="$CORE_LAYERS $OE_LAYERS $SECURITY_LAYERS $UPDATER_LAYERS $VIRT_LAYERS $LMP_LAYERS"
           
           # Check if essential dependency layers exist
           echo "🔍 Checking essential dependency layers..."
+          echo "Current working directory: $(pwd)"
+          echo "Contents of ../build/layers:"
+          ls -la ../build/layers/ || echo "build/layers directory not accessible"
+          echo ""
+          
           missing_deps=""
-          for layer in "$CORE_LAYERS" "$OE_ESSENTIAL" "$LMP_BASE"; do
+          # Check core essential layers only (don't check every single dependency)
+          essential_layers="$CORE_LAYERS ../build/layers/meta-openembedded/meta-oe ../build/layers/meta-lmp/meta-lmp-base"
+          for layer in $essential_layers; do
             layer_name=$(basename "$layer")
+            echo "Checking: $layer"
             if [ -d "$layer" ] && [ -f "$layer/conf/layer.conf" ]; then
-              echo "✅ $layer_name found"
+              echo "✅ $layer_name found at $layer"
             else
-              echo "❌ $layer_name missing"
+              echo "❌ $layer_name missing at $layer"
+              echo "  Directory exists: $([ -d \"$layer\" ] && echo \"Yes\" || echo \"No\")"
+              echo "  layer.conf exists: $([ -f \"$layer/conf/layer.conf\" ] && echo \"Yes\" || echo \"No\")"
               missing_deps="$missing_deps $layer_name"
             fi
           done
@@ -215,9 +231,9 @@ jobs:
             exit 1
           fi
           
-          # Validate with essential dependencies - STRICT MODE
-          echo '1️⃣ Validating meta-dynamicdevices-bsp (with dependencies)...'
-          YOCTO_CMD_BSP="python3 $YOCTO_CHECK_LAYER $CORE_LAYERS $OE_ESSENTIAL $LMP_BASE ../meta-dynamicdevices-bsp"
+          # Validate with comprehensive dependencies - STRICT MODE
+          echo '1️⃣ Validating meta-dynamicdevices-bsp (with all dependencies)...'
+          YOCTO_CMD_BSP="python3 $YOCTO_CHECK_LAYER $ALL_DEPS ../meta-dynamicdevices-bsp"
           echo "Command: $YOCTO_CMD_BSP"
           if eval "$YOCTO_CMD_BSP"; then
             echo '✅ meta-dynamicdevices-bsp validation PASSED'
@@ -230,8 +246,8 @@ jobs:
           echo ""
           
           # Validate distro layer with dependencies
-          echo '2️⃣ Validating meta-dynamicdevices-distro (with dependencies)...'
-          YOCTO_CMD_DISTRO="python3 $YOCTO_CHECK_LAYER $CORE_LAYERS $OE_ESSENTIAL $LMP_BASE ../meta-dynamicdevices-bsp ../meta-dynamicdevices-distro"
+          echo '2️⃣ Validating meta-dynamicdevices-distro (with all dependencies)...'
+          YOCTO_CMD_DISTRO="python3 $YOCTO_CHECK_LAYER $ALL_DEPS ../meta-dynamicdevices-bsp ../meta-dynamicdevices-distro"
           echo "Command: $YOCTO_CMD_DISTRO"
           if eval "$YOCTO_CMD_DISTRO"; then
             echo '✅ meta-dynamicdevices-distro validation PASSED'
@@ -244,8 +260,8 @@ jobs:
           echo ""
           
           # Validate main layer with all dependencies
-          echo '3️⃣ Validating meta-dynamicdevices (main, with dependencies)...'
-          YOCTO_CMD_MAIN="python3 $YOCTO_CHECK_LAYER $CORE_LAYERS $OE_ESSENTIAL $LMP_BASE ../meta-dynamicdevices-bsp ../meta-dynamicdevices-distro .."
+          echo '3️⃣ Validating meta-dynamicdevices (main, with all dependencies)...'
+          YOCTO_CMD_MAIN="python3 $YOCTO_CHECK_LAYER $ALL_DEPS ../meta-dynamicdevices-bsp ../meta-dynamicdevices-distro .."
           echo "Command: $YOCTO_CMD_MAIN"
           if eval "$YOCTO_CMD_MAIN"; then
             echo '✅ meta-dynamicdevices validation PASSED'
