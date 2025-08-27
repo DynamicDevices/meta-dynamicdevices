@@ -153,26 +153,43 @@ jobs:
           echo "🔧 Checking layers fetched by kas checkout..."
           find ../build/layers -name "layer.conf" -type f | head -10
           
-          # Run yocto-check-layer with dependency layers from within BitBake environment
-          echo '🔧 Validating layers with required dependencies:'
-          echo '   - .. (meta-dynamicdevices)'
-          echo '   - ../meta-dynamicdevices-bsp'
-          echo '   - ../meta-dynamicdevices-distro'
-          echo '   - Dependencies: meta-lmp-base, openembedded-core, meta-oe'
+          # Run yocto-check-layer for each layer individually in dependency order
+          echo '🔧 Validating layers individually in dependency order:'
           
-          # Build the yocto-check-layer command - allow auto-dependency resolution
-          # Run from within the BitBake environment directory
-          YOCTO_CMD="python3 $YOCTO_CHECK_LAYER .. ../meta-dynamicdevices-bsp ../meta-dynamicdevices-distro"
+          # Validate BSP layer first (depends only on meta-lmp-base)
+          echo '1️⃣ Validating meta-dynamicdevices-bsp...'
+          YOCTO_CMD_BSP="python3 $YOCTO_CHECK_LAYER ../meta-dynamicdevices-bsp"
+          echo "Command: $YOCTO_CMD_BSP"
+          if eval "$YOCTO_CMD_BSP"; then
+            echo '✅ meta-dynamicdevices-bsp validation PASSED'
+          else
+            echo '❌ meta-dynamicdevices-bsp validation FAILED'
+            exit 1
+          fi
           
-          echo "🔧 EXACT COMMAND BEING EXECUTED:"
-          echo "$YOCTO_CMD"
           echo ""
           
-          # Execute the command
-          if eval "$YOCTO_CMD"; then
-            echo '✅ All layer validations PASSED'
+          # Validate distro layer second (depends on meta-lmp-base + meta-dynamicdevices-bsp)
+          echo '2️⃣ Validating meta-dynamicdevices-distro...'
+          YOCTO_CMD_DISTRO="python3 $YOCTO_CHECK_LAYER ../meta-dynamicdevices-distro"
+          echo "Command: $YOCTO_CMD_DISTRO"
+          if eval "$YOCTO_CMD_DISTRO"; then
+            echo '✅ meta-dynamicdevices-distro validation PASSED'
           else
-            echo '❌ Layer validation FAILED'
+            echo '❌ meta-dynamicdevices-distro validation FAILED'
+            exit 1
+          fi
+          
+          echo ""
+          
+          # Validate main layer last (depends on all others)
+          echo '3️⃣ Validating meta-dynamicdevices (main)...'
+          YOCTO_CMD_MAIN="python3 $YOCTO_CHECK_LAYER .."
+          echo "Command: $YOCTO_CMD_MAIN"
+          if eval "$YOCTO_CMD_MAIN"; then
+            echo '✅ meta-dynamicdevices validation PASSED'
+          else
+            echo '❌ meta-dynamicdevices validation FAILED'
             exit 1
           fi
           
