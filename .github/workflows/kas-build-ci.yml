@@ -168,7 +168,8 @@ jobs:
       - name: Setup shellcheck
         uses: ludeeus/action-shellcheck@master
         with:
-          severity: warning
+          severity: error
+          scandir: './scripts'
           
       - name: Lint scripts
         run: |

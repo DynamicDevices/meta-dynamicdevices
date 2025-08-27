@@ -1,3 +1,4 @@
+#!/bin/bash
 # Capture and display board information
 
 MACHINE=`cat /sys/devices/soc0/machine`

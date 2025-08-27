@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 #
@@ -53,7 +53,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 echo -e "\n"
@@ -64,7 +64,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 # (3) Run humidity sensor Testing
@@ -77,7 +77,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 echo -e "\n"
@@ -88,7 +88,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 # (4) Program STUSB4500
@@ -101,7 +101,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 echo -e "\n"
@@ -112,7 +112,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 # (5) Input button testing
@@ -126,19 +126,19 @@ then
     fi
     echo -e "Press and hold down the button within 5s\n"
     sleep 5
-    BUTTONVALUE=`cat /sys/class/gpio/gpio102/value`
+    BUTTONVALUE=$(cat /sys/class/gpio/gpio102/value)
     echo -e ">>${BUTTONVALUE}<<\n"
     # Button is active LO
     if [ "${BUTTONVALUE}" -eq "1" ]
     then
         echo -e "TEST FAILED - BUTTON PRESS NOT DETECTED\n"
-        exit -1
+        exit 1
     fi
     echo -e "Button press detected. Release the button now\n"
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 
@@ -168,19 +168,19 @@ then
         echo -e "Audio playback worked\n"
     else
         echo TEST FAILED
-        exit -1
+        exit 1
     fi
 
     amixer -c 0 set 'CH0' 100
     amixer -c 0 set 'CH1' 0
 
     echo -e "\n\nNow recording 5s audio on FIRST microphone channel\n"
-    read -p "Press RETURN key to start recording and then start counting up in a clear voice"
+    read -r -p "Press RETURN key to start recording and then start counting up in a clear voice"
     echo -e "\nStarted recording...\n"
 
     su -c "arecord -Dhw:0 -c2 -f s16_le -r48000 -d5 test-l.wav" fio
 
-    read -p "Done recording. Press RETURN key to play back recording"
+    read -r -p "Done recording. Press RETURN key to play back recording"
 
     echo -e "\n\nNow playing back recording\n"
     su -c "paplay test-l.wav" fio
@@ -192,19 +192,19 @@ then
         echo -e "Audio playback worked\n"
     else
         echo TEST FAILED
-        exit -1
+        exit 1
     fi
 
     amixer -c 0 set 'CH0' 0
     amixer -c 0 set 'CH1' 100
 
     echo -e "\n\nNow recording 5s audio on SECOND microphone channel\n"
-    read -p "Press RETURN key to start recording and then start counting up in a clear voice"
+    read -r -p "Press RETURN key to start recording and then start counting up in a clear voice"
     echo -e "\nStarted recording...\n"
 
     su -c "arecord -Dhw:0 -c2 -f s16_le -r48000 -d5 test-r.wav" fio
 
-    read -p "Done recording. Press RETURN key to play back recording"
+    read -r -p "Done recording. Press RETURN key to play back recording"
 
     sox test-r.wav -c 1 test-r-1chan.wav
 
@@ -219,12 +219,12 @@ then
         echo -e "Audio playback worked\n"
     else
         echo TEST FAILED
-        exit -1
+        exit 1
     fi
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 # (7) BLE Testing
@@ -240,7 +240,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 echo -e "\n"
@@ -251,7 +251,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 # Check we are on the Foundries cloud
@@ -267,7 +267,7 @@ fi
 #elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 #then
 #    echo TEST FAILED
-#    exit -1
+#    exit 1
 #fi
 
 # (8) Secure device
@@ -288,7 +288,7 @@ then
 elif [[ "$response" =~ ^([yY][eE][yY])$ ]]
 then
     echo TEST FAILED
-    exit -1
+    exit 1
 fi
 
 # Check app container is running
