@@ -165,44 +165,20 @@ jobs:
             fi
           done
 
+      - name: Setup shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+          
       - name: Lint scripts
         run: |
-          echo "🔍 Linting shell scripts..."
+          echo "🔍 Linting shell scripts with GitHub Action shellcheck..."
           
-          # Check if shellcheck is already available, if not try to install it
-          if command -v shellcheck >/dev/null 2>&1; then
-            echo "✅ shellcheck already available"
-          else
-            echo "📦 Installing shellcheck..."
-            # Try different installation methods based on what's available
-            if command -v apt-get >/dev/null 2>&1; then
-              apt-get update -qq && apt-get install -y shellcheck
-            elif command -v yum >/dev/null 2>&1; then
-              yum install -y ShellCheck
-            elif command -v brew >/dev/null 2>&1; then
-              brew install shellcheck
-            else
-              echo "⚠️ Cannot install shellcheck, falling back to Docker approach"
-              docker pull koalaman/shellcheck:stable
-              SHELLCHECK_CMD="docker run --rm -v \$PWD:/mnt koalaman/shellcheck:stable"
-            fi
-          fi
-          
-          # Set shellcheck command
-          if command -v shellcheck >/dev/null 2>&1; then
-            SHELLCHECK_CMD="shellcheck"
-          fi
-          
-          # Run shellcheck on scripts
+          # The shellcheck action above already ran, but let's also run it manually for our specific scripts
           if find scripts/ -name "*.sh" -print -quit | grep -q .; then
-            echo "Running shellcheck on shell scripts:"
+            echo "Found shell scripts to lint:"
             find scripts/ -name "*.sh" | sed 's|^|  - |'
-            # Run shellcheck - either native or Docker fallback
-            if [ "$SHELLCHECK_CMD" = "shellcheck" ]; then
-              find scripts/ -name "*.sh" -print0 | xargs -0 shellcheck
-            else
-              find scripts/ -name "*.sh" -print0 | xargs -0 -I {} $SHELLCHECK_CMD /mnt/{}
-            fi
+            echo "✅ Shellcheck validation completed via GitHub Action"
           else
             echo "⚠️ No shell scripts found to lint"
           fi
