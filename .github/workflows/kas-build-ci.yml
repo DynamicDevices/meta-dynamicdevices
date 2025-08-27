@@ -88,7 +88,7 @@ jobs:
           echo 'BBLAYERS ?= " \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/openembedded-core/meta \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-openembedded/meta-oe \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../build/layers/meta-lmp-base \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-lmp/meta-lmp-base \' >> conf/bblayers.conf
           echo '"' >> conf/bblayers.conf
           
           # Create minimal local.conf
