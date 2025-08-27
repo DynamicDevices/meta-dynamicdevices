@@ -188,43 +188,71 @@ jobs:
           # Run yocto-check-layer for each layer individually in dependency order
           echo '🔧 Validating layers individually in dependency order:'
           
-          # Try a simpler approach - validate our layers individually without complex dependencies
-          # This avoids the BBFILE_COLLECTIONS duplicate and other conflicts
+          # Strict validation approach - fail if dependencies can't be resolved
+          # Build minimal but sufficient layer list to resolve dependencies
           
-          echo '1️⃣ Validating meta-dynamicdevices-bsp (standalone)...'
-          YOCTO_CMD_BSP="python3 $YOCTO_CHECK_LAYER ../meta-dynamicdevices-bsp"
+          # Essential layers for dependency resolution
+          CORE_LAYERS="../build/layers/openembedded-core/meta"
+          OE_ESSENTIAL="../build/layers/meta-openembedded/meta-oe"
+          LMP_BASE="../build/layers/meta-lmp/meta-lmp-base"
+          
+          # Check if essential dependency layers exist
+          echo "🔍 Checking essential dependency layers..."
+          missing_deps=""
+          for layer in "$CORE_LAYERS" "$OE_ESSENTIAL" "$LMP_BASE"; do
+            layer_name=$(basename "$layer")
+            if [ -d "$layer" ] && [ -f "$layer/conf/layer.conf" ]; then
+              echo "✅ $layer_name found"
+            else
+              echo "❌ $layer_name missing"
+              missing_deps="$missing_deps $layer_name"
+            fi
+          done
+          
+          if [ -n "$missing_deps" ]; then
+            echo "❌ Critical dependency layers missing:$missing_deps"
+            echo "Cannot perform proper layer validation without essential dependencies"
+            exit 1
+          fi
+          
+          # Validate with essential dependencies - STRICT MODE
+          echo '1️⃣ Validating meta-dynamicdevices-bsp (with dependencies)...'
+          YOCTO_CMD_BSP="python3 $YOCTO_CHECK_LAYER $CORE_LAYERS $OE_ESSENTIAL $LMP_BASE ../meta-dynamicdevices-bsp"
           echo "Command: $YOCTO_CMD_BSP"
           if eval "$YOCTO_CMD_BSP"; then
             echo '✅ meta-dynamicdevices-bsp validation PASSED'
           else
-            echo '⚠️ meta-dynamicdevices-bsp validation FAILED (may be due to missing dependencies)'
-            echo 'Continuing with other validations...'
+            echo '❌ meta-dynamicdevices-bsp validation FAILED'
+            echo 'This is a blocking error - layer has unresolved dependencies or configuration issues'
+            exit 1
           fi
           
           echo ""
           
-          # Validate distro layer second
-          echo '2️⃣ Validating meta-dynamicdevices-distro (standalone)...'
-          YOCTO_CMD_DISTRO="python3 $YOCTO_CHECK_LAYER ../meta-dynamicdevices-distro"
+          # Validate distro layer with dependencies
+          echo '2️⃣ Validating meta-dynamicdevices-distro (with dependencies)...'
+          YOCTO_CMD_DISTRO="python3 $YOCTO_CHECK_LAYER $CORE_LAYERS $OE_ESSENTIAL $LMP_BASE ../meta-dynamicdevices-bsp ../meta-dynamicdevices-distro"
           echo "Command: $YOCTO_CMD_DISTRO"
           if eval "$YOCTO_CMD_DISTRO"; then
             echo '✅ meta-dynamicdevices-distro validation PASSED'
           else
-            echo '⚠️ meta-dynamicdevices-distro validation FAILED (may be due to missing dependencies)'
-            echo 'Continuing with other validations...'
+            echo '❌ meta-dynamicdevices-distro validation FAILED'
+            echo 'This is a blocking error - layer has unresolved dependencies or configuration issues'
+            exit 1
           fi
           
           echo ""
           
-          # Validate main layer last
-          echo '3️⃣ Validating meta-dynamicdevices (main, standalone)...'
-          YOCTO_CMD_MAIN="python3 $YOCTO_CHECK_LAYER .."
+          # Validate main layer with all dependencies
+          echo '3️⃣ Validating meta-dynamicdevices (main, with dependencies)...'
+          YOCTO_CMD_MAIN="python3 $YOCTO_CHECK_LAYER $CORE_LAYERS $OE_ESSENTIAL $LMP_BASE ../meta-dynamicdevices-bsp ../meta-dynamicdevices-distro .."
           echo "Command: $YOCTO_CMD_MAIN"
           if eval "$YOCTO_CMD_MAIN"; then
             echo '✅ meta-dynamicdevices validation PASSED'
           else
-            echo '⚠️ meta-dynamicdevices validation FAILED (may be due to missing dependencies)'
-            echo 'Continuing...'
+            echo '❌ meta-dynamicdevices validation FAILED'
+            echo 'This is a blocking error - layer has unresolved dependencies or configuration issues'
+            exit 1
           fi
           
           echo ""
