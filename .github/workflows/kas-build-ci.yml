@@ -108,14 +108,15 @@ jobs:
           echo '   - ./meta-dynamicdevices-distro'
           echo '   - Dependencies: meta-lmp-base, openembedded-core, meta-oe'
           
-          # Use --dependency flags to specify the required dependency layers
-          echo "🔧 Running yocto-check-layer with dependencies..."
+          # Build the yocto-check-layer command with dependencies
+          YOCTO_CMD="python3 $YOCTO_CHECK_LAYER --dependency build/layers/openembedded-core/meta --dependency build/layers/meta-openembedded/meta-oe --dependency build/layers/meta-lmp-base . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
           
-          if python3 "$YOCTO_CHECK_LAYER" \
-            --dependency build/layers/openembedded-core/meta \
-            --dependency build/layers/meta-openembedded/meta-oe \
-            --dependency build/layers/meta-lmp-base \
-            . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
+          echo "🔧 EXACT COMMAND BEING EXECUTED:"
+          echo "$YOCTO_CMD"
+          echo ""
+          
+          # Execute the command
+          if eval "$YOCTO_CMD"; then
             echo '✅ All layer validations PASSED'
           else
             echo '❌ Layer validation FAILED'
