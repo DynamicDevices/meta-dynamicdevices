@@ -16,7 +16,9 @@
 
 This application layer provides comprehensive middleware and applications for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
 
-**Note**: This layer depends on the separate [meta-dynamicdevices-bsp](./meta-dynamicdevices-bsp/) submodule which provides the hardware-specific Board Support Package (BSP) components.
+**Note**: This layer depends on separate submodules:
+- **[meta-dynamicdevices-bsp](./meta-dynamicdevices-bsp/)** - Hardware-specific Board Support Package (BSP) components
+- **[meta-dynamicdevices-distro](./meta-dynamicdevices-distro/)** - Distribution configurations and policies
 
 ## 🔐 Enterprise-Grade Security & Device Management
 

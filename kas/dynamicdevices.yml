@@ -7,6 +7,9 @@ repos:
   meta-dynamicdevices-bsp:
     path: meta-dynamicdevices-bsp
 
+  meta-dynamicdevices-distro:
+    path: meta-dynamicdevices-distro
+
   meta-rust-bin:
     url: https://github.com/rust-embedded/meta-rust-bin.git
     path: layers/meta-rust-bin
