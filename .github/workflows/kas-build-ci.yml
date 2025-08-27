@@ -97,16 +97,25 @@ jobs:
             echo "✅ Removed BitBake test data"
           fi
           
-          # Run yocto-check-layer with --no-auto to disable automatic layer discovery
-          echo '🔧 Validating layers with disabled auto-discovery:'
+          # Check what layers kas checkout actually fetched
+          echo "🔧 Checking layers fetched by kas checkout..."
+          find build/layers -name "layer.conf" -type f | head -10
+          
+          # Run yocto-check-layer with dependency layers
+          echo '🔧 Validating layers with required dependencies:'
           echo '   - . (meta-dynamicdevices)'
           echo '   - ./meta-dynamicdevices-bsp'
           echo '   - ./meta-dynamicdevices-distro'
+          echo '   - Dependencies: meta-lmp-base, openembedded-core, meta-oe'
           
-          # Use --no-auto flag to disable automatic layer discovery
-          echo "🔧 Running: python3 $YOCTO_CHECK_LAYER --no-auto . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
+          # Use --dependency flags to specify the required dependency layers
+          echo "🔧 Running yocto-check-layer with dependencies..."
           
-          if python3 "$YOCTO_CHECK_LAYER" --no-auto . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
+          if python3 "$YOCTO_CHECK_LAYER" \
+            --dependency build/layers/openembedded-core/meta \
+            --dependency build/layers/meta-openembedded/meta-oe \
+            --dependency build/layers/meta-lmp-base \
+            . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
             echo '✅ All layer validations PASSED'
           else
             echo '❌ Layer validation FAILED'
