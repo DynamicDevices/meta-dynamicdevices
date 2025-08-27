@@ -83,9 +83,25 @@ jobs:
 
   # Validation job - quick checks before expensive builds
   validate:
+    name: Validate Yocto Layers (${{ matrix.yocto_branch }}, ${{ matrix.layer }})
     runs-on: self-hosted
     needs: setup
     if: needs.setup.outputs.should_build == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        yocto_branch: [scarthgap]
+        layer: [meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro]
+        include:
+          - layer: meta-dynamicdevices
+            layer_path: "."
+            layer_description: "Main application and middleware layer"
+          - layer: meta-dynamicdevices-bsp  
+            layer_path: "meta-dynamicdevices-bsp"
+            layer_description: "BSP layer for hardware support"
+          - layer: meta-dynamicdevices-distro
+            layer_path: "meta-dynamicdevices-distro" 
+            layer_description: "Distribution policy layer"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -317,7 +333,7 @@ jobs:
             echo "⚠️  Layer compatibility check complete - $total_issues issues found"
           fi
 
-      - name: Yocto Project Compatible Layer Validation
+      - name: Run yocto-check-layer for ${{ matrix.layer }}
         run: |
           echo "🏅 Running official Yocto Project layer compatibility validation..."
           echo "📋 Using official yocto-check-layer within proper Yocto environment"
@@ -378,8 +394,10 @@ jobs:
           fi
           
           echo "🏅 Running official Yocto Project Compatible layer validation..."
-          echo "📂 Validating individual layers within the repository"
-          echo "📋 NOTE: Using --no-auto flag to validate each layer individually"
+          echo "📂 Validating layer: ${{ matrix.layer }}"
+          echo "📋 Layer path: ${{ matrix.layer_path }}"
+          echo "📋 Description: ${{ matrix.layer_description }}"
+          echo "📋 Yocto branch: ${{ matrix.yocto_branch }}"
           
           # Temporarily remove BitBake test data to avoid collection conflicts
           echo "🔧 Temporarily removing BitBake test data to avoid collection conflicts..."
@@ -389,43 +407,34 @@ jobs:
             echo "✅ Removed BitBake test data temporarily (backed up to /tmp)"
           fi
           
-          # Show available layers for debugging
-          echo "🔍 Available layers in repository:"
-          find /repo -name "layer.conf" -type f | while read layer_conf; do
-            layer_dir=$(dirname $(dirname "$layer_conf"))
-            echo "  - $layer_dir"
-          done
-          echo ""
+          # Validate the specific layer from the matrix
+          LAYER_PATH="/repo/${{ matrix.layer_path }}"
           
-          # Validate each layer individually
-          validation_result=0
+          # Normalize the layer path (handle "." for main layer)
+          if [ "${{ matrix.layer_path }}" = "." ]; then
+            LAYER_PATH="/repo"
+          fi
           
-          # List of layers to validate
-          LAYERS_TO_VALIDATE="/repo /repo/meta-dynamicdevices-bsp /repo/meta-dynamicdevices-distro"
+          echo "🔧 Validating layer: ${{ matrix.layer }}"
+          echo "🔧 Layer path: $LAYER_PATH"
           
-          for layer_path in $LAYERS_TO_VALIDATE; do
-            if [ -f "$layer_path/conf/layer.conf" ]; then
-              layer_name=$(basename "$layer_path")
-              echo "🔧 Validating layer: $layer_name ($layer_path)"
-              echo "🔧 Running: $YOCTO_CHECK_CMD --no-auto $layer_path"
-              
-              if "$YOCTO_CHECK_CMD" --no-auto "$layer_path"; then
-                echo "✅ Layer $layer_name validation PASSED"
-              else
-                echo "❌ Layer $layer_name validation FAILED"
-                validation_result=1
-              fi
-              echo ""
+          # Check if layer.conf exists
+          if [ -f "$LAYER_PATH/conf/layer.conf" ]; then
+            echo "✅ Found layer.conf at: $LAYER_PATH/conf/layer.conf"
+            
+            # Run yocto-check-layer for this specific layer
+            echo "🔧 Running: $YOCTO_CHECK_CMD --no-auto $LAYER_PATH"
+            
+            if "$YOCTO_CHECK_CMD" --no-auto "$LAYER_PATH"; then
+              echo "✅ Layer ${{ matrix.layer }} validation PASSED"
+              validation_result=0
             else
-              echo "⚠️ Skipping $layer_path - no layer.conf found"
+              echo "❌ Layer ${{ matrix.layer }} validation FAILED"
+              validation_result=1
             fi
-          done
-          
-          if [ $validation_result -eq 0 ]; then
-            echo "✅ All layer validations PASSED - no compatibility issues found"
           else
-            echo "❌ One or more layer validations FAILED - compatibility issues found above"
-            echo "🚨 Build will fail to ensure layer compatibility standards are met"
+            echo "❌ Layer configuration not found: $LAYER_PATH/conf/layer.conf"
+            validation_result=1
           fi
           
           # Restore BitBake test data
@@ -440,11 +449,12 @@ jobs:
           fi
           
           echo ""
-          echo "📊 Yocto Project Compatibility Results:"
-          echo "✅ All layer validations completed successfully"
-          echo "   - meta-dynamicdevices (main layer)"
-          echo "   - meta-dynamicdevices-bsp (BSP layer)"  
-          echo "   - meta-dynamicdevices-distro (distro layer)"
+          echo "📊 Yocto Project Compatibility Results for ${{ matrix.layer }}:"
+          echo "✅ Layer validation completed successfully"
+          echo "   Layer: ${{ matrix.layer }}"
+          echo "   Path: ${{ matrix.layer_path }}"
+          echo "   Description: ${{ matrix.layer_description }}"
+          echo "   Yocto Branch: ${{ matrix.yocto_branch }}"
           EOF
           
           chmod +x /tmp/yocto-validation.sh
