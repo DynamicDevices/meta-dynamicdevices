@@ -318,11 +318,10 @@ jobs:
           fi
 
       - name: Yocto Project Compatible Layer Validation
-        continue-on-error: true
         run: |
           echo "🏅 Running official Yocto Project layer compatibility validation..."
           echo "📋 Validating meta-dynamicdevices layer only (outside KAS environment)"
-          echo "⚠️  NOTE: This is a validation check - failures here will generate warnings, not build failures"
+          echo "🚨 NOTE: This is a validation check - failures here will FAIL the build to ensure layer compatibility"
           
           # Download yocto-check-layer script directly without KAS complexity
           echo "📥 Downloading yocto-check-layer script from OpenEmbedded-Core..."
@@ -344,8 +343,13 @@ jobs:
             
             # Run yocto-check-layer directly on our current directory (meta-dynamicdevices layer)
             echo "🔧 Running: $YOCTO_CHECK_SCRIPT ."
-            "$YOCTO_CHECK_SCRIPT" . \
-              || echo "⚠️  VALIDATION WARNING: Some compatibility issues found - see output above for details"
+            if "$YOCTO_CHECK_SCRIPT" .; then
+              echo "✅ Layer validation PASSED - no compatibility issues found"
+            else
+              echo "❌ Layer validation FAILED - compatibility issues found above"
+              echo "🚨 Build will fail to ensure layer compatibility standards are met"
+              exit 1
+            fi
             
             echo ""
             echo "📊 Yocto Project Compatibility Results:"
@@ -370,8 +374,8 @@ jobs:
           echo "   This validation checks our layer against official Yocto Project"
           echo "   compatibility criteria to ensure it works well with other layers."
           echo ""
-          echo "⚠️  IMPORTANT: This step generates warnings only - it will not fail the build"
-          echo "   Any compatibility issues should be addressed but won't block CI/CD"
+          echo "🚨 IMPORTANT: This step enforces compatibility - failures will FAIL the build"
+          echo "   All compatibility issues must be resolved to maintain build quality"
           echo ""
           echo "🏅 Benefits of Yocto Project Compatible certification:"
           echo "   • Better interoperability with other layers"
