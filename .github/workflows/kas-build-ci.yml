@@ -334,6 +334,23 @@ jobs:
           
           echo "🔍 Setting up Yocto environment for layer validation..."
           
+          # Initialize the Yocto build environment first
+          echo "🔧 Initializing Yocto build environment..."
+          cd /work/build
+          if [ -f "/repo/openembedded-core/oe-init-build-env" ]; then
+            # Source the environment setup script
+            source /repo/openembedded-core/oe-init-build-env .
+            echo "✅ Yocto environment initialized"
+            echo "📋 BUILDDIR: $BUILDDIR"
+            echo "📋 BBPATH: $BBPATH"
+          else
+            echo "⚠️ oe-init-build-env not found, setting up environment manually"
+            export BUILDDIR="/work/build"
+            export BBPATH="/repo/openembedded-core/bitbake/lib:/repo"
+            export PATH="/repo/openembedded-core/scripts:/repo/openembedded-core/bitbake/bin:$PATH"
+          fi
+          cd /repo
+          
           # Find yocto-check-layer script in the proper Yocto environment
           echo "🔍 Searching for yocto-check-layer script..."
           find . -name "yocto-check-layer" -type f 2>/dev/null | head -5
@@ -371,6 +388,14 @@ jobs:
             rm -rf /repo/bitbake/lib/layerindexlib/tests/testdata
             echo "✅ Removed BitBake test data temporarily (backed up to /tmp)"
           fi
+          
+          # Show available layers for debugging
+          echo "🔍 Available layers in repository:"
+          find /repo -name "layer.conf" -type f | while read layer_conf; do
+            layer_dir=$(dirname $(dirname "$layer_conf"))
+            echo "  - $layer_dir"
+          done
+          echo ""
           
           # Validate each layer individually
           validation_result=0
