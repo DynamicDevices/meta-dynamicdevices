@@ -1,3 +1,8 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRC_URI:append = "file://iptables.rules"
+# Only apply iptables rules for Dynamic Devices machines
+SRC_URI:append:imx8mm-jaguar-sentai = " file://iptables.rules"
+SRC_URI:append:imx8mm-jaguar-inst = " file://iptables.rules"
+SRC_URI:append:imx8mm-jaguar-handheld = " file://iptables.rules"
+SRC_URI:append:imx8mm-jaguar-phasora = " file://iptables.rules"
+SRC_URI:append:imx93-jaguar-eink = " file://iptables.rules"

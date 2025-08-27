@@ -15,7 +15,26 @@ RDEPENDS:pulseaudio-server += " \
     pulseaudio-module-echo-cancel \
 "
  
-SRC_URI:append = "\
+# Only apply PulseAudio configuration for Dynamic Devices machines
+SRC_URI:append:imx8mm-jaguar-sentai = "\
+    file://pulseaudio.service \
+    file://load-unix-module.pa \
+    file://load-echo-cancellation-module.pa \
+    file://load-alsa-modules.pa \
+"
+SRC_URI:append:imx8mm-jaguar-inst = "\
+    file://pulseaudio.service \
+    file://load-unix-module.pa \
+    file://load-echo-cancellation-module.pa \
+    file://load-alsa-modules.pa \
+"
+SRC_URI:append:imx8mm-jaguar-handheld = "\
+    file://pulseaudio.service \
+    file://load-unix-module.pa \
+    file://load-echo-cancellation-module.pa \
+    file://load-alsa-modules.pa \
+"
+SRC_URI:append:imx8mm-jaguar-phasora = "\
     file://pulseaudio.service \
     file://load-unix-module.pa \
     file://load-echo-cancellation-module.pa \

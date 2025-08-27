@@ -1,5 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRC_URI:append = " \
+# Only apply android drivers configuration for Raspberry Pi machines
+SRC_URI:append:rpi = " \
     file://android-drivers.cfg \
     "

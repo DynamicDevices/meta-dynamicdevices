@@ -17,7 +17,20 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 #FILES:${PN} += "${sysconfdir}/modprobe.d/wifi-disable-power-saving.conf"
 
-SRC_URI:append = "\
+# Only apply NetworkManager configuration for Dynamic Devices machines
+SRC_URI:append:imx8mm-jaguar-sentai = "\
+    file://99-ignore-uap.conf \
+"
+SRC_URI:append:imx8mm-jaguar-inst = "\
+    file://99-ignore-uap.conf \
+"
+SRC_URI:append:imx8mm-jaguar-handheld = "\
+    file://99-ignore-uap.conf \
+"
+SRC_URI:append:imx8mm-jaguar-phasora = "\
+    file://99-ignore-uap.conf \
+"
+SRC_URI:append:imx93-jaguar-eink = "\
     file://99-ignore-uap.conf \
 "
 
