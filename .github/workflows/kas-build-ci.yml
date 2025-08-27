@@ -320,77 +320,49 @@ jobs:
         continue-on-error: true
         run: |
           echo "🏅 Running official Yocto Project layer compatibility validation..."
-          echo "📋 Using yocto-check-layer script from OpenEmbedded-Core"
+          echo "📋 Validating meta-dynamicdevices layer only (outside KAS environment)"
           echo "⚠️  NOTE: This is a validation check - failures here will generate warnings, not build failures"
           
-          # Download and run yocto-check-layer script in KAS container environment
-          # This validates our layer against official Yocto Project compatibility criteria
-          kas-container \
-            --runtime-args "-e KAS_MACHINE=imx8mm-jaguar-sentai" \
-            shell kas/lmp-dynamicdevices-base.yml -c '
-              echo "🔍 Checking if yocto-check-layer is available..."
-              
-              # Find yocto-check-layer script
-              if command -v yocto-check-layer >/dev/null 2>&1; then
-                echo "✅ Found yocto-check-layer command in PATH"
-                YOCTO_CHECK_CMD="yocto-check-layer"
-                YOCTO_CHECK_FOUND=1
-              elif [ -f "openembedded-core/scripts/yocto-check-layer" ]; then
-                echo "✅ Found yocto-check-layer script in OE-Core"
-                YOCTO_CHECK_CMD="openembedded-core/scripts/yocto-check-layer"
-                YOCTO_CHECK_FOUND=1
-              else
-                echo "⚠️  yocto-check-layer not found, searching in build environment..."
-                find . -name "yocto-check-layer" -type f 2>/dev/null | head -1
-                YOCTO_CHECK_CMD=$(find . -name "yocto-check-layer" -type f 2>/dev/null | head -1)
-                if [ -n "$YOCTO_CHECK_CMD" ] && [ -f "$YOCTO_CHECK_CMD" ]; then
-                  echo "✅ Found yocto-check-layer script at: $YOCTO_CHECK_CMD"
-                  YOCTO_CHECK_FOUND=1
-                else
-                  YOCTO_CHECK_FOUND=0
-                fi
-              fi
-              
-              if [ "$YOCTO_CHECK_FOUND" = "1" ]; then
-                echo "🏅 Running Yocto Project Compatible layer validation..."
-                echo "📂 Validating layer: meta-dynamicdevices"
-                
-                # The issue is that yocto-check-layer finds duplicate collections because
-                # it sees both real layers and BitBake test data. We need to run it in
-                # a clean environment that only sees our layer.
-                echo "🔧 Setting up clean validation environment..."
-                
-                # Create a temporary directory for validation
-                TEMP_VALIDATION_DIR="/tmp/layer-validation-$$"
-                mkdir -p "$TEMP_VALIDATION_DIR"
-                
-                # Copy our layer to the temp directory
-                cp -r /repo "$TEMP_VALIDATION_DIR/meta-dynamicdevices"
-                
-                # Remove any conflicting test data directories
-                find "$TEMP_VALIDATION_DIR" -path "*/bitbake/lib/layerindexlib/tests/testdata" -type d -exec rm -rf {} + 2>/dev/null || true
-                
-                # Run yocto-check-layer on the clean copy
-                echo "🔧 Running: $YOCTO_CHECK_CMD $TEMP_VALIDATION_DIR/meta-dynamicdevices"
-                "$YOCTO_CHECK_CMD" "$TEMP_VALIDATION_DIR/meta-dynamicdevices" \
-                  || echo "⚠️  VALIDATION WARNING: Some compatibility issues found - see output above for details"
-                
-                # Clean up
-                rm -rf "$TEMP_VALIDATION_DIR"
-                
-                echo ""
-                echo "📊 Yocto Project Compatibility Results:"
-                echo "✅ Layer validation completed - see output above for any issues"
-                
-              else
-                echo "❌ yocto-check-layer script not found in build environment"
-                echo "📝 Manual validation recommended using:"
-                echo "   yocto-check-layer --layers . --machines <MACHINE>"
-                echo ""
-                echo "🔗 For manual validation, see:"
-                echo "   https://docs.yoctoproject.org/test-manual/yocto-project-compatible.html"
-              fi
-            '
+          # Download yocto-check-layer script directly without KAS complexity
+          echo "📥 Downloading yocto-check-layer script from OpenEmbedded-Core..."
+          
+          # Create temporary directory for the script
+          TEMP_DIR="/tmp/yocto-validation-$$"
+          mkdir -p "$TEMP_DIR"
+          
+          # Download the yocto-check-layer script from the official repository
+          YOCTO_CHECK_SCRIPT="$TEMP_DIR/yocto-check-layer"
+          curl -s -o "$YOCTO_CHECK_SCRIPT" https://raw.githubusercontent.com/openembedded/openembedded-core/master/scripts/yocto-check-layer
+          
+          if [ -f "$YOCTO_CHECK_SCRIPT" ] && [ -s "$YOCTO_CHECK_SCRIPT" ]; then
+            chmod +x "$YOCTO_CHECK_SCRIPT"
+            echo "✅ Downloaded yocto-check-layer script successfully"
+            
+            echo "🏅 Running Yocto Project Compatible layer validation..."
+            echo "📂 Validating layer: meta-dynamicdevices (current directory)"
+            
+            # Run yocto-check-layer directly on our current directory (meta-dynamicdevices layer)
+            echo "🔧 Running: $YOCTO_CHECK_SCRIPT ."
+            "$YOCTO_CHECK_SCRIPT" . \
+              || echo "⚠️  VALIDATION WARNING: Some compatibility issues found - see output above for details"
+            
+            echo ""
+            echo "📊 Yocto Project Compatibility Results:"
+            echo "✅ Layer validation completed - see output above for any issues"
+            
+          else
+            echo "❌ Failed to download yocto-check-layer script"
+            echo "📝 Manual validation recommended using:"
+            echo "   curl -O https://raw.githubusercontent.com/openembedded/openembedded-core/master/scripts/yocto-check-layer"
+            echo "   chmod +x yocto-check-layer"
+            echo "   ./yocto-check-layer ."
+            echo ""
+            echo "🔗 For manual validation, see:"
+            echo "   https://docs.yoctoproject.org/test-manual/yocto-project-compatible.html"
+          fi
+          
+          # Clean up
+          rm -rf "$TEMP_DIR"
           
           echo ""
           echo "📋 Yocto Project Compatible Layer Validation Summary:"
