@@ -82,22 +82,18 @@ jobs:
           cd validation-build
           
           # Create minimal bblayers.conf with only essential layers for validation
-          cat > conf/bblayers.conf << 'EOF'
-LCONF_VERSION = "7"
-BBPATH = "${TOPDIR}"
-BBFILES ?= ""
-BBLAYERS ?= " \
-  ${TOPDIR}/../build/layers/openembedded-core/meta \
-  ${TOPDIR}/../build/layers/meta-openembedded/meta-oe \
-  ${TOPDIR}/../build/layers/meta-lmp-base \
-"
-EOF
+          echo 'LCONF_VERSION = "7"' > conf/bblayers.conf
+          echo 'BBPATH = "${TOPDIR}"' >> conf/bblayers.conf
+          echo 'BBFILES ?= ""' >> conf/bblayers.conf
+          echo 'BBLAYERS ?= " \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/openembedded-core/meta \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-openembedded/meta-oe \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-lmp-base \' >> conf/bblayers.conf
+          echo '"' >> conf/bblayers.conf
           
           # Create minimal local.conf
-          cat > conf/local.conf << 'EOF'
-MACHINE = "qemux86-64"
-DISTRO = "poky"
-EOF
+          echo 'MACHINE = "qemux86-64"' > conf/local.conf
+          echo 'DISTRO = "poky"' >> conf/local.conf
           
           # Source the oe-init-build-env to set up BitBake environment
           if [ -f "../build/layers/openembedded-core/oe-init-build-env" ]; then
