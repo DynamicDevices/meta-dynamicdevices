@@ -117,11 +117,8 @@ jobs:
             exit 1
           fi
           
-          # Go back to the repository root for layer validation
-          cd ..
-          
           # Find yocto-check-layer script in the checked out layers
-          YOCTO_CHECK_LAYER=$(find . -name 'yocto-check-layer' -type f | head -1)
+          YOCTO_CHECK_LAYER=$(find ../build/layers -name 'yocto-check-layer' -type f | head -1)
           if [ -z "$YOCTO_CHECK_LAYER" ]; then
             echo '❌ yocto-check-layer script not found'
             exit 1
@@ -141,38 +138,25 @@ jobs:
           
           # Remove BitBake test data to avoid collection conflicts
           echo "🔧 Removing BitBake test data to avoid collection conflicts..."
-          if [ -d "build/layers/bitbake/lib/layerindexlib/tests/testdata" ]; then
-            rm -rf build/layers/bitbake/lib/layerindexlib/tests/testdata
+          if [ -d "../build/layers/bitbake/lib/layerindexlib/tests/testdata" ]; then
+            rm -rf ../build/layers/bitbake/lib/layerindexlib/tests/testdata
             echo "✅ Removed BitBake test data"
           fi
           
           # Check what layers kas checkout actually fetched
           echo "🔧 Checking layers fetched by kas checkout..."
-          find build/layers -name "layer.conf" -type f | head -10
+          find ../build/layers -name "layer.conf" -type f | head -10
           
-          # Check bblayers.conf for duplicate entries
-          echo "🔧 Checking bblayers.conf for duplicate layer entries..."
-          if [ -f "build/conf/bblayers.conf" ]; then
-            echo "📋 Current bblayers.conf content:"
-            cat build/conf/bblayers.conf
-            echo ""
-            echo "📋 Checking for duplicate layer paths:"
-            grep -E "meta-dynamicdevices" build/conf/bblayers.conf || echo "No meta-dynamicdevices entries found"
-          fi
-          
-          # Run yocto-check-layer with dependency layers
+          # Run yocto-check-layer with dependency layers from within BitBake environment
           echo '🔧 Validating layers with required dependencies:'
-          echo '   - . (meta-dynamicdevices)'
-          echo '   - ./meta-dynamicdevices-bsp'
-          echo '   - ./meta-dynamicdevices-distro'
+          echo '   - .. (meta-dynamicdevices)'
+          echo '   - ../meta-dynamicdevices-bsp'
+          echo '   - ../meta-dynamicdevices-distro'
           echo '   - Dependencies: meta-lmp-base, openembedded-core, meta-oe'
           
-          # Set BUILDDIR to our clean validation environment
-          export BUILDDIR="$(pwd)/validation-build"
-          
-          # Build the yocto-check-layer command with dependency layers
-          # Include meta-lmp-base as a dependency layer for proper validation
-          YOCTO_CMD="python3 $YOCTO_CHECK_LAYER --dependency build/layers/meta-lmp/meta-lmp-base . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
+          # Build the yocto-check-layer command - allow auto-dependency resolution
+          # Run from within the BitBake environment directory
+          YOCTO_CMD="python3 $YOCTO_CHECK_LAYER .. ../meta-dynamicdevices-bsp ../meta-dynamicdevices-distro"
           
           echo "🔧 EXACT COMMAND BEING EXECUTED:"
           echo "$YOCTO_CMD"
