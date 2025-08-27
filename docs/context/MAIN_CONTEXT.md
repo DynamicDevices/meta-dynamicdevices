@@ -15,28 +15,50 @@ This repository contains application and middleware layers for Dynamic Devices E
 ## Repository Structure
 
 ```
-meta-dynamicdevices/                    # Application & Middleware Layer
+meta-dynamicdevices/                    # Main Application & Middleware Layer
 ├── docs/                               # Documentation and context files
 │   ├── context/                       # Main and project-specific context
 │   ├── projects/                      # Project-specific documentation
 │   ├── RECIPE_TEMPLATE.bb             # Template for creating new recipes
-│   └── YOCTO_BSP_BEST_PRACTICES.md    # Professional development guidelines
+│   ├── YOCTO_BSP_BEST_PRACTICES.md    # Professional development guidelines
+│   └── LAYER_ORGANIZATION.md          # Layer organization guide
 ├── scripts/                           # Utility scripts and tools
 ├── wiki/                              # Wiki submodule (GitHub wiki)
 ├── conf/                              # Application layer configuration
+├── recipes-config/                    # Application configuration
 ├── recipes-connectivity/              # Network and wireless applications
-├── recipes-multimedia/               # Audio and media processing
-├── recipes-support/                  # Application support services
 ├── recipes-containers/               # Container and virtualization
-├── recipes-*/                        # Other application-specific recipes
+├── recipes-core/                     # Core system components
+├── recipes-devtools/                 # Development tools
+├── recipes-extended/                 # Extended utilities
+├── recipes-multimedia/               # Generic audio and media processing
+├── recipes-security/                 # Security policies
+├── recipes-sota/                     # OTA management
+├── recipes-support/                  # Application support services
 ├── kas/                              # KAS build configuration files
 ├── program/                          # Board programming utilities
+├── lmp-docker/                       # Docker container customization
+├── meta-lmp-base/                    # Local project patches (OpenSSH CVE fixes)
+├── build/                            # Build outputs and external layers
+│   └── layers/                       # External downloaded layers (organized)
+│       ├── bitbake/                  # BitBake tool
+│       ├── openembedded-core/        # OE core
+│       ├── meta-lmp/                 # Foundries.io LMP layers
+│       ├── meta-freescale/           # NXP/Freescale layers
+│       ├── meta-openembedded/        # OpenEmbedded community layers
+│       └── [20+ other external layers]
 ├── meta-dynamicdevices-bsp/          # BSP Submodule (Hardware Support)
-│   ├── conf/machine/                 # Machine configurations
+│   ├── conf/machine/                 # Machine configurations (5 boards)
 │   ├── recipes-bsp/                  # Board support recipes
 │   ├── recipes-kernel/               # Hardware-specific kernel configs
+│   ├── recipes-multimedia/           # Hardware-specific multimedia (GStreamer i.MX)
 │   ├── LICENSE                       # Dual GPL-3.0/Commercial licensing
 │   └── README.md                     # BSP-specific documentation
+├── meta-dynamicdevices-distro/       # Distro Submodule (Distribution Policies)
+│   ├── conf/distro/                  # Distribution configurations (4 variants)
+│   ├── recipes-samples/images/       # Image recipes and feature includes
+│   ├── LICENSE                       # Dual GPL-3.0/Commercial licensing
+│   └── README.md                     # Distro-specific documentation
 ├── CHANGELOG.md                      # Project changelog
 ├── VERSION                           # Current version number
 ├── MAINTAINERS                       # Maintainer contact information
@@ -62,29 +84,54 @@ meta-dynamicdevices/                    # Application & Middleware Layer
 
 ## Layer Architecture
 
+### 🏗️ **Multi-Layer Architecture**
+The project follows Yocto best practices with a clean three-layer separation:
+
 ### Application Layer (meta-dynamicdevices)
-This main repository provides:
-- **Application recipes** - User-space applications and services
-- **Middleware components** - Audio processing, networking, containers
+**Main repository** - Focus: Applications and middleware
+- **Application recipes** - User-space applications and services  
+- **Middleware components** - Generic audio, networking, containers
 - **System integration** - Service configuration and orchestration
+- **Development tools** - Python packages, build tools, debugging
 - **Build configuration** - KAS files and layer dependencies
+- **External layer management** - Organized in `build/layers/` structure
 
 ### BSP Layer (meta-dynamicdevices-bsp)
-The BSP submodule provides hardware-specific support:
-- **Machine configurations** - Hardware definitions for all board variants
-- **Kernel configurations** - Hardware-specific kernel features and drivers
-- **Device tree sources** - Hardware description and pin configurations
-- **Bootloader support** - U-Boot configurations and patches
-- **Firmware integration** - Hardware-specific firmware and drivers
+**Hardware submodule** - Focus: Hardware-specific support
+- **Machine configurations** - 5 board definitions (imx8mm-jaguar-*, imx93-jaguar-eink)
+- **Device tree customizations** - Hardware-specific DTS files and overlays
+- **Bootloader configurations** - U-Boot patches and configurations  
+- **Hardware drivers** - Kernel modules and firmware
+- **Board support recipes** - Hardware initialization and testing scripts
+- **Hardware multimedia** - i.MX-specific GStreamer plugins and audio processing
 
-### Layer Dependencies
+### Distribution Layer (meta-dynamicdevices-distro)  
+**Distribution submodule** - Focus: Distribution policies and images
+- **Distribution configurations** - 4 distro variants (base, flutter, waydroid, etc.)
+- **Image recipes** - Factory images with feature-based composition
+- **Feature includes** - Modular feature sets (ALSA, auto-register, improv, etc.)
+- **Distribution policies** - Security settings, package selections, licensing
+
+### 🔗 **Layer Dependencies**
 ```
-meta-dynamicdevices (Application Layer)
-    ↓ depends on
-meta-dynamicdevices-bsp (BSP Layer)
-    ↓ depends on  
-meta-lmp-base (Linux microPlatform)
+meta-dynamicdevices (Priority: 11)
+├── depends on: meta-dynamicdevices-bsp (Priority: 12)  
+├── depends on: meta-dynamicdevices-distro (Priority: 10)
+└── depends on: meta-lmp-base (external)
+
+External layers managed in build/layers/:
+├── meta-lmp/ (Foundries.io LMP)
+├── meta-freescale/ (NXP/Freescale BSP)  
+├── meta-openembedded/ (Community layers)
+└── 20+ other external dependencies
 ```
+
+This separation enables:
+- **Independent development** - Each layer can be developed and versioned separately
+- **Reusable components** - BSP can be used across projects, distros can be mixed
+- **Clean abstraction** - Applications don't need hardware or distro-specific knowledge
+- **Professional maintenance** - Each layer follows Yocto best practices
+- **Organized dependencies** - External vs project-owned content clearly separated
 
 ## Development Workflow
 
