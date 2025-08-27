@@ -191,16 +191,18 @@ jobs:
           # Strict validation approach - fail if dependencies can't be resolved
           # Build minimal but sufficient layer list to resolve dependencies
           
-          # Essential layers for dependency resolution (relative to validation-build directory)
+          # Essential layers for dependency resolution - minimal set to avoid conflicts
           CORE_LAYERS="../build/layers/openembedded-core/meta"
-          OE_LAYERS="../build/layers/meta-openembedded/meta-oe ../build/layers/meta-openembedded/meta-filesystems ../build/layers/meta-openembedded/meta-python ../build/layers/meta-openembedded/meta-networking ../build/layers/meta-openembedded/meta-perl"
-          SECURITY_LAYERS="../build/layers/meta-security"
-          UPDATER_LAYERS="../build/layers/meta-updater"
-          VIRT_LAYERS="../build/layers/meta-virtualisation"
-          LMP_LAYERS="../build/layers/meta-lmp/meta-lmp-base ../build/layers/meta-lmp/meta-lmp-bsp"
+          # Only include essential OE layers to avoid collection conflicts
+          OE_ESSENTIAL="../build/layers/meta-openembedded/meta-oe"
+          OE_PYTHON="../build/layers/meta-openembedded/meta-python"
+          OE_NETWORKING="../build/layers/meta-openembedded/meta-networking"
+          # Include LMP layers
+          LMP_BASE="../build/layers/meta-lmp/meta-lmp-base"
+          LMP_BSP="../build/layers/meta-lmp/meta-lmp-bsp"
           
-          # Combine all dependency layers
-          ALL_DEPS="$CORE_LAYERS $OE_LAYERS $SECURITY_LAYERS $UPDATER_LAYERS $VIRT_LAYERS $LMP_LAYERS"
+          # Minimal dependency set to avoid BBFILE_COLLECTIONS conflicts
+          ALL_DEPS="$CORE_LAYERS $OE_ESSENTIAL $OE_PYTHON $OE_NETWORKING $LMP_BASE $LMP_BSP"
           
           # Check if essential dependency layers exist
           echo "🔍 Checking essential dependency layers..."
@@ -211,7 +213,7 @@ jobs:
           
           missing_deps=""
           # Check core essential layers only (don't check every single dependency)
-          essential_layers="$CORE_LAYERS ../build/layers/meta-openembedded/meta-oe ../build/layers/meta-lmp/meta-lmp-base"
+          essential_layers="$CORE_LAYERS $OE_ESSENTIAL $LMP_BASE"
           for layer in $essential_layers; do
             layer_name=$(basename "$layer")
             echo "Checking: $layer"
@@ -231,8 +233,18 @@ jobs:
             exit 1
           fi
           
-          # Validate with comprehensive dependencies - STRICT MODE
-          echo '1️⃣ Validating meta-dynamicdevices-bsp (with all dependencies)...'
+          # Show what layers we're including to debug collection conflicts
+          echo "🔍 Dependency layers being used:"
+          for layer in $ALL_DEPS; do
+            if [ -f "$layer/conf/layer.conf" ]; then
+              collection=$(grep "BBFILE_COLLECTIONS" "$layer/conf/layer.conf" | head -1 | sed 's/.*"\(.*\)".*/\1/' || echo "unknown")
+              echo "  - $(basename $layer): $collection"
+            fi
+          done
+          echo ""
+          
+          # Validate with minimal dependencies - STRICT MODE
+          echo '1️⃣ Validating meta-dynamicdevices-bsp (with minimal dependencies)...'
           YOCTO_CMD_BSP="python3 $YOCTO_CHECK_LAYER $ALL_DEPS ../meta-dynamicdevices-bsp"
           echo "Command: $YOCTO_CMD_BSP"
           if eval "$YOCTO_CMD_BSP"; then
