@@ -170,9 +170,9 @@ jobs:
           # Set BUILDDIR to our clean validation environment
           export BUILDDIR="$(pwd)/validation-build"
           
-          # Build the yocto-check-layer command - use --no-auto-dependency to avoid automatic dependency resolution
-          # The layers should be able to validate independently since we've set up the clean BitBake environment
-          YOCTO_CMD="python3 $YOCTO_CHECK_LAYER . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
+          # Build the yocto-check-layer command with dependency layers
+          # Include meta-lmp-base as a dependency layer for proper validation
+          YOCTO_CMD="python3 $YOCTO_CHECK_LAYER --dependency build/layers/meta-lmp/meta-lmp-base . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
           
           echo "🔧 EXACT COMMAND BEING EXECUTED:"
           echo "$YOCTO_CMD"
