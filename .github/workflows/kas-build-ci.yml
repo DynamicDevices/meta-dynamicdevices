@@ -328,43 +328,49 @@ jobs:
           echo "🔍 Running official yocto-check-layer within proper Yocto environment..."
           
           # Use KAS environment to run yocto-check-layer with all dependencies
-          kas-container \
-            --runtime-args "-e KAS_MACHINE=imx8mm-jaguar-sentai" \
-            shell kas/lmp-dynamicdevices-base.yml -c '
-              echo "🔍 Setting up Yocto environment for layer validation..."
-              
-              # Find yocto-check-layer script in the proper Yocto environment
-              if [ -f "openembedded-core/scripts/yocto-check-layer" ]; then
-                YOCTO_CHECK_CMD="openembedded-core/scripts/yocto-check-layer"
-                echo "✅ Found yocto-check-layer script in OE-Core: $YOCTO_CHECK_CMD"
+          kas-container --runtime-args "-e KAS_MACHINE=imx8mm-jaguar-sentai" shell kas/lmp-dynamicdevices-base.yml -c "
+            echo '🔍 Setting up Yocto environment for layer validation...'
+            
+            # Find yocto-check-layer script in the proper Yocto environment
+            echo '🔍 Searching for yocto-check-layer script...'
+            find . -name 'yocto-check-layer' -type f 2>/dev/null | head -5
+            
+            if [ -f 'openembedded-core/scripts/yocto-check-layer' ]; then
+              YOCTO_CHECK_CMD='openembedded-core/scripts/yocto-check-layer'
+              echo '✅ Found yocto-check-layer script in OE-Core: \$YOCTO_CHECK_CMD'
+            elif [ -f 'scripts/yocto-check-layer' ]; then
+              YOCTO_CHECK_CMD='scripts/yocto-check-layer'
+              echo '✅ Found yocto-check-layer script in scripts/: \$YOCTO_CHECK_CMD'
+            else
+              echo '⚠️ Searching for yocto-check-layer in build environment...'
+              YOCTO_CHECK_CMD=\$(find . -name 'yocto-check-layer' -type f 2>/dev/null | head -1)
+              if [ -n \"\$YOCTO_CHECK_CMD\" ] && [ -f \"\$YOCTO_CHECK_CMD\" ]; then
+                echo '✅ Found yocto-check-layer script at: '\$YOCTO_CHECK_CMD
               else
-                echo "⚠️ Searching for yocto-check-layer in build environment..."
-                YOCTO_CHECK_CMD=$(find . -name "yocto-check-layer" -type f 2>/dev/null | head -1)
-                if [ -n "$YOCTO_CHECK_CMD" ] && [ -f "$YOCTO_CHECK_CMD" ]; then
-                  echo "✅ Found yocto-check-layer script at: $YOCTO_CHECK_CMD"
-                else
-                  echo "❌ yocto-check-layer script not found in build environment"
-                  exit 1
-                fi
-              fi
-              
-              echo "🏅 Running official Yocto Project Compatible layer validation..."
-              echo "📂 Validating layer: meta-dynamicdevices (/repo)"
-              
-              # Run yocto-check-layer on our layer within the proper Yocto environment
-              echo "🔧 Running: $YOCTO_CHECK_CMD /repo"
-              if "$YOCTO_CHECK_CMD" /repo; then
-                echo "✅ Layer validation PASSED - no compatibility issues found"
-              else
-                echo "❌ Layer validation FAILED - compatibility issues found above"
-                echo "🚨 Build will fail to ensure layer compatibility standards are met"
+                echo '❌ yocto-check-layer script not found in build environment'
+                echo '📋 Available scripts in current directory:'
+                find . -name '*.py' -path '*/scripts/*' | head -10
                 exit 1
               fi
-              
-              echo ""
-              echo "📊 Yocto Project Compatibility Results:"
-              echo "✅ Layer validation completed successfully"
-            '
+            fi
+            
+            echo '🏅 Running official Yocto Project Compatible layer validation...'
+            echo '📂 Validating layer: meta-dynamicdevices (/repo)'
+            
+            # Run yocto-check-layer on our layer within the proper Yocto environment
+            echo '🔧 Running: '\$YOCTO_CHECK_CMD' /repo'
+            if \"\$YOCTO_CHECK_CMD\" /repo; then
+              echo '✅ Layer validation PASSED - no compatibility issues found'
+            else
+              echo '❌ Layer validation FAILED - compatibility issues found above'
+              echo '🚨 Build will fail to ensure layer compatibility standards are met'
+              exit 1
+            fi
+            
+            echo ''
+            echo '📊 Yocto Project Compatibility Results:'
+            echo '✅ Layer validation completed successfully'
+          "
           
           validation_errors=0
           
