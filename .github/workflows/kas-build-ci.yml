@@ -355,11 +355,28 @@ jobs:
                 echo "🏅 Running Yocto Project Compatible layer validation..."
                 echo "📂 Validating layer: meta-dynamicdevices"
                 
-                # Run yocto-check-layer on our meta layer
-                cd /repo
-                echo "🔧 Running: $YOCTO_CHECK_CMD /repo"
-                "$YOCTO_CHECK_CMD" /repo \
+                # The issue is that yocto-check-layer finds duplicate collections because
+                # it sees both real layers and BitBake test data. We need to run it in
+                # a clean environment that only sees our layer.
+                echo "🔧 Setting up clean validation environment..."
+                
+                # Create a temporary directory for validation
+                TEMP_VALIDATION_DIR="/tmp/layer-validation-$$"
+                mkdir -p "$TEMP_VALIDATION_DIR"
+                
+                # Copy our layer to the temp directory
+                cp -r /repo "$TEMP_VALIDATION_DIR/meta-dynamicdevices"
+                
+                # Remove any conflicting test data directories
+                find "$TEMP_VALIDATION_DIR" -path "*/bitbake/lib/layerindexlib/tests/testdata" -type d -exec rm -rf {} + 2>/dev/null || true
+                
+                # Run yocto-check-layer on the clean copy
+                echo "🔧 Running: $YOCTO_CHECK_CMD $TEMP_VALIDATION_DIR/meta-dynamicdevices"
+                "$YOCTO_CHECK_CMD" "$TEMP_VALIDATION_DIR/meta-dynamicdevices" \
                   || echo "⚠️  VALIDATION WARNING: Some compatibility issues found - see output above for details"
+                
+                # Clean up
+                rm -rf "$TEMP_VALIDATION_DIR"
                 
                 echo ""
                 echo "📊 Yocto Project Compatibility Results:"
