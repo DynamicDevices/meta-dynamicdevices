@@ -36,6 +36,9 @@ jobs:
   validate:
     name: Validate Yocto Layers
     runs-on: self-hosted
+    container:
+      image: dynamicdevices/yocto-ci-build:latest
+      options: --privileged --platform linux/amd64  -v /dev/net/tun:/dev/net/tun -v /dev/kvm:/dev/kvm
     
     steps:
       - name: Checkout repository
@@ -43,30 +46,17 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install kas-container
-        run: |
-          echo "📦 Installing kas-container"
-          if ! command -v kas-container >/dev/null 2>&1; then
-            curl -L https://raw.githubusercontent.com/siemens/kas/master/kas-container -o kas-container
-            chmod +x kas-container
-            sudo mv kas-container /usr/local/bin/kas-container
-            echo "✅ kas-container installed"
-          else
-            echo "✅ kas-container already available"
-          fi
-          kas-container --version
-
       - name: Validate Yocto Layers
         run: |
-          echo "🏅 Validating Yocto layers using kas-shell-base.sh and yocto-check-layer"
+          echo "🏅 Validating Yocto layers using kas shell and yocto-check-layer"
           echo "📋 Testing layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
           
-          # Use kas-shell-base.sh to set up environment and run yocto-check-layer
-          ./scripts/kas-shell-base.sh -c "
+          # Use kas shell to set up environment and run yocto-check-layer
+          kas shell kas/lmp-dynamicdevices-base.yml -c "
             echo '🔧 Inside kas environment, running yocto-check-layer...'
             
             # Find yocto-check-layer script
-            YOCTO_CHECK_LAYER=\$(find /repo -name 'yocto-check-layer' -type f | head -1)
+            YOCTO_CHECK_LAYER=\$(find . -name 'yocto-check-layer' -type f | head -1)
             if [ -z \"\$YOCTO_CHECK_LAYER\" ]; then
               echo '❌ yocto-check-layer script not found'
               exit 1
@@ -77,11 +67,11 @@ jobs:
             # Run yocto-check-layer with --no-auto-dependency to disable automatic layer discovery
             # Test the three specific layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro
             echo '🔧 Validating layers with disabled auto-discovery:'
-            echo '   - /repo (meta-dynamicdevices)'
-            echo '   - /repo/meta-dynamicdevices-bsp'
-            echo '   - /repo/meta-dynamicdevices-distro'
+            echo '   - . (meta-dynamicdevices)'
+            echo '   - ./meta-dynamicdevices-bsp'
+            echo '   - ./meta-dynamicdevices-distro'
             
-            if python3 \"\$YOCTO_CHECK_LAYER\" --no-auto-dependency /repo /repo/meta-dynamicdevices-bsp /repo/meta-dynamicdevices-distro; then
+            if python3 \"\$YOCTO_CHECK_LAYER\" --no-auto-dependency . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
               echo '✅ All layer validations PASSED'
             else
               echo '❌ Layer validation FAILED'
@@ -95,6 +85,9 @@ jobs:
   build:
     name: Build ${{ matrix.machine }} - ${{ matrix.target }}
     runs-on: self-hosted
+    container:
+      image: dynamicdevices/yocto-ci-build:latest
+      options: --privileged --platform linux/amd64  -v /dev/net/tun:/dev/net/tun -v /dev/kvm:/dev/kvm
     needs: [validate]
     strategy:
       fail-fast: false
@@ -110,18 +103,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Install kas-container
-        run: |
-          echo "📦 Installing kas-container"
-          if ! command -v kas-container >/dev/null 2>&1; then
-            curl -L https://raw.githubusercontent.com/siemens/kas/master/kas-container -o kas-container
-            chmod +x kas-container
-            sudo mv kas-container /usr/local/bin/kas-container
-            echo "✅ kas-container installed"
-          else
-            echo "✅ kas-container already available"
-          fi
 
       - name: Setup build cache
         run: |
@@ -147,10 +128,8 @@ jobs:
           echo "Build target: $build_target"
           echo "Machine: $KAS_MACHINE"
           
-          # Run KAS build
-          kas-container \
-            --runtime-args "-v $HOME/yocto:/var/cache -e KAS_MACHINE=$KAS_MACHINE" \
-            build "$kas_config:$build_target"
+          # Run KAS build (directly in container)
+          kas build "$kas_config:$build_target"
           
           echo "✅ Build completed successfully"
 
