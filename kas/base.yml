@@ -6,14 +6,14 @@ repos:
     url: https://github.com/lmp-mirrors/bitbake
     commit: 696c2c1ef095f8b11c7d2eff36fae50f58c62e5e
     layers:
-      .: excluded
+      .: disabled
 
   lmp-tools:
     url: https://github.com/foundriesio/lmp-tools
     branch: master
     path: lmp-tools
     layers:
-      .: excluded
+      .: disabled
 
   meta-lmp:
     url: https://github.com/foundriesio/meta-lmp

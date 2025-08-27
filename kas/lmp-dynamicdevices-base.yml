@@ -8,9 +8,9 @@
 header:
   version: 14
   includes:
-    - base.yml
-    - bsp.yml
-    - dynamicdevices.yml
+    - kas/base.yml
+    - kas/bsp.yml
+    - kas/dynamicdevices.yml
 
 distro: lmp-dynamicdevices-base
 target: lmp-factory-image
