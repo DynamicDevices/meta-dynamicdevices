@@ -361,8 +361,8 @@ jobs:
           fi
           
           echo "🏅 Running official Yocto Project Compatible layer validation..."
-          echo "📂 Validating layer: meta-dynamicdevices (/repo)"
-          echo "📋 NOTE: Using --no-auto flag to validate ONLY our meta-dynamicdevices layer"
+          echo "📂 Validating individual layers within the repository"
+          echo "📋 NOTE: Using --no-auto flag to validate each layer individually"
           
           # Temporarily remove BitBake test data to avoid collection conflicts
           echo "🔧 Temporarily removing BitBake test data to avoid collection conflicts..."
@@ -372,15 +372,35 @@ jobs:
             echo "✅ Removed BitBake test data temporarily (backed up to /tmp)"
           fi
           
-          # Run yocto-check-layer with --no-auto to validate ONLY our layer
-          echo "🔧 Running: $YOCTO_CHECK_CMD --no-auto /repo"
-          if "$YOCTO_CHECK_CMD" --no-auto /repo; then
-            echo "✅ Layer validation PASSED - no compatibility issues found"
-            validation_result=0
+          # Validate each layer individually
+          validation_result=0
+          
+          # List of layers to validate
+          LAYERS_TO_VALIDATE="/repo /repo/meta-dynamicdevices-bsp /repo/meta-dynamicdevices-distro"
+          
+          for layer_path in $LAYERS_TO_VALIDATE; do
+            if [ -f "$layer_path/conf/layer.conf" ]; then
+              layer_name=$(basename "$layer_path")
+              echo "🔧 Validating layer: $layer_name ($layer_path)"
+              echo "🔧 Running: $YOCTO_CHECK_CMD --no-auto $layer_path"
+              
+              if "$YOCTO_CHECK_CMD" --no-auto "$layer_path"; then
+                echo "✅ Layer $layer_name validation PASSED"
+              else
+                echo "❌ Layer $layer_name validation FAILED"
+                validation_result=1
+              fi
+              echo ""
+            else
+              echo "⚠️ Skipping $layer_path - no layer.conf found"
+            fi
+          done
+          
+          if [ $validation_result -eq 0 ]; then
+            echo "✅ All layer validations PASSED - no compatibility issues found"
           else
-            echo "❌ Layer validation FAILED - compatibility issues found above"
+            echo "❌ One or more layer validations FAILED - compatibility issues found above"
             echo "🚨 Build will fail to ensure layer compatibility standards are met"
-            validation_result=1
           fi
           
           # Restore BitBake test data
@@ -396,7 +416,10 @@ jobs:
           
           echo ""
           echo "📊 Yocto Project Compatibility Results:"
-          echo "✅ Layer validation completed successfully"
+          echo "✅ All layer validations completed successfully"
+          echo "   - meta-dynamicdevices (main layer)"
+          echo "   - meta-dynamicdevices-bsp (BSP layer)"  
+          echo "   - meta-dynamicdevices-distro (distro layer)"
           EOF
           
           chmod +x /tmp/yocto-validation.sh
