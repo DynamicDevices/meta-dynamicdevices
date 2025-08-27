@@ -51,27 +51,25 @@ jobs:
           echo "🏅 Validating Yocto layers using yocto-check-layer"
           echo "📋 Testing layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
           
-          # Set up minimal Yocto environment
-          export BUILDDIR=/tmp/build
-          mkdir -p $BUILDDIR/conf
-          
-          # Create minimal bblayers.conf for yocto-check-layer
-          cat > $BUILDDIR/conf/bblayers.conf << 'EOF'
-          LCONF_VERSION = "7"
-          BBPATH = "${TOPDIR}"
-          BBFILES ?= ""
-          BBLAYERS ?= ""
-          EOF
-          
-          # Create minimal local.conf
-          cat > $BUILDDIR/conf/local.conf << 'EOF'
-          MACHINE = "qemux86-64"
-          DISTRO = "poky"
-          EOF
-          
-          # Initialize Yocto build environment using kas to get the right layers
-          echo "🔧 Setting up Yocto environment..."
+          # Initialize Yocto build environment using kas to get the right layers and setup
+          echo "🔧 Setting up Yocto environment with kas..."
           kas checkout kas/lmp-dynamicdevices-base.yml
+          
+          # Initialize the BitBake environment properly
+          echo "🔧 Initializing BitBake environment..."
+          cd build
+          
+          # Source the oe-init-build-env to set up BitBake environment
+          if [ -f "layers/openembedded-core/oe-init-build-env" ]; then
+            source layers/openembedded-core/oe-init-build-env .
+            echo "✅ BitBake environment initialized"
+          else
+            echo "❌ oe-init-build-env not found"
+            exit 1
+          fi
+          
+          # Go back to the repository root for layer validation
+          cd ..
           
           # Find yocto-check-layer script in the checked out layers
           YOCTO_CHECK_LAYER=$(find . -name 'yocto-check-layer' -type f | head -1)
@@ -81,6 +79,16 @@ jobs:
           fi
           
           echo "✅ Found yocto-check-layer: $YOCTO_CHECK_LAYER"
+          
+          # Verify BitBake is available
+          if ! python3 -c "import bb.tinfoil" 2>/dev/null; then
+            echo "❌ BitBake environment not properly initialized"
+            echo "PYTHONPATH: $PYTHONPATH"
+            echo "PATH: $PATH"
+            exit 1
+          fi
+          
+          echo "✅ BitBake environment verified"
           
           # Run yocto-check-layer with --no-auto-dependency to disable automatic layer discovery
           echo '🔧 Validating layers with disabled auto-discovery:'
