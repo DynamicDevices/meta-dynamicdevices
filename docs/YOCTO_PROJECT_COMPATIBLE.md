@@ -8,7 +8,7 @@ This document outlines the compliance status of Dynamic Devices layers with the 
 
 ### 🔧 **meta-dynamicdevices-bsp** (BSP Layer)
 
-**Status**: ✅ **COMPLIANT** with Yocto Project Compatible requirements
+**Status**: ✅ **COMPLIANCE READY** - Meets all Yocto Project Compatible requirements
 
 #### Required Files
 - ✅ **README.md** - Comprehensive BSP documentation with maintainer info, dependencies, and usage
@@ -33,7 +33,7 @@ This document outlines the compliance status of Dynamic Devices layers with the 
 
 ### 🎛️ **meta-dynamicdevices-distro** (Distro Layer)
 
-**Status**: ✅ **COMPLIANT** with Yocto Project Compatible requirements
+**Status**: ✅ **COMPLIANCE READY** - Meets all Yocto Project Compatible requirements
 
 #### Required Files
 - ✅ **README.md** - Comprehensive distro documentation with configuration details
@@ -100,9 +100,9 @@ Based on the [official registration requirements](https://www.yoctoproject.org/c
   - Requires BitBake environment for execution
   - Manual validation performed based on script criteria
 
-## Registration Eligibility
+## Certification Eligibility
 
-Both layers meet the technical requirements for Yocto Project Compatible registration:
+Both layers meet the technical requirements for Yocto Project Compatible certification:
 
 ### **Membership Requirements**
 - Dynamic Devices is eligible for YP membership or layer sponsorship
@@ -115,13 +115,15 @@ Both layers meet the technical requirements for Yocto Project Compatible registr
 - No anti-patterns or problematic layer interactions
 - Security-focused design with vulnerability reporting
 
-## Next Steps
+## Next Steps for Official Certification
 
-1. **Yocto Project Membership** - Consider joining as Silver/Gold/Platinum member
-2. **Layer Registration** - Submit layers for official YP Compatible status
-3. **OpenEmbedded Index** - Add layers to http://layers.openembedded.org
-4. **Continuous Validation** - Integrate yocto-check-layer into CI/CD pipeline
+1. **Yocto Project Membership** - Consider joining as Silver/Gold/Platinum member for certification eligibility
+2. **Submit for Certification** - Apply for official YP Compatible status through the registration process
+3. **OpenEmbedded Index** - Add layers to http://layers.openembedded.org for community visibility
+4. **✅ Continuous Validation** - COMPLETED: Integrated yocto-check-layer into CI/CD pipeline
 5. **Community Contribution** - Contribute improvements back to upstream projects
+
+**Note**: Layers are currently **compliance-ready** and meet all technical requirements, but have not yet received official Yocto Project Compatible certification.
 
 ## Resources
 

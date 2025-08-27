@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the Continuous Integration/Continuous Deployment (CI/CD) pipeline implemented for validating Yocto Project Compatible compliance of the Dynamic Devices layers.
+This document describes the Continuous Integration/Continuous Deployment (CI/CD) pipeline implemented for validating that Dynamic Devices layers meet Yocto Project Compatible requirements and are ready for certification.
 
 ## Pipeline Components
 
@@ -179,7 +179,7 @@ For local validation:
 All README files include status badges showing:
 
 - **Layer Validation Status**: Real-time CI pipeline status
-- **YP Compatible Status**: Compliance with Yocto Project requirements
+- **YP Compliance Ready**: Meets Yocto Project Compatible requirements (ready for certification)
 - **Multi-Version Support**: Tested Yocto releases
 
 ### Validation Reports
@@ -298,10 +298,10 @@ python3 layers/openembedded-core/scripts/yocto-check-layer \
 ### Community Integration
 
 1. **OpenEmbedded Index**: Automated layer registration
-2. **Yocto Project Compatible**: Official certification submission
+2. **Yocto Project Compatible**: Submit for official certification once eligible
 3. **Community Feedback**: Integration with Yocto Project tools and processes
 4. **Best Practice Sharing**: Contribution to Yocto Project documentation
 
 ---
 
-*This CI/CD pipeline ensures continuous compliance with Yocto Project Compatible requirements and maintains high-quality, interoperable layers for the Dynamic Devices ecosystem.*
+*This CI/CD pipeline ensures continuous validation that layers meet Yocto Project Compatible requirements and are ready for official certification, maintaining high-quality, interoperable layers for the Dynamic Devices ecosystem.*

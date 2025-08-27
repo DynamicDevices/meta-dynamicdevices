@@ -12,7 +12,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/DynamicDevices/meta-dynamicdevices)](https://github.com/DynamicDevices/meta-dynamicdevices/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/DynamicDevices/meta-dynamicdevices)](https://github.com/DynamicDevices/meta-dynamicdevices/pulls)
 [![Latest Release](https://img.shields.io/github/v/release/DynamicDevices/meta-dynamicdevices?include_prereleases)](https://github.com/DynamicDevices/meta-dynamicdevices/releases)
-[![YP Compatible](https://img.shields.io/badge/YP%20Compatible-BSP%20%2B%20Distro%20✓-brightgreen)](https://docs.yoctoproject.org/test-manual/yocto-project-compatible.html)
+[![YP Compliance Ready](https://img.shields.io/badge/YP%20Compliance-Ready%20for%20Certification-blue)](https://docs.yoctoproject.org/test-manual/yocto-project-compatible.html)
 [![Security Scanning](https://img.shields.io/badge/security-CVE%20%2B%20SBOM%20✓-blue)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
 This application layer provides comprehensive middleware and applications for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
