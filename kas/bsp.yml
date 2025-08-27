@@ -5,7 +5,7 @@ repos:
   meta-arm:
     url: https://github.com/lmp-mirrors/meta-arm
     commit: f3640941c600d03ea53ce5b9254f0fead18f8bc0
-    path: layers/meta-arm
+    path: build/layers/meta-arm
     layers:
       meta-arm:
       meta-arm-toolchain:
@@ -14,27 +14,27 @@ repos:
   meta-freescale:
     url: https://github.com/lmp-mirrors/meta-freescale
     commit: dd3733cd91f5c85db83e49edeb3c644f424b7c7a
-    path: layers/meta-freescale
+    path: build/layers/meta-freescale
 
   meta-freescale-3rdparty:
     url: https://github.com/lmp-mirrors/meta-freescale-3rdparty
     commit: 1dfc65dd2006b51d156be5bcda0e3c72c936ad0a
-    path: layers/meta-freescale-3rdparty
+    path: build/layers/meta-freescale-3rdparty
 
   meta-intel:
     url: https://github.com/lmp-mirrors/meta-intel
     commit: 1a7ccdcaedc965f019a9263364437356b8a2ba29
-    path: layers/meta-intel
+    path: build/layers/meta-intel
 
   meta-raspberrypi:
     url: https://github.com/lmp-mirrors/meta-raspberrypi
     commit: 3b27c95c163a042f8056066ec3d27edfcc42da7f
-    path: layers/meta-raspberrypi
+    path: build/layers/meta-raspberrypi
 
   meta-yocto:
     url: https://github.com/lmp-mirrors/meta-yocto
     commit: 7f1be5a930554ea5036d2c806aa752ae0b2de826
-    path: layers/meta-yocto
+    path: build/layers/meta-yocto
     layers:
       meta-yocto-bsp:
 
@@ -51,12 +51,12 @@ repos:
   meta-tegra:
     url: https://github.com/lmp-mirrors/meta-tegra
     commit: e836736de0a439c8893ede4cef6973bd6347affa
-    path: layers/meta-tegra
+    path: build/layers/meta-tegra
 
   meta-ti:
     url: https://github.com/lmp-mirrors/meta-ti
     commit: 71f4340b0ba3b50e2a51875df3a3e020e92b5b40
-    path: layers/meta-ti
+    path: build/layers/meta-ti
     layers:
       meta-ti-bsp:
       meta-ti-extras:

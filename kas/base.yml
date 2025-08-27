@@ -5,19 +5,20 @@ repos:
   bitbake:
     url: https://github.com/lmp-mirrors/bitbake
     commit: 696c2c1ef095f8b11c7d2eff36fae50f58c62e5e
+    path: build/layers/bitbake
     layers:
       .: disabled
 
   lmp-tools:
     url: https://github.com/foundriesio/lmp-tools
     branch: master
-    path: lmp-tools
+    path: build/layers/lmp-tools
     layers:
       .: disabled
 
   meta-lmp:
     url: https://github.com/foundriesio/meta-lmp
-    path: layers/meta-lmp
+    path: build/layers/meta-lmp
     commit: 4dffdff79b4df49c683c9a7faea406595cb7e9ca
     layers:
       meta-lmp-base:
@@ -26,12 +27,12 @@ repos:
   meta-clang:
     url: https://github.com/lmp-mirrors/meta-clang
     commit: eaa08939eaec9f620b14742ff3ac568553683034
-    path: layers/meta-clang
+    path: build/layers/meta-clang
 
   meta-openembedded:
     url: https://github.com/lmp-mirrors/meta-openembedded
     commit: e92d0173a80ea7592c866618ef5293203c50544c
-    path: layers/meta-openembedded
+    path: build/layers/meta-openembedded
     layers:
       meta-oe:
       meta-networking:
@@ -43,7 +44,7 @@ repos:
   meta-security:
     url: https://github.com/lmp-mirrors/meta-security
     commit: bc865c5276c2ab4031229916e8d7c20148dfbac3
-    path: layers/meta-security
+    path: build/layers/meta-security
     layers:
       .:
       meta-tpm:
@@ -53,21 +54,21 @@ repos:
   meta-updater:
     url: https://github.com/lmp-mirrors/meta-updater
     commit: d57b19f885fe11916c91569e20288581eff512aa
-    path: layers/meta-updater
+    path: build/layers/meta-updater
 
   meta-virtualization:
     url: https://github.com/lmp-mirrors/meta-virtualization
     commit: 9e040ee8dd6025558ea60ac9db60c41bfeddf221
-    path: layers/meta-virtualisation
+    path: build/layers/meta-virtualisation
 
   meta-tensorflow:
     url: https://git.yoctoproject.org/meta-tensorflow
     commit: c382865206fe925a02a1cdbdd856e16310bc9dbc
-    path: layers/meta-tensorflow
+    path: build/layers/meta-tensorflow
 
   openembedded-core:
     url: https://github.com/lmp-mirrors/openembedded-core
     commit: 87cadf62ba0d6b0fc3dc0151a5d320919b7eb1ab
-    path: openembedded-core
+    path: build/layers/openembedded-core
     layers:
       meta:

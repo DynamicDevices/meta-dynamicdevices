@@ -5,8 +5,12 @@ tmp-glibc/
 cache/
 downloads/
 sstate-cache/
+
+# Legacy layer locations (now organized under build/layers/)
+# Keep these for backwards compatibility during transition
 bitbake/
 layers/
+layers.hidden/
 lmp-tools/
 openembedded-core/
 
