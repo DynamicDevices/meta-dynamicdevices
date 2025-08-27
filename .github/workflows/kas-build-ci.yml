@@ -48,36 +48,52 @@ jobs:
 
       - name: Validate Yocto Layers
         run: |
-          echo "🏅 Validating Yocto layers using kas shell and yocto-check-layer"
+          echo "🏅 Validating Yocto layers using yocto-check-layer"
           echo "📋 Testing layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
           
-          # Use kas shell to set up environment and run yocto-check-layer
-          kas shell kas/lmp-dynamicdevices-base.yml -c "
-            echo '🔧 Inside kas environment, running yocto-check-layer...'
-            
-            # Find yocto-check-layer script
-            YOCTO_CHECK_LAYER=\$(find . -name 'yocto-check-layer' -type f | head -1)
-            if [ -z \"\$YOCTO_CHECK_LAYER\" ]; then
-              echo '❌ yocto-check-layer script not found'
-              exit 1
-            fi
-            
-            echo \"✅ Found yocto-check-layer: \$YOCTO_CHECK_LAYER\"
-            
-            # Run yocto-check-layer with --no-auto-dependency to disable automatic layer discovery
-            # Test the three specific layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro
-            echo '🔧 Validating layers with disabled auto-discovery:'
-            echo '   - . (meta-dynamicdevices)'
-            echo '   - ./meta-dynamicdevices-bsp'
-            echo '   - ./meta-dynamicdevices-distro'
-            
-            if python3 \"\$YOCTO_CHECK_LAYER\" --no-auto-dependency . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
-              echo '✅ All layer validations PASSED'
-            else
-              echo '❌ Layer validation FAILED'
-              exit 1
-            fi
-          "
+          # Set up minimal Yocto environment
+          export BUILDDIR=/tmp/build
+          mkdir -p $BUILDDIR/conf
+          
+          # Create minimal bblayers.conf for yocto-check-layer
+          cat > $BUILDDIR/conf/bblayers.conf << 'EOF'
+          LCONF_VERSION = "7"
+          BBPATH = "${TOPDIR}"
+          BBFILES ?= ""
+          BBLAYERS ?= ""
+          EOF
+          
+          # Create minimal local.conf
+          cat > $BUILDDIR/conf/local.conf << 'EOF'
+          MACHINE = "qemux86-64"
+          DISTRO = "poky"
+          EOF
+          
+          # Initialize Yocto build environment using kas to get the right layers
+          echo "🔧 Setting up Yocto environment..."
+          kas checkout kas/lmp-dynamicdevices-base.yml
+          
+          # Find yocto-check-layer script in the checked out layers
+          YOCTO_CHECK_LAYER=$(find . -name 'yocto-check-layer' -type f | head -1)
+          if [ -z "$YOCTO_CHECK_LAYER" ]; then
+            echo '❌ yocto-check-layer script not found'
+            exit 1
+          fi
+          
+          echo "✅ Found yocto-check-layer: $YOCTO_CHECK_LAYER"
+          
+          # Run yocto-check-layer with --no-auto-dependency to disable automatic layer discovery
+          echo '🔧 Validating layers with disabled auto-discovery:'
+          echo '   - . (meta-dynamicdevices)'
+          echo '   - ./meta-dynamicdevices-bsp'
+          echo '   - ./meta-dynamicdevices-distro'
+          
+          if python3 "$YOCTO_CHECK_LAYER" --no-auto-dependency . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
+            echo '✅ All layer validations PASSED'
+          else
+            echo '❌ Layer validation FAILED'
+            exit 1
+          fi
           
           echo "✅ Layer validation completed successfully"
 
