@@ -338,9 +338,12 @@ jobs:
           echo "🔍 Searching for yocto-check-layer script..."
           find . -name "yocto-check-layer" -type f 2>/dev/null | head -5
           
-          if [ -f "openembedded-core/scripts/yocto-check-layer" ]; then
-            YOCTO_CHECK_CMD="openembedded-core/scripts/yocto-check-layer"
+          if [ -f "/repo/openembedded-core/scripts/yocto-check-layer" ]; then
+            YOCTO_CHECK_CMD="/repo/openembedded-core/scripts/yocto-check-layer"
             echo "✅ Found yocto-check-layer script in OE-Core: $YOCTO_CHECK_CMD"
+          elif [ -f "openembedded-core/scripts/yocto-check-layer" ]; then
+            YOCTO_CHECK_CMD="openembedded-core/scripts/yocto-check-layer"
+            echo "✅ Found yocto-check-layer script in OE-Core (relative): $YOCTO_CHECK_CMD"
           elif [ -f "scripts/yocto-check-layer" ]; then
             YOCTO_CHECK_CMD="scripts/yocto-check-layer"
             echo "✅ Found yocto-check-layer script in scripts/: $YOCTO_CHECK_CMD"
@@ -360,13 +363,33 @@ jobs:
           echo "🏅 Running official Yocto Project Compatible layer validation..."
           echo "📂 Validating layer: meta-dynamicdevices (/repo)"
           
+          # Temporarily remove BitBake test data to avoid collection conflicts
+          echo "🔧 Temporarily removing BitBake test data to avoid collection conflicts..."
+          if [ -d "/repo/bitbake/lib/layerindexlib/tests/testdata" ]; then
+            tar -czf /tmp/bitbake-testdata-backup.tar.gz -C /repo/bitbake/lib/layerindexlib/tests testdata
+            rm -rf /repo/bitbake/lib/layerindexlib/tests/testdata
+            echo "✅ Removed BitBake test data temporarily (backed up to /tmp)"
+          fi
+          
           # Run yocto-check-layer on our layer within the proper Yocto environment
           echo "🔧 Running: $YOCTO_CHECK_CMD /repo"
           if "$YOCTO_CHECK_CMD" /repo; then
             echo "✅ Layer validation PASSED - no compatibility issues found"
+            validation_result=0
           else
             echo "❌ Layer validation FAILED - compatibility issues found above"
             echo "🚨 Build will fail to ensure layer compatibility standards are met"
+            validation_result=1
+          fi
+          
+          # Restore BitBake test data
+          if [ -f "/tmp/bitbake-testdata-backup.tar.gz" ]; then
+            tar -xzf /tmp/bitbake-testdata-backup.tar.gz -C /repo/bitbake/lib/layerindexlib/tests/
+            rm -f /tmp/bitbake-testdata-backup.tar.gz
+            echo "✅ Restored BitBake test data"
+          fi
+          
+          if [ $validation_result -ne 0 ]; then
             exit 1
           fi
           
