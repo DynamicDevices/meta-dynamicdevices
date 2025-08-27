@@ -1,3 +1,7 @@
 [submodule "wiki"]
 	path = wiki
 	url = https://github.com/DynamicDevices/meta-dynamicdevices.wiki.git
+
+[submodule "meta-dynamicdevices-bsp"]
+	path = meta-dynamicdevices-bsp
+	url = git@github.com:DynamicDevices/meta-dynamicdevices-bsp.git

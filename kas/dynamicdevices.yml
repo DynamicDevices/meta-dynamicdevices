@@ -4,6 +4,9 @@ header:
 repos:
   meta-dynamicdevices:
 
+  meta-dynamicdevices-bsp:
+    path: meta-dynamicdevices-bsp
+
   meta-rust-bin:
     url: https://github.com/rust-embedded/meta-rust-bin.git
     path: layers/meta-rust-bin

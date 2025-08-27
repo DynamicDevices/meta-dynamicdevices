@@ -1,6 +1,6 @@
 # meta-dynamicdevices
 
-**Professional Yocto BSP Layer for Dynamic Devices Edge Computing Platforms**
+**Professional Yocto Application Layer for Dynamic Devices Edge Computing Platforms**
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![License: Commercial](https://img.shields.io/badge/License-Commercial-green.svg)](mailto:licensing@dynamicdevices.co.uk)
@@ -14,7 +14,9 @@
 [![Code Quality](https://img.shields.io/badge/code%20quality-multi--layer%20✓-brightgreen)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 [![Security Scanning](https://img.shields.io/badge/security-CVE%20%2B%20SBOM%20✓-blue)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 
-This BSP layer provides comprehensive board support for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
+This application layer provides comprehensive middleware and applications for Dynamic Devices Edge Computing platforms, featuring advanced audio processing, environmental sensing, wireless connectivity, and power management capabilities.
+
+**Note**: This layer depends on the separate [meta-dynamicdevices-bsp](./meta-dynamicdevices-bsp/) submodule which provides the hardware-specific Board Support Package (BSP) components.
 
 ## 🔐 Enterprise-Grade Security & Device Management
 

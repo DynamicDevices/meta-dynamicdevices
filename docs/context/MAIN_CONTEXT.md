@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-This repository contains BSP (Board Support Package) layers for Dynamic Devices Edge board family, built on the Linux microPlatform (LmP) using Yocto/OpenEmbedded.
+This repository contains application and middleware layers for Dynamic Devices Edge board family, built on the Linux microPlatform (LmP) using Yocto/OpenEmbedded. Hardware-specific BSP (Board Support Package) components are maintained in the separate `meta-dynamicdevices-bsp` submodule.
 
 ## Supported Boards
 
@@ -15,22 +15,32 @@ This repository contains BSP (Board Support Package) layers for Dynamic Devices 
 ## Repository Structure
 
 ```
-meta-dynamicdevices/
-├── docs/                    # Documentation and context files
-│   ├── context/            # Main and project-specific context
-│   ├── projects/           # Project-specific documentation
-│   ├── RECIPE_TEMPLATE.bb  # Template for creating new recipes
-│   └── YOCTO_BSP_BEST_PRACTICES.md # Professional development guidelines
-├── scripts/                # Utility scripts and tools
-├── wiki/                   # Wiki submodule (GitHub wiki)
-├── conf/                   # Layer and machine configurations
-├── recipes-*/              # Yocto recipes organized by category
-├── kas/                    # KAS build configuration files
-├── program/                # Board programming utilities
-├── CHANGELOG.md            # Project changelog
-├── VERSION                 # Current version number
-├── MAINTAINERS            # Maintainer contact information
-├── LICENSE                # Dual GPL-3.0/Commercial licensing
+meta-dynamicdevices/                    # Application & Middleware Layer
+├── docs/                               # Documentation and context files
+│   ├── context/                       # Main and project-specific context
+│   ├── projects/                      # Project-specific documentation
+│   ├── RECIPE_TEMPLATE.bb             # Template for creating new recipes
+│   └── YOCTO_BSP_BEST_PRACTICES.md    # Professional development guidelines
+├── scripts/                           # Utility scripts and tools
+├── wiki/                              # Wiki submodule (GitHub wiki)
+├── conf/                              # Application layer configuration
+├── recipes-connectivity/              # Network and wireless applications
+├── recipes-multimedia/               # Audio and media processing
+├── recipes-support/                  # Application support services
+├── recipes-containers/               # Container and virtualization
+├── recipes-*/                        # Other application-specific recipes
+├── kas/                              # KAS build configuration files
+├── program/                          # Board programming utilities
+├── meta-dynamicdevices-bsp/          # BSP Submodule (Hardware Support)
+│   ├── conf/machine/                 # Machine configurations
+│   ├── recipes-bsp/                  # Board support recipes
+│   ├── recipes-kernel/               # Hardware-specific kernel configs
+│   ├── LICENSE                       # Dual GPL-3.0/Commercial licensing
+│   └── README.md                     # BSP-specific documentation
+├── CHANGELOG.md                      # Project changelog
+├── VERSION                           # Current version number
+├── MAINTAINERS                       # Maintainer contact information
+├── LICENSE                           # Dual GPL-3.0/Commercial licensing
 └── [build artifacts are git-ignored]
 ```
 
@@ -49,6 +59,32 @@ meta-dynamicdevices/
 - **Advanced suspend/resume** - Sub-second wake times
 - **Selective wake sources** - Magic packet, GPIO, RTC
 - **Power optimization** - Dynamic scaling and sleep states
+
+## Layer Architecture
+
+### Application Layer (meta-dynamicdevices)
+This main repository provides:
+- **Application recipes** - User-space applications and services
+- **Middleware components** - Audio processing, networking, containers
+- **System integration** - Service configuration and orchestration
+- **Build configuration** - KAS files and layer dependencies
+
+### BSP Layer (meta-dynamicdevices-bsp)
+The BSP submodule provides hardware-specific support:
+- **Machine configurations** - Hardware definitions for all board variants
+- **Kernel configurations** - Hardware-specific kernel features and drivers
+- **Device tree sources** - Hardware description and pin configurations
+- **Bootloader support** - U-Boot configurations and patches
+- **Firmware integration** - Hardware-specific firmware and drivers
+
+### Layer Dependencies
+```
+meta-dynamicdevices (Application Layer)
+    ↓ depends on
+meta-dynamicdevices-bsp (BSP Layer)
+    ↓ depends on  
+meta-lmp-base (Linux microPlatform)
+```
 
 ## Development Workflow
 

@@ -1,1 +1,0 @@
-../../u-boot-ostree-scr-fit/imx8mm-jaguar-phasora/boot.cmd
