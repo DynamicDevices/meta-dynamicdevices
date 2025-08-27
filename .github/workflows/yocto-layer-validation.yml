@@ -194,11 +194,10 @@ jobs:
         SSTATE_DIR ?= "\${TOPDIR}/sstate-cache"
         EOF
         
-        # Run the layer check (only check current layer, not dependencies)
+        # Run the layer check
         cd build
         python3 ../build/layers/openembedded-core/scripts/yocto-check-layer \
           --layer ../${{ matrix.layer }} \
-          --no-auto-dependencies \
           --output-log ../layer-check-${{ matrix.layer }}-${{ matrix.yocto_branch }}.log \
           || true  # Don't fail immediately, let us analyze the results
 
