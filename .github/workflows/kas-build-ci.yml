@@ -167,19 +167,42 @@ jobs:
 
       - name: Lint scripts
         run: |
-          echo "🔍 Linting shell scripts with native shellcheck..."
+          echo "🔍 Linting shell scripts..."
           
-          # Install shellcheck directly on the host (much faster than Docker)
-          echo "📦 Installing shellcheck..."
-          sudo apt-get update -qq
-          sudo apt-get install -y shellcheck
+          # Check if shellcheck is already available, if not try to install it
+          if command -v shellcheck >/dev/null 2>&1; then
+            echo "✅ shellcheck already available"
+          else
+            echo "📦 Installing shellcheck..."
+            # Try different installation methods based on what's available
+            if command -v apt-get >/dev/null 2>&1; then
+              apt-get update -qq && apt-get install -y shellcheck
+            elif command -v yum >/dev/null 2>&1; then
+              yum install -y ShellCheck
+            elif command -v brew >/dev/null 2>&1; then
+              brew install shellcheck
+            else
+              echo "⚠️ Cannot install shellcheck, falling back to Docker approach"
+              docker pull koalaman/shellcheck:stable
+              SHELLCHECK_CMD="docker run --rm -v \$PWD:/mnt koalaman/shellcheck:stable"
+            fi
+          fi
           
-          # Run shellcheck directly on host system
+          # Set shellcheck command
+          if command -v shellcheck >/dev/null 2>&1; then
+            SHELLCHECK_CMD="shellcheck"
+          fi
+          
+          # Run shellcheck on scripts
           if find scripts/ -name "*.sh" -print -quit | grep -q .; then
             echo "Running shellcheck on shell scripts:"
             find scripts/ -name "*.sh" | sed 's|^|  - |'
-            # Run shellcheck directly - much faster than Docker approach
-            find scripts/ -name "*.sh" -print0 | xargs -0 shellcheck
+            # Run shellcheck - either native or Docker fallback
+            if [ "$SHELLCHECK_CMD" = "shellcheck" ]; then
+              find scripts/ -name "*.sh" -print0 | xargs -0 shellcheck
+            else
+              find scripts/ -name "*.sh" -print0 | xargs -0 -I {} $SHELLCHECK_CMD /mnt/{}
+            fi
           else
             echo "⚠️ No shell scripts found to lint"
           fi
