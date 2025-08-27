@@ -97,32 +97,20 @@ jobs:
             echo "✅ Removed BitBake test data"
           fi
           
-          # Check yocto-check-layer help to verify correct flags
-          echo "🔧 Checking yocto-check-layer usage..."
-          python3 "$YOCTO_CHECK_LAYER" --help || true
-          
-          # Run yocto-check-layer with --no-auto-dependency to disable automatic layer discovery
+          # Run yocto-check-layer with --no-auto to disable automatic layer discovery
           echo '🔧 Validating layers with disabled auto-discovery:'
           echo '   - . (meta-dynamicdevices)'
           echo '   - ./meta-dynamicdevices-bsp'
           echo '   - ./meta-dynamicdevices-distro'
           
-          # Try with explicit --no-auto-dependency flag
-          echo "🔧 Running: python3 $YOCTO_CHECK_LAYER --no-auto-dependency . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
+          # Use --no-auto flag to disable automatic layer discovery
+          echo "🔧 Running: python3 $YOCTO_CHECK_LAYER --no-auto . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
           
-          if python3 "$YOCTO_CHECK_LAYER" --no-auto-dependency . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
+          if python3 "$YOCTO_CHECK_LAYER" --no-auto . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
             echo '✅ All layer validations PASSED'
           else
-            echo '❌ Layer validation FAILED - trying alternative approach'
-            
-            # Try without --no-auto-dependency if the flag doesn't work
-            echo "🔧 Trying without --no-auto-dependency flag..."
-            if python3 "$YOCTO_CHECK_LAYER" . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro; then
-              echo '✅ All layer validations PASSED (without --no-auto-dependency)'
-            else
-              echo '❌ Layer validation FAILED completely'
-              exit 1
-            fi
+            echo '❌ Layer validation FAILED'
+            exit 1
           fi
           
           echo "✅ Layer validation completed successfully"
