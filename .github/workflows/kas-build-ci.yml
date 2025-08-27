@@ -120,6 +120,16 @@ jobs:
           echo "🔧 Checking layers fetched by kas checkout..."
           find build/layers -name "layer.conf" -type f | head -10
           
+          # Check bblayers.conf for duplicate entries
+          echo "🔧 Checking bblayers.conf for duplicate layer entries..."
+          if [ -f "build/conf/bblayers.conf" ]; then
+            echo "📋 Current bblayers.conf content:"
+            cat build/conf/bblayers.conf
+            echo ""
+            echo "📋 Checking for duplicate layer paths:"
+            grep -E "meta-dynamicdevices" build/conf/bblayers.conf || echo "No meta-dynamicdevices entries found"
+          fi
+          
           # Run yocto-check-layer with dependency layers
           echo '🔧 Validating layers with required dependencies:'
           echo '   - . (meta-dynamicdevices)'
