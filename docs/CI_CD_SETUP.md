@@ -111,6 +111,73 @@ The official Yocto Project validation script checks:
 - Build system integration
 - Best practices compliance
 
+#### Correct Usage Syntax
+
+The `yocto-check-layer` script requires specific command-line syntax:
+
+```bash
+# Basic usage - layer directory as positional argument
+python3 scripts/yocto-check-layer LAYER_DIR
+
+# With output log
+python3 scripts/yocto-check-layer LAYER_DIR --output-log validation.log
+
+# Disable automatic dependency checking
+python3 scripts/yocto-check-layer LAYER_DIR --no-auto-dependency
+
+# Multiple layers
+python3 scripts/yocto-check-layer LAYER1_DIR LAYER2_DIR
+
+# With additional dependencies
+python3 scripts/yocto-check-layer LAYER_DIR --dependency DEP_LAYER_DIR
+
+# Complete CI example
+python3 ../build/layers/openembedded-core/scripts/yocto-check-layer \
+  .. \
+  --no-auto-dependency \
+  --output-log ../layer-check.log
+```
+
+#### Common Syntax Errors to Avoid
+
+❌ **Incorrect Usage:**
+```bash
+# Wrong: --layer flag doesn't exist
+yocto-check-layer --layer LAYER_DIR
+
+# Wrong: --no-auto-dependencies (plural) doesn't exist  
+yocto-check-layer LAYER_DIR --no-auto-dependencies
+
+# Wrong: Missing positional argument
+yocto-check-layer --output-log validation.log
+```
+
+✅ **Correct Usage:**
+```bash
+# Correct: Layer directory as positional argument
+yocto-check-layer LAYER_DIR
+
+# Correct: --no-auto-dependency (singular)
+yocto-check-layer LAYER_DIR --no-auto-dependency
+
+# Correct: Layer path first, then options
+yocto-check-layer LAYER_DIR --output-log validation.log
+```
+
+#### Available Arguments
+
+- **Positional**: `LAYER_DIR` - Layer directory to check (required)
+- `--output-log FILE` - File to output log (optional)
+- `--dependency LAYER_DIR` - Additional layers to process for dependencies
+- `--no-auto-dependency` - Disable automatic testing of dependencies
+- `--machines MACHINE` - List of MACHINEs to use during testing
+- `--additional-layers LAYER_DIR` - Additional layers to add during testing
+- `--with-software-layer-signature-check` - Check software layer signatures (default)
+- `--without-software-layer-signature-check` - Disable signature checking
+- `--no-auto` - Disable auto layer discovery
+- `--debug` - Enable debug output
+- `--quiet` - Print only errors
+
 ### Multi-Version Compatibility
 
 Testing against multiple Yocto releases ensures:
@@ -236,7 +303,8 @@ print('BitBake import successful')
 # Manual yocto-check-layer execution
 cd build/validation
 python3 layers/openembedded-core/scripts/yocto-check-layer \
-  --layer ../../meta-dynamicdevices-bsp \
+  ../../meta-dynamicdevices-bsp \
+  --no-auto-dependency \
   --output-log manual-check.log
 ```
 

@@ -197,9 +197,9 @@ jobs:
         # Run the layer check
         cd build
         python3 ../build/layers/openembedded-core/scripts/yocto-check-layer \
-          --layer ../${{ matrix.layer }} \
-          --output-log ../layer-check-${{ matrix.layer }}-${{ matrix.yocto_branch }}.log \
-          || true  # Don't fail immediately, let us analyze the results
+          ../${{ matrix.layer }} \
+          --no-auto-dependency \
+          --output-log ../layer-check-${{ matrix.layer }}-${{ matrix.yocto_branch }}.log
 
     - name: Analyze Layer Check Results
       run: |
