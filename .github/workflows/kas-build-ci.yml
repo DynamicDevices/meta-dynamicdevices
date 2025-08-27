@@ -74,14 +74,35 @@ jobs:
           echo "🔧 Setting up Yocto environment with kas..."
           kas checkout kas/lmp-dynamicdevices-base.yml
           
-          # Initialize the BitBake environment properly
-          echo "🔧 Initializing BitBake environment..."
-          cd build
+          # Create a clean BitBake environment for validation only
+          echo "🔧 Setting up clean BitBake environment for validation..."
+          
+          # Create a separate validation build directory
+          mkdir -p validation-build/conf
+          cd validation-build
+          
+          # Create minimal bblayers.conf with only essential layers for validation
+          cat > conf/bblayers.conf << 'EOF'
+LCONF_VERSION = "7"
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
+BBLAYERS ?= " \
+  ${TOPDIR}/../build/layers/openembedded-core/meta \
+  ${TOPDIR}/../build/layers/meta-openembedded/meta-oe \
+  ${TOPDIR}/../build/layers/meta-lmp-base \
+"
+EOF
+          
+          # Create minimal local.conf
+          cat > conf/local.conf << 'EOF'
+MACHINE = "qemux86-64"
+DISTRO = "poky"
+EOF
           
           # Source the oe-init-build-env to set up BitBake environment
-          if [ -f "layers/openembedded-core/oe-init-build-env" ]; then
-            source layers/openembedded-core/oe-init-build-env .
-            echo "✅ BitBake environment initialized"
+          if [ -f "../build/layers/openembedded-core/oe-init-build-env" ]; then
+            source ../build/layers/openembedded-core/oe-init-build-env .
+            echo "✅ Clean BitBake environment initialized for validation"
           else
             echo "❌ oe-init-build-env not found"
             exit 1
@@ -137,8 +158,11 @@ jobs:
           echo '   - ./meta-dynamicdevices-distro'
           echo '   - Dependencies: meta-lmp-base, openembedded-core, meta-oe'
           
+          # Set BUILDDIR to our clean validation environment
+          export BUILDDIR="$(pwd)/validation-build"
+          
           # Build the yocto-check-layer command - use --no-auto-dependency to avoid automatic dependency resolution
-          # The layers should be able to validate independently since we've set up the BitBake environment
+          # The layers should be able to validate independently since we've set up the clean BitBake environment
           YOCTO_CMD="python3 $YOCTO_CHECK_LAYER --no-auto-dependency . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
           
           echo "🔧 EXACT COMMAND BEING EXECUTED:"
