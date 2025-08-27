@@ -81,13 +81,20 @@ jobs:
           mkdir -p validation-build/conf
           cd validation-build
           
-          # Create minimal bblayers.conf with only essential layers for validation
+          # Create minimal bblayers.conf with all required layers for meta-lmp-base validation
           echo 'LCONF_VERSION = "7"' > conf/bblayers.conf
           echo 'BBPATH = "${TOPDIR}"' >> conf/bblayers.conf
           echo 'BBFILES ?= ""' >> conf/bblayers.conf
           echo 'BBLAYERS ?= " \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/openembedded-core/meta \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-openembedded/meta-oe \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-openembedded/meta-filesystems \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-openembedded/meta-python \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-openembedded/meta-networking \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-openembedded/meta-perl \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-security \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-updater \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-virtualisation \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-lmp/meta-lmp-base \' >> conf/bblayers.conf
           echo '"' >> conf/bblayers.conf
           
@@ -159,7 +166,7 @@ jobs:
           
           # Build the yocto-check-layer command - use --no-auto-dependency to avoid automatic dependency resolution
           # The layers should be able to validate independently since we've set up the clean BitBake environment
-          YOCTO_CMD="python3 $YOCTO_CHECK_LAYER --no-auto-dependency . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
+          YOCTO_CMD="python3 $YOCTO_CHECK_LAYER . ./meta-dynamicdevices-bsp ./meta-dynamicdevices-distro"
           
           echo "🔧 EXACT COMMAND BEING EXECUTED:"
           echo "$YOCTO_CMD"
