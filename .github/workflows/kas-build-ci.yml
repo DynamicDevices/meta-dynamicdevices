@@ -236,25 +236,11 @@ jobs:
             
             echo "Checking $layer_name layer.conf..."
             if [ -f "$layer/conf/layer.conf" ]; then
-              # Basic syntax check
-              if python3 -c "
-import re
-with open('$layer/conf/layer.conf', 'r') as f:
-    content = f.read()
-    
-# Check for required variables
-required_vars = ['BBFILE_COLLECTIONS', 'LAYER_CONF_VERSION']
-missing = [var for var in required_vars if var not in content]
-
-if missing:
-    print('❌ Missing required variables:', missing)
-    exit(1)
-else:
-    print('✅ Layer configuration syntax OK')
-"; then
+              # Basic syntax check - look for required variables
+              if grep -q "BBFILE_COLLECTIONS" "$layer/conf/layer.conf" && grep -q "LAYER_CONF_VERSION" "$layer/conf/layer.conf"; then
                 echo "✅ $layer_name layer.conf is valid"
               else
-                echo "❌ $layer_name layer.conf has issues"
+                echo "❌ $layer_name layer.conf missing required variables"
               fi
             else
               echo "❌ $layer_name layer.conf not found"
