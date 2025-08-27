@@ -34,7 +34,7 @@ on:
 jobs:
   # Layer validation job - runs once before builds
   validate:
-    name: Validate Yocto Layers
+    name: Validate Yocto Layer Compliance
     runs-on: self-hosted
     container:
       image: dynamicdevices/yocto-ci-build:latest
