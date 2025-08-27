@@ -78,13 +78,27 @@ jobs:
             yocto-downloads-${{ runner.os }}-
 
       - name: Validate Yocto Layers
+        timeout-minutes: 10
         run: |
           echo "🏅 Validating Yocto layers using yocto-check-layer"
           echo "📋 Testing layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
           
           # Initialize Yocto build environment using kas to get the right layers and setup
-          echo "🔧 Setting up Yocto environment with kas..."
-          kas checkout kas/lmp-dynamicdevices-base.yml
+          echo "🔧 Setting up Yocto environment with kas (with timeout)..."
+          timeout 300 kas checkout kas/lmp-dynamicdevices-base.yml || {
+            echo "⚠️ kas checkout timed out or failed, setting up minimal environment..."
+            
+            # Create minimal directory structure
+            mkdir -p build/layers/openembedded-core
+            mkdir -p build/layers/meta-lmp/meta-lmp-base
+            mkdir -p build/layers/meta-openembedded/meta-oe
+            
+            # Clone only essential repositories for layer validation
+            echo "📦 Cloning essential repositories for validation..."
+            git clone --depth 1 https://github.com/lmp-mirrors/openembedded-core build/layers/openembedded-core || echo "Failed to clone openembedded-core"
+            git clone --depth 1 https://github.com/foundriesio/meta-lmp build/layers/meta-lmp || echo "Failed to clone meta-lmp"
+            git clone --depth 1 https://github.com/lmp-mirrors/meta-openembedded build/layers/meta-openembedded || echo "Failed to clone meta-openembedded"
+          }
           
           # Create a clean BitBake environment for validation only
           echo "🔧 Setting up clean BitBake environment for validation..."
