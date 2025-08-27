@@ -12,6 +12,9 @@ on:
       - 'meta-dynamicdevices-bsp/**'
       - 'meta-dynamicdevices-distro/**'
       - 'meta-lmp-base/**'
+      - 'meta-dynamicdevices-bsp'
+      - 'meta-dynamicdevices-distro'
+      - 'meta-lmp-base'
       - '.github/workflows/kas-build-ci.yml'
   pull_request:
     branches: [ main, develop ]
@@ -24,6 +27,9 @@ on:
       - 'meta-dynamicdevices-bsp/**'
       - 'meta-dynamicdevices-distro/**'
       - 'meta-lmp-base/**'
+      - 'meta-dynamicdevices-bsp'
+      - 'meta-dynamicdevices-distro'
+      - 'meta-lmp-base'
       - '.github/workflows/kas-build-ci.yml'
   workflow_dispatch:
     inputs:
