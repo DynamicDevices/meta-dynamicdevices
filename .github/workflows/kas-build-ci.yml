@@ -22,77 +22,39 @@ on:
   workflow_dispatch:
     inputs:
       machine:
-        description: 'Specific machine to build (optional - builds all active machines if not specified)'
+        description: 'Specific machine to build (optional)'
         required: false
         type: choice
         options:
           - 'all'
           - 'imx8mm-jaguar-sentai'
           - 'imx93-jaguar-eink'
-          # Temporarily disabled:
-          # - 'imx8mm-jaguar-inst'
-          # - 'imx8mm-jaguar-phasora'
-          # - 'imx8mm-jaguar-handheld'
-
         default: 'all'
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
-  # Job to determine which machines to build
-  setup:
-    runs-on: self-hosted
-    outputs:
-      machines: ${{ steps.machines.outputs.machines }}
-      should_build: ${{ steps.changes.outputs.should_build }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check for relevant changes
-        id: changes
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event_name }}" = "pull_request" ]; then
-            # For PRs, check if any relevant files changed
-            if git diff --name-only origin/main...HEAD | grep -E '^(recipes-|conf/|kas/|scripts/|classes/)'; then
-              echo "should_build=true" >> $GITHUB_OUTPUT
-            else
-              echo "should_build=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "should_build=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Determine machines to build
-        id: machines
-        run: |
-          if [ "${{ github.event.inputs.machine }}" != "" ] && [ "${{ github.event.inputs.machine }}" != "all" ]; then
-            echo "machines=[\"${{ github.event.inputs.machine }}\"]" >> $GITHUB_OUTPUT
-          else
-            # Temporarily disabled: imx8mm-jaguar-inst, imx8mm-jaguar-phasora, imx8mm-jaguar-handheld
-            echo 'machines=["imx8mm-jaguar-sentai", "imx93-jaguar-eink"]' >> $GITHUB_OUTPUT
-          fi
-
-
+  # Layer validation job - runs once before builds
   validate:
     name: Validate Yocto Layers
     runs-on: self-hosted
-    needs: [setup]
-    if: needs.setup.outputs.should_build == 'true'
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Install kas-container
+        run: |
+          echo "📦 Installing kas-container"
+          if ! command -v kas-container >/dev/null 2>&1; then
+            curl -L https://raw.githubusercontent.com/siemens/kas/master/kas-container -o kas-container
+            chmod +x kas-container
+            sudo mv kas-container /usr/local/bin/kas-container
+            echo "✅ kas-container installed"
+          else
+            echo "✅ kas-container already available"
+          fi
+          kas-container --version
 
       - name: Validate Yocto Layers
         run: |
@@ -131,164 +93,44 @@ jobs:
 
   # Build job with matrix for specific machines and targets
   build:
+    name: Build ${{ matrix.machine }} - ${{ matrix.target }}
     runs-on: self-hosted
-    needs: [setup, validate]
-    if: needs.setup.outputs.should_build == 'true'
+    needs: [validate]
     strategy:
-      fail-fast: false  # Allow other builds to continue if one fails - better for debugging
+      fail-fast: false
       matrix:
         machine: [imx8mm-jaguar-sentai, imx93-jaguar-eink]
         target: [lmp-factory-image, mfgtool-files]
     
     env:
       KAS_MACHINE: ${{ matrix.machine }}
-      BUILD_TARGET: ${{ matrix.target }}
     
     steps:
-
-      - name: Clean up workspace for self-hosted runner
-        run: |
-          echo "🧹 Cleaning up workspace for self-hosted runner"
-          # Clean up any previous build artifacts to free space
-          if [ -d "${{ github.workspace }}" ]; then
-            cd "${{ github.workspace }}"
-            # Remove any large build directories from previous runs
-            rm -rf build tmp-glibc deploy artifacts programming-packages || true
-            # Clean docker containers and images if any
-            docker system prune -f || true
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          submodules: recursive
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Setup Docker environment for Yocto builds
+      - name: Install kas-container
         run: |
-          echo "🐳 Setting up Docker environment for Yocto builds"
-          
-          # Verify Docker is available on self-hosted runner
-          if ! command -v docker >/dev/null 2>&1; then
-            echo "❌ Docker not available on self-hosted runner"
-            exit 1
-          fi
-          
-          echo "✅ Docker is available"
-          docker --version
-          
-          # Download kas-container script (minimal host dependency)
+          echo "📦 Installing kas-container"
           if ! command -v kas-container >/dev/null 2>&1; then
-            echo "📥 Downloading kas-container script..."
-            wget -O kas-container https://raw.githubusercontent.com/siemens/kas/master/kas-container
+            curl -L https://raw.githubusercontent.com/siemens/kas/master/kas-container -o kas-container
             chmod +x kas-container
-            # Add to PATH for this workflow
-            echo "$PWD" >> $GITHUB_PATH
+            sudo mv kas-container /usr/local/bin/kas-container
+            echo "✅ kas-container installed"
           else
             echo "✅ kas-container already available"
           fi
-          
-          # Test kas-container works with Docker
-          echo "🧪 Testing kas-container with Docker..."
-          ./kas-container --help > /dev/null
-          echo "✅ kas-container is ready"
 
-      - name: Setup persistent cache for Docker builds
+      - name: Setup build cache
         run: |
-          echo "🗄️ Setting up persistent build cache for Docker-based Yocto builds"
-          
-          # Use a persistent cache directory on the self-hosted runner
-          # This will be mounted into the Docker container by kas-container
-          CACHE_BASE="$HOME/yocto-cache"
-          BUILD_DIR="$HOME/yocto-builds"
-          
-          # Create persistent cache and build directories
-          mkdir -p "$CACHE_BASE"/{downloads,sstate}
-          mkdir -p "$BUILD_DIR"
-          
-          echo "📊 Cache directory sizes:"
-          du -sh "$CACHE_BASE"/* 2>/dev/null || echo "Cache directories are empty (first run)"
-          
-          # Clean up old cache if it's too large (keep under 50GB total)
-          cache_size=$(du -s "$CACHE_BASE" 2>/dev/null | cut -f1 || echo "0")
-          cache_size_gb=$((cache_size / 1024 / 1024))
-          if [ $cache_size_gb -gt 50 ]; then
-            echo "⚠️  Cache size is ${cache_size_gb}GB, cleaning up old files..."
-            # Remove files older than 30 days from downloads
-            find "$CACHE_BASE/downloads" -type f -mtime +30 -delete 2>/dev/null || true
-            # Remove old sstate files (keep last 7 days)
-            find "$CACHE_BASE/sstate" -type f -mtime +7 -delete 2>/dev/null || true
-            echo "✅ Cache cleanup completed"
-          fi
-          
-          echo "🏗️ Build directory:"
-          ls -la "$BUILD_DIR" 2>/dev/null || echo "Build directory is empty (first run)"
-          
-          # Export paths for kas-container to use
-          echo "KAS_WORK_DIR=$BUILD_DIR" >> $GITHUB_ENV
-          echo "DL_DIR=$CACHE_BASE/downloads" >> $GITHUB_ENV
-          echo "SSTATE_DIR=$CACHE_BASE/sstate" >> $GITHUB_ENV
-          
-          echo "✅ Docker build environment configured:"
-          echo "   Work dir: $BUILD_DIR"
-          echo "   Downloads: $CACHE_BASE/downloads"
-          echo "   SSstate: $CACHE_BASE/sstate"
-
-      - name: Set up build environment for self-hosted runner
-        run: |
-          echo "🚀 Setting up build environment for ${{ matrix.machine }} (${{ matrix.target }})"
-          
-          # Create yocto cache directories (persistent symlinks already created)
-          mkdir -p ~/yocto/persistent
-          chmod 755 ~/yocto/persistent
-          
-          # Detect available CPU cores for optimal parallel builds
-          NPROC=$(nproc)
-          # Use 75% of available cores to leave some for system, but cap at reasonable limit
-          BUILD_THREADS=$((NPROC * 3 / 4))
-          BUILD_THREADS=${BUILD_THREADS:-4}  # Minimum 4 threads
-          # Cap at 16 threads to avoid memory issues on high-core systems
-          if [ $BUILD_THREADS -gt 16 ]; then
-            BUILD_THREADS=16
-          fi
-          
-          echo "🖥️ Self-hosted runner specs:"
-          echo "  CPU cores: $NPROC"
-          echo "  Build threads: $BUILD_THREADS"
-          echo "  RAM: $(free -h | awk '/^Mem:/ {print $2}')"
-          echo "  Disk space: $(df -h . | awk 'NR==2 {print $4}')"
-          
-          # Set optimized environment variables for self-hosted runner
-          echo "BB_NUMBER_THREADS=$BUILD_THREADS" >> $GITHUB_ENV
-          echo "PARALLEL_MAKE=-j$BUILD_THREADS" >> $GITHUB_ENV
-          
-          # Add additional Yocto optimization variables
-          echo "BB_GENERATE_MIRROR_TARBALLS=0" >> $GITHUB_ENV  # Skip mirror tarballs for CI
-          echo "INHERIT_remove=rm_work" >> $GITHUB_ENV  # Keep work dirs for debugging
-          echo "BB_DISKMON_DIRS=STOPTASKS,\${TMPDIR},1G,100K STOPTASKS,\${DL_DIR},1G,100K STOPTASKS,\${SSTATE_DIR},1G,100K" >> $GITHUB_ENV
-          
-          # Disable interactive features
-          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
-          
-          # For development builds, disable signing to avoid key issues
-          echo "OPTEE_TA_SIGN_ENABLE=0" >> $GITHUB_ENV
-          echo "SIGN_ENABLE=0" >> $GITHUB_ENV
-          echo "UBOOT_SIGN_ENABLE=0" >> $GITHUB_ENV
-          echo "UBOOT_SPL_SIGN_ENABLE=0" >> $GITHUB_ENV
-          echo "TF_A_SIGN_ENABLE=0" >> $GITHUB_ENV
-          echo "UEFI_SIGN_ENABLE=0" >> $GITHUB_ENV
-
-      - name: Configure signing for development builds
-        run: |
-          echo "🔑 Configuring signing for development builds..."
-          echo "ℹ️  Signing is disabled via KAS configuration"
-          echo "ℹ️  All signing key paths point to bitbake.lock (guaranteed to exist)"
-          echo "✅ No dummy key files needed - using existing file references"
+          echo "🗄️ Setting up persistent build cache"
+          mkdir -p ~/yocto/{downloads,sstate,persistent}
+          chmod 755 ~/yocto/{downloads,sstate,persistent}
 
       - name: Build with KAS
-        timeout-minutes: 360  # 6 hour timeout for complex Yocto builds
+        timeout-minutes: 360
         run: |
           echo "🔨 Starting KAS build: ${{ matrix.machine }} (${{ matrix.target }})"
           
@@ -302,374 +144,48 @@ jobs:
           fi
           
           echo "Using KAS config: $kas_config"
+          echo "Build target: $build_target"
           echo "Machine: $KAS_MACHINE"
           
-          # Run KAS build in Docker container with progress monitoring
-          echo "🚀 Starting build at $(date)"
-          echo "📊 System resources before build:"
-          echo "   CPU: $(nproc) cores"
-          echo "   RAM: $(free -h | awk '/^Mem:/ {print $2 " total, " $7 " available"}')"
-          echo "   Disk: $(df -h . | awk 'NR==2 {print $4 " available"}')"
+          # Run KAS build
+          kas-container \
+            --runtime-args "-v $HOME/yocto:/var/cache -e KAS_MACHINE=$KAS_MACHINE" \
+            build "$kas_config:$build_target"
           
-          # Start build with timeout wrapper and progress monitoring
-          timeout 21600 kas-container \
-            --runtime-args "-e KAS_MACHINE=$KAS_MACHINE \
-                           -e DL_DIR=$DL_DIR \
-                           -e SSTATE_DIR=$SSTATE_DIR \
-                           -e BB_NUMBER_THREADS=$BB_NUMBER_THREADS \
-                           -e PARALLEL_MAKE='$PARALLEL_MAKE' \
-                           -e OPTEE_TA_SIGN_ENABLE=$OPTEE_TA_SIGN_ENABLE \
-                           -e SIGN_ENABLE=$SIGN_ENABLE \
-                           -e UBOOT_SIGN_ENABLE=$UBOOT_SIGN_ENABLE \
-                           -e UBOOT_SPL_SIGN_ENABLE=$UBOOT_SPL_SIGN_ENABLE \
-                           -e TF_A_SIGN_ENABLE=$TF_A_SIGN_ENABLE \
-                           -e UEFI_SIGN_ENABLE=$UEFI_SIGN_ENABLE" \
-            build "$kas_config:$build_target" &
-          
-          # Monitor build progress
-          build_pid=$!
-          echo "🔄 Build started with PID: $build_pid"
-          
-          # Progress monitoring loop
-          while kill -0 $build_pid 2>/dev/null; do
-            sleep 300  # Check every 5 minutes
-            echo "⏱️  Build still running at $(date)"
-            echo "📊 Current system usage:"
-            echo "   Load: $(uptime | awk -F'load average:' '{print $2}')"
-            echo "   RAM: $(free -h | awk '/^Mem:/ {print $3 " used / " $2 " total"}')"
-            echo "   Disk: $(df -h . | awk 'NR==2 {print $3 " used / " $2 " total"}')"
-            
-            # Check if build directory exists and show some progress
-            if [ -d "$KAS_WORK_DIR/build" ]; then
-              echo "   Build dir size: $(du -sh $KAS_WORK_DIR/build 2>/dev/null | cut -f1 || echo 'N/A')"
-            fi
-          done
-          
-          # Wait for build to complete and get exit code
-          wait $build_pid
-          build_exit_code=$?
-          
-          echo "🏁 Build completed at $(date) with exit code: $build_exit_code"
-          
-          if [ $build_exit_code -ne 0 ]; then
-            echo "❌ Build failed with exit code: $build_exit_code"
-            exit $build_exit_code
-          else
-            echo "✅ Build completed successfully"
-          fi
-
-      - name: Collect BitBake-generated SBOM
-        if: always()
-        run: |
-          echo "📋 Collecting BitBake-generated Software Bill of Materials..."
-          
-          # Create SBOM directory with proper permissions
-          mkdir -p build-sbom/${{ matrix.machine }}/${{ matrix.target }}
-          chmod -R 755 build-sbom/
-          
-          echo "✅ Created SBOM directory: build-sbom/${{ matrix.machine }}/${{ matrix.target }}"
-          
-          # BitBake with create-spdx generates comprehensive SPDX files
-          deploy_dir="$KAS_WORK_DIR/build/tmp/deploy/images/${{ matrix.machine }}"
-          spdx_dir="$KAS_WORK_DIR/build/tmp/deploy/spdx/${{ matrix.machine }}"
-          
-          if [ -d "$spdx_dir" ]; then
-            echo "✅ Found BitBake-generated SPDX/SBOM files"
-            
-            # Copy all SPDX files (these are the comprehensive SBOMs)
-            if [ -f "$spdx_dir/lmp-factory-image-${{ matrix.machine }}.spdx.json" ]; then
-              cp "$spdx_dir/lmp-factory-image-${{ matrix.machine }}.spdx.json" \
-                 "build-sbom/${{ matrix.machine }}/${{ matrix.target }}/image-sbom.spdx.json"
-              echo "📦 Copied image SPDX SBOM"
-            fi
-            
-            # Copy individual package SBOMs if available
-            find "$spdx_dir" -name "*.spdx.json" -exec cp {} "build-sbom/${{ matrix.machine }}/${{ matrix.target }}/" \;
-            
-            # Create summary of SBOM files
-            echo "## BitBake-Generated SBOM Files" > build-sbom/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "" >> build-sbom/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "**Machine**: ${{ matrix.machine }}" >> build-sbom/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "**Build Type**: ${{ matrix.target }}" >> build-sbom/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "**Generated**: $(date -Iseconds)" >> build-sbom/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "**Commit**: ${{ github.sha }}" >> build-sbom/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "" >> build-sbom/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "### SPDX 2.3 Compliant Files:" >> build-sbom/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            
-            cd build-sbom/${{ matrix.machine }}/${{ matrix.target }}
-            for file in *.spdx.json; do
-              if [ -f "$file" ]; then
-                size=$(du -h "$file" | cut -f1)
-                echo "- \`$file\` ($size)" >> README.md
-              fi
-            done
-            cd ../../../
-            
-            echo "✅ BitBake SBOM collection complete for ${{ matrix.machine }} (${{ matrix.target }})"
-          else
-            echo "⚠️  No BitBake SPDX files found - SBOM generation may have failed"
-            echo "Expected location: $spdx_dir"
-            
-            # Fallback: create basic manifest-based SBOM if image manifest exists
-            if [ -f "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest" ]; then
-              echo "📦 Creating basic SBOM from image manifest as fallback"
-              cp "$deploy_dir/lmp-factory-image-${{ matrix.machine }}.manifest" \
-                 "build-sbom/${{ matrix.machine }}/${{ matrix.target }}/package-manifest.txt"
-            else
-              echo "⚠️  No manifest found either, creating placeholder SBOM"
-              echo "# SBOM Generation Failed" > "build-sbom/${{ matrix.machine }}/${{ matrix.target }}/sbom-failed.txt"
-              echo "Build failed or did not complete successfully" >> "build-sbom/${{ matrix.machine }}/${{ matrix.target }}/sbom-failed.txt"
-              echo "Generated at: $(date)" >> "build-sbom/${{ matrix.machine }}/${{ matrix.target }}/sbom-failed.txt"
-            fi
-          fi
+          echo "✅ Build completed successfully"
 
       - name: Collect build artifacts
         if: always()
         run: |
           echo "📦 Collecting build artifacts for ${{ matrix.machine }} (${{ matrix.target }})"
           
-          # Create artifacts directories with proper permissions
+          # Create artifacts directory
           mkdir -p artifacts/${{ matrix.machine }}/${{ matrix.target }}
-          mkdir -p programming-packages/${{ matrix.machine }}
-          chmod -R 755 artifacts/ programming-packages/
           
-          echo "✅ Created artifact directories:"
-          echo "   - artifacts/${{ matrix.machine }}/${{ matrix.target }}"
-          echo "   - programming-packages/${{ matrix.machine }}"
-          
-          # Define deploy directory (inside the kas work directory)
-          deploy_dir="$KAS_WORK_DIR/build/tmp/deploy/images/${{ matrix.machine }}"
+          # Find the deploy directory
+          deploy_dir=$(find . -path "*/tmp*/deploy/images/${{ matrix.machine }}" -type d | head -1)
           
           if [ -d "$deploy_dir" ]; then
-            echo "✅ Deploy directory found: $deploy_dir"
+            echo "✅ Found deploy directory: $deploy_dir"
             
-            # Copy all build artifacts
-            artifacts=(
-              "*.wic.gz"
-              "*.wic.bmap"
-              "imx-boot-*"
-              "u-boot-*.itb"
-              "*.dtb"
-              "*.manifest"
-            )
-            
-            for pattern in "${artifacts[@]}"; do
-              if ls "$deploy_dir"/$pattern 1> /dev/null 2>&1; then
-                cp "$deploy_dir"/$pattern artifacts/${{ matrix.machine }}/${{ matrix.target }}/
-                echo "📁 Copied to artifacts: $pattern"
-              fi
-            done
-            
-            # Create board-specific programming package
+            # Copy key artifacts based on target
             if [ "${{ matrix.target }}" = "lmp-factory-image" ]; then
-              echo "📦 Creating programming package for ${{ matrix.machine }}"
-              
-              # Files needed for UUU programming (from program_full_image.uuu.in)
-              programming_files=(
-                "lmp-factory-image-${{ matrix.machine }}.wic.gz"
-                "imx-boot-${{ matrix.machine }}"
-                "u-boot-${{ matrix.machine }}.itb"
-              )
-              
-              # Copy programming files
-              for file in "${programming_files[@]}"; do
-                if [ -f "$deploy_dir/$file" ]; then
-                  cp "$deploy_dir/$file" programming-packages/${{ matrix.machine }}/
-                  echo "📋 Added to programming package: $file"
-                else
-                  echo "⚠️  Programming file not found: $file"
-                fi
+              # Factory image artifacts
+              for pattern in "*.wic.gz" "*.wic.bmap" "imx-boot-*" "u-boot-*.itb"; do
+                find "$deploy_dir" -name "$pattern" -exec cp {} artifacts/${{ matrix.machine }}/${{ matrix.target }}/ \; 2>/dev/null || true
               done
-              
-              # Note: mfgtool files will be added by the mfgtool build job
-              echo "📋 Base build complete - mfgtool files will be added by mfgtool build"
-            elif [ "${{ matrix.target }}" = "mfgtool-files" ]; then
-              echo "📦 Adding mfgtool files to programming package for ${{ matrix.machine }}"
-              
-              # Mfgtool files needed for UUU programming  
-              mfgtool_files=(
-                "imx-boot-mfgtool"
-                "u-boot-mfgtool.itb"
-              )
-              
-              # Add mfgtool files to existing programming package
-              for file in "${mfgtool_files[@]}"; do
-                if [ -f "$deploy_dir/$file" ]; then
-                  cp "$deploy_dir/$file" programming-packages/${{ matrix.machine }}/
-                  echo "📋 Added mfgtool file: $file"
-                else
-                  echo "⚠️  Mfgtool file not found: $file"
-                fi
+            else
+              # MFGtool artifacts  
+              for pattern in "imx-boot-mfgtool*" "u-boot-mfgtool*"; do
+                find "$deploy_dir" -name "$pattern" -exec cp {} artifacts/${{ matrix.machine }}/${{ matrix.target }}/ \; 2>/dev/null || true
               done
-              
-              # Update the programming script to indicate mfgtool files are now available
-              if [ -f "programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh" ]; then
-                echo "📋 Mfgtool files added to existing programming package"
-              else
-                echo "⚠️  Programming package not found - base build may have failed"
-              fi
-              
-              # Create programming script for this machine
-              cat > programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh << 'EOF'
-          #!/bin/bash
-          # Board Programming Script for ${{ matrix.machine }}
-          # Generated automatically by CI build
-          
-          set -e
-          
-          MACHINE="${{ matrix.machine }}"
-          SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-          
-          echo "🚀 Programming $MACHINE board..."
-          echo "📁 Using files from: $SCRIPT_DIR"
-          
-          # Verify required files exist
-          required_files=(
-              "imx-boot-mfgtool"
-              "u-boot-mfgtool.itb"
-              "lmp-factory-image-$MACHINE.wic.gz"
-              "imx-boot-$MACHINE"
-              "u-boot-$MACHINE.itb"
-          )
-          
-          for file in "${required_files[@]}"; do
-              if [ ! -f "$SCRIPT_DIR/$file" ]; then
-                  echo "❌ Required file missing: $file"
-                  exit 1
-              fi
-          done
-          
-          # Create UUU script
-          cat > "$SCRIPT_DIR/program_$MACHINE.uuu" << UUU_EOF
-          uuu_version 1.2.39
-          
-          SDP: boot -f imx-boot-mfgtool
-          
-          SDPV: delay 1000
-          SDPV: write -f u-boot-mfgtool.itb
-          SDPV: jump
-          
-          FB: ucmd setenv fastboot_dev mmc
-          FB: ucmd setenv mmcdev \${emmc_dev}
-          FB: ucmd mmc dev \${emmc_dev} 1; mmc erase 0 0x2000
-          FB: flash -raw2sparse all lmp-factory-image-$MACHINE.wic.gz/*
-          FB: flash bootloader imx-boot-$MACHINE
-          FB: flash bootloader2 u-boot-$MACHINE.itb
-          FB: flash bootloader_s imx-boot-$MACHINE
-          FB: flash bootloader2_s u-boot-$MACHINE.itb
-          FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
-          FB: ucmd mmc partconf \${emmc_dev} \${emmc_ack} 1 0
-          FB: done
-          UUU_EOF
-          
-          echo "✅ Created UUU script: program_$MACHINE.uuu"
-          echo "🔌 Connect board in download mode and run:"
-          echo "   sudo uuu program_$MACHINE.uuu"
-          
-          # Optionally run UUU if requested
-          if [ "${1:-}" = "--flash" ]; then
-              echo "🚀 Starting board programming..."
-              sudo uuu "program_$MACHINE.uuu"
-          fi
-          EOF
-              
-              chmod +x programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh
-              
-              # Create README for programming package
-              cat > programming-packages/${{ matrix.machine }}/README.md << 'EOF'
-          # Programming Package for ${{ matrix.machine }}
-          
-          **Generated**: $(date)  
-          **Commit**: ${{ github.sha }}  
-          **Branch**: ${{ github.ref_name }}
-          
-          ## Files Included
-          
-          ### Bootloaders
-          - `imx-boot-mfgtool` - Manufacturing tool bootloader
-          - `u-boot-mfgtool.itb` - Manufacturing tool U-Boot
-          - `imx-boot-${{ matrix.machine }}` - Production bootloader  
-          - `u-boot-${{ matrix.machine }}.itb` - Production U-Boot
-          
-          ### System Image
-          - `lmp-factory-image-${{ matrix.machine }}.wic.gz` - Complete system image
-          
-          ### Programming Tools
-          - `program-${{ matrix.machine }}.sh` - Automated programming script
-          - `program_${{ matrix.machine }}.uuu` - UUU programming script (auto-generated)
-          
-          ### Software Bill of Materials (SBOM)
-          - `sbom/` - BitBake-generated SPDX 2.3 compliant SBOM files
-          - `sbom/image-sbom.spdx.json` - Complete image SBOM (if available)
-          - `sbom/*.spdx.json` - Individual package SBOMs
-          - `sbom/package-manifest.txt` - Package manifest (fallback)
-          
-          ## Usage
-          
-          ### Prerequisites
-          - Install NXP UUU tool
-          - Connect ${{ matrix.machine }} board via USB in download mode
-          
-          ### Programming Steps
-          
-          1. **Put board in download mode**
-          2. **Connect USB cable**
-          3. **Run programming script**:
-             ```bash
-             ./program-${{ matrix.machine }}.sh --flash
-             ```
-          
-          ### Manual Programming
-          
-          If you prefer manual control:
-          ```bash
-          sudo uuu program_${{ matrix.machine }}.uuu
-          ```
-          
-          ## Board-Specific Notes
-          
-          - **Machine**: ${{ matrix.machine }}
-          - **Architecture**: $(echo "${{ matrix.machine }}" | grep -q "imx8mm" && echo "i.MX8M Mini" || echo "i.MX93")
-          - **Board Type**: $(echo "${{ matrix.machine }}" | sed 's/.*jaguar-//' | tr '[:lower:]' '[:upper:]')
-          
-          EOF
             fi
             
-            # Create build artifact summary
-            echo "# Build Artifacts for ${{ matrix.machine }} (${{ matrix.target }})" > artifacts/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "Generated on: $(date)" >> artifacts/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "Commit: ${{ github.sha }}" >> artifacts/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "" >> artifacts/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            echo "## Files:" >> artifacts/${{ matrix.machine }}/${{ matrix.target }}/README.md
-            
-            cd artifacts/${{ matrix.machine }}/${{ matrix.target }}
-            for file in *; do
-              if [ "$file" != "README.md" ]; then
-                size=$(du -h "$file" | cut -f1)
-                echo "- $file ($size)" >> README.md
-              fi
-            done
-            cd ../../../
-            
+            echo "📋 Artifacts collected:"
+            ls -la artifacts/${{ matrix.machine }}/${{ matrix.target }}/
           else
-            echo "❌ Deploy directory not found: $deploy_dir"
-            echo "Build may have failed - creating placeholder artifacts"
-            
-            # Create placeholder files to prevent upload failures
-            echo "# Build Failed" > "artifacts/${{ matrix.machine }}/${{ matrix.target }}/build-failed.txt"
-            echo "Deploy directory not found: $deploy_dir" >> "artifacts/${{ matrix.machine }}/${{ matrix.target }}/build-failed.txt"
-            echo "Generated at: $(date)" >> "artifacts/${{ matrix.machine }}/${{ matrix.target }}/build-failed.txt"
-            
-            # Check if any build logs exist and copy them
-            if [ -d "$KAS_WORK_DIR/build/tmp/log" ]; then
-              echo "📋 Copying build logs for debugging"
-              cp -r "$KAS_WORK_DIR/build/tmp/log" "artifacts/${{ matrix.machine }}/${{ matrix.target }}/build-logs" || true
-            fi
-            
-            echo "Available directories in kas work dir:"
-            ls -la "$KAS_WORK_DIR/build/tmp/deploy/" 2>/dev/null || echo "No deploy directory found"
-            echo "Available directories in kas work dir build:"
-            ls -la "$KAS_WORK_DIR/build/" 2>/dev/null || echo "No build directory found"
+            echo "❌ Deploy directory not found"
+            echo "# Build Failed" > artifacts/${{ matrix.machine }}/${{ matrix.target }}/build-failed.txt
           fi
 
       - name: Upload build artifacts
@@ -681,540 +197,13 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-      - name: Upload SBOM artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-${{ matrix.machine }}-${{ matrix.target }}
-          path: build-sbom/
-          retention-days: 90
-          if-no-files-found: warn
-
-      - name: Upload programming packages
-        if: always() && matrix.target == 'base'
-        uses: actions/upload-artifact@v4
-        with:
-          name: programming-package-${{ matrix.machine }}
-          path: programming-packages/${{ matrix.machine }}/
-          retention-days: 90
-          if-no-files-found: warn
-
-      - name: Generate build report
-        if: always()
-        run: |
-          echo "📊 Generating build report"
-          
-          # Create build report
-          cat > build-report-${{ matrix.machine }}-${{ matrix.target }}.md << EOF
-          # Build Report: ${{ matrix.machine }} (${{ matrix.target }})
-          
-          **🛠️ BUILD TYPE: DEVELOPMENT/DEBUG BUILD FOR CI VALIDATION**
-          
-          **Date:** $(date)
-          **Commit:** ${{ github.sha }}
-          **Branch:** ${{ github.ref_name }}
-          **Workflow:** ${{ github.workflow }}
-          **Run:** ${{ github.run_number }}
-          
-          ## Build Configuration
-          - **Machine:** ${{ matrix.machine }}
-          - **Build Type:** ${{ matrix.target }}
-          - **KAS Configuration:** $([ "${{ matrix.target }}" = "mfgtool" ] && echo "kas/lmp-dynamicdevices-mfgtool.yml" || echo "kas/lmp-dynamicdevices-base.yml")
-          - **Purpose:** CI Validation, Testing, Development
-          
-          ## Build Status
-          - **Status:** ${{ job.status }}
-          - **Duration:** \$(expr \$SECONDS / 60) minutes
-          
-          ## Build Environment
-          - **Runner:** self-hosted (Yocto Docker container)
-          - **Parallel Jobs:** \$BB_NUMBER_THREADS
-          - **Make Jobs:** \$PARALLEL_MAKE
-          
-          ## Development Build Features
-          - **Debug Features:** Enabled (debug-tweaks, package management)
-          - **SSH Access:** Enabled for development/debugging
-          - **Signing:** Disabled (development build)
-          - **Package Management:** Enabled for runtime updates
-          
-          ## Production Build Notes
-          - **⚠️ NOT FOR PRODUCTION:** This is a debug/development build
-          - **Production builds should:** Disable debug-tweaks, enable signing, restrict SSH access
-          - **Security:** Development builds include debugging tools and relaxed security
-          
-          EOF
-          
-          # Check if artifacts were created
-          if [ -d "artifacts/${{ matrix.machine }}/${{ matrix.target }}" ]; then
-            echo "## Artifacts Generated" >> build-report-${{ matrix.machine }}-${{ matrix.target }}.md
-            echo "✅ Build artifacts available for download" >> build-report-${{ matrix.machine }}-${{ matrix.target }}.md
-          else
-            echo "## Artifacts" >> build-report-${{ matrix.machine }}-${{ matrix.target }}.md
-            echo "❌ No artifacts generated" >> build-report-${{ matrix.machine }}-${{ matrix.target }}.md
-          fi
-
-      - name: Upload build report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-report-${{ matrix.machine }}-${{ matrix.target }}
-          path: build-report-${{ matrix.machine }}-${{ matrix.target }}.md
-          retention-days: 90
-
-  # Create final programming packages combining base + mfgtool artifacts
-  create-programming-packages:
-    runs-on: self-hosted
-    needs: [setup, build]
-    # Only create programming packages if the build job succeeded
-    if: needs.setup.outputs.should_build == 'true' && needs.build.result == 'success'
-    strategy:
-      fail-fast: true  # Cancel remaining packaging jobs if any fails
-      matrix:
-        machine: [imx8mm-jaguar-sentai, imx93-jaguar-eink]
-    steps:
-      - name: Download lmp-factory-image build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts-${{ matrix.machine }}-lmp-factory-image
-          path: base-artifacts/
-        continue-on-error: false  # Fail if base artifacts missing
-
-      - name: Download mfgtool-files build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts-${{ matrix.machine }}-mfgtool-files
-          path: mfgtool-artifacts/
-        continue-on-error: false  # Fail if mfgtool artifacts missing
-
-      - name: Create complete programming package
-        run: |
-          echo "📦 Creating complete programming package for ${{ matrix.machine }}"
-          
-          # Verify both base and mfgtool artifacts are available
-          if [ ! -d "base-artifacts/${{ matrix.machine }}/base" ]; then
-            echo "❌ Base build artifacts missing for ${{ matrix.machine }}"
-            exit 1
-          fi
-          
-          if [ ! -d "mfgtool-artifacts/${{ matrix.machine }}/mfgtool" ]; then
-            echo "❌ Mfgtool build artifacts missing for ${{ matrix.machine }}"
-            exit 1
-          fi
-          
-          echo "✅ Both base and mfgtool artifacts found for ${{ matrix.machine }}"
-          
-          # Create programming package directory
-          mkdir -p programming-packages/${{ matrix.machine }}
-          
-          # Copy base build files (already verified to exist)
-          echo "📋 Adding base build files..."
-          
-          # Files needed for UUU programming
-          base_files=(
-            "lmp-factory-image-${{ matrix.machine }}.wic.gz"
-            "imx-boot-${{ matrix.machine }}"
-            "u-boot-${{ matrix.machine }}.itb"
-          )
-          
-          missing_base_files=()
-          for file in "${base_files[@]}"; do
-            if [ -f "base-artifacts/${{ matrix.machine }}/base/$file" ]; then
-              cp "base-artifacts/${{ matrix.machine }}/base/$file" "programming-packages/${{ matrix.machine }}/"
-              echo "✅ Added: $file"
-            else
-              missing_base_files+=("$file")
-            fi
-          done
-          
-          if [ ${#missing_base_files[@]} -gt 0 ]; then
-            echo "❌ Missing base files:"
-            printf '  - %s\n' "${missing_base_files[@]}"
-            exit 1
-          fi
-          
-          # Copy mfgtool files (already verified to exist)
-          echo "📋 Adding mfgtool files..."
-          
-          # Mfgtool files
-          mfgtool_files=(
-            "imx-boot-mfgtool"
-            "u-boot-mfgtool.itb"
-          )
-          
-          missing_mfgtool_files=()
-          for file in "${mfgtool_files[@]}"; do
-            if [ -f "mfgtool-artifacts/${{ matrix.machine }}/mfgtool/$file" ]; then
-              cp "mfgtool-artifacts/${{ matrix.machine }}/mfgtool/$file" "programming-packages/${{ matrix.machine }}/"
-              echo "✅ Added: $file"
-            else
-              missing_mfgtool_files+=("$file")
-            fi
-          done
-          
-          if [ ${#missing_mfgtool_files[@]} -gt 0 ]; then
-            echo "❌ Missing mfgtool files:"
-            printf '  - %s\n' "${missing_mfgtool_files[@]}"
-            exit 1
-          fi
-          
-          # Copy BitBake-generated SBOM files to programming package
-          echo "📋 Adding BitBake-generated SBOM files to programming package..."
-          
-          # Create SBOM directory in programming package
-          mkdir -p "programming-packages/${{ matrix.machine }}/sbom"
-          
-          # Copy base build SPDX SBOM files if available
-          if [ -d "build-sbom/${{ matrix.machine }}/base" ]; then
-            if ls build-sbom/${{ matrix.machine }}/base/*.spdx.json 1> /dev/null 2>&1; then
-              cp build-sbom/${{ matrix.machine }}/base/*.spdx.json "programming-packages/${{ matrix.machine }}/sbom/" 2>/dev/null || true
-              echo "✅ Added base build SPDX SBOM files"
-            fi
-            if ls build-sbom/${{ matrix.machine }}/base/*.txt 1> /dev/null 2>&1; then
-              cp build-sbom/${{ matrix.machine }}/base/*.txt "programming-packages/${{ matrix.machine }}/sbom/" 2>/dev/null || true
-            fi
-          fi
-          
-          # Copy mfgtool build SPDX SBOM files if available  
-          if [ -d "build-sbom/${{ matrix.machine }}/mfgtool" ]; then
-            if ls build-sbom/${{ matrix.machine }}/mfgtool/*.spdx.json 1> /dev/null 2>&1; then
-              cp build-sbom/${{ matrix.machine }}/mfgtool/*.spdx.json "programming-packages/${{ matrix.machine }}/sbom/" 2>/dev/null || true
-              echo "✅ Added mfgtool build SPDX SBOM files"
-            fi
-            if ls build-sbom/${{ matrix.machine }}/mfgtool/*.txt 1> /dev/null 2>&1; then
-              cp build-sbom/${{ matrix.machine }}/mfgtool/*.txt "programming-packages/${{ matrix.machine }}/sbom/" 2>/dev/null || true
-            fi
-          fi
-          
-          # Create programming script
-          cat > programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh << 'EOF'
-          #!/bin/bash
-          # Board Programming Script for ${{ matrix.machine }}
-          # Generated automatically by CI build
-          
-          set -e
-          
-          MACHINE="${{ matrix.machine }}"
-          SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-          
-          echo "🚀 Programming $MACHINE board..."
-          echo "📁 Using files from: $SCRIPT_DIR"
-          
-          # Verify required files exist
-          required_files=(
-              "imx-boot-mfgtool"
-              "u-boot-mfgtool.itb"
-              "lmp-factory-image-$MACHINE.wic.gz"
-              "imx-boot-$MACHINE"
-              "u-boot-$MACHINE.itb"
-          )
-          
-          missing_files=()
-          for file in "${required_files[@]}"; do
-              if [ ! -f "$SCRIPT_DIR/$file" ]; then
-                  missing_files+=("$file")
-              fi
-          done
-          
-          if [ ${#missing_files[@]} -gt 0 ]; then
-              echo "❌ Missing required files:"
-              printf '  - %s\n' "${missing_files[@]}"
-              echo ""
-              echo "Available files:"
-              ls -la "$SCRIPT_DIR"
-              exit 1
-          fi
-          
-          echo "✅ All required files present"
-          
-          # Create UUU script
-          cat > "$SCRIPT_DIR/program_$MACHINE.uuu" << UUU_EOF
-          uuu_version 1.2.39
-          
-          SDP: boot -f imx-boot-mfgtool
-          
-          SDPV: delay 1000
-          SDPV: write -f u-boot-mfgtool.itb
-          SDPV: jump
-          
-          FB: ucmd setenv fastboot_dev mmc
-          FB: ucmd setenv mmcdev \${emmc_dev}
-          FB: ucmd mmc dev \${emmc_dev} 1; mmc erase 0 0x2000
-          FB: flash -raw2sparse all lmp-factory-image-$MACHINE.wic.gz/*
-          FB: flash bootloader imx-boot-$MACHINE
-          FB: flash bootloader2 u-boot-$MACHINE.itb
-          FB: flash bootloader_s imx-boot-$MACHINE
-          FB: flash bootloader2_s u-boot-$MACHINE.itb
-          FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
-          FB: ucmd mmc partconf \${emmc_dev} \${emmc_ack} 1 0
-          FB: done
-          UUU_EOF
-          
-          echo "✅ Created UUU script: program_$MACHINE.uuu"
-          echo ""
-          echo "🔌 To program the board:"
-          echo "  1. Put board in download mode"
-          echo "  2. Connect USB cable"
-          echo "  3. Run: sudo uuu program_$MACHINE.uuu"
-          echo ""
-          echo "Or use this script with --flash to program automatically:"
-          echo "  ./program-$MACHINE.sh --flash"
-          
-          # Optionally run UUU if requested
-          if [ "${1:-}" = "--flash" ]; then
-              echo "🚀 Starting board programming..."
-              if command -v uuu >/dev/null 2>&1; then
-                  sudo uuu "program_$MACHINE.uuu"
-              else
-                  echo "❌ UUU tool not found. Please install NXP UUU tool first."
-                  exit 1
-              fi
-          fi
-          EOF
-          
-          chmod +x programming-packages/${{ matrix.machine }}/program-${{ matrix.machine }}.sh
-          
-          # Create comprehensive step-by-step README
-          cat > programming-packages/${{ matrix.machine }}/README.md << 'EOF'
-          # 🚀 Board Programming Guide: ${{ matrix.machine }}
-          
-          > **Complete step-by-step instructions for programming your Dynamic Devices board**
-          
-          **Generated**: $(date)  
-          **Commit**: ${{ github.sha }}  
-          **Branch**: ${{ github.ref_name }}  
-          **Build**: ${{ github.run_number }}
-          
-          ## 📦 What's In This Package
-          
-          This programming package contains everything needed to flash your board:
-          
-          ### 🔧 Manufacturing Tools
-          - `imx-boot-mfgtool` - Special bootloader for programming mode
-          - `u-boot-mfgtool.itb` - Programming U-Boot environment
-          
-          ### 💾 Production Firmware  
-          - `imx-boot-${{ matrix.machine }}` - Your board's production bootloader
-          - `u-boot-${{ matrix.machine }}.itb` - Your board's production U-Boot
-          - `lmp-factory-image-${{ matrix.machine }}.wic.gz` - Complete Linux system image
-          
-          ### 🛠️ Programming Scripts
-          - `program-${{ matrix.machine }}.sh` - **START HERE** - Automated programming script
-          - `program_${{ matrix.machine }}.uuu` - Low-level UUU commands (auto-generated)
-          
-          ### 📋 Security & Compliance
-          - `sbom.json` - Software Bill of Materials (SPDX format)
-          - `*.manifest` - Package manifest files for traceability
-          
-          ---
-          
-          ## ⚡ Quick Start (5 Minutes)
-          
-          ### **Step 1: Install UUU Tool** 📥
-          
-          #### Option A: Package Manager (Recommended)
-          ```bash
-          # Ubuntu/Debian
-          sudo apt update && sudo apt install uuu
-          
-          # Fedora/CentOS/RHEL
-          sudo dnf install uuu
-          
-          # Arch Linux
-          sudo pacman -S uuu
-          ```
-          
-          #### Option B: Direct Download
-          ```bash
-          # Download latest UUU
-          wget https://github.com/nxp-imx/mfgtools/releases/latest/download/uuu
-          chmod +x uuu
-          sudo mv uuu /usr/local/bin/
-          
-          # Verify installation
-          uuu --help
-          ```
-          
-          ### **Step 2: Prepare Your Board** 🔌
-          
-          #### **Physical Setup:**
-          1. **Power OFF** your board completely
-          2. **Locate boot switches** on your board (usually near USB connector)
-          3. **Set to download mode**:
-             - Consult your board manual for exact switch positions
-             - Typically involves setting specific DIP switches or jumpers
-          4. **Connect USB cable** from board to your computer
-          5. **Power ON** your board
-          
-          #### **Verify Download Mode:**
-          ```bash
-          # Check if board is detected
-          lsusb | grep -i "NXP\|Freescale"
-          
-          # Should show something like:
-          # Bus 001 Device 005: ID 1fc9:012f NXP Semiconductors
-          ```
-          
-          ### **Step 3: Program Your Board** ⚡
-          
-          #### **Automated Programming (Easiest):**
-          ```bash
-          # Navigate to this directory
-          cd programming-package-${{ matrix.machine }}/
-          
-          # Make script executable (if needed)
-          chmod +x program-${{ matrix.machine }}.sh
-          
-          # Program the board (takes 3-5 minutes)
-          ./program-${{ matrix.machine }}.sh --flash
-          ```
-          
-          #### **Manual Programming (Advanced):**
-          ```bash
-          # Use UUU directly
-          sudo uuu program_${{ matrix.machine }}.uuu
-          ```
-          
-          ### **Step 4: First Boot** 🎉
-          
-          1. **Programming complete** - Wait for "Programming successful" message
-          2. **Power OFF** the board
-          3. **Set switches back** to normal boot mode (consult board manual)
-          4. **Power ON** the board
-          5. **Wait 30-60 seconds** for first boot (may take longer initially)
-          6. **Connect via serial** or **SSH** to access your board
-          
-          ---
-          
-          ## 🎯 Board-Specific Information
-          
-          ### **Board Details:**
-          - **Machine**: ${{ matrix.machine }}
-          - **Architecture**: $(echo "${{ matrix.machine }}" | grep -q "imx8mm" && echo "i.MX8M Mini (Cortex-A53)" || echo "i.MX93 (Cortex-A55)")
-          - **Board Type**: $(echo "${{ matrix.machine }}" | sed 's/.*jaguar-//' | tr '[:lower:]' '[:upper:]')
-          - **Flash Memory**: eMMC internal storage
-          
-          ### **What Gets Programmed:**
-          1. **Bootloader** - Low-level boot code
-          2. **U-Boot** - Boot environment and configuration  
-          3. **Linux Kernel** - Operating system kernel
-          4. **Root Filesystem** - Complete Linux system with applications
-          
-          ---
-          
-          ## ⚠️ Troubleshooting
-          
-          ### **Board Not Detected**
-          
-          **Problem**: `lsusb` doesn't show NXP device
-          
-          **Solutions**:
-          - ✅ Verify USB cable is data cable (not power-only)
-          - ✅ Try different USB port on your computer
-          - ✅ Check boot switches are in correct download position
-          - ✅ Power cycle the board (off/on)
-          - ✅ Check board manual for exact switch positions
-          
-          ### **Programming Fails**
-          
-          **Problem**: UUU shows errors or timeouts
-          
-          **Solutions**:
-          - ✅ Run with `sudo` privileges: `sudo ./program-${{ matrix.machine }}.sh --flash`
-          - ✅ Verify all files are present: `ls -la *.gz *.itb imx-boot-*`
-          - ✅ Check UUU version: `uuu --version` (should be 1.4.0+)
-          - ✅ Try manual programming: `sudo uuu program_${{ matrix.machine }}.uuu`
-          - ✅ Check USB connection stability
-          
-          ### **Board Won't Boot After Programming**
-          
-          **Problem**: Board doesn't start after programming
-          
-          **Solutions**:
-          - ✅ **Check boot switches** - Must be in NORMAL boot mode (not download mode)
-          - ✅ **Power cycle** the board completely
-          - ✅ **Wait longer** - First boot can take 2-3 minutes
-          - ✅ **Check serial console** for boot messages
-          - ✅ **Re-program** if needed (board should still be recoverable)
-          
-          ### **Permissions Errors**
-          
-          **Problem**: "Permission denied" when accessing USB device
-          
-          **Solutions**:
-          ```bash
-          # Add yourself to dialout group
-          sudo usermod -a -G dialout $USER
-          
-          # Or run with sudo
-          sudo ./program-${{ matrix.machine }}.sh --flash
-          
-          # Log out and back in for group changes to take effect
-          ```
-          
-          ---
-          
-          ## 🔧 Advanced Usage
-          
-          ### **Verify Programming Before Boot**
-          ```bash
-          # Check all required files are present
-          ls -la imx-boot-* u-boot-* *.wic.gz
-          
-          # Verify file sizes (should not be 0 bytes)
-          du -h *
-          ```
-          
-          ### **Custom UUU Commands**
-          ```bash
-          # View the UUU script that will be executed
-          cat program_${{ matrix.machine }}.uuu
-          
-          # Run individual UUU commands for debugging
-          sudo uuu -v program_${{ matrix.machine }}.uuu
-          ```
-          
-          ### **Recovery Mode**
-          If your board becomes unbootable, you can always recover by:
-          1. Putting board back in download mode
-          2. Re-running the programming process
-          3. The board should always be recoverable via this method
-          
-          ---
-          
-          ## 📞 Support
-          
-          ### **Documentation**
-          - **Board Wiki**: https://github.com/DynamicDevices/meta-dynamicdevices/wiki
-          - **Troubleshooting**: https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Troubleshooting
-          
-          ### **Need Help?**
-          - **GitHub Issues**: https://github.com/DynamicDevices/meta-dynamicdevices/issues
-          - **Email Support**: support@dynamicdevices.co.uk
-          
-          ### **Professional Services**
-          For custom development, integration support, or commercial licensing:
-          - **Contact**: licensing@dynamicdevices.co.uk
-          - **Website**: https://dynamicdevices.co.uk
-          
-          ---
-          
-          **✅ Programming successful? Your board should now boot to a fully functional Linux system with networking, containers, and development tools ready!**
-          
-          EOF
-
-      - name: Upload complete programming package
-        uses: actions/upload-artifact@v4
-        with:
-          name: programming-package-${{ matrix.machine }}
-          path: programming-packages/${{ matrix.machine }}/
-          retention-days: 90
-          if-no-files-found: warn
-
-  # Summary job that creates overall build status
+  # Summary job
   summary:
+    name: Build Summary
     runs-on: self-hosted
-    needs: [setup, build, create-programming-packages]
-    if: always() && needs.setup.outputs.should_build == 'true'
+    needs: [validate, build]
+    if: always()
+    
     steps:
       - name: Generate build summary
         run: |
@@ -1227,27 +216,17 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Determine overall status
-          if [ "${{ needs.build.result }}" = "success" ]; then
+          if [ "${{ needs.validate.result }}" = "success" ] && [ "${{ needs.build.result }}" = "success" ]; then
             echo "## ✅ Build Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
-            echo "All builds completed successfully!" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.build.result }}" = "failure" ]; then
-            echo "## ❌ Build Status: FAILURE" >> $GITHUB_STEP_SUMMARY
-            echo "One or more builds failed. Check individual job logs for details." >> $GITHUB_STEP_SUMMARY
+            echo "All layer validations and builds completed successfully!" >> $GITHUB_STEP_SUMMARY
           else
-            echo "## ⚠️ Build Status: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "## ❌ Build Status: FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "- Layer validation: ${{ needs.validate.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Build Matrix" >> $GITHUB_STEP_SUMMARY
-          echo "Machines built: ${{ needs.setup.outputs.machines }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "Build artifacts and reports are available in the workflow artifacts section." >> $GITHUB_STEP_SUMMARY
-
-      - name: Update issue status
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          echo "Updating GitHub issue #14 with CI status"
-          # This would update the issue, but requires GitHub token with appropriate permissions
-          # For now, just log the intent
-          echo "CI build completed with status: ${{ needs.build.result }}"
+          echo "- **Machines:** imx8mm-jaguar-sentai, imx93-jaguar-eink" >> $GITHUB_STEP_SUMMARY
+          echo "- **Targets:** lmp-factory-image, mfgtool-files" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total builds:** 4 (2 machines × 2 targets)" >> $GITHUB_STEP_SUMMARY
