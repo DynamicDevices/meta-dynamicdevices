@@ -232,7 +232,7 @@ jobs:
         fi
 
     - name: Upload Layer Check Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: layer-check-results-${{ matrix.layer }}-${{ matrix.yocto_branch }}
@@ -272,7 +272,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download All Artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: artifacts/
 
@@ -316,7 +316,7 @@ jobs:
         echo "For detailed requirements, see [docs/YOCTO_PROJECT_COMPATIBLE.md](docs/YOCTO_PROJECT_COMPATIBLE.md)" >> compliance-report.md
 
     - name: Upload Compliance Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: yocto-compliance-report
         path: compliance-report.md
