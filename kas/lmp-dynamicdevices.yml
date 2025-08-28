@@ -19,6 +19,11 @@ machine: imx8mm-jaguar-sentai
 local_conf_header:
   meta-dynamicdevices: |
      ACCEPT_FSL_EULA = "1"
+     
+     # NXP WiFi Firmware Configuration (for imx93-jaguar-eink)
+     # Uncomment one of the following lines to override the default:
+     # NXP_WIFI_SECURE_FIRMWARE = "1"  # Use secure firmware (.se) - for production
+     # NXP_WIFI_SECURE_FIRMWARE = "0"  # Use standard firmware (.bin) - for development
      # TODO: We are building lmp-base so shouldn't be signing anything
      #       Yet the build system checks for the presence of these files
      #       For now we just give it a dummy file we know is present...
