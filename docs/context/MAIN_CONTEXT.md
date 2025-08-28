@@ -7,10 +7,30 @@ This repository contains application and middleware layers for Dynamic Devices E
 ## Supported Boards
 
 ### Edge Board Family
-- **Edge AI Board** (imx8mm-jaguar-sentai) - AI audio processing platform with TAS2563 dual codec
-- **Edge EInk Board** (imx93-jaguar-eink) - Low-power e-ink display controller with magic packet wake
+- **Edge AI Board** (imx8mm-jaguar-sentai) - AI audio processing platform with TAS2563 Android driver + firmware support
+- **Edge EInk Board** (imx93-jaguar-eink) - Low-power e-ink display controller with optimized kernel + flexible WiFi firmware
 - **Edge EV Board** - Clean energy management (future)
-- **Edge GW Board** - Communications gateway (future)  
+- **Edge GW Board** - Communications gateway (future)
+
+## Recent Major Updates (December 2024)
+
+### ✅ **TAS2563 Android Driver Implementation** 
+- **Board**: imx8mm-jaguar-sentai
+- **Change**: Switched from upstream TAS2562 to Android TAS2563 driver
+- **Benefit**: Enables firmware binary downloads for DSP noise reduction
+- **Files**: Machine config, kernel configs, driver recipes
+
+### ✅ **NXP IW612 WiFi Firmware Optimization**
+- **Board**: imx93-jaguar-eink  
+- **Change**: Flexible firmware selection (secure .se vs standard .bin)
+- **Benefit**: Supports both production and development builds
+- **Configuration**: `NXP_WIFI_SECURE_FIRMWARE` variable
+
+### ✅ **Kernel Driver Optimization**
+- **Board**: imx93-jaguar-eink
+- **Change**: Reduced USB serial drivers from 50+ to 5 essential
+- **Benefit**: Faster boot, smaller kernel, cleaner dmesg output
+- **Impact**: Significant boot time improvement  
 
 ## Repository Structure
 

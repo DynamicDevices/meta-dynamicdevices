@@ -20,7 +20,7 @@ Development of audio processing capabilities for the Edge AI board using TAS2563
 ## Audio System Implementation
 
 ### TAS2563 Dual Audio Codec
-**Implementation Status**: ✅ Complete (feature/sentai-tas2563-audio branch)
+**Implementation Status**: ✅ Complete - **Android Driver with Firmware Support Enabled**
 
 #### Hardware Configuration
 - **TAS2563 Chip 1**: I2C address 0x4C (microphone input)
@@ -50,6 +50,22 @@ Development of audio processing capabilities for the Edge AI board using TAS2563
     };
 };
 ```
+
+#### Driver Configuration
+**Status**: ✅ **Android TAS2563 Driver Active** (December 2024)
+
+**Key Changes**:
+- **Machine Feature**: Added `tas2563` to `MACHINE_FEATURES` in `imx8mm-jaguar-sentai.conf`
+- **Upstream Driver**: Disabled `CONFIG_SND_SOC_TAS2562=m` to prevent conflicts
+- **Android Driver**: Uses `kernel-module-tas2563` from `https://github.com/DynamicDevices/tas2563-android-driver.git`
+- **Firmware Support**: Includes `tas2563_uCDSP.bin` firmware binary in `/lib/firmware/`
+- **Module Loading**: `snd-soc-tas2563` loads automatically via `KERNEL_MODULE_AUTOLOAD`
+
+**Benefits**:
+- ✅ **Firmware Binary Downloads**: Can load DSP firmware for noise reduction
+- ✅ **Advanced Features**: Full Android driver feature set
+- ✅ **TI PurePath Console**: Compatible with TI's graphical configuration tool
+- ✅ **Calibration Support**: Framework for future calibration file support
 
 #### ALSA Configuration
 **File**: `recipes-bsp/alsa-state/alsa-state/imx8mm-jaguar-sentai/asound.conf`

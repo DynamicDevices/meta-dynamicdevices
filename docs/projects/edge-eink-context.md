@@ -65,11 +65,18 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_iw612_wifi.cfg` ✅
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_iw612_bluetooth.cfg` ✅
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_802154.cfg` ✅
-  - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_lte_modem.cfg` ✅
+  - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_lte_modem.cfg` ✅ **OPTIMIZED**
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_spi.cfg` ✅
+  - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_eink_display.cfg` ✅ **OPTIMIZED**
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/fix_soc_imx9.cfg` ✅ **CRITICAL**
 - **Updated**: `recipes-kernel/linux/linux-lmp-fslc-imx_%.bbappend` ✅
 - **Critical Fix**: `fix_soc_imx9.cfg` disables EdgeLock Enclave to prevent kernel panic
+
+#### **Recent Kernel Optimizations** (December 2024)
+- **USB Serial Drivers**: Reduced from 50+ to 5 essential drivers (OPTION, QUALCOMM, QCAUX, FTDI_SIO, CP210X)
+- **Display Drivers**: Disabled unused SSD1306/1331/1351 to eliminate kernel warnings
+- **Boot Performance**: Significantly improved boot time with minimal driver set
+- **Kernel Size**: Reduced kernel footprint by removing unnecessary drivers
 
 ### Machine Configuration
 - **File**: `conf/machine/imx93-jaguar-eink.conf`
@@ -79,6 +86,25 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
   - WiFi features: nxpiw612-sdio
   - Removed: ALSA support
   - SPI buffer: 16KB for ZigBee
+  - **NEW**: `NXP_WIFI_SECURE_FIRMWARE` configuration variable
+
+#### **WiFi Firmware Configuration** (December 2024)
+**Status**: ✅ **Flexible Firmware Selection Implemented**
+
+**Configuration Options**:
+- **Production Builds**: `NXP_WIFI_SECURE_FIRMWARE = "1"` (default) - Uses `sduart_nw61x_v1.bin.se`
+- **Development Builds**: `NXP_WIFI_SECURE_FIRMWARE = "0"` - Uses `sduart_nw61x_v1.bin`
+
+**Files Modified**:
+- `conf/machine/imx93-jaguar-eink.conf`: Added configuration variable
+- `recipes-bsp/firmware-imx/firmware-nxp-wifi_1.%.bbappend`: Automatic firmware selection logic
+- `recipes-bsp/firmware-imx/firmware-nxp-wifi/wifi_mod_para.conf`: Updated firmware path configuration
+
+**Benefits**:
+- ✅ **Automatic Selection**: Build system chooses correct firmware based on configuration
+- ✅ **Secure Boot Support**: Production builds use signed firmware (.se files)
+- ✅ **Development Flexibility**: Debug builds use standard firmware (.bin files)
+- ✅ **Build Warnings**: Clear indication of which firmware type is selected
 
 ### U-boot Configuration
 - **Files**:

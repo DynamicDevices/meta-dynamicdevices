@@ -8,10 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- TAS2563 Android driver with firmware binary support for imx8mm-jaguar-sentai
+- Flexible NXP IW612 WiFi firmware selection (secure .se vs standard .bin)
+- NXP_WIFI_SECURE_FIRMWARE configuration variable for build flexibility
+- Comprehensive kernel driver optimization for imx93-jaguar-eink
 - Dual GPLv3/Commercial licensing option
 - Comprehensive hardware documentation in wiki
 - Professional repository organization with docs/ and scripts/ directories
 - Automated WoWLAN configuration for Edge EInk board
+
+### Changed
+- **BREAKING**: Switched imx8mm-jaguar-sentai from upstream TAS2562 to Android TAS2563 driver
+- Optimized USB serial drivers from 50+ to 5 essential drivers for imx93-jaguar-eink
+- Disabled unused SSD display drivers to eliminate kernel warnings
+- Updated project context documentation with recent improvements
+
+### Fixed
+- NXP IW612 WiFi firmware loading issues (sduart_nw61x_v1.bin vs .se)
+- Kernel boot time significantly improved with minimal driver set
+- SSD1306/1331/1351 "no spi_device_id" warnings eliminated
+- TAS2563 firmware binary download capability restored
 
 ### Changed
 - Updated LICENSE from MIT-style to dual licensing
