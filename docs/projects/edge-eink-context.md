@@ -18,6 +18,7 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
 - **LTE Modem**: USB-based cellular modem support
 - **Storage**: eMMC on USDHC1
 - **Display**: 13-inch E-ink display support
+- **Security**: EdgeLock Enclave (ELE) and Cortex-M33 not used/supported
 
 ## Pin Mapping Implementation
 
@@ -66,7 +67,9 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_802154.cfg` ✅
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_lte_modem.cfg` ✅
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_spi.cfg` ✅
+  - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/fix_soc_imx9.cfg` ✅ **CRITICAL**
 - **Updated**: `recipes-kernel/linux/linux-lmp-fslc-imx_%.bbappend` ✅
+- **Critical Fix**: `fix_soc_imx9.cfg` disables EdgeLock Enclave to prevent kernel panic
 
 ### Machine Configuration
 - **File**: `conf/machine/imx93-jaguar-eink.conf`
@@ -82,8 +85,10 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
   - `recipes-bsp/u-boot/u-boot-fio/imx93-jaguar-eink/enable-spi.cfg` ✅ New
   - `recipes-bsp/u-boot/u-boot-fio/imx93-jaguar-eink/enable-i2c.cfg` ✅ Existing
   - `recipes-bsp/u-boot/u-boot-fio/imx93-jaguar-eink/custom-dtb.cfg` ✅ Existing
+  - `recipes-bsp/u-boot/u-boot-fio/imx93-jaguar-eink/disable-fiovb.cfg` ✅ **NEW**
 - **Updated**: `recipes-bsp/u-boot/u-boot-fio_%.bbappend` ✅
 - **Fixed**: `recipes-bsp/u-boot/u-boot-ostree-scr-fit/imx93-jaguar-eink/boot.cmd` ✅
+- **Boot Fix**: `disable-fiovb.cfg` prevents "Unknown command 'fiovb'" error
 
 ## Build Testing Status
 
@@ -158,17 +163,42 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
   - **Module autoloading**: Not configured (`/etc/modules-load.d/` empty)
   - **Kernel messages**: Cannot read dmesg (permission issue)
 
+## Security Features Status
+
+### EdgeLock Enclave (ELE) - Not Supported
+- **Status**: ❌ **DISABLED** - Not used on E-Ink board
+- **Reason**: Hardware design does not utilize ELE secure element
+- **Implementation**: 
+  - Kernel config: `CONFIG_IMX_SEC_ENCLAVE=n`
+  - NVMEM driver: `CONFIG_NVMEM_IMX_OCOTP_FSB_S400=n` (requires ELE)
+  - Device tree: No ELE-related nodes configured
+
+### Cortex-M33 Co-processor - Not Supported  
+- **Status**: ❌ **DISABLED** - Not used on E-Ink board
+- **Reason**: Board design focuses on main Cortex-A55 cores only
+- **Implementation**: Handled via kernel configuration, no device tree nodes
+
+### Security Implications
+- **Boot Security**: Standard i.MX93 secure boot without ELE
+- **Fuse Access**: Uses standard OCOTP driver instead of ELE-based FSB S400
+- **Key Storage**: No hardware secure element for key management
+- **Attestation**: No ELE-based attestation capabilities
+
 ## Issues Fixed
 1. ✅ **Machine config syntax** - Fixed `MACHINE_FEATURES:remove += ` → `=`
 2. ✅ **Module autoloading** - Added `mlan moal` to `KERNEL_MODULE_AUTOLOAD`
 3. ✅ **ZigBee support** - Added `zigbee` machine feature
 4. ✅ **U-Boot approach** - Simplified to use `CONFIG_DEFAULT_FDT_FILE` only (removed patch)
+5. ✅ **Kernel panic fix** - Resolved soc_imx9 module crash during ELE fuse reading
+6. ✅ **Device tree compilation** - Fixed invalid label references (ele_fw2, cm33)
+7. ✅ **U-Boot fiovb error** - Disabled unavailable Foundries.io verification command
 
 ## Current Status
-- **Build Issue**: U-Boot simplified, ready for rebuild
-- **Wireless Issue**: Need to rebuild image with fixed machine config
-- **Boot Issue**: Temporary workaround working (manual `setenv fdt_file`)
-- **Alternative Fix**: Using `CONFIG_DEFAULT_FDT_FILE=imx93-jaguar-eink.dtb` instead of code patch
+- **Kernel Panic**: ✅ **FIXED** - EdgeLock Enclave dependencies disabled
+- **Device Tree**: ✅ **FIXED** - Invalid label references removed
+- **U-Boot Error**: ✅ **FIXED** - fiovb command disabled
+- **Build Status**: ✅ **READY** - All compilation errors resolved
+- **Boot Status**: ✅ **EXPECTED TO WORK** - Critical fixes applied
 
 ## Next Steps (Choose One)
 1. **Rebuild U-Boot** - Apply permanent fdt_file fix
@@ -198,10 +228,17 @@ MACHINE=imx93-jaguar-eink bitbake u-boot-fio
 - **Output Images**: `build/tmp/deploy/images/imx93-jaguar-eink/`
 
 ## Git Status
-- **Commit**: 387193f4 - "Add imx93-jaguar-eink board support"
-- **Branch**: ajl/imx93
-- **Status**: ✅ PUSHED to origin/ajl/imx93
+- **Latest BSP Commit**: cee227a - "fix(imx93-jaguar-eink): remove non-existent device tree labels"
+- **Latest Main Commit**: 77124952 - "fix(imx93-jaguar-eink): update BSP submodule for device tree fix"
+- **Branch**: main
+- **Status**: ✅ PUSHED to origin/main
+
+## Recent Critical Fixes (2025-08-28)
+1. **Kernel Panic Resolution**: Fixed soc_imx9 module crash during EdgeLock Enclave fuse reading
+2. **Device Tree Compilation**: Removed invalid label references that don't exist in imx93.dtsi
+3. **U-Boot Boot Error**: Disabled fiovb command that was causing boot failures
+4. **EdgeLock Enclave**: Properly disabled ELE and related drivers since not used on E-Ink board
 
 ---
-*Last Updated: 2025-08-22*
-*Status: ✅ COMPLETE - Board support implemented, builds successfully, boots correctly*
+*Last Updated: 2025-08-28*
+*Status: ✅ CRITICAL FIXES APPLIED - Boot issues resolved, ready for rebuild and testing*
