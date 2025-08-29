@@ -1,0 +1,18 @@
+[Unit]
+Description=Generate unique hostname for i.MX93 Jaguar E-Ink board
+DefaultDependencies=no
+Before=network-pre.target
+Before=systemd-hostnamed.service
+After=systemd-remount-fs.service
+After=systemd-random-seed.service
+Wants=systemd-random-seed.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/generate-hostname.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=sysinit.target
