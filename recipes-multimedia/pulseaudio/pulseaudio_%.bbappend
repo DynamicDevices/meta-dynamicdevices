@@ -5,7 +5,11 @@ inherit systemd
 SYSTEMD_SERVICE:${PN} = "pulseaudio.service"
 SYSTEMD_AUTO_ENABLE:${PN}  = "enable"
 
-PACKAGECONFIG += " webrtc"
+# Only enable WebRTC for Dynamic Devices machines that need audio processing
+PACKAGECONFIG:append:imx8mm-jaguar-sentai = " webrtc"
+PACKAGECONFIG:append:imx8mm-jaguar-inst = " webrtc"
+PACKAGECONFIG:append:imx8mm-jaguar-handheld = " webrtc"
+PACKAGECONFIG:append:imx8mm-jaguar-phasora = " webrtc"
 REPENDS:${PN} += " webrtc"
 
 EXTRA_OEMESON += "-Dwebrtc-aec=enabled"
