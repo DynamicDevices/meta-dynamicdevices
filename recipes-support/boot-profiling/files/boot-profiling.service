@@ -1,0 +1,19 @@
+[Unit]
+Description=Boot Profiling Analysis Service
+Documentation=man:boot-analysis.sh
+After=multi-user.target
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/boot-analysis.sh
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+# Run with lower priority to not interfere with boot
+Nice=10
+IOSchedulingClass=3
+
+[Install]
+WantedBy=multi-user.target
