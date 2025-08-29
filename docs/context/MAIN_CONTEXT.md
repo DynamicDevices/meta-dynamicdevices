@@ -42,3 +42,9 @@ kas build kas/lmp-dynamicdevices.yml
 - **Context**: `docs/projects/*-context.md` (project details)
 - **Wiki**: `wiki/` (user documentation)
 - **Contributing**: `CONTRIBUTING.md`
+
+## Context Management Guidelines
+- **Keep Updated**: Context files must reflect current project state
+- **Token Optimization**: Minimize content while retaining essential information
+- **Relevance Focus**: Include only information needed for development/debugging
+- **Regular Review**: Remove outdated details, consolidate duplicate information
