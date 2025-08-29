@@ -1,181 +1,42 @@
-# Edge AI Board (imx8mm-jaguar-sentai) Project Context
+# Edge AI Board Context
 
-**🔗 Related GitHub Issues**: [Edge AI Board Milestone](https://github.com/DynamicDevices/meta-dynamicdevices/milestone/1)
+**GitHub**: [Edge AI Milestone](https://github.com/DynamicDevices/meta-dynamicdevices/milestone/1)
 
-**📋 Key Active Issues**:
-- [Issue #13](https://github.com/DynamicDevices/meta-dynamicdevices/issues/13): TAS2563 DSP Firmware for Noise Reduction
-- [Issue #10](https://github.com/DynamicDevices/meta-dynamicdevices/issues/10): STUSB4500 Power Controller Device Tree Integration
+## Hardware
+- **SoC**: i.MX8MM (Cortex-A53), **Audio**: TAS2563 dual-chip
+- **Wireless**: IW612 (WiFi 6, BT 5.4, 802.15.4)
+- **Sensors**: BGT60TR13C radar, LIS2DH12, SHT40, **Power**: STUSB4500
 
-## Project Overview
-Development of audio processing capabilities for the Edge AI board using TAS2563 audio codecs with dual microphone support for speech-to-text and text-to-speech applications.
+## TAS2563 Audio ✅
+- **Config**: Dual-chip (0x4C/0x4D), SAI interface, stereo capture
+- **Driver**: Android TAS2563 with firmware support
+- **Files**: `lmp-device-tree/imx8mm-jaguar-sentai.dts`, kernel configs
+## Audio Stack ✅
+- **Driver**: Android TAS2563 with firmware support (`tas2563_uCDSP.bin`)
+- **ALSA**: Stereo capture, 48kHz/16-bit, container support
+- **PulseAudio**: System-wide, Unix socket, Docker integration
+- **Testing**: `detect-audio-hardware.sh`, `test-tas2563-mics.sh`
 
-## Hardware Specifications
-- **Platform**: NXP i.MX8MM (Cortex-A53 quad-core)
-- **Board Type**: imx8mm-jaguar-sentai
-- **Audio Codec**: TAS2563 dual-chip configuration
-- **Wireless**: NXP IW612 (WiFi 6 + Bluetooth 5.4 + 802.15.4)
-- **Sensors**: BGT60TR13C radar, LIS2DH12 accelerometer, SHT40 temp/humidity
-- **Power**: STUSB4500 USB-C PD controller
+## Wireless ✅
+- **IW612**: WiFi 6, BT 5.4, 802.15.4 concurrent operation
+- **NetworkManager**: Dynamic connections, cellular, hotspot
 
-## Audio System Implementation
+## Sensors ✅
+- **Radar**: BGT60TR13C (SPI, presence detection)
+- **Environmental**: SHT40 (temp/humidity), LIS2DH12 (accel), STTS22H
 
-### TAS2563 Dual Audio Codec
-**Implementation Status**: ✅ Complete - **Android Driver with Firmware Support Enabled**
-
-#### Hardware Configuration
-- **TAS2563 Chip 1**: I2C address 0x4C (microphone input)
-- **TAS2563 Chip 2**: I2C address 0x4D (microphone input)  
-- **SAI Interface**: 30030000.sai (I2S audio interface)
-- **Stereo Capture**: Dual microphone input for audio processing
-
-#### Device Tree Configuration
-**File**: `recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-sentai.dts`
-
-```dts
-&i2c2 {
-    tas2563_1: tas2563@4c {
-        compatible = "ti,tas2563";
-        reg = <0x4c>;
-        ti,chip-id = <0>;
-        ti,imon-slot-no = <0>;
-        ti,vmon-slot-no = <2>;
-    };
-
-    tas2563_2: tas2563@4d {
-        compatible = "ti,tas2563";
-        reg = <0x4d>;
-        ti,chip-id = <1>;
-        ti,imon-slot-no = <1>;
-        ti,vmon-slot-no = <3>;
-    };
-};
-```
-
-#### Driver Configuration
-**Status**: ✅ **Android TAS2563 Driver Active** (December 2024)
-
-**Key Changes**:
-- **Machine Feature**: Added `tas2563` to `MACHINE_FEATURES` in `imx8mm-jaguar-sentai.conf`
-- **Upstream Driver**: Disabled `CONFIG_SND_SOC_TAS2562=m` to prevent conflicts
-- **Android Driver**: Uses `kernel-module-tas2563` from `https://github.com/DynamicDevices/tas2563-android-driver.git`
-- **Firmware Support**: Includes `tas2563_uCDSP.bin` firmware binary in `/lib/firmware/`
-- **Module Loading**: `snd-soc-tas2563` loads automatically via `KERNEL_MODULE_AUTOLOAD`
-
-**Benefits**:
-- ✅ **Firmware Binary Downloads**: Can load DSP firmware for noise reduction
-- ✅ **Advanced Features**: Full Android driver feature set
-- ✅ **TI PurePath Console**: Compatible with TI's graphical configuration tool
-- ✅ **Calibration Support**: Framework for future calibration file support
-
-#### ALSA Configuration
-**File**: `recipes-bsp/alsa-state/alsa-state/imx8mm-jaguar-sentai/asound.conf`
-
-Key features:
-- **Stereo microphone capture** with TAS2563 devices
-- **Hardware device mapping** for container applications
-- **48kHz/16-bit** audio format support
-- **Dual channel routing** for advanced audio processing
-
-### Audio Software Stack
-
-#### Driver Loading
-**File**: `recipes-multimedia/alsa/alsa-utils/imx8mm-jaguar-sentai/load-audio-drivers.sh`
-
+## Build & Test
 ```bash
-# Load TAS2563 kernel module
-modprobe snd_soc_tas2563
-
-# Initialize audio system
-systemctl restart alsa-state
-```
-
-#### PulseAudio Integration
-- **System-wide configuration** for container compatibility
-- **Unix socket interface** at `/tmp/pulseaudio.socket`
-- **Docker volume mounting** for audio access
-- **Authentication bypass** for embedded use
-
-### Testing & Validation
-
-#### Audio Testing Scripts
-- **detect-audio-hardware.sh** - Hardware detection and validation
-- **test-tas2563-mics.sh** - Microphone capture testing
-- **Audio playback testing** - Verify TAS2563 output capabilities
-
-#### Container Audio Configuration
-```yaml
-# docker-compose.yml example
-services:
-  audio-app:
-    devices:
-      - /dev/snd:/dev/snd
-    environment:
-      - PULSE_SERVER=unix:/tmp/pulseaudio.socket
-    volumes:
-      - "/tmp:/tmp"
-      - "/run/dbus/system_bus_socket:/run/dbus/system_bus_socket"
-```
-
-## Wireless Connectivity
-
-### NXP IW612 Configuration
-- **WiFi 6 (802.11ax)** - High-throughput networking
-- **Bluetooth 5.4** - Device connectivity and pairing
-- **802.15.4 / ZigBee** - IoT mesh networking (optional)
-- **Concurrent operation** - All radios simultaneously active
-
-### NetworkManager Integration
-- **Dynamic connection management** 
-- **Cellular modem support** (Quectel modules)
-- **WiFi hotspot capabilities** via uap0 interface
-
-## Sensor Integration
-
-### Radar Sensor (BGT60TR13C)
-- **Infineon SPI interface** - Custom driver integration
-- **Presence detection** - Motion and occupancy sensing
-- **Data logging** - Continuous monitoring capabilities
-
-### Environmental Sensors
-- **Temperature/Humidity** (SHT40) - I2C interface with lm-sensors
-- **Accelerometer** (LIS2DH12) - IIO subsystem integration
-- **Temperature** (STTS22H) - Additional precision temperature
-
-## Development Workflow
-
-### Build Configuration
-```bash
-# Set machine type
 export MACHINE=imx8mm-jaguar-sentai
-
-# Build with audio features
 kas build kas/lmp-dynamicdevices.yml
-```
 
-### Testing Procedures
-
-#### Audio Validation
-```bash
-# Test TAS2563 microphone capture
+# Audio test
 arecord -Dhw:0,0 -f S16_LE -r 48000 -c 2 test.wav
 
-# Test with PulseAudio
-parecord --device=tas2563-stereo test.wav
-paplay test.wav
-```
-
-#### Sensor Testing
-```bash
-# Check radar sensor
-seamless_dev_spi spi.mode=landscape rec.file=test.dat
-
-# Monitor environmental sensors
+# Sensor test  
 sensors
-watch -n 1 "cat /sys/bus/iio/devices/iio:device*/in_*_raw"
 ```
 
-## Related Documentation
-
-- **[Main Context](../context/MAIN_CONTEXT.md)** - Repository overview
-- **[Wiki: Edge AI Board](../../wiki/Edge-AI-Board.md)** - User documentation
-- **[TAS2563 Technical Context](./tas2563-technical-context.md)** - Detailed audio implementation (if exists)
+## Documentation
+- **Main**: `docs/context/MAIN_CONTEXT.md`
+- **Wiki**: `wiki/Edge-AI-Board.md`
