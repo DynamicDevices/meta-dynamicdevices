@@ -56,4 +56,4 @@ __pycache__/
 
 # Local development
 local/
-scratch/
+scratch/.kas_shell_history
