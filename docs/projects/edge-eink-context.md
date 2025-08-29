@@ -122,18 +122,30 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
 - **Solution**: Removed GPIO control from regulator, set to always-on (power controlled by MCXC143VFM)
 - **Result**: WiFi works consistently on both power-on and reboot
 
-#### **Hostname Generation Fix** (December 2024)
-**Status**: ✅ **SOC UID Reading Implemented**
+#### **Hostname Generation Implementation** (August 2025)
+**Status**: ✅ **Complete - Using Foundries lmp-auto-hostname Service**
 
-**OCOTP/NVMEM Configuration**:
-- **Issue**: Hostname showed as `imx93-jaguar-eink-unknown` instead of unique identifier
-- **Root Cause**: i.MX93 OCOTP driver not properly configured, no nvmem interface created
-- **Investigation**: Found efuse device at `47510000.efuse` with `fsl,imx93-ocotp` compatible string but no driver bound
-- **Solution**: Added `enable_ocotp_nvmem.cfg` kernel configuration with proper i.MX93 OCOTP support
+**Final Solution**:
+- **Approach**: Use existing Foundries.io `lmp-auto-hostname` service instead of custom implementation
+- **Service**: Already included in `CORE_IMAGE_BASE_INSTALL` for all LMP-based images
+- **Unique ID Source**: `/sys/devices/soc0/serial_number` (primary) or `/proc/device-tree/serial-number` (fallback)
+- **Hostname Format**: `imx93-jaguar-eink-{UNIQUE_ID}` (e.g., `imx93-jaguar-eink-abc123def`)
+
+**OCOTP/NVMEM Configuration** (August 2025):
+- **Issue**: i.MX93 OCOTP driver not properly configured, preventing SOC UID reading
+- **Root Cause**: Missing i.MX93 OCOTP driver support and ELE integration
+- **Solution**: Implemented proper i.MX93 OCOTP support via commit `5742d219`
 - **Files Added**:
   - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_ocotp_nvmem.cfg`
-  - `recipes-support/lmp-device-auto-register/lmp-device-auto-register/imx93-jaguar-eink/lmp-device-auto-register`
-- **Result**: Should now generate unique hostnames based on SOC UID
+  - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/01-add-imx93-ocotp-support.patch`
+  - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/fix_soc_imx9.cfg`
+- **Driver**: `CONFIG_NVMEM_IMX_OCOTP_ELE=y` with minimal ELE support for OCOTP access
+- **Result**: ✅ SOC UID now readable via `/sys/devices/soc0/serial_number`
+
+**Custom Implementation Removed** (August 2025):
+- **Removed**: Custom `imx93-hostname-generator` recipe and service (redundant)
+- **Reason**: Foundries `lmp-auto-hostname` provides superior, maintained solution
+- **Benefits**: Better hardware support, proper systemd integration, consistent with LMP ecosystem
 
 ### U-boot Configuration
 - **Files**:
@@ -218,10 +230,12 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
   - **Network connectivity**: Full WiFi functionality confirmed
   - **Reboot stability**: Fixed GPIO conflict, WiFi works after reboot
 
-- ✅ **Hostname Generation**: FIXED (December 2024)
-  - **OCOTP/nvmem**: Kernel configuration added for i.MX93 SOC UID reading
-  - **Device registration**: Machine-specific script created for eink board
-  - **Unique hostnames**: Should now generate `imx93-jaguar-eink-<uid>` instead of `unknown`
+- ✅ **Hostname Generation**: COMPLETE (August 2025)
+  - **OCOTP Support**: i.MX93 OCOTP driver implemented with ELE integration
+  - **SOC UID Reading**: `/sys/devices/soc0/serial_number` now available
+  - **Service**: Uses Foundries `lmp-auto-hostname` (included in base image)
+  - **Unique Hostnames**: Generates `imx93-jaguar-eink-<uid>` format automatically
+  - **Custom Implementation**: Removed redundant custom hostname generator
 
 ## Security Features Status
 
