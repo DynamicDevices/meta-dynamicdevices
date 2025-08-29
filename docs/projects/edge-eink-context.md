@@ -96,7 +96,7 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
 - **Development Builds**: `NXP_WIFI_SECURE_FIRMWARE = "0"` - Uses `sduart_nw61x_v1.bin`
 
 **Files Modified**:
-- `conf/machine/imx93-jaguar-eink.conf`: Added configuration variable
+- `conf/machine/imx93-jaguar-eink.conf`: Added configuration variable and module parameters
 - `recipes-bsp/firmware-imx/firmware-nxp-wifi_1.%.bbappend`: Automatic firmware selection logic
 - `recipes-bsp/firmware-imx/firmware-nxp-wifi/wifi_mod_para.conf`: Updated firmware path configuration
 
@@ -105,6 +105,35 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
 - ✅ **Secure Boot Support**: Production builds use signed firmware (.se files)
 - ✅ **Development Flexibility**: Debug builds use standard firmware (.bin files)
 - ✅ **Build Warnings**: Clear indication of which firmware type is selected
+- ✅ **Module Parameters**: Explicit firmware loading via `moal` module configuration
+
+#### **Recent WiFi Fixes** (December 2024)
+**Status**: ✅ **WiFi Issues Resolved**
+
+**Firmware Loading Fix**:
+- **Issue**: Signed builds failed with "Direct firmware load for nxp/sduart_nw61x_v1.bin failed with error -2"
+- **Root Cause**: Driver requested standard firmware but only secure firmware (.se) was available
+- **Solution**: Added explicit module parameter `fw_name=nxp/sduart_nw61x_v1.bin.se` to machine config
+- **Result**: WiFi initializes correctly in signed builds
+
+**Reboot Stability Fix**:
+- **Issue**: WiFi worked on power-on but failed after `reboot` with "wlan_sdio: probe failed with error -1"
+- **Root Cause**: GPIO4_26 conflict between WiFi reset (ACTIVE_LOW) and regulator (ACTIVE_HIGH)
+- **Solution**: Removed GPIO control from regulator, set to always-on (power controlled by MCXC143VFM)
+- **Result**: WiFi works consistently on both power-on and reboot
+
+#### **Hostname Generation Fix** (December 2024)
+**Status**: ✅ **SOC UID Reading Implemented**
+
+**OCOTP/NVMEM Configuration**:
+- **Issue**: Hostname showed as `imx93-jaguar-eink-unknown` instead of unique identifier
+- **Root Cause**: i.MX93 OCOTP driver not properly configured, no nvmem interface created
+- **Investigation**: Found efuse device at `47510000.efuse` with `fsl,imx93-ocotp` compatible string but no driver bound
+- **Solution**: Added `enable_ocotp_nvmem.cfg` kernel configuration with proper i.MX93 OCOTP support
+- **Files Added**:
+  - `recipes-kernel/linux/linux-lmp-fslc-imx/imx93-jaguar-eink/enable_ocotp_nvmem.cfg`
+  - `recipes-support/lmp-device-auto-register/lmp-device-auto-register/imx93-jaguar-eink/lmp-device-auto-register`
+- **Result**: Should now generate unique hostnames based on SOC UID
 
 ### U-boot Configuration
 - **Files**:
@@ -181,13 +210,18 @@ Implementation of support for the Dynamic Devices i.MX93 Jaguar E-Ink board with
   - Linux kernel initializes properly
   - User login working
 
-- ❌ **Wireless Test**: ISSUES IDENTIFIED
-  - **WiFi interface**: Not detected (`ip link show` shows no wlan interface)
-  - **Wireless modules**: None loaded (`lsmod` shows no mlan/moal/wifi modules)
-  - **SDIO devices**: Not detected (`/proc/bus/mmc/devices` doesn't exist)
-  - **SPI devices**: One detected (`spi0.0`) but no 802.15.4 device
-  - **Module autoloading**: Not configured (`/etc/modules-load.d/` empty)
-  - **Kernel messages**: Cannot read dmesg (permission issue)
+- ✅ **WiFi Test**: SUCCESSFUL (December 2024)
+  - **WiFi interface**: Detected and working (`wlan0` and `mlan0` interfaces)
+  - **Wireless modules**: Loaded correctly (`mlan`, `moal` modules)
+  - **SDIO devices**: Properly detected on `mmc1:0001:1`
+  - **Firmware loading**: Secure firmware (`.se`) loads correctly
+  - **Network connectivity**: Full WiFi functionality confirmed
+  - **Reboot stability**: Fixed GPIO conflict, WiFi works after reboot
+
+- ✅ **Hostname Generation**: FIXED (December 2024)
+  - **OCOTP/nvmem**: Kernel configuration added for i.MX93 SOC UID reading
+  - **Device registration**: Machine-specific script created for eink board
+  - **Unique hostnames**: Should now generate `imx93-jaguar-eink-<uid>` instead of `unknown`
 
 ## Security Features Status
 
