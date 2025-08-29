@@ -23,9 +23,6 @@ do_install() {
     # Install systemd service
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/imx93-hostname-generator.service ${D}${systemd_unitdir}/system/
-    
-    # Create log directory
-    install -d ${D}${localstatedir}/log
 }
 
 FILES:${PN} += " \

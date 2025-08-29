@@ -6,10 +6,9 @@ set -e
 
 HOSTNAME_FILE="/etc/hostname"
 MACHINE_PREFIX="imx93-jaguar-eink"
-LOG_FILE="/var/log/hostname-generator.log"
 
 log_message() {
-    echo "$(date): $1" | tee -a "$LOG_FILE"
+    echo "$(date): $1"
 }
 
 # Function to generate unique ID from available hardware sources
