@@ -184,6 +184,7 @@ Options:
   -c, --configure           Interactive configuration setup
   --force                   Force re-download even if files exist locally
   --program                 Automatically run programming script after download
+  --continuous              Continuous programming mode for multiple boards
   -v, --version            Show version information
   -h, --help               Show this help message
 
@@ -215,6 +216,9 @@ Examples:
 
   # Download and automatically program board
   $SCRIPT_NAME --factory my-factory --machine imx93-jaguar-eink 1451 --program
+
+  # Continuous programming mode for multiple boards
+  $SCRIPT_NAME --machine imx93-jaguar-eink --continuous
 
   # List available targets
   $SCRIPT_NAME --factory my-factory --list-targets
@@ -618,14 +622,17 @@ download_target_artifacts() {
     fi
     
     # Production bootloader (required)
-    # For i.MX93 boards, use the smaller production bootloader from MFGTools
-    if [[ "$machine" == *"imx93"* ]] && [[ -f "$mfgtools_dir/imx-boot-mfgtool" ]]; then
-        log_info "Using production bootloader from MFGTools package for i.MX93..."
-        cp "$mfgtools_dir/imx-boot-mfgtool" "$output_dir/imx-boot-$machine"
-        local size
-        size=$(du -h "$output_dir/imx-boot-$machine" | cut -f1)
-        log_success "Copied production bootloader ($size)"
-        ((artifacts_downloaded++))
+    # For i.MX93 boards, download the correct production bootloader (not manufacturing one)
+    if [[ "$machine" == *"imx93"* ]]; then
+        if download_artifact "$target_number" "$factory" \
+            "$machine/imx-boot" \
+            "$output_dir/imx-boot-$machine" \
+            "Production bootloader (i.MX93)"; then
+            ((artifacts_downloaded++))
+        else
+            ((artifacts_failed++))
+            log_error "Production bootloader is required for programming"
+        fi
     # Download individual bootloader files (fallback for other machines)
     elif download_artifact "$target_number" "$factory" \
         "$machine-mfgtools/other/imx-boot-$machine" \
@@ -1032,6 +1039,7 @@ main() {
     local list_targets_flag=false
     local configure_flag=false
     local program_flag=false
+    local continuous_flag=false
     FORCE_DOWNLOAD="false"
     
     # Parse command line options
@@ -1063,6 +1071,11 @@ main() {
                 ;;
             --program)
                 program_flag=true
+                shift
+                ;;
+            --continuous)
+                continuous_flag=true
+                program_flag=true  # Continuous implies programming
                 shift
                 ;;
             -v|--version)
@@ -1194,24 +1207,60 @@ main() {
                 # Check if auto-programming is requested
         if [[ "$program_flag" == "true" ]]; then
             echo
-            log_info "Auto-programming requested - starting board programming..."
-            log_warn "Make sure your board is in download/recovery mode and USB is connected"
-            echo
-            read -p "Press Enter when board is ready, or Ctrl+C to cancel..." -r
-            echo
-            
-            log_info "Starting programming process..."
-            start_timer
-            if sudo "$output_dir/program-$machine.sh" --flash; then
-                local programming_time
-                programming_time=$(end_timer)
-                local formatted_programming_time
-                formatted_programming_time=$(format_duration "$programming_time")
-                log_success "Board programming completed successfully! (took $formatted_programming_time)"
-                log_info "Set board to normal boot mode and power cycle"
+            if [[ "$continuous_flag" == "true" ]]; then
+                log_info "Continuous programming mode - programming boards in sequence"
+                log_warn "Make sure each board is in download/recovery mode before connecting USB"
+                
+                local board_count=1
+                while true; do
+                    echo
+                    log_info "=== Programming Board #$board_count ==="
+                    log_info "1. Set board to download/recovery mode"
+                    log_info "2. Connect USB cable"
+                    log_info "3. Programming will start automatically..."
+                    
+                    start_timer
+                    if sudo "$output_dir/program-$machine.sh" --flash; then
+                        local programming_time
+                        programming_time=$(end_timer)
+                        local formatted_programming_time
+                        formatted_programming_time=$(format_duration "$programming_time")
+                        log_success "Board #$board_count programming completed! (took $formatted_programming_time)"
+                        log_info "Set board to normal boot mode and power cycle"
+                        ((board_count++))
+                        echo
+                        read -p "Program another board? (y/N): " -n 1 -r
+                        echo
+                        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                            log_info "Continuous programming completed. Total boards programmed: $((board_count-1))"
+                            break
+                        fi
+                    else
+                        log_error "Board #$board_count programming failed"
+                        read -p "Continue with next board? (y/N): " -n 1 -r
+                        echo
+                        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                            exit 1
+                        fi
+                    fi
+                done
             else
-                log_error "Board programming failed"
-                exit 1
+                log_info "Auto-programming requested - starting board programming..."
+                log_warn "Make sure your board is in download/recovery mode and USB is connected"
+                
+                log_info "Starting programming process..."
+                start_timer
+                if sudo "$output_dir/program-$machine.sh" --flash; then
+                    local programming_time
+                    programming_time=$(end_timer)
+                    local formatted_programming_time
+                    formatted_programming_time=$(format_duration "$programming_time")
+                    log_success "Board programming completed successfully! (took $formatted_programming_time)"
+                    log_info "Set board to normal boot mode and power cycle"
+                else
+                    log_error "Board programming failed"
+                    exit 1
+                fi
             fi
         else
             log_info "Next steps:"

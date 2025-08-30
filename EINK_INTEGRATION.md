@@ -31,7 +31,7 @@ This document describes the integration of the EL133UF1 e-ink display driver int
   - Uses conditional require based on MACHINE variable
 
 ### 4. Test Script
-- **`test-eink-recipe.sh`**
+- **`scripts/test-eink-recipe.sh`**
   - Automated testing script for recipe validation
   - Tests parsing, dependencies, and source fetching
 
@@ -55,7 +55,7 @@ KAS_MACHINE=imx93-jaguar-eink kas shell kas/lmp-dynamicdevices.yml -c "bitbake e
 
 ```bash
 # Run automated tests
-./test-eink-recipe.sh
+./scripts/test-eink-recipe.sh
 ```
 
 ## What Gets Installed
@@ -198,7 +198,7 @@ KAS_MACHINE=imx93-jaguar-eink kas shell kas/lmp-dynamicdevices.yml -c "devtool b
 
 ## Next Steps
 
-1. **Test the recipe** with `./test-eink-recipe.sh`
+1. **Test the recipe** with `./scripts/test-eink-recipe.sh`
 2. **Build the image** with the e-ink driver included
 3. **Flash and test** on actual hardware
 4. **Customize GPIO mappings** as needed for your hardware

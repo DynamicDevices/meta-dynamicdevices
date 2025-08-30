@@ -15,7 +15,7 @@
 - **Driver**: Android TAS2563 with firmware support (`tas2563_uCDSP.bin`)
 - **ALSA**: Stereo capture, 48kHz/16-bit, container support
 - **PulseAudio**: System-wide, Unix socket, Docker integration
-- **Testing**: `detect-audio-hardware.sh`, `test-tas2563-mics.sh`
+- **Testing**: `scripts/detect-audio-hardware.sh`, `scripts/test-tas2563-mics.sh`
 
 ## Wireless ✅
 - **IW612**: WiFi 6, BT 5.4, 802.15.4 concurrent operation

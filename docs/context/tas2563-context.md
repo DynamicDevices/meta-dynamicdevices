@@ -28,5 +28,5 @@
 
 ## Test Hardware Support ✅
 - **Dual Config**: Supports both PDM (i.MX8MM) and TAS2563 direct microphones
-- **Auto-Detection**: `detect-audio-hardware.sh` script
+- **Auto-Detection**: `scripts/detect-audio-hardware.sh` script
 - **Single Image**: Same build works for both hardware variants
