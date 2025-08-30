@@ -1051,7 +1051,7 @@ download_target_artifacts() {
     
     # Production U-Boot (required)
     if download_artifact "$target_number" "$factory" \
-        "$machine-mfgtools/other/u-boot-$machine.itb" \
+        "$machine/u-boot-$machine.itb" \
         "$output_dir/u-boot-$machine.itb" \
         "Production U-Boot image"; then
         ((artifacts_downloaded++))
