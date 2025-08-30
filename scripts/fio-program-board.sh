@@ -104,6 +104,379 @@ format_duration() {
 # Configuration file path
 CONFIG_FILE="$HOME/.config/dd-target-downloader.conf"
 
+# Install fioctl from GitHub releases
+install_fioctl_from_github() {
+    local arch
+    local os
+    local download_url
+    local temp_file
+    local install_path
+    
+    log_info "Installing fioctl from GitHub releases..."
+    log_info "Source: https://github.com/foundriesio/fioctl/releases"
+    
+    # Detect architecture and OS
+    arch=$(uname -m)
+    os=$(uname -s | tr '[:upper:]' '[:lower:]')
+    
+    case "$arch" in
+        x86_64|amd64) arch="amd64" ;;
+        aarch64|arm64) arch="arm64" ;;
+        armv7l) arch="armv7" ;;
+        *) 
+            log_error "Unsupported architecture: $arch"
+            log_info "Supported architectures: amd64, arm64, armv7"
+            return 1
+            ;;
+    esac
+    
+    case "$os" in
+        linux) os="linux" ;;
+        darwin) os="darwin" ;;
+        *)
+            log_error "Unsupported operating system: $os"
+            log_info "Supported platforms: Linux, macOS (Darwin)"
+            return 1
+            ;;
+    esac
+    
+    download_url="https://github.com/foundriesio/fioctl/releases/latest/download/fioctl-${os}-${arch}"
+    temp_file="/tmp/fioctl-${os}-${arch}-$$"
+    
+    log_info "Downloading fioctl-${os}-${arch}..."
+    log_info "URL: $download_url"
+    
+    # Download using curl or wget
+    if command -v curl &> /dev/null; then
+        if ! curl -L -f -o "$temp_file" "$download_url"; then
+            log_error "Failed to download fioctl using curl"
+            return 1
+        fi
+    elif command -v wget &> /dev/null; then
+        if ! wget -O "$temp_file" "$download_url"; then
+            log_error "Failed to download fioctl using wget"
+            return 1
+        fi
+    else
+        log_error "Neither curl nor wget is available for downloading"
+        return 1
+    fi
+    
+    # Verify download
+    if [[ ! -f "$temp_file" ]] || [[ ! -s "$temp_file" ]]; then
+        log_error "Downloaded file is empty or missing"
+        rm -f "$temp_file"
+        return 1
+    fi
+    
+    # Make executable
+    chmod +x "$temp_file"
+    
+    # Test the binary works
+    if ! "$temp_file" version &> /dev/null; then
+        log_error "Downloaded fioctl binary is not working"
+        rm -f "$temp_file"
+        return 1
+    fi
+    
+    # Try to install to /usr/local/bin (preferred)
+    if sudo mv "$temp_file" /usr/local/bin/fioctl 2>/dev/null; then
+        install_path="/usr/local/bin/fioctl"
+        log_success "fioctl installed to $install_path"
+    # Fallback to user's home bin directory
+    elif mkdir -p "$HOME/bin" && mv "$temp_file" "$HOME/bin/fioctl"; then
+        install_path="$HOME/bin/fioctl"
+        log_success "fioctl installed to $install_path"
+        
+        # Add to PATH if not already there
+        if [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
+            export PATH="$HOME/bin:$PATH"
+            log_info "Added $HOME/bin to PATH for this session"
+            log_info "Add 'export PATH=\"\$HOME/bin:\$PATH\"' to your ~/.bashrc or ~/.zshrc"
+        fi
+    else
+        log_error "Failed to install fioctl - no write permissions"
+        rm -f "$temp_file"
+        return 1
+    fi
+    
+    # Verify installation
+    if command -v fioctl &> /dev/null; then
+        local version
+        version=$(fioctl version 2>/dev/null | head -n1 || echo "unknown")
+        log_success "fioctl installation verified: $version"
+        return 0
+    else
+        log_error "fioctl installation failed - command not found in PATH"
+        return 1
+    fi
+}
+
+# Comprehensive dependency checking
+check_all_dependencies() {
+    log_info "Checking system dependencies..."
+    echo ""
+    
+    local missing_deps=0
+    local optional_deps=0
+    
+    # Check critical dependencies
+    log_info "=== Critical Dependencies ==="
+    
+    # Check fioctl
+    if ! command -v fioctl &> /dev/null; then
+        log_error "fioctl - NOT FOUND"
+        missing_deps=$((missing_deps + 1))
+        need_fioctl=1
+    else
+        local version
+        version=$(fioctl version 2>/dev/null | head -n1 || echo "unknown")
+        log_success "fioctl - $version"
+    fi
+    
+    # Check curl or wget (needed for downloads)
+    local download_tool_available=0
+    if command -v curl &> /dev/null; then
+        local version
+        version=$(curl --version 2>/dev/null | head -n1 | cut -d' ' -f1-2 || echo "curl")
+        log_success "$version"
+        download_tool_available=1
+    elif command -v wget &> /dev/null; then
+        local version
+        version=$(wget --version 2>/dev/null | head -n1 | cut -d' ' -f1-3 || echo "wget")
+        log_success "$version"
+        download_tool_available=1
+    else
+        log_error "curl/wget - NOT FOUND (required for downloads)"
+        missing_deps=$((missing_deps + 1))
+        need_download_tool=1
+    fi
+    
+    echo ""
+    log_info "=== Archive Extraction Tools ==="
+    
+    # Check for tar (should be available on most Unix systems)
+    if command -v tar &> /dev/null; then
+        local version
+        version=$(tar --version 2>/dev/null | head -n1 || echo "tar - Available")
+        log_success "$version"
+    else
+        log_warning "tar - NOT FOUND (unusual for Unix systems)"
+        log_info "  Note: tar is typically pre-installed on Linux/macOS"
+    fi
+    
+    echo ""
+    log_info "=== Optional Package Managers ==="
+    
+    # Check optional package managers
+    if command -v brew &> /dev/null; then
+        local version
+        version=$(brew --version 2>/dev/null | head -n1 || echo "Homebrew")
+        log_success "$version"
+    else
+        log_info "Homebrew - Not installed (optional, useful for macOS)"
+        optional_deps=$((optional_deps + 1))
+    fi
+    
+    if command -v snap &> /dev/null; then
+        local version
+        version=$(snap version 2>/dev/null | head -n1 || echo "snap")
+        log_success "$version"
+    else
+        log_info "snap - Not installed (optional, useful for Linux)"
+        optional_deps=$((optional_deps + 1))
+    fi
+    
+    if command -v apt &> /dev/null; then
+        log_success "apt - Available (Debian/Ubuntu)"
+    elif command -v yum &> /dev/null; then
+        log_success "yum - Available (RHEL/CentOS)"
+    elif command -v dnf &> /dev/null; then
+        log_success "dnf - Available (Fedora)"
+    elif command -v pacman &> /dev/null; then
+        log_success "pacman - Available (Arch Linux)"
+    else
+        log_info "System package manager - Not detected"
+        optional_deps=$((optional_deps + 1))
+    fi
+    
+    echo ""
+    log_info "=== Programming Tools (for --program mode) ==="
+    
+    # Check if running as root/sudo (needed for programming)
+    if [[ $EUID -eq 0 ]]; then
+        log_success "Root privileges - Available"
+    elif command -v sudo &> /dev/null; then
+        log_success "sudo - Available (needed for USB programming)"
+    else
+        log_warning "sudo - NOT FOUND"
+        log_info "  Note: Root privileges required for USB programming"
+        log_info "  Run as root or install sudo when using --program mode"
+    fi
+    
+    echo ""
+    # Summary
+    if [[ $missing_deps -gt 0 ]]; then
+        log_error "Found $missing_deps missing critical dependencies"
+        echo ""
+        
+        if [[ -n "${need_fioctl:-}" ]]; then
+            log_info "Would you like to install missing dependencies automatically?"
+            read -p "Install dependencies? (y/N): " install_deps
+            
+            if [[ "$install_deps" =~ ^[Yy]$ ]]; then
+                install_missing_dependencies
+                if [[ $? -ne 0 ]]; then
+                    log_error "Dependency installation failed"
+                    return 1
+                fi
+            else
+                log_error "Cannot continue without required dependencies"
+                show_dependency_install_instructions
+                return 1
+            fi
+        else
+            log_error "Cannot continue without required dependencies"
+            show_dependency_install_instructions
+            return 1
+        fi
+    else
+        log_success "All critical dependencies are available!"
+        if [[ $optional_deps -gt 0 ]]; then
+            log_info "Optional dependencies missing: $optional_deps (package managers for easier installation)"
+        fi
+    fi
+    
+    echo ""
+    return 0
+}
+
+# Install missing dependencies
+install_missing_dependencies() {
+    log_info "Installing missing dependencies..."
+    
+    if [[ -n "${need_fioctl:-}" ]]; then
+        log_info "Installing fioctl..."
+        
+        log_info "Installing fioctl from GitHub releases..."
+        install_fioctl_from_github
+        if [[ $? -ne 0 ]]; then
+            return 1
+        fi
+    fi
+    
+    if [[ -n "${need_download_tool:-}" ]]; then
+        log_info "Installing download tool..."
+        
+        if command -v apt &> /dev/null; then
+            log_info "Using apt to install curl..."
+            if sudo apt update && sudo apt install -y curl; then
+                log_success "curl installed successfully via apt"
+            else
+                log_warning "Could not install curl automatically"
+            fi
+        elif command -v yum &> /dev/null; then
+            log_info "Using yum to install curl..."
+            if sudo yum install -y curl; then
+                log_success "curl installed successfully via yum"
+            else
+                log_warning "Could not install curl automatically"
+            fi
+        elif command -v dnf &> /dev/null; then
+            log_info "Using dnf to install curl..."
+            if sudo dnf install -y curl; then
+                log_success "curl installed successfully via dnf"
+            else
+                log_warning "Could not install curl automatically"
+            fi
+        elif command -v brew &> /dev/null; then
+            log_info "Using Homebrew to install curl..."
+            if brew install curl; then
+                log_success "curl installed successfully via Homebrew"
+            else
+                log_warning "Could not install curl automatically"
+            fi
+        else
+            log_warning "Could not install curl automatically (no supported package manager)"
+            log_info "Please install curl or wget manually"
+        fi
+    fi
+    
+    # Verify installations
+    log_info "Verifying installations..."
+    
+    if ! command -v fioctl &> /dev/null; then
+        log_error "fioctl installation verification failed"
+        return 1
+    else
+        log_success "fioctl is now available"
+    fi
+    
+    return 0
+}
+
+# Show dependency installation instructions
+show_dependency_install_instructions() {
+    log_info "=== Manual Installation Instructions ==="
+    echo ""
+    
+    if [[ -n "${need_fioctl:-}" ]]; then
+        log_info "fioctl (Required) - Install from GitHub Releases:"
+        log_info "  1. Visit: https://github.com/foundriesio/fioctl/releases"
+        log_info "  2. Download the appropriate release for your platform:"
+        log_info "     - Linux x86_64: fioctl-linux-amd64"
+        log_info "     - Linux ARM64: fioctl-linux-arm64"
+        log_info "     - macOS Intel: fioctl-darwin-amd64"
+        log_info "     - macOS Apple Silicon: fioctl-darwin-arm64"
+        log_info "  3. Make executable: chmod +x fioctl-*"
+        log_info "  4. Install: sudo mv fioctl-* /usr/local/bin/fioctl"
+        log_info "  5. Or install to user directory: mv fioctl-* ~/bin/fioctl"
+        echo ""
+    fi
+    
+    if [[ -n "${need_download_tool:-}" ]]; then
+        log_info "Download Tool (Required - choose one):"
+        log_info "  Option 1: curl - Usually pre-installed, or install via package manager"
+        log_info "  Option 2: wget - Install via package manager (apt install wget, yum install wget, etc.)"
+        echo ""
+    fi
+    
+    log_info "After installing dependencies, run this script again."
+}
+
+# Show manual installation instructions
+show_manual_install_instructions() {
+    log_info "Manual Installation Instructions:"
+    echo ""
+    log_info "Method 1: Download from GitHub Releases (Recommended)"
+    log_info "  1. Visit: https://github.com/foundriesio/fioctl/releases"
+    log_info "  2. Download the appropriate release for your platform:"
+    log_info "     - Linux: fioctl-linux-amd64"
+    log_info "     - macOS: fioctl-darwin-amd64 (Intel) or fioctl-darwin-arm64 (Apple Silicon)"
+    log_info "  3. Make executable: chmod +x fioctl-*"
+    log_info "  4. Move to PATH: sudo mv fioctl-* /usr/local/bin/fioctl"
+    echo ""
+    log_info "Method 2: Using Homebrew (macOS)"
+    log_info "  brew install foundriesio/foundries/fioctl"
+    echo ""
+    log_info "Method 3: Using snap (Linux)"
+    log_info "  sudo snap install fioctl"
+    echo ""
+    log_info "Method 4: Build from source"
+    log_info "  git clone https://github.com/foundriesio/fioctl.git"
+    log_info "  cd fioctl"
+    log_info "  make"
+    log_info "  sudo cp bin/fioctl /usr/local/bin/"
+    echo ""
+    log_info "After installation:"
+    log_info "  1. Open a new terminal"
+    log_info "  2. Run: fioctl login"
+    log_info "  3. Follow the authentication prompts"
+    log_info "  4. Run this script again"
+    echo ""
+    log_info "For more help, visit: https://docs.foundries.io/latest/getting-started/install-fioctl/"
+}
+
 # Helper function to call fioctl with correct factory parameter
 fioctl_with_factory() {
     local factory="$1"
@@ -364,8 +737,52 @@ check_fioctl() {
     
     if ! command -v fioctl &> /dev/null; then
         log_error "fioctl is not installed or not in PATH"
-        log_info "Install fioctl from: https://github.com/foundriesio/fioctl/releases"
-        return 1
+        echo ""
+        log_info "=== fioctl Installation ==="
+        echo ""
+        log_info "fioctl is required to download Foundries.io target artifacts."
+        echo ""
+        read -p "Would you like to install fioctl automatically? (y/N): " install_fioctl
+        
+        if [[ "$install_fioctl" =~ ^[Yy]$ ]]; then
+            log_info "Installing fioctl..."
+            
+            # Detect platform and install accordingly
+            if command -v brew &> /dev/null; then
+                log_info "Using Homebrew to install fioctl..."
+                if brew install foundriesio/foundries/fioctl; then
+                    log_success "fioctl installed successfully via Homebrew"
+                else
+                    log_warning "Homebrew installation failed, trying manual installation..."
+                    install_fioctl_manual
+                fi
+            elif command -v snap &> /dev/null; then
+                log_info "Using snap to install fioctl..."
+                if sudo snap install fioctl; then
+                    log_success "fioctl installed successfully via snap"
+                else
+                    log_warning "Snap installation failed, trying manual installation..."
+                    install_fioctl_manual
+                fi
+            else
+                log_info "No package manager found, using manual installation..."
+                install_fioctl_manual
+            fi
+            
+            # Verify installation
+            if command -v fioctl &> /dev/null; then
+                log_success "fioctl is now available!"
+                log_info "Next step: Run 'fioctl login' to authenticate"
+                return 0
+            else
+                log_error "Installation failed. Please install manually."
+                show_manual_install_instructions
+                return 1
+            fi
+        else
+            show_manual_install_instructions
+            return 1
+        fi
     fi
 
     local version
@@ -1028,6 +1445,20 @@ EOF
 
 # Main function
 main() {
+    # Check if no arguments provided - show help by default
+    if [[ $# -eq 0 ]]; then
+        log_info "No arguments provided. Showing help..."
+        echo ""
+        usage
+        exit 0
+    fi
+    
+    # Check all dependencies first
+    check_all_dependencies
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    
     # Load configuration
     load_config
     
@@ -1125,7 +1556,7 @@ main() {
         log_info "No factory specified, checking if fioctl has a default factory configured..."
         
         # Test if fioctl can work without explicit factory (i.e., has default configured)
-        if fioctl targets list >/dev/null 2>&1; then
+        if command -v fioctl &> /dev/null && fioctl targets list >/dev/null 2>&1; then
             log_success "Using fioctl's default factory configuration"
             factory="<default>"  # Placeholder - fioctl will use its default
         else
@@ -1184,9 +1615,25 @@ main() {
     fi
     echo
     
-    # Validation steps
-    if ! check_fioctl "$factory"; then
-        exit 1
+    # Validation steps - dependencies already checked, just validate factory access
+    if [[ "$factory" == "<default>" ]]; then
+        if ! fioctl targets list &> /dev/null; then
+            log_error "Cannot access default factory"
+            log_info "Please check:"
+            log_info "  1. Run 'fioctl login' to authenticate"
+            log_info "  2. Set default factory: Add 'factory: your-factory-name' to ~/.config/fioctl.yaml"
+            log_info "  3. Or use --factory factory-name explicitly"
+            exit 1
+        fi
+    else
+        if ! fioctl targets list --factory "$factory" &> /dev/null; then
+            log_error "Cannot access factory '$factory'"
+            log_info "Please check:"
+            log_info "  1. Run 'fioctl login' to authenticate"
+            log_info "  2. Verify factory name is correct"
+            log_info "  3. Ensure you have access to this factory"
+            exit 1
+        fi
     fi
     
     if ! validate_target "$target_number" "$factory"; then

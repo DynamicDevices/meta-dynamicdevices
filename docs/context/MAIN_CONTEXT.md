@@ -10,6 +10,7 @@ Yocto/OpenEmbedded layers for Dynamic Devices Edge boards on Linux microPlatform
 
 ## Recent Updates ✅
 - **🚀 fio-program-board.sh v2.0.0**: Complete automation with auto-latest target, default factory support, one-command programming
+- **🪟 fio-program-board.bat**: Windows batch version with dependency checking and auto-install (latest target detection WIP)
 - **⚡ Auto-Programming**: `--program` flag for download + program in single command (no interactive wait)
 - **🔄 Continuous Mode**: `--continuous` flag for batch programming multiple boards with tracking
 - **💾 Smart Caching**: Intelligent file caching with `--force` override
@@ -48,6 +49,8 @@ kas build kas/lmp-dynamicdevices.yml
 ```
 
 ### Production Programming (Foundries.io Builds)
+
+**Linux/macOS (Fully Functional):**
 ```bash
 # One-time setup
 ./scripts/fio-program-board.sh --configure
@@ -67,6 +70,15 @@ echo 'factory: dynamic-devices' >> ~/.config/fioctl.yaml  # Set fioctl default
 
 # 🔄 Continuous programming for multiple boards
 ./scripts/fio-program-board.sh --machine imx93-jaguar-eink --continuous
+```
+
+**Windows (Work in Progress):**
+```batch
+# Basic functionality available, specify target number explicitly
+scripts\fio-program-board.bat /factory dynamic-devices /machine imx93-jaguar-eink 1975 /program
+
+# Auto-latest target detection needs completion
+# scripts\fio-program-board.bat /machine imx93-jaguar-eink /program  # Not working yet
 ```
 
 ### Key Features

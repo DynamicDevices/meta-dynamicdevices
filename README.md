@@ -80,7 +80,7 @@ fioctl devices access mydevice-001
 #### **Step 1: Download Programming Package** 📦
 ```bash
 # 🚀 EASIEST: One-time setup, then ultra-simple usage
-./scripts/fio-program-board.sh --configure  # Set factory & machine defaults
+./scripts/fio-program-board.sh --configure  # Set factory & machine defaults (auto-installs fioctl if needed)
 echo 'factory: dynamic-devices' >> ~/.config/fioctl.yaml  # Set fioctl default
 ./scripts/fio-program-board.sh --machine imx93-jaguar-eink --program  # Download + program!
 
@@ -89,6 +89,9 @@ echo 'factory: dynamic-devices' >> ~/.config/fioctl.yaml  # Set fioctl default
 
 # 🎯 Explicit control (all options)
 ./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink 1975 --force
+
+# 🪟 Windows users: Use the batch file version (Work in Progress)
+scripts\fio-program-board.bat /configure  # Basic features available, latest target detection needs fixing
 
 # Alternative: Manual download from GitHub CI
 # Visit: https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml
@@ -185,11 +188,13 @@ export KAS_MACHINE=imx8mm-jaguar-sentai
 |---------|-------------|---------|
 | **🎯 Auto-Latest Target** | Uses latest build automatically | `--machine imx93-jaguar-eink` |
 | **🏭 Default Factory** | Uses fioctl's default factory | No `--factory` needed |
+| **📦 Auto-Install fioctl** | Installs fioctl if not found | Homebrew/snap/manual |
 | **⚡ Auto-Programming** | Download + program in one command | `--program` flag |
 | **🔄 Continuous Mode** | Program multiple boards in sequence | `--continuous` flag |
 | **💾 Smart Caching** | Skips re-downloading existing files | Instant re-runs |
 | **⏱️ Performance Timing** | Shows download + programming time | Real-time feedback |
 | **🔧 i.MX93 Optimized** | Uses correct bootloader size | No "image too large" errors |
+| **🪟 Windows Support** | Native batch file version (WIP) | `fio-program-board.bat` |
 | **📁 Auto-Organization** | Creates `downloads/target-X-machine/` | Clean file management |
 
 ### Programming Documentation
