@@ -14,7 +14,7 @@ Downloads Foundries.io target builds and programs Dynamic Devices boards.
 - Generates ready-to-use programming scripts
 - Automatic board programming with `--program` flag
 - Intelligent caching to avoid re-downloading existing files
-- Comprehensive timing for performance tracking
+- Comprehensive timing for download and programming performance tracking
 - Support for all Dynamic Devices board types
 
 **Usage:**

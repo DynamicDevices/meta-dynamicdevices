@@ -16,6 +16,7 @@
 # CHANGELOG:
 # v2.0.0 (2024-12-19)
 #   - Added comprehensive timing for download performance tracking
+#   - Added programming time tracking when using --program flag
 #   - Added --program flag for automatic board programming after download
 #   - Added intelligent caching to avoid re-downloading existing files
 #   - Added --force flag to override caching when needed
@@ -1105,8 +1106,13 @@ main() {
             echo
             
             log_info "Starting programming process..."
+            start_timer
             if sudo "$output_dir/program-$machine.sh" --flash; then
-                log_success "Board programming completed successfully!"
+                local programming_time
+                programming_time=$(end_timer)
+                local formatted_programming_time
+                formatted_programming_time=$(format_duration "$programming_time")
+                log_success "Board programming completed successfully! (took $formatted_programming_time)"
                 log_info "Set board to normal boot mode and power cycle"
             else
                 log_error "Board programming failed"
