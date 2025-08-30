@@ -10,7 +10,8 @@ Yocto/OpenEmbedded layers for Dynamic Devices Edge boards on Linux microPlatform
 
 ## Recent Updates ✅
 - **🚀 fio-program-board.sh v2.0.0**: Complete automation with auto-latest target, default factory support, one-command programming
-- **⚡ Auto-Programming**: `--program` flag for download + program in single command
+- **⚡ Auto-Programming**: `--program` flag for download + program in single command (no interactive wait)
+- **🔄 Continuous Mode**: `--continuous` flag for batch programming multiple boards with tracking
 - **💾 Smart Caching**: Intelligent file caching with `--force` override
 - **🔧 i.MX93 Optimization**: Fixed bootloader size issues, uses correct MFGTools bootloader
 - **⏱️ Performance Timing**: Real-time download and programming performance tracking
@@ -63,13 +64,17 @@ echo 'factory: dynamic-devices' >> ~/.config/fioctl.yaml  # Set fioctl default
 
 # 💾 Force fresh download
 ./scripts/fio-program-board.sh --machine imx93-jaguar-eink --force
+
+# 🔄 Continuous programming for multiple boards
+./scripts/fio-program-board.sh --machine imx93-jaguar-eink --continuous
 ```
 
 ### Key Features
 - **🎯 Auto-Latest**: Uses latest successful build automatically
-- **⚡ One-Command**: Download + program with `--program`
+- **⚡ One-Command**: Download + program with `--program` (no wait)
+- **🔄 Continuous**: Program multiple boards in sequence with `--continuous`
 - **💾 Smart Cache**: Skips re-downloading existing files
-- **⏱️ Timing**: Real-time performance feedback
+- **⏱️ Timing**: Real-time performance feedback per board
 - **🔧 i.MX93 Fix**: Correct bootloader prevents "image too large"
 
 ## Documentation

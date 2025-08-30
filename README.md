@@ -105,8 +105,11 @@ echo 'factory: dynamic-devices' >> ~/.config/fioctl.yaml  # Set fioctl default
 
 #### **Step 3: Program Your Board** ⚡
 ```bash
-# 🚀 AUTOMATIC: If you used --program flag in Step 1, programming happens automatically!
-# Just follow the prompts to prepare your board, then press Enter
+# 🚀 AUTOMATIC: If you used --program flag in Step 1, programming starts immediately!
+# No waiting - just make sure board is in download mode before running
+
+# 🔄 CONTINUOUS: For multiple boards, use --continuous flag
+# Programs boards in sequence with tracking: Board #1, #2, #3...
 
 # 📋 MANUAL: If you downloaded only, program manually:
 cd downloads/target-*-imx93-jaguar-eink/  # (or your board)
@@ -183,6 +186,7 @@ export KAS_MACHINE=imx8mm-jaguar-sentai
 | **🎯 Auto-Latest Target** | Uses latest build automatically | `--machine imx93-jaguar-eink` |
 | **🏭 Default Factory** | Uses fioctl's default factory | No `--factory` needed |
 | **⚡ Auto-Programming** | Download + program in one command | `--program` flag |
+| **🔄 Continuous Mode** | Program multiple boards in sequence | `--continuous` flag |
 | **💾 Smart Caching** | Skips re-downloading existing files | Instant re-runs |
 | **⏱️ Performance Timing** | Shows download + programming time | Real-time feedback |
 | **🔧 i.MX93 Optimized** | Uses correct bootloader size | No "image too large" errors |
