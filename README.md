@@ -79,8 +79,12 @@ fioctl devices access mydevice-001
 
 #### **Step 1: Download Programming Package** 📦
 ```bash
-# Visit our CI builds and download the latest programming package for your board
-# https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml
+# Automated download from Foundries.io (recommended)
+./scripts/fio-program-board.sh --configure  # One-time setup
+./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink
+
+# Alternative: Manual download from GitHub CI
+# Visit: https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml
 # Download: programming-package-[your-board-name].zip
 ```
 
@@ -94,15 +98,18 @@ fioctl devices access mydevice-001
 
 #### **Step 3: Program Your Board** ⚡
 ```bash
-# Extract the programming package
+# Using Foundries.io download (recommended)
+cd downloads/target-*-imx93-jaguar-eink/  # (or your board)
+sudo ./program-imx93-jaguar-eink.sh --flash
+
+# Using manual download
 unzip programming-package-imx8mm-jaguar-sentai.zip  # (or your board)
 cd programming-package-imx8mm-jaguar-sentai/
+sudo ./program-imx8mm-jaguar-sentai.sh --flash
 
 # The programming package includes the correct UUU tool version
 # NO need to install system UUU - use the included one for compatibility
-
-# Program the board (takes ~3-5 minutes)
-./program-imx8mm-jaguar-sentai.sh --flash
+# Programming takes ~3-5 minutes
 ```
 
 #### **Step 4: First Boot** 🎉
@@ -156,6 +163,9 @@ export KAS_MACHINE=imx8mm-jaguar-sentai
 - **[Edge EInk Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EInk-Board)** - Power management, WoWLAN, hardware specs
 - **[Edge EV Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EV-Board)** - Energy metering and control
 - **[Edge GW Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-GW-Board)** - Communications gateway
+
+### Programming Documentation
+- **[Board Programming with Foundries.io Builds](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Board-Programming-with-Foundries-Builds)** - Complete guide to programming boards using Foundries.io CI builds
 
 ### Development Guides
 - **[Flashing Boards](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Flashing-an-Edge-board-with-a-Yocto-Embedded-Linux-image)** - Programming and recovery procedures

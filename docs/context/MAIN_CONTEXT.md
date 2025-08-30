@@ -9,6 +9,8 @@ Yocto/OpenEmbedded layers for Dynamic Devices Edge boards on Linux microPlatform
 - **Edge EV/GW** - Future boards
 
 ## Recent Updates ✅
+- **Foundries.io Integration**: Complete board programming from CI builds (`fio-program-board.sh`)
+- **MFGTools Automation**: Auto-download and extract complete programming packages
 - **TAS2563**: Android driver with firmware support (Edge AI)
 - **WiFi Firmware**: Flexible .se/.bin selection (Edge EInk)
 - **Kernel**: Optimized drivers for faster boot (Edge EInk)  
@@ -32,15 +34,30 @@ Yocto/OpenEmbedded layers for Dynamic Devices Edge boards on Linux microPlatform
 - **Dependencies**: meta-lmp, meta-freescale, meta-openembedded
 
 ## Build Commands
+
+### Local Development Build
 ```bash
 export MACHINE=imx93-jaguar-eink  # or imx8mm-jaguar-sentai
 kas build kas/lmp-dynamicdevices.yml
 ./scripts/program.sh  # Board programming
 ```
 
+### Production Programming (Foundries.io Builds)
+```bash
+# One-time setup
+./scripts/fio-program-board.sh --configure
+
+# Download and program latest build
+./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink
+
+# Or download and program automatically
+./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink --program
+```
+
 ## Documentation
 - **Context**: `docs/projects/*-context.md` (project details)
 - **Wiki**: `wiki/` (user documentation)
+- **Board Programming**: `wiki/Board-Programming-with-Foundries-Builds.md`
 - **Contributing**: `CONTRIBUTING.md`
 
 ## Context Management Guidelines
