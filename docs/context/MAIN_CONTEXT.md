@@ -9,8 +9,12 @@ Yocto/OpenEmbedded layers for Dynamic Devices Edge boards on Linux microPlatform
 - **Edge EV/GW** - Future boards
 
 ## Recent Updates ✅
-- **Foundries.io Integration**: Complete board programming from CI builds (`fio-program-board.sh`)
-- **MFGTools Automation**: Auto-download and extract complete programming packages
+- **🚀 fio-program-board.sh v2.0.0**: Complete automation with auto-latest target, default factory support, one-command programming
+- **⚡ Auto-Programming**: `--program` flag for download + program in single command
+- **💾 Smart Caching**: Intelligent file caching with `--force` override
+- **🔧 i.MX93 Optimization**: Fixed bootloader size issues, uses correct MFGTools bootloader
+- **⏱️ Performance Timing**: Real-time download and programming performance tracking
+- **🏭 Default Factory**: Uses fioctl's default factory configuration
 - **TAS2563**: Android driver with firmware support (Edge AI)
 - **WiFi Firmware**: Flexible .se/.bin selection (Edge EInk)
 - **Kernel**: Optimized drivers for faster boot (Edge EInk)  
@@ -46,13 +50,27 @@ kas build kas/lmp-dynamicdevices.yml
 ```bash
 # One-time setup
 ./scripts/fio-program-board.sh --configure
+echo 'factory: dynamic-devices' >> ~/.config/fioctl.yaml  # Set fioctl default
 
-# Download and program latest build
-./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink
+# 🚀 ULTRA-SIMPLE: Latest target + auto-program
+./scripts/fio-program-board.sh --machine imx93-jaguar-eink --program
 
-# Or download and program automatically
-./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink --program
+# 📦 Download latest only
+./scripts/fio-program-board.sh --machine imx93-jaguar-eink
+
+# 🎯 Explicit control
+./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink 1975
+
+# 💾 Force fresh download
+./scripts/fio-program-board.sh --machine imx93-jaguar-eink --force
 ```
+
+### Key Features
+- **🎯 Auto-Latest**: Uses latest successful build automatically
+- **⚡ One-Command**: Download + program with `--program`
+- **💾 Smart Cache**: Skips re-downloading existing files
+- **⏱️ Timing**: Real-time performance feedback
+- **🔧 i.MX93 Fix**: Correct bootloader prevents "image too large"
 
 ## Documentation
 - **Context**: `docs/projects/*-context.md` (project details)

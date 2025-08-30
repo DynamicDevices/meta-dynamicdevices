@@ -79,9 +79,16 @@ fioctl devices access mydevice-001
 
 #### **Step 1: Download Programming Package** 📦
 ```bash
-# Automated download from Foundries.io (recommended)
-./scripts/fio-program-board.sh --configure  # One-time setup
-./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink
+# 🚀 EASIEST: One-time setup, then ultra-simple usage
+./scripts/fio-program-board.sh --configure  # Set factory & machine defaults
+echo 'factory: dynamic-devices' >> ~/.config/fioctl.yaml  # Set fioctl default
+./scripts/fio-program-board.sh --machine imx93-jaguar-eink --program  # Download + program!
+
+# 📦 Download only (manual programming)
+./scripts/fio-program-board.sh --machine imx93-jaguar-eink  # Uses latest target automatically
+
+# 🎯 Explicit control (all options)
+./scripts/fio-program-board.sh --factory dynamic-devices --machine imx93-jaguar-eink 1975 --force
 
 # Alternative: Manual download from GitHub CI
 # Visit: https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml
@@ -98,18 +105,23 @@ fioctl devices access mydevice-001
 
 #### **Step 3: Program Your Board** ⚡
 ```bash
-# Using Foundries.io download (recommended)
+# 🚀 AUTOMATIC: If you used --program flag in Step 1, programming happens automatically!
+# Just follow the prompts to prepare your board, then press Enter
+
+# 📋 MANUAL: If you downloaded only, program manually:
 cd downloads/target-*-imx93-jaguar-eink/  # (or your board)
 sudo ./program-imx93-jaguar-eink.sh --flash
 
-# Using manual download
+# 📦 MANUAL DOWNLOAD: Using GitHub CI packages
 unzip programming-package-imx8mm-jaguar-sentai.zip  # (or your board)
 cd programming-package-imx8mm-jaguar-sentai/
 sudo ./program-imx8mm-jaguar-sentai.sh --flash
 
-# The programming package includes the correct UUU tool version
-# NO need to install system UUU - use the included one for compatibility
-# Programming takes ~3-5 minutes
+# ⚙️ BOOTLOADER ONLY: For development/recovery
+sudo ./program-[your-board-name].sh --bootloader-only
+
+# 📊 PERFORMANCE: Programming takes ~1-3 minutes with timing display
+# 🔧 COMPATIBILITY: Uses included UUU tool version for reliability
 ```
 
 #### **Step 4: First Boot** 🎉
@@ -163,6 +175,18 @@ export KAS_MACHINE=imx8mm-jaguar-sentai
 - **[Edge EInk Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EInk-Board)** - Power management, WoWLAN, hardware specs
 - **[Edge EV Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EV-Board)** - Energy metering and control
 - **[Edge GW Board](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-GW-Board)** - Communications gateway
+
+### **🚀 Key Features of fio-program-board.sh**
+
+| Feature | Description | Example |
+|---------|-------------|---------|
+| **🎯 Auto-Latest Target** | Uses latest build automatically | `--machine imx93-jaguar-eink` |
+| **🏭 Default Factory** | Uses fioctl's default factory | No `--factory` needed |
+| **⚡ Auto-Programming** | Download + program in one command | `--program` flag |
+| **💾 Smart Caching** | Skips re-downloading existing files | Instant re-runs |
+| **⏱️ Performance Timing** | Shows download + programming time | Real-time feedback |
+| **🔧 i.MX93 Optimized** | Uses correct bootloader size | No "image too large" errors |
+| **📁 Auto-Organization** | Creates `downloads/target-X-machine/` | Clean file management |
 
 ### Programming Documentation
 - **[Board Programming with Foundries.io Builds](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Board-Programming-with-Foundries-Builds)** - Complete guide to programming boards using Foundries.io CI builds
