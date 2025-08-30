@@ -12,11 +12,15 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=cb0cf33e845d3825f950a15416b1b7d6"
 DEPENDS = "libgpiod"
 RDEPENDS:${PN} = "libgpiod"
 
-# Source from GitHub
-SRC_URI = "git://github.com/DynamicDevices/eink-spectra6.git;protocol=https;branch=main"
-SRCREV = "${AUTOREV}"
+# Source files (local development version)
+# For production, replace with actual source repository or tarball
+SRC_URI = "file://eink-driver-stub.c \
+           file://eink-driver-stub.h \
+           file://CMakeLists.txt \
+           file://LICENSE \
+          "
 
-S = "${WORKDIR}/git"
+S = "${WORKDIR}"
 
 inherit cmake pkgconfig
 
@@ -89,6 +93,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 RDEPENDS:${PN} += "bash"
 
 # Add gpio group for GPIO access
+USERADD_PACKAGES = "${PN}"
 GROUPADD_PARAM:${PN} = "gpio"
 inherit useradd
 
