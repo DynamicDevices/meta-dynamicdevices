@@ -101,6 +101,20 @@ format_duration() {
 # Configuration file path
 CONFIG_FILE="$HOME/.config/dd-target-downloader.conf"
 
+# Helper function to call fioctl with correct factory parameter
+fioctl_with_factory() {
+    local factory="$1"
+    shift  # Remove factory from arguments
+    
+    if [[ "$factory" == "<default>" ]]; then
+        # Use fioctl without --factory flag (uses default from config)
+        fioctl "$@"
+    else
+        # Use fioctl with explicit --factory flag
+        fioctl "$@" --factory "$factory"
+    fi
+}
+
 # Default configuration
 DEFAULT_FACTORY=""
 DEFAULT_MACHINE=""
@@ -160,7 +174,7 @@ Arguments:
   output-dir       Output directory (default: ./downloads/target-<number>-<machine>)
 
 Options:
-  -f, --factory FACTORY     Foundries.io factory name (required)
+  -f, --factory FACTORY     Foundries.io factory name (required unless configured)
   -m, --machine MACHINE     Machine/hardware type to download
   -o, --output DIR          Output directory
   -l, --list-targets        List available targets and exit
@@ -184,10 +198,10 @@ Examples:
   # Download with explicit factory and machine
   $SCRIPT_NAME --factory my-factory --machine imx8mm-jaguar-sentai 1451
 
-  # Use configured defaults
+  # Use configured defaults (factory and machine)
   $SCRIPT_NAME 1451
 
-  # Override machine for this download
+  # Use configured factory, specify machine
   $SCRIPT_NAME --machine imx93-jaguar-eink 1451
 
   # Force re-download even if files exist
@@ -326,7 +340,7 @@ list_targets() {
     log_info "Listing targets for factory: $factory"
     echo
     
-    if ! fioctl targets list --factory "$factory"; then
+    if ! fioctl_with_factory "$factory" targets list; then
         log_error "Failed to list targets for factory '$factory'"
         return 1
     fi
@@ -371,7 +385,7 @@ check_fioctl() {
     fi
     
     # Test authentication with factory access if provided
-    if [[ -n "$factory" ]]; then
+    if [[ -n "$factory" && "$factory" != "<default>" ]]; then
         log_info "Testing factory access: $factory"
         if ! fioctl targets list --factory "$factory" &>/dev/null; then
             log_error "Cannot access factory '$factory'"
@@ -384,6 +398,23 @@ check_fioctl() {
             return 1
         fi
         log_success "Factory '$factory' is accessible"
+    elif [[ "$factory" == "<default>" ]]; then
+        # Test default factory access
+        log_info "Testing default factory access..."
+        if ! fioctl targets list &>/dev/null; then
+            log_error "Cannot access default factory"
+            log_info "Possible issues:"
+            log_info "  - No default factory configured in ~/.config/fioctl.yaml"
+            log_info "  - No access permissions to the default factory"
+            log_info "  - fioctl authentication has expired"
+            echo
+            log_info "To fix:"
+            log_info "  1. Set default factory: echo 'factory: your-factory-name' >> ~/.config/fioctl.yaml"
+            log_info "  2. Or use --factory <factory-name> explicitly"
+            log_info "  3. Re-authenticate: fioctl login"
+            return 1
+        fi
+        log_success "Default factory is accessible"
     else
         # Just check that fioctl config command works (indicates valid auth)
         if ! fioctl config --help &>/dev/null; then
@@ -404,9 +435,13 @@ validate_target() {
     
     log_info "Validating target $target_number exists in factory $factory..."
     
-    if ! fioctl targets show "$target_number" --factory "$factory" &>/dev/null; then
+    if ! fioctl_with_factory "$factory" targets show "$target_number" &>/dev/null; then
         log_error "Target $target_number not found in factory $factory"
-        log_info "Use 'fioctl targets list --factory $factory' to see available targets"
+        if [[ "$factory" == "<default>" ]]; then
+            log_info "Use 'fioctl targets list' to see available targets"
+        else
+            log_info "Use 'fioctl targets list --factory $factory' to see available targets"
+        fi
         return 1
     fi
     
@@ -464,7 +499,7 @@ download_artifact() {
     log_info "  Output: $output_file"
     
     start_timer
-    if fioctl targets artifacts "$target_number" "$artifact_path" --factory "$factory" > "$output_file" 2>/dev/null; then
+    if fioctl_with_factory "$factory" targets artifacts "$target_number" "$artifact_path" > "$output_file" 2>/dev/null; then
         local download_time
         download_time=$(end_timer)
         local size
@@ -556,7 +591,16 @@ download_target_artifacts() {
     fi
     
     # Production bootloader (required)
-    if download_artifact "$target_number" "$factory" \
+    # For i.MX93 boards, use the smaller production bootloader from MFGTools
+    if [[ "$machine" == *"imx93"* ]] && [[ -f "$mfgtools_dir/imx-boot-mfgtool" ]]; then
+        log_info "Using production bootloader from MFGTools package for i.MX93..."
+        cp "$mfgtools_dir/imx-boot-mfgtool" "$output_dir/imx-boot-$machine"
+        local size
+        size=$(du -h "$output_dir/imx-boot-$machine" | cut -f1)
+        log_success "Copied production bootloader ($size)"
+        ((artifacts_downloaded++))
+    # Download individual bootloader files (fallback for other machines)
+    elif download_artifact "$target_number" "$factory" \
         "$machine-mfgtools/other/imx-boot-$machine" \
         "$output_dir/imx-boot-$machine" \
         "Production bootloader"; then
@@ -1036,11 +1080,23 @@ main() {
         exit $?
     fi
     
-    # Validate required parameters
+    # Validate required parameters - try fioctl default factory if none specified
     if [[ -z "$factory" ]]; then
-        log_error "Factory name is required"
-        log_info "Use --factory <factory-name> or run --configure to set defaults"
-        exit 1
+        log_info "No factory specified, checking if fioctl has a default factory configured..."
+        
+        # Test if fioctl can work without explicit factory (i.e., has default configured)
+        if fioctl targets list >/dev/null 2>&1; then
+            log_success "Using fioctl's default factory configuration"
+            factory="<default>"  # Placeholder - fioctl will use its default
+        else
+            log_error "Factory name is required"
+            log_info "Options to specify factory:"
+            log_info "  1. Use --factory <factory-name>"
+            log_info "  2. Run --configure to set default factory in this script"
+            log_info "  3. Set default factory in fioctl: echo 'factory: your-factory-name' >> ~/.config/fioctl.yaml"
+            log_info "  4. Set DEFAULT_FACTORY in config file: $CONFIG_FILE"
+            exit 1
+        fi
     fi
     
     if [[ -z "$target_number" ]]; then
