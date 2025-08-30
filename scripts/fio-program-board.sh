@@ -4,7 +4,7 @@
 # Foundries.io Board Programming Tool for Dynamic Devices
 #
 # Copyright (c) 2024 Dynamic Devices Ltd.
-# Licensed under the MIT License
+# Licensed under the GNU General Public License v3.0
 #
 # This script downloads target build files from Foundries.io and optionally
 # programs Dynamic Devices boards using fioctl and UUU manufacturing tools.
@@ -158,7 +158,7 @@ $SCRIPT_NAME version $SCRIPT_VERSION
 
 Foundries.io Board Programming Tool for Dynamic Devices
 Copyright (c) 2024 Dynamic Devices Ltd.
-Licensed under the MIT License
+Licensed under the GNU General Public License v3.0
 
 Repository: https://github.com/dynamic-devices/meta-dynamicdevices
 EOF
