@@ -20,6 +20,9 @@
 #   - Added --program flag for automatic board programming after download
 #   - Added intelligent caching to avoid re-downloading existing files
 #   - Added --force flag to override caching when needed
+#   - Added automatic latest target selection when no target specified
+#   - Added support for fioctl default factory configuration
+#   - Fixed i.MX93 bootloader size issue by using correct MFGTools bootloader
 #   - Improved error handling and user feedback
 #   - Enhanced logging with color-coded output
 #   - Added configuration management for factory/machine defaults
@@ -169,7 +172,7 @@ Usage: $SCRIPT_NAME [OPTIONS] [target-number] [machine] [output-dir]
 Download target build files from Foundries.io and program Dynamic Devices boards.
 
 Arguments:
-  target-number    Target number from Foundries.io CI (optional - defaults to latest)
+  target-number    Target number from Foundries.io CI (optional - uses latest if not specified)
   machine          Machine name (optional if --machine or default configured)
   output-dir       Output directory (default: ./downloads/target-<number>-<machine>)
 
@@ -203,6 +206,9 @@ Examples:
 
   # Use configured factory, specify machine
   $SCRIPT_NAME --machine imx93-jaguar-eink 1451
+
+  # Use latest target (no target number specified)
+  $SCRIPT_NAME --machine imx93-jaguar-eink
 
   # Force re-download even if files exist
   $SCRIPT_NAME --factory my-factory --machine imx93-jaguar-eink 1451 --force
@@ -426,6 +432,27 @@ check_fioctl() {
     fi
     
     return 0
+}
+
+# Get the latest target number for a factory and machine
+get_latest_target() {
+    local factory="$1"
+    local machine="$2"
+    
+    # Get targets list and find the latest one for this machine
+    local latest_target
+    latest_target=$(fioctl_with_factory "$factory" targets list 2>/dev/null | \
+        grep -E "^\s*[0-9]+\s+" | \
+        grep "$machine" | \
+        tail -1 | \
+        awk '{print $1}')
+    
+    if [[ -n "$latest_target" ]]; then
+        echo "$latest_target"
+        return 0
+    else
+        return 1
+    fi
 }
 
 # Validate target exists
@@ -1099,10 +1126,22 @@ main() {
         fi
     fi
     
+    # Get latest target if none specified
     if [[ -z "$target_number" ]]; then
-        log_error "Target number is required"
-        usage
-        exit 1
+        log_info "No target specified, finding latest target for machine: $machine"
+        if target_number=$(get_latest_target "$factory" "$machine"); then
+            log_success "Using latest target: $target_number"
+        else
+            log_error "Could not find any targets for machine: $machine"
+            if [[ "$factory" == "<default>" ]]; then
+                log_info "Use 'fioctl targets list' to see available targets"
+            else
+                log_info "Use 'fioctl targets list --factory $factory' to see available targets"
+            fi
+            log_info "Or specify a target number explicitly:"
+            log_info "  $SCRIPT_NAME --machine $machine <target-number>"
+            exit 1
+        fi
     fi
     
     if [[ -z "$machine" ]]; then
