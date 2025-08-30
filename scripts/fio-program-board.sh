@@ -229,22 +229,16 @@ check_all_dependencies() {
         missing_deps=$((missing_deps + 1))
         need_fioctl=1
     else
-        local version
-        version=$(fioctl version 2>/dev/null | head -n1 || echo "unknown")
-        log_success "fioctl - $version"
+        log_success "fioctl - Available"
     fi
     
     # Check curl or wget (needed for downloads)
     local download_tool_available=0
     if command -v curl &> /dev/null; then
-        local version
-        version=$(curl --version 2>/dev/null | head -n1 | cut -d' ' -f1-2 || echo "curl")
-        log_success "$version"
+        log_success "curl - Available"
         download_tool_available=1
     elif command -v wget &> /dev/null; then
-        local version
-        version=$(wget --version 2>/dev/null | head -n1 | cut -d' ' -f1-3 || echo "wget")
-        log_success "$version"
+        log_success "wget - Available"
         download_tool_available=1
     else
         log_error "curl/wget - NOT FOUND (required for downloads)"
@@ -257,9 +251,7 @@ check_all_dependencies() {
     
     # Check for tar (should be available on most Unix systems)
     if command -v tar &> /dev/null; then
-        local version
-        version=$(tar --version 2>/dev/null | head -n1 || echo "tar - Available")
-        log_success "$version"
+        log_success "tar - Available"
     else
         log_warning "tar - NOT FOUND (unusual for Unix systems)"
         log_info "  Note: tar is typically pre-installed on Linux/macOS"
@@ -270,18 +262,14 @@ check_all_dependencies() {
     
     # Check optional package managers
     if command -v brew &> /dev/null; then
-        local version
-        version=$(brew --version 2>/dev/null | head -n1 || echo "Homebrew")
-        log_success "$version"
+        log_success "Homebrew - Available"
     else
         log_info "Homebrew - Not installed (optional, useful for macOS)"
         optional_deps=$((optional_deps + 1))
     fi
     
     if command -v snap &> /dev/null; then
-        local version
-        version=$(snap version 2>/dev/null | head -n1 || echo "snap")
-        log_success "$version"
+        log_success "snap - Available"
     else
         log_info "snap - Not installed (optional, useful for Linux)"
         optional_deps=$((optional_deps + 1))
@@ -343,7 +331,7 @@ check_all_dependencies() {
     else
         log_success "All critical dependencies are available!"
         if [[ $optional_deps -gt 0 ]]; then
-            log_info "Optional dependencies missing: $optional_deps (package managers for easier installation)"
+            log_info "Note: $optional_deps optional package managers not installed (not required)"
         fi
     fi
     
