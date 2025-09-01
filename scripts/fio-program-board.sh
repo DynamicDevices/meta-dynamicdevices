@@ -214,98 +214,32 @@ install_fioctl_from_github() {
 
 # Comprehensive dependency checking
 check_all_dependencies() {
-    log_info "Checking system dependencies..."
-    echo ""
-    
     local missing_deps=0
-    local optional_deps=0
+    local missing_tools=()
     
-    # Check critical dependencies
-    log_info "=== Critical Dependencies ==="
-    
-    # Check fioctl
+    # Check critical dependencies silently
     if ! command -v fioctl &> /dev/null; then
-        log_error "fioctl - NOT FOUND"
         missing_deps=$((missing_deps + 1))
+        missing_tools+=("fioctl")
         need_fioctl=1
-    else
-        log_success "fioctl - Available"
     fi
     
     # Check curl or wget (needed for downloads)
-    local download_tool_available=0
-    if command -v curl &> /dev/null; then
-        log_success "curl - Available"
-        download_tool_available=1
-    elif command -v wget &> /dev/null; then
-        log_success "wget - Available"
-        download_tool_available=1
-    else
-        log_error "curl/wget - NOT FOUND (required for downloads)"
+    if ! command -v curl &> /dev/null && ! command -v wget &> /dev/null; then
         missing_deps=$((missing_deps + 1))
+        missing_tools+=("curl or wget")
         need_download_tool=1
     fi
     
-    echo ""
-    log_info "=== Archive Extraction Tools ==="
-    
     # Check for tar (should be available on most Unix systems)
-    if command -v tar &> /dev/null; then
-        log_success "tar - Available"
-    else
-        log_warning "tar - NOT FOUND (unusual for Unix systems)"
-        log_info "  Note: tar is typically pre-installed on Linux/macOS"
+    if ! command -v tar &> /dev/null; then
+        missing_deps=$((missing_deps + 1))
+        missing_tools+=("tar")
     fi
     
-    echo ""
-    log_info "=== Optional Package Managers ==="
-    
-    # Check optional package managers
-    if command -v brew &> /dev/null; then
-        log_success "Homebrew - Available"
-    else
-        log_info "Homebrew - Not installed (optional, useful for macOS)"
-        optional_deps=$((optional_deps + 1))
-    fi
-    
-    if command -v snap &> /dev/null; then
-        log_success "snap - Available"
-    else
-        log_info "snap - Not installed (optional, useful for Linux)"
-        optional_deps=$((optional_deps + 1))
-    fi
-    
-    if command -v apt &> /dev/null; then
-        log_success "apt - Available (Debian/Ubuntu)"
-    elif command -v yum &> /dev/null; then
-        log_success "yum - Available (RHEL/CentOS)"
-    elif command -v dnf &> /dev/null; then
-        log_success "dnf - Available (Fedora)"
-    elif command -v pacman &> /dev/null; then
-        log_success "pacman - Available (Arch Linux)"
-    else
-        log_info "System package manager - Not detected"
-        optional_deps=$((optional_deps + 1))
-    fi
-    
-    echo ""
-    log_info "=== Programming Tools (for --program mode) ==="
-    
-    # Check if running as root/sudo (needed for programming)
-    if [[ $EUID -eq 0 ]]; then
-        log_success "Root privileges - Available"
-    elif command -v sudo &> /dev/null; then
-        log_success "sudo - Available (needed for USB programming)"
-    else
-        log_warning "sudo - NOT FOUND"
-        log_info "  Note: Root privileges required for USB programming"
-        log_info "  Run as root or install sudo when using --program mode"
-    fi
-    
-    echo ""
-    # Summary
+    # Only show output if there are missing dependencies
     if [[ $missing_deps -gt 0 ]]; then
-        log_error "Found $missing_deps missing critical dependencies"
+        log_error "Missing critical dependencies: ${missing_tools[*]}"
         echo ""
         
         if [[ -n "${need_fioctl:-}" ]]; then
@@ -328,14 +262,8 @@ check_all_dependencies() {
             show_dependency_install_instructions
             return 1
         fi
-    else
-        log_success "All critical dependencies are available!"
-        if [[ $optional_deps -gt 0 ]]; then
-            log_info "Note: $optional_deps optional package managers not installed (not required)"
-        fi
     fi
     
-    echo ""
     return 0
 }
 
@@ -848,13 +776,29 @@ get_latest_target() {
     local factory="$1"
     local machine="$2"
     
-    # Get targets list and find the latest one for this machine
-    local latest_target
-    latest_target=$(fioctl_with_factory "$factory" targets list 2>/dev/null | \
+    # Get targets list and check only the most recent targets (reverse order for efficiency)
+    local latest_target=""
+    local latest_created=""
+    local targets
+    targets=$(fioctl_with_factory "$factory" targets list 2>/dev/null | \
         grep -E "^\s*[0-9]+\s+" | \
-        grep "$machine" | \
-        tail -1 | \
-        awk '{print $1}')
+        awk '{print $1}' | \
+        sort -nr | \
+        head -10)  # Check only last 10 targets in reverse order for speed
+    
+    # Check each target to see if it matches the machine and find the most recent platform target
+    for target in $targets; do
+        local target_info
+        target_info=$(fioctl_with_factory "$factory" targets show "$target" 2>/dev/null | head -15)
+        if echo "$target_info" | grep -q "$machine"; then
+            # Check if this is a platform target (no "Origin Target" field)
+            if ! echo "$target_info" | grep -q "Origin Target:"; then
+                # Since we're checking in reverse chronological order, first match is latest
+                latest_target="$target"
+                break
+            fi
+        fi
+    done
     
     if [[ -n "$latest_target" ]]; then
         echo "$latest_target"
@@ -1070,14 +1014,43 @@ download_target_artifacts() {
         ((artifacts_failed++))
     fi
     
-    # Try to get main system image from main build (may not exist for mfgtools-only builds)
+    # SIT file (required for some UUU scripts)
+    if download_artifact "$target_number" "$factory" \
+        "$machine/sit-$machine.bin" \
+        "$output_dir/sit-$machine.bin" \
+        "SIT file"; then
+        ((artifacts_downloaded++))
+    else
+        ((artifacts_failed++))
+    fi
+    
+    # Try to get main system image from different possible paths
+    local system_image_downloaded=false
+    
+    # First try the standard path
     if download_artifact "$target_number" "$factory" \
         "$machine/lmp-factory-image-$machine.wic.gz" \
         "$output_dir/lmp-factory-image-$machine.wic.gz" \
         "Main system image"; then
         ((artifacts_downloaded++))
+        system_image_downloaded=true
     else
-        log_warn "Main system image not available from main build - this may be an mfgtools-only build"
+        # Try alternative path structure (for app-only builds)
+        local tag_info
+        tag_info=$(fioctl_with_factory "$factory" targets show "$target_number" 2>/dev/null | grep "Tags:" | awk '{print $2}')
+        if [[ -n "$tag_info" ]]; then
+            if download_artifact "$target_number" "$factory" \
+                "assemble-system-image/$tag_info/lmp-factory-image-$machine.wic.gz" \
+                "$output_dir/lmp-factory-image-$machine.wic.gz" \
+                "Main system image (from assemble-system-image)"; then
+                ((artifacts_downloaded++))
+                system_image_downloaded=true
+            fi
+        fi
+    fi
+    
+    if [[ "$system_image_downloaded" == false ]]; then
+        log_warn "Main system image not available - this may be an mfgtools-only build or different artifact structure"
         ((artifacts_failed++))
     fi
     
@@ -1104,15 +1077,22 @@ download_target_artifacts() {
     log_info "  Artifacts failed: $artifacts_failed"
     log_info "  Total time: $formatted_total_time"
     
-    if [[ $artifacts_downloaded -ge 2 ]]; then
-        log_success "Required artifacts downloaded successfully"
+    # Check if we have at least a system image (minimum for some use cases)
+    if [[ $artifacts_downloaded -ge 1 ]] && [[ "$system_image_downloaded" == true ]]; then
+        log_success "System image downloaded successfully"
         
-        # Create a simple programming script
-        create_programming_script "$output_dir" "$machine" "$target_number"
+        if [[ $artifacts_downloaded -ge 2 ]]; then
+            log_success "Multiple artifacts downloaded - creating programming script"
+            # Create a simple programming script
+            create_programming_script "$output_dir" "$machine" "$target_number"
+        else
+            log_warn "Only system image available - no mfgtools for automatic programming"
+            log_info "You can manually flash the system image: $output_dir/lmp-factory-image-$machine.wic.gz"
+        fi
         
         return 0
     else
-        log_error "Failed to download minimum required artifacts"
+        log_error "Failed to download minimum required artifacts (at least system image needed)"
         return 1
     fi
 }
@@ -1637,11 +1617,24 @@ main() {
         echo
         log_success "All artifacts downloaded successfully!"
         log_info "Output directory: $output_dir"
-        log_info "Programming script: $output_dir/program-$machine.sh"
+        if [[ -f "$output_dir/program-$machine.sh" ]]; then
+            log_info "Programming script: $output_dir/program-$machine.sh"
+        else
+            log_info "System image: $output_dir/lmp-factory-image-$machine.wic.gz"
+        fi
         echo
                 # Check if auto-programming is requested
         if [[ "$program_flag" == "true" ]]; then
             echo
+            # Check if programming script exists
+            if [[ ! -f "$output_dir/program-$machine.sh" ]]; then
+                log_warn "Auto-programming requested but no programming script available"
+                log_info "This target only contains system image - no mfgtools for automatic programming"
+                log_info "You can manually flash the system image using tools like dd or balenaEtcher"
+                log_info "System image location: $output_dir/lmp-factory-image-$machine.wic.gz"
+                return 0
+            fi
+            
             if [[ "$continuous_flag" == "true" ]]; then
                 log_info "Continuous programming mode - programming boards in sequence"
                 log_warn "Make sure each board is in download/recovery mode before connecting USB"
