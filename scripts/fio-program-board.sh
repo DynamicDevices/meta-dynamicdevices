@@ -984,7 +984,7 @@ download_target_artifacts() {
         fi
     # Download individual bootloader files (fallback for other machines)
     elif download_artifact "$target_number" "$factory" \
-        "$machine-mfgtools/other/imx-boot-$machine" \
+        "$machine/imx-boot-$machine" \
         "$output_dir/imx-boot-$machine" \
         "Production bootloader"; then
         ((artifacts_downloaded++))
