@@ -27,12 +27,18 @@
                 simple-audio-card,format = "i2s";
                 simple-audio-card,frame-master = <&cpudai2>;
                 simple-audio-card,bitclock-master = <&cpudai2>;
+                
+                // Enable full-duplex operation (playback + capture)
+                // This allows TAS2563 SDout to be available as ALSA capture device
+                
                 //simple-audio-card,widgets =
                 //      "Line", "Left Line Out Jack",
-                //      "Line", "Right Line Out Jack";
+                //      "Line", "Right Line Out Jack",
+                //      "Microphone", "TAS2563 SDout";
                 //simple-audio-card,routing =
                 //      "Left Line Out Jack", "LINEVOUTL",
-                //      "Right Line Out Jack", "LINEVOUTR";
+                //      "Right Line Out Jack", "LINEVOUTR",
+                //      "TAS2563 SDout", "SDOUT";
 
                 cpudai2: simple-audio-card,cpu {
                         sound-dai = <&sai3>;
@@ -306,6 +312,12 @@
                 ti,mic-left-edge = <0>; /* Left mic on rising edge */
                 ti,mic-right-edge = <1>; /* Right mic on falling edge */
                 
+                // SDout Configuration (Serial Data Output for capture)
+                // Enables TAS2563 SDout to be available as ALSA capture source
+                ti,sdout-enable = <1>; /* Enable SDout functionality */
+                ti,sdout-format = <0>; /* 0=I2S, 1=DSP format for SDout */
+                ti,sdout-source = <0>; /* 0=input monitoring, 1=processed audio */
+                
                 status = "okay";
         };
 };
@@ -514,13 +526,15 @@
 
 // Enhanced SAI3 configuration for dual hardware support
 &sai3 {
+	#sound-dai-cells = <0>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sai3>;
 	assigned-clocks = <&clk IMX8MM_CLK_SAI3>;
 	assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <12288000>;
 	fsl,sai-mclk-direction-output;
-	fsl,sai-synchronous-rx;  /* Enable receive for TAS2563 microphones */
+	fsl,sai-synchronous-rx;  /* Enable receive for TAS2563 SDout */
+	fsl,sai-asynchronous;    /* Support independent TX/RX timing */
 	status = "okay";
 };
 
