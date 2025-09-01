@@ -39,9 +39,66 @@ Yocto/OpenEmbedded layers for Dynamic Devices Edge boards on Linux microPlatform
 - **Distro**: meta-dynamicdevices-distro (distribution policies)
 - **Dependencies**: meta-lmp, meta-freescale, meta-openembedded
 
-## Build Commands
+## Build Systems Architecture
 
-### Local Development Build
+### Critical Understanding: Local vs Cloud Builds
+
+**⚠️ IMPORTANT**: There are **TWO SEPARATE BUILD SYSTEMS**:
+
+1. **Local Development Builds** (KAS-based)
+   - Uses `kas/` configuration files in this repository
+   - For development, testing, and local debugging
+   - Controlled by local KAS YAML configurations
+   - **NOT used for production mfgtools-files**
+
+2. **Foundries.io Cloud Builds** (Production)
+   - Builds triggered by pushes to Foundries.io-hosted repositories
+   - Generates production `mfgtools-files` downloaded by fio-program-board scripts
+   - **Controlled by recipes/configurations pushed to Foundries.io**
+   - **NOT controlled by local KAS files**
+
+### Key Learnings from SE050 Investigation
+
+**🔍 SE050/OP-TEE Configuration Issues:**
+- SE050 failures in newer builds were **NOT** caused by fio-program-board download paths
+- SE050 failures were **NOT** caused by local KAS mfgtools configuration changes
+- **Root cause**: Changes to OP-TEE recipes that affect Foundries.io cloud builds
+- **Critical**: `CFG_CORE_SE05X_SCP03_EARLY=y` requires proper OP-TEE signing configuration
+- **Debugging approach**: Check git history of `recipes-security/optee/` for cloud build changes
+
+### Foundries.io Cloud Build System
+
+**🏭 How Cloud Builds Work:**
+- Triggered by pushes to Foundries.io-hosted repositories (meta-subscriber-overrides, lmp-manifest)
+- **NOT triggered** by pushes to this meta-dynamicdevices repository
+- Uses recipes and configurations from multiple layers including this one
+- Generates artifacts: `mfgtools-files`, `imx-boot`, `u-boot.itb`, `lmp-factory-image.wic.gz`
+- Downloaded via `fioctl targets artifacts` by fio-program-board scripts
+
+**🔧 Troubleshooting Cloud Build Issues:**
+1. **Check recipe changes**: `git log --oneline --follow recipes-security/optee/`
+2. **Verify machine features**: Check `MACHINE_FEATURES` in machine configs
+3. **OP-TEE configuration**: Look for `CFG_CORE_SE05X_*` settings in OP-TEE recipes
+4. **SE050 vs ELE**: imx8mm uses external SE050, imx93 uses internal EdgeLock Secure Enclave
+5. **Build artifacts**: Use `fioctl targets show <target>` to inspect cloud build details
+
+**🔧 SE050/OP-TEE mfgtools Fix:**
+- **Problem**: SE050/ELE initialization failures in mfgtools builds (OP-TEE 4.4.0+)
+- **Root Cause**: Secure enclaves not needed for manufacturing/UUU programming, only production runtime
+- **Solution**: Conditionally disable SE050/ELE for `lmp-mfgtool` distro builds
+- **Implementation**: `'' if d.getVar('DISTRO') == 'lmp-mfgtool' else 'CFG_CORE_SE05X=y...'`
+- **Machines**: Applied to imx8mm-jaguar-sentai, imx8mm-jaguar-inst, imx93-jaguar-eink
+- **Result**: mfgtools work without secure enclave issues, production builds keep security enabled
+
+**⚠️ Common Pitfalls:**
+- Assuming local KAS changes affect cloud builds (they don't)
+- Modifying fio-program-board download paths when issue is in cloud build configuration
+- Not understanding SE050 early initialization requirements for SCP03 encrypted communication
+- Enabling SE050 in mfgtools when it's only needed for production runtime
+
+### Build Commands
+
+#### Local Development Build
 ```bash
 export MACHINE=imx93-jaguar-eink  # or imx8mm-jaguar-sentai
 kas build kas/lmp-dynamicdevices.yml
