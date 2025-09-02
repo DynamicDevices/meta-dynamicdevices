@@ -949,7 +949,7 @@ download_target_artifacts() {
         
         # Manufacturing bootloader (required for programming)
         if download_artifact "$target_number" "$factory" \
-            "$machine-mfgtools/other/mfgtool-files/imx-boot-mfgtool" \
+            "$machine-mfgtools/mfgtool-files/imx-boot-mfgtool" \
             "$output_dir/imx-boot-mfgtool" \
             "Manufacturing bootloader"; then
             ((artifacts_downloaded++))
@@ -960,7 +960,7 @@ download_target_artifacts() {
         
         # Manufacturing U-Boot (required for programming)
         if download_artifact "$target_number" "$factory" \
-            "$machine-mfgtools/other/mfgtool-files/u-boot-mfgtool.itb" \
+            "$machine-mfgtools/mfgtool-files/u-boot-mfgtool.itb" \
             "$output_dir/u-boot-mfgtool.itb" \
             "Manufacturing U-Boot image"; then
             ((artifacts_downloaded++))
@@ -1006,7 +1006,7 @@ download_target_artifacts() {
     
     # Device tree blob (optional)
     if download_artifact "$target_number" "$factory" \
-        "$machine-mfgtools/other/devicetree/$machine.dtb" \
+        "$machine-mfgtools/devicetree/$machine.dtb" \
         "$output_dir/$machine.dtb" \
         "Device tree blob"; then
         ((artifacts_downloaded++))
@@ -1056,7 +1056,7 @@ download_target_artifacts() {
     
     # Manifest file (optional)
     if download_artifact "$target_number" "$factory" \
-        "$machine-mfgtools/other/manifest.xml" \
+        "$machine-mfgtools/manifest.xml" \
         "$output_dir/manifest.xml" \
         "Build manifest"; then
         ((artifacts_downloaded++))

@@ -1045,7 +1045,7 @@ echo %machine% | findstr /i "imx93" >nul
 if not errorlevel 1 (
     call :download_artifact "%target%" "%factory%" "%machine%/imx-boot" "%output_dir%\imx-boot-%machine%" "Production bootloader (i.MX93)"
 ) else (
-    call :download_artifact "%target%" "%factory%" "%machine%-mfgtools/other/imx-boot-%machine%" "%output_dir%\imx-boot-%machine%" "Production bootloader"
+    call :download_artifact "%target%" "%factory%" "%machine%/imx-boot-%machine%" "%output_dir%\imx-boot-%machine%" "Production bootloader"
 )
 if errorlevel 1 (
     set /a "artifacts_failed+=1"
@@ -1055,7 +1055,7 @@ if errorlevel 1 (
 )
 
 REM Production U-Boot (required)
-call :download_artifact "%target%" "%factory%" "%machine%-mfgtools/other/u-boot-%machine%.itb" "%output_dir%\u-boot-%machine%.itb" "Production U-Boot image"
+call :download_artifact "%target%" "%factory%" "%machine%/u-boot-%machine%.itb" "%output_dir%\u-boot-%machine%.itb" "Production U-Boot image"
 if errorlevel 1 (
     set /a "artifacts_failed+=1"
 ) else (
@@ -1063,7 +1063,7 @@ if errorlevel 1 (
 )
 
 REM Device tree blob (optional)
-call :download_artifact "%target%" "%factory%" "%machine%-mfgtools/other/devicetree/%machine%.dtb" "%output_dir%\%machine%.dtb" "Device tree blob"
+call :download_artifact "%target%" "%factory%" "%machine%-mfgtools/devicetree/%machine%.dtb" "%output_dir%\%machine%.dtb" "Device tree blob"
 if errorlevel 1 (
     set /a "artifacts_failed+=1"
 ) else (
@@ -1079,7 +1079,7 @@ if errorlevel 1 (
 )
 
 REM Build manifest (optional)
-call :download_artifact "%target%" "%factory%" "%machine%-mfgtools/other/manifest.xml" "%output_dir%\manifest.xml" "Build manifest"
+call :download_artifact "%target%" "%factory%" "%machine%-mfgtools/manifest.xml" "%output_dir%\manifest.xml" "Build manifest"
 if errorlevel 1 (
     set /a "artifacts_failed+=1"
 ) else (
