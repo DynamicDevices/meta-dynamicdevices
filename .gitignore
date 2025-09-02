@@ -58,3 +58,5 @@ __pycache__/
 local/
 scratch/.kas_shell_history
 .kas_shell_history
+# Dummy signing keys for local development
+conf/factory-keys/
