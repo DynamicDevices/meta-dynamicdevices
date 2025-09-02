@@ -1,19 +1,13 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-# For mfgtools builds, completely disable SE050/ELE to prevent initialization failures
+# For mfgtools builds, explicitly disable SE050/ELE to prevent initialization failures
 # SE050/ELE secure enclaves are only needed for production runtime, not manufacturing/UUU programming
 
-# Disable SE050 for imx8mm-jaguar-sentai (external SE050 chip)
-EXTRA_OEMAKE:append:imx8mm-jaguar-sentai = " \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'se05x', '', '', d)} \
-"
-
-# Disable ELE for imx93-jaguar-eink (internal EdgeLock Secure Enclave)  
-EXTRA_OEMAKE:append:imx93-jaguar-eink = " \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'se05x', '', '', d)} \
-"
-
-# Disable SE050 for imx8mm-jaguar-inst (external SE050 chip)
-EXTRA_OEMAKE:append:imx8mm-jaguar-inst = " \
-    ${@bb.utils.contains('MACHINE_FEATURES', 'se05x', '', '', d)} \
+# Explicitly disable SE050 for all machines in mfgtools builds
+EXTRA_OEMAKE:append = " \
+    CFG_NXP_SE05X=n \
+    CFG_CORE_SE05X=n \
+    CFG_CORE_SE05X_SCP03_EARLY=n \
+    CFG_CORE_SE05X_DISPLAY_INFO=n \
+    CFG_IMX_I2C=n \
 "
