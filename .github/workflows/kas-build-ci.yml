@@ -121,6 +121,7 @@ jobs:
           echo '  ${TOPDIR}/../build/layers/meta-security \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-updater \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-virtualisation \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-clang \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-lmp/meta-lmp-base \' >> conf/bblayers.conf
           echo '"' >> conf/bblayers.conf
           
@@ -213,12 +214,13 @@ jobs:
           META_SECURITY="../build/layers/meta-security"
           META_UPDATER="../build/layers/meta-updater"
           META_VIRTUALIZATION="../build/layers/meta-virtualisation"
+          META_CLANG="../build/layers/meta-clang"
           # Include LMP layers
           LMP_BASE="../build/layers/meta-lmp/meta-lmp-base"
           LMP_BSP="../build/layers/meta-lmp/meta-lmp-bsp"
           
           # Complete dependency set for meta-lmp-base validation
-          ALL_DEPS="$CORE_LAYERS $OE_ESSENTIAL $OE_PYTHON $OE_NETWORKING $OE_FILESYSTEMS $OE_PERL $META_SECURITY $META_UPDATER $META_VIRTUALIZATION $LMP_BASE $LMP_BSP"
+          ALL_DEPS="$CORE_LAYERS $OE_ESSENTIAL $OE_PYTHON $OE_NETWORKING $OE_FILESYSTEMS $OE_PERL $META_SECURITY $META_UPDATER $META_VIRTUALIZATION $META_CLANG $LMP_BASE $LMP_BSP"
           
           # Check if essential dependency layers exist
           echo "🔍 Checking essential dependency layers..."
