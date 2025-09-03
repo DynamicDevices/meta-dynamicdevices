@@ -300,6 +300,7 @@
                 ti,echo-ref = <2>;
                 ti,bypass-tmax = <1>; /* 0, not bypass; 1, bypass */
                 ti,i2s-bits = <32>;
+                ti,bypass-calibration = <1>; /* Skip calibration - not currently supported */
                 
                 // PDM Microphone Configuration (for test hardware)
                 // Runtime configurable - will be enabled/disabled by userspace
@@ -531,7 +532,7 @@
 	pinctrl-0 = <&pinctrl_sai3>;
 	assigned-clocks = <&clk IMX8MM_CLK_SAI3>;
 	assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL1_OUT>;
-	assigned-clock-rates = <12288000>;
+	assigned-clock-rates = <49152000>;
 	fsl,sai-mclk-direction-output;
 	fsl,sai-synchronous-rx;  /* Enable receive for TAS2563 SDout */
 	fsl,sai-asynchronous;    /* Support independent TX/RX timing */
