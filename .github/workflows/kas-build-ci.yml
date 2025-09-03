@@ -127,7 +127,8 @@ jobs:
           # Create minimal local.conf with proper distro
           echo 'MACHINE = "qemux86-64"' > conf/local.conf
           echo 'DISTRO = "nodistro"' >> conf/local.conf
-          echo 'DISTRO_FEATURES = "security virtualization"' >> conf/local.conf
+          echo 'DISTRO_FEATURES = "security virtualization seccomp"' >> conf/local.conf
+          echo 'PREFERRED_RPROVIDER_ssh = "openssh"' >> conf/local.conf
           
           # Source the oe-init-build-env to set up BitBake environment
           if [ -f "../build/layers/openembedded-core/oe-init-build-env" ]; then
