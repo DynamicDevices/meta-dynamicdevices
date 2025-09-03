@@ -120,7 +120,7 @@ jobs:
           echo '  ${TOPDIR}/../build/layers/meta-openembedded/meta-perl \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-security \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-updater \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../build/layers/meta-virtualization \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../build/layers/meta-virtualisation \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../build/layers/meta-lmp/meta-lmp-base \' >> conf/bblayers.conf
           echo '"' >> conf/bblayers.conf
           
@@ -212,7 +212,7 @@ jobs:
           # Include security and virtualization layers
           META_SECURITY="../build/layers/meta-security"
           META_UPDATER="../build/layers/meta-updater"
-          META_VIRTUALIZATION="../build/layers/meta-virtualization"
+          META_VIRTUALIZATION="../build/layers/meta-virtualisation"
           # Include LMP layers
           LMP_BASE="../build/layers/meta-lmp/meta-lmp-base"
           LMP_BSP="../build/layers/meta-lmp/meta-lmp-bsp"
