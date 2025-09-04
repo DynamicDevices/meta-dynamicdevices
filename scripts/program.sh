@@ -1,8 +1,33 @@
 #!/bin/sh
 
 #
-# We need the environment variable KAS_MACHINE set so we know which files to program
+# DEPRECATED: This script is deprecated and should not be used.
+# Use fio-program-board.sh instead for proper Foundries.io integration.
 #
+
+echo "============================================================"
+echo "WARNING: This script is DEPRECATED and should not be used!"
+echo "============================================================"
+echo ""
+echo "This script creates its own UUU programming script from a template,"
+echo "which is incorrect and may cause programming failures."
+echo ""
+echo "CORRECT USAGE:"
+echo "Use fio-program-board.sh which downloads and uses the proper"
+echo "full_image.uuu script from Foundries.io mfgtool-files."
+echo ""
+echo "Examples:"
+echo "  ./scripts/fio-program-board.sh --machine imx8mm-jaguar-sentai --target <target-number> --program"
+echo "  ./scripts/fio-program-board.sh --machine imx93-jaguar-eink --target <target-number> --program"
+echo "  ./scripts/fio-program-board.sh --machine imx8mm-jaguar-phasora --target <target-number> --program"
+echo ""
+echo "For more information:"
+echo "  ./scripts/fio-program-board.sh --help"
+echo ""
+echo "============================================================"
+exit 1
+
+# OLD DEPRECATED CODE BELOW - DO NOT USE
 if [ -z "${KAS_MACHINE}" ]
 then
   echo

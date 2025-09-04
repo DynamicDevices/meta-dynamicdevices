@@ -170,8 +170,12 @@ export KAS_MACHINE=imx8mm-jaguar-sentai
 # Build image
 ./scripts/kas-build-base.sh
 
-# Program board
-./scripts/program.sh
+# Program board (RECOMMENDED: Use Foundries.io programming)
+./scripts/fio-program-board.sh --machine imx8mm-jaguar-sentai --target <target-number> --program
+
+# Alternative: Local build programming (advanced users only)
+# Note: This uses locally built images, not production Foundries.io builds
+# KAS_MACHINE=sentai ./scripts/program.sh  # DEPRECATED - DO NOT USE
 ```
 
 ## 📚 Documentation
