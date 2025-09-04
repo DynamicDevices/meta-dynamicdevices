@@ -1203,58 +1203,23 @@ program_full_image() {
         fi
         
     else
-        # Fallback to manual UUU script creation
-        log_info "Creating custom UUU script (MFGTools package not available)"
-        
-        # Check required files
-        local required_files=(
-            "lmp-factory-image-\$MACHINE.wic.gz"
-            "imx-boot-\$MACHINE"
-            "u-boot-\$MACHINE.itb"
-        )
-        
-        for file in "\${required_files[@]}"; do
-            if [[ ! -f "\$SCRIPT_DIR/\$file" ]]; then
-                log_error "Required file not found: \$file"
-                return 1
-            fi
-        done
-        
-        # Create temporary UUU script
-        local uuu_script="\$SCRIPT_DIR/program_full_image.uuu"
-        cat > "\$uuu_script" << UUU_SCRIPT
-uuu_version 1.2.39
-
-SDP: boot -f \$SCRIPT_DIR/imx-boot-mfgtool
-SDPV: delay 1000
-SDPV: write -f \$SCRIPT_DIR/u-boot-mfgtool.itb
-SDPV: jump
-
-FB: ucmd setenv fastboot_dev mmc
-FB: ucmd setenv mmcdev \\\${emmc_dev}
-FB: ucmd mmc dev \\\${emmc_dev} 1; mmc erase 0 0x2000
-FB: flash -raw2sparse all \$SCRIPT_DIR/lmp-factory-image-\$MACHINE.wic.gz/*
-FB: flash bootloader \$SCRIPT_DIR/imx-boot-\$MACHINE
-FB: flash bootloader2 \$SCRIPT_DIR/u-boot-\$MACHINE.itb
-FB: flash bootloader_s \$SCRIPT_DIR/imx-boot-\$MACHINE
-FB: flash bootloader2_s \$SCRIPT_DIR/u-boot-\$MACHINE.itb
-FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
-FB: ucmd mmc partconf \\\${emmc_dev} \\\${emmc_ack} 1 0
-FB: done
-UUU_SCRIPT
-        
-        # Run UUU
-        log_info "Starting UUU programming..."
-        if "\$UUU_CMD" "\$uuu_script"; then
-            log_success "Programming completed successfully!"
-            log_info "Set board to normal boot mode and power cycle"
-        else
-            log_error "Programming failed"
-            return 1
-        fi
-        
-        # Cleanup
-        rm -f "\$uuu_script"
+        # No fallback - require proper mfgtool-files from Foundries.io
+        log_error "MFGTools programming package not found!"
+        log_error "Expected to find: mfgtool-files-\$MACHINE/full_image.uuu"
+        log_error ""
+        log_error "This script requires the proper full_image.uuu from Foundries.io mfgtool-files."
+        log_error "The script will NOT create a temporary UUU script as this can cause programming failures."
+        log_error ""
+        log_error "To fix this:"
+        log_error "1. Ensure you downloaded the target with: \$0 --machine \$MACHINE --target <target-number>"
+        log_error "2. Check that mfgtool-files-\$MACHINE.tar.gz was downloaded and extracted"
+        log_error "3. Verify the extracted directory contains full_image.uuu"
+        log_error ""
+        log_error "The downloaded full_image.uuu contains the correct:"
+        log_error "- Bootloader paths for the specific target"
+        log_error "- Firmware versions matching the build"
+        log_error "- Validated programming sequence from cloud build"
+        return 1
     fi
 }
 
@@ -1284,51 +1249,23 @@ program_bootloader_only() {
         fi
         
     else
-        # Fallback to manual UUU script creation
-        log_info "Creating custom bootloader UUU script (MFGTools package not available)"
-        
-        # Check required files
-        local required_files=(
-            "imx-boot-\$MACHINE"
-            "u-boot-\$MACHINE.itb"
-        )
-        
-        for file in "\${required_files[@]}"; do
-            if [[ ! -f "\$SCRIPT_DIR/\$file" ]]; then
-                log_error "Required file not found: \$file"
-                return 1
-            fi
-        done
-        
-        # Create temporary UUU script
-        local uuu_script="\$SCRIPT_DIR/program_bootloader.uuu"
-        cat > "\$uuu_script" << UUU_SCRIPT
-uuu_version 1.2.39
-
-SDP: boot -f \$SCRIPT_DIR/imx-boot-mfgtool
-SDPV: delay 1000
-SDPV: write -f \$SCRIPT_DIR/u-boot-mfgtool.itb
-SDPV: jump
-
-FB: flash bootloader \$SCRIPT_DIR/imx-boot-\$MACHINE
-FB: flash bootloader2 \$SCRIPT_DIR/u-boot-\$MACHINE.itb
-FB: flash bootloader_s \$SCRIPT_DIR/imx-boot-\$MACHINE
-FB: flash bootloader2_s \$SCRIPT_DIR/u-boot-\$MACHINE.itb
-FB: done
-UUU_SCRIPT
-        
-        # Run UUU
-        log_info "Starting UUU bootloader programming..."
-        if "\$UUU_CMD" "\$uuu_script"; then
-            log_success "Bootloader programming completed successfully!"
-            log_info "Set board to normal boot mode and power cycle"
-        else
-            log_error "Bootloader programming failed"
-            return 1
-        fi
-        
-        # Cleanup
-        rm -f "\$uuu_script"
+        # No fallback - require proper mfgtool-files from Foundries.io
+        log_error "MFGTools programming package not found!"
+        log_error "Expected to find: mfgtool-files-\$MACHINE/bootloader.uuu"
+        log_error ""
+        log_error "This script requires the proper bootloader.uuu from Foundries.io mfgtool-files."
+        log_error "The script will NOT create a temporary UUU script as this can cause programming failures."
+        log_error ""
+        log_error "To fix this:"
+        log_error "1. Ensure you downloaded the target with: \$0 --machine \$MACHINE --target <target-number>"
+        log_error "2. Check that mfgtool-files-\$MACHINE.tar.gz was downloaded and extracted"
+        log_error "3. Verify the extracted directory contains bootloader.uuu"
+        log_error ""
+        log_error "The downloaded bootloader.uuu contains the correct:"
+        log_error "- Bootloader paths for the specific target"
+        log_error "- Firmware versions matching the build"
+        log_error "- Validated programming sequence from cloud build"
+        return 1
     fi
 }
 
