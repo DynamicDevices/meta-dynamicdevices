@@ -21,8 +21,8 @@ check_audio_cards() {
     cat /proc/asound/cards
     echo ""
     
-    if ! grep -q "tas2563audio" /proc/asound/cards; then
-        echo "❌ ERROR: tas2563audio card not found!"
+    if ! grep -q "Audio" /proc/asound/cards; then
+        echo "❌ ERROR: TAS2563 Audio card not found!"
         return 1
     else
         echo "✅ TAS2563 audio card detected"
@@ -46,7 +46,7 @@ check_tas2563_module() {
 # Function to show ALSA controls
 show_alsa_controls() {
     echo "=== ALSA Controls for TAS2563 ==="
-    amixer -c tas2563audio controls 2>/dev/null || echo "❌ Cannot access TAS2563 controls"
+    amixer -c Audio controls 2>/dev/null || echo "❌ Cannot access TAS2563 controls"
     echo ""
 }
 
@@ -56,7 +56,7 @@ test_microphone_capture() {
     
     # Test basic capture capability
     echo "Testing 2-second capture from TAS2563..."
-    if arecord -D hw:tas2563audio,0,1 -f S16_LE -r 16000 -c 2 -d 2 /tmp/tas2563_mic_test.wav 2>/dev/null; then
+    if arecord -D hw:Audio,0,1 -f S16_LE -r 16000 -c 2 -d 2 /tmp/tas2563_mic_test.wav 2>/dev/null; then
         echo "✅ Microphone capture successful"
         
         # Check file size to verify actual data was captured
@@ -73,7 +73,7 @@ test_microphone_capture() {
         echo "Trying alternative capture methods..."
         
         # Try with different parameters
-        arecord -D hw:tas2563audio,0 -f S16_LE -r 16000 -c 1 -d 1 /tmp/tas2563_alt_test.wav 2>/dev/null && {
+        arecord -D hw:Audio,0 -f S16_LE -r 16000 -c 1 -d 1 /tmp/tas2563_alt_test.wav 2>/dev/null && {
             echo "✅ Alternative capture method worked"
             rm -f /tmp/tas2563_alt_test.wav
         } || echo "❌ All capture methods failed"
@@ -90,7 +90,7 @@ test_speaker_playback() {
     
     # Create a short test tone (440Hz for 1 second)
     if command -v speaker-test >/dev/null 2>&1; then
-        timeout 3 speaker-test -D hw:tas2563audio,0 -t sine -f 440 -l 1 >/dev/null 2>&1 && {
+        timeout 3 speaker-test -D hw:Audio,0 -t sine -f 440 -l 1 >/dev/null 2>&1 && {
             echo "✅ Speaker test tone played successfully"
         } || echo "⚠️  Speaker test had issues (this may be normal)"
     else

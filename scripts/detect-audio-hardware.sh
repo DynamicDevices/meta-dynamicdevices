@@ -42,7 +42,7 @@ detect_hardware_variant() {
     # Method 2: Check for runtime TAS2563 microphone configuration
     if [ -z "$hw_type" ]; then
         # Check if TAS2563 driver supports capture
-        if arecord -l 2>/dev/null | grep -q "tas2563audio.*capture"; then
+        if arecord -l 2>/dev/null | grep -q "Audio.*capture"; then
             hw_type="tas2563_mic"
             detection_method="ALSA capture device detection"
         fi
@@ -51,7 +51,7 @@ detect_hardware_variant() {
     # Method 3: Try to detect TAS2563 capture capability
     if [ -z "$hw_type" ]; then
         # Test if TAS2563 has capture subdevice
-        if timeout 2 arecord -D hw:tas2563audio,0,1 -f S16_LE -r 16000 -c 2 -d 0.1 /dev/null 2>/dev/null; then
+        if timeout 2 arecord -D hw:Audio,0,1 -f S16_LE -r 16000 -c 2 -d 0.1 /dev/null 2>/dev/null; then
             hw_type="tas2563_mic"
             detection_method="TAS2563 capture test"
         fi
@@ -107,9 +107,9 @@ configure_tas2563_mics() {
     # Alternative: Use ALSA controls if available
     if command -v amixer >/dev/null 2>&1; then
         # Try to set TAS2563 microphone controls
-        amixer -c tas2563audio set "Mic Mode" on 2>/dev/null || true
-        amixer -c tas2563audio set "Mic Bias" on 2>/dev/null || true
-        amixer -c tas2563audio set "Mic Gain" 16 2>/dev/null || true
+        amixer -c Audio set "Mic Mode" on 2>/dev/null || true
+        amixer -c Audio set "Mic Bias" on 2>/dev/null || true
+        amixer -c Audio set "Mic Gain" 16 2>/dev/null || true
     fi
 }
 
@@ -120,13 +120,13 @@ save_config() {
     
     case "$hw_type" in
         "tas2563_mic")
-            card_name="tas2563audio"
+            card_name="Audio"
             ;;
         "micfil_mic")
             card_name="micfilaudio"
             ;;
         *)
-            card_name="tas2563audio"
+            card_name="Audio"
             ;;
     esac
     
@@ -142,7 +142,7 @@ export MIC_CARD_NAME="$card_name"
 
 # Additional configuration
 export AUDIO_HW_VARIANT="$hw_type"
-export SPEAKER_CARD="tas2563audio"
+export SPEAKER_CARD="Audio"
 EOF
     
     chmod 644 "$AUDIO_CONFIG_FILE"
@@ -157,7 +157,7 @@ apply_config() {
     export MIC_HW_TYPE="$hw_type"
     case "$hw_type" in
         "tas2563_mic")
-            export MIC_CARD_NAME="tas2563audio"
+            export MIC_CARD_NAME="Audio"
             configure_tas2563_mics
             ;;
         "micfil_mic")
@@ -166,7 +166,7 @@ apply_config() {
     esac
     
     export AUDIO_HW_VARIANT="$hw_type"
-    export SPEAKER_CARD="tas2563audio"
+    export SPEAKER_CARD="Audio"
     
     log_info "Applied configuration for hardware type: $hw_type"
 }

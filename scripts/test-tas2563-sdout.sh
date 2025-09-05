@@ -46,7 +46,7 @@ check_root() {
 check_audio_card() {
     log_info "Checking for TAS2563 audio card..."
     
-    if aplay -l | grep -q "tas2563audio"; then
+    if aplay -l | grep -q "Audio"; then
         log_success "TAS2563 audio card found"
         return 0
     else
@@ -61,7 +61,7 @@ check_audio_card() {
 check_capture_device() {
     log_info "Checking for TAS2563 capture device..."
     
-    if arecord -l | grep -q "tas2563audio"; then
+    if arecord -l | grep -q "Audio"; then
         log_success "TAS2563 capture device found"
         return 0
     else
@@ -81,7 +81,7 @@ test_sdout_capture() {
     log_info "Output file: $output_file"
     
     # Test different ALSA devices
-    local devices=("tas2563_sdout" "hw:tas2563audio,0" "tas2563_sdout_vc")
+    local devices=("tas2563_sdout" "hw:Audio,0" "tas2563_sdout_vc")
     
     for device in "${devices[@]}"; do
         log_info "Testing capture device: $device"
@@ -167,10 +167,10 @@ show_mixer_controls() {
     log_info "TAS2563 ALSA mixer controls:"
     echo
     
-    if amixer -c tas2563audio controls 2>/dev/null; then
+    if amixer -c Audio controls 2>/dev/null; then
         echo
         log_info "Current mixer settings:"
-        amixer -c tas2563audio 2>/dev/null || log_warn "Could not read mixer settings"
+        amixer -c Audio 2>/dev/null || log_warn "Could not read mixer settings"
     else
         log_warn "Could not access TAS2563 mixer controls"
     fi
