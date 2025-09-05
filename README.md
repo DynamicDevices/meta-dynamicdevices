@@ -161,6 +161,19 @@ systemctl status       # All services running
 | **[Edge EV](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EV-Board)** | `imx8mm-jaguar-phasora` | i.MX8MM | Energy management |
 | **[Edge GW](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-GW-Board)** | `imx8mm-jaguar-inst` | i.MX8MM | Communications gateway |
 
+### 🎯 **Board-Specific Programming Commands**
+
+#### **Edge AI Board (imx8mm-jaguar-sentai)**
+```bash
+# Complete programming with custom boot files (RECOMMENDED)
+./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder program
+
+# Alternative: Standard programming (if no custom boot files needed)
+./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program
+```
+
+> **📝 Note**: The `--mfgfolder program` option uses custom boot files from the `program/` directory, which contain optimized bootloader and U-Boot images for the imx8mm-jaguar-sentai board.
+
 ### Build & Flash
 
 ```bash
@@ -171,7 +184,7 @@ export KAS_MACHINE=imx8mm-jaguar-sentai
 ./scripts/kas-build-base.sh
 
 # Program board (RECOMMENDED: Use Foundries.io programming)
-./scripts/fio-program-board.sh --machine imx8mm-jaguar-sentai --target <target-number> --program
+./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder program
 
 # Alternative: Local build programming (advanced users only)
 # Note: This uses locally built images, not production Foundries.io builds

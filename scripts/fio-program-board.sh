@@ -474,6 +474,9 @@ Options:
   --force                   Force re-download even if files exist locally
   --program                 Automatically run programming script after download
   --continuous              Continuous programming mode for multiple boards
+  --mfgfolder DIR           Custom folder containing imx-boot-mfgtool and u-boot-mfgtool.itb files
+                            (UUU scripts remain in original mfgtool-files location)
+                            (Relative paths are relative to current working directory)
   -v, --version            Show version information
   -h, --help               Show this help message
 
@@ -505,6 +508,12 @@ Examples:
 
   # Download and automatically program board
   $SCRIPT_NAME --factory my-factory --machine imx93-jaguar-eink 1451 --program
+
+  # Use custom folder for boot files (imx-boot-mfgtool, u-boot-mfgtool.itb)
+  $SCRIPT_NAME --factory my-factory --machine imx93-jaguar-eink 1451 --mfgfolder /path/to/custom/boot/files --program
+  
+  # Use relative path for custom boot files (relative to current working directory)
+  $SCRIPT_NAME --factory my-factory --machine imx93-jaguar-eink 1451 --mfgfolder ./custom-boot-files --program
 
   # Continuous programming mode for multiple boards
   $SCRIPT_NAME --machine imx93-jaguar-eink --continuous
@@ -924,6 +933,44 @@ download_target_artifacts() {
     if [[ "$FORCE_DOWNLOAD" != "true" ]] && [[ -d "$mfgtools_dir" && -f "$mfgtools_dir/uuu" && -f "$mfgtools_dir/full_image.uuu" ]]; then
         log_info "MFGTools programming package already extracted - skipping"
         ((artifacts_downloaded++))
+        
+        # Copy custom boot files if mfgfolder is specified (even when not re-extracting)
+        if [[ -n "$resolved_mfgfolder" ]]; then
+            log_info "Copying custom boot files from: $resolved_mfgfolder"
+            
+            # Validate custom folder exists and has required files
+            if [[ ! -d "$resolved_mfgfolder" ]]; then
+                log_error "Custom mfgfolder does not exist: $resolved_mfgfolder"
+                return 1
+            fi
+            
+            local missing_files=()
+            if [[ ! -f "$resolved_mfgfolder/imx-boot-mfgtool" ]]; then
+                missing_files+=("imx-boot-mfgtool")
+            fi
+            if [[ ! -f "$resolved_mfgfolder/u-boot-mfgtool.itb" ]]; then
+                missing_files+=("u-boot-mfgtool.itb")
+            fi
+            
+            if [[ ${#missing_files[@]} -gt 0 ]]; then
+                log_error "Missing required files in custom mfgfolder: $resolved_mfgfolder"
+                for file in "${missing_files[@]}"; do
+                    log_error "  - $file"
+                done
+                return 1
+            fi
+            
+            # Copy the custom boot files, overwriting the originals
+            if cp "$resolved_mfgfolder/imx-boot-mfgtool" "$mfgtools_dir/imx-boot-mfgtool" && \
+               cp "$resolved_mfgfolder/u-boot-mfgtool.itb" "$mfgtools_dir/u-boot-mfgtool.itb"; then
+                log_success "Custom boot files copied to MFGTools directory"
+                log_info "  - imx-boot-mfgtool: $(du -h "$mfgtools_dir/imx-boot-mfgtool" | cut -f1)"
+                log_info "  - u-boot-mfgtool.itb: $(du -h "$mfgtools_dir/u-boot-mfgtool.itb" | cut -f1)"
+            else
+                log_error "Failed to copy custom boot files"
+                return 1
+            fi
+        fi
     elif download_artifact "$target_number" "$factory" \
         "$machine-mfgtools/mfgtool-files-$machine.tar.gz" \
         "$mfgtools_archive" \
@@ -936,6 +983,45 @@ download_target_artifacts() {
             log_success "Extracted MFGTools programming package"
             # Remove the archive after extraction
             rm -f "$mfgtools_archive"
+            
+            # Copy custom boot files if mfgfolder is specified
+            if [[ -n "$resolved_mfgfolder" ]]; then
+                log_info "Copying custom boot files from: $resolved_mfgfolder"
+                local mfgtool_dir="$output_dir/mfgtool-files-$machine"
+                
+                # Validate custom folder exists and has required files
+                if [[ ! -d "$resolved_mfgfolder" ]]; then
+                    log_error "Custom mfgfolder does not exist: $resolved_mfgfolder"
+                    return 1
+                fi
+                
+                local missing_files=()
+                if [[ ! -f "$resolved_mfgfolder/imx-boot-mfgtool" ]]; then
+                    missing_files+=("imx-boot-mfgtool")
+                fi
+                if [[ ! -f "$resolved_mfgfolder/u-boot-mfgtool.itb" ]]; then
+                    missing_files+=("u-boot-mfgtool.itb")
+                fi
+                
+                if [[ ${#missing_files[@]} -gt 0 ]]; then
+                    log_error "Missing required files in custom mfgfolder: $resolved_mfgfolder"
+                    for file in "${missing_files[@]}"; do
+                        log_error "  - $file"
+                    done
+                    return 1
+                fi
+                
+                # Copy the custom boot files, overwriting the originals
+                if cp "$resolved_mfgfolder/imx-boot-mfgtool" "$mfgtool_dir/imx-boot-mfgtool" && \
+                   cp "$resolved_mfgfolder/u-boot-mfgtool.itb" "$mfgtool_dir/u-boot-mfgtool.itb"; then
+                    log_success "Custom boot files copied to MFGTools directory"
+                    log_info "  - imx-boot-mfgtool: $(du -h "$mfgtool_dir/imx-boot-mfgtool" | cut -f1)"
+                    log_info "  - u-boot-mfgtool.itb: $(du -h "$mfgtool_dir/u-boot-mfgtool.itb" | cut -f1)"
+                else
+                    log_error "Failed to copy custom boot files"
+                    return 1
+                fi
+            fi
         else
             log_error "Failed to extract MFGTools programming package"
             ((artifacts_failed++))
@@ -1133,6 +1219,7 @@ log_warn() { echo -e "\${YELLOW}[WARN]\${NC} \$1"; }
 log_error() { echo -e "\${RED}[ERROR]\${NC} \$1" >&2; }
 log_success() { echo -e "\${GREEN}[SUCCESS]\${NC} \$1"; }
 
+
 usage() {
     cat << USAGE
 Usage: \$0 [--flash|--bootloader-only]
@@ -1155,7 +1242,7 @@ USAGE
 
 # Check for UUU tool
 check_uuu() {
-    # First try the extracted mfgtool-files UUU (with machine-specific directory name)
+    # Try the extracted mfgtool-files UUU (with machine-specific directory name)
     if [[ -f "\$SCRIPT_DIR/mfgtool-files-\$MACHINE/uuu" ]]; then
         UUU_CMD="\$SCRIPT_DIR/mfgtool-files-\$MACHINE/uuu"
         chmod +x "\$UUU_CMD"
@@ -1184,17 +1271,17 @@ program_full_image() {
     # Check if we have extracted mfgtool-files with UUU scripts (try machine-specific directory first)
     local mfgtool_dir=""
     if [[ -f "\$SCRIPT_DIR/mfgtool-files-\$MACHINE/full_image.uuu" ]]; then
-        mfgtool_dir="mfgtool-files-\$MACHINE"
+        mfgtool_dir="\$SCRIPT_DIR/mfgtool-files-\$MACHINE"
     elif [[ -f "\$SCRIPT_DIR/mfgtool-files/full_image.uuu" ]]; then
-        mfgtool_dir="mfgtool-files"
+        mfgtool_dir="\$SCRIPT_DIR/mfgtool-files"
     fi
     
     if [[ -n "\$mfgtool_dir" ]]; then
-        log_info "Using extracted MFGTools full_image.uuu script from \$mfgtool_dir"
+        log_info "Using MFGTools full_image.uuu script from \$mfgtool_dir"
         
         # Run UUU with the extracted script (using absolute paths like manual command)
         log_info "Starting UUU programming with MFGTools script..."
-        if "\$SCRIPT_DIR/\$mfgtool_dir/uuu" "\$SCRIPT_DIR/\$mfgtool_dir/full_image.uuu"; then
+        if "\$UUU_CMD" "\$mfgtool_dir/full_image.uuu"; then
             log_success "Programming completed successfully!"
             log_info "Set board to normal boot mode and power cycle"
         else
@@ -1230,17 +1317,17 @@ program_bootloader_only() {
     # Check if we have extracted mfgtool-files with UUU scripts (try machine-specific directory first)
     local mfgtool_dir=""
     if [[ -f "\$SCRIPT_DIR/mfgtool-files-\$MACHINE/bootloader.uuu" ]]; then
-        mfgtool_dir="mfgtool-files-\$MACHINE"
+        mfgtool_dir="\$SCRIPT_DIR/mfgtool-files-\$MACHINE"
     elif [[ -f "\$SCRIPT_DIR/mfgtool-files/bootloader.uuu" ]]; then
-        mfgtool_dir="mfgtool-files"
+        mfgtool_dir="\$SCRIPT_DIR/mfgtool-files"
     fi
     
     if [[ -n "\$mfgtool_dir" ]]; then
-        log_info "Using extracted MFGTools bootloader.uuu script from \$mfgtool_dir"
+        log_info "Using MFGTools bootloader.uuu script from \$mfgtool_dir"
         
         # Run UUU with the extracted script (using absolute paths like manual command)
         log_info "Starting UUU bootloader programming with MFGTools script..."
-        if "\$SCRIPT_DIR/\$mfgtool_dir/uuu" "\$SCRIPT_DIR/\$mfgtool_dir/bootloader.uuu"; then
+        if "\$UUU_CMD" "\$mfgtool_dir/bootloader.uuu"; then
             log_success "Bootloader programming completed successfully!"
             log_info "Set board to normal boot mode and power cycle"
         else
@@ -1372,6 +1459,7 @@ main() {
     local machine="$DEFAULT_MACHINE"
     local output_dir=""
     local target_number=""
+    local mfgfolder=""
     local list_targets_flag=false
     local configure_flag=false
     local program_flag=false
@@ -1413,6 +1501,10 @@ main() {
                 continuous_flag=true
                 program_flag=true  # Continuous implies programming
                 shift
+                ;;
+            --mfgfolder)
+                mfgfolder="$2"
+                shift 2
                 ;;
             -v|--version)
                 show_version
@@ -1547,6 +1639,19 @@ main() {
     
     if ! validate_machine "$machine"; then
         exit 1
+    fi
+    
+    # Resolve mfgfolder path before downloading (relative to current working directory)
+    local resolved_mfgfolder=""
+    if [[ -n "$mfgfolder" ]]; then
+        if [[ "$mfgfolder" = /* ]]; then
+            # Already absolute path
+            resolved_mfgfolder="$mfgfolder"
+        else
+            # Relative path - make it relative to current working directory
+            resolved_mfgfolder="$(pwd)/$mfgfolder"
+        fi
+        log_info "Resolved mfgfolder path: $resolved_mfgfolder"
     fi
     
     # Download artifacts

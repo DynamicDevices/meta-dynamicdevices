@@ -25,6 +25,7 @@ This directory contains utility scripts for building, testing, managing, and aut
 - Downloads all required programming artifacts (wic.gz, bootloaders, U-Boot images)
 - Generates ready-to-use programming scripts
 - Automatic board programming with `--program` flag
+- Custom boot files support with `--mfgfolder` option
 - Intelligent caching to avoid re-downloading existing files
 - Comprehensive timing for download and programming performance tracking
 - Support for all Dynamic Devices board types
@@ -44,8 +45,35 @@ This directory contains utility scripts for building, testing, managing, and aut
 # Override factory and machine
 ./scripts/fio-program-board.sh --factory my-factory --machine imx8mm-jaguar-sentai 1451
 
+# Program imx8mm-jaguar-sentai with custom boot files (RECOMMENDED)
+./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder program
+
+# Use custom boot files from relative path
+./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder ./custom-boot-files
+
 # List available targets
 ./scripts/fio-program-board.sh --factory my-factory --list-targets
+```
+
+**Custom Boot Files (--mfgfolder option):**
+
+The `--mfgfolder` option allows you to specify a custom directory containing `imx-boot-mfgtool` and `u-boot-mfgtool.itb` files. This is particularly useful for:
+
+- **Board-specific optimizations**: Using custom bootloader configurations
+- **Development testing**: Testing new bootloader versions
+- **Recovery scenarios**: Using known-good bootloader files
+
+**How it works:**
+1. The script copies your custom boot files to the extracted mfgtool-files directory
+2. The original UUU scripts run unchanged, but now use your custom files
+3. Relative paths are resolved relative to your current working directory
+
+**Example structure:**
+```
+program/                          # Custom boot files directory
+├── imx-boot-mfgtool             # Custom manufacturing bootloader
+├── u-boot-mfgtool.itb           # Custom manufacturing U-Boot
+└── uuu                          # (Optional) UUU executable
 ```
 
 ### `program.sh`
@@ -314,6 +342,9 @@ sudo ./scripts/program.sh
 
 # Program specific target
 ./scripts/fio-program-board.sh 1451 --program
+
+# Program imx8mm-jaguar-sentai with custom boot files
+./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder program
 ```
 
 ---
