@@ -285,7 +285,7 @@
 	// Audio Amp with Dual Hardware Support
         tas2563: tas2563@4C {
                 #sound-dai-cells = <0>;
-                compatible = "ti,tas2563";
+                compatible = "ti,tas2781";
                 reg = <0x4C>;
                 ti,channels = <1>; /* channel number */
                 ti,reset-gpio = <&gpio5 4 GPIO_ACTIVE_HIGH>;  /* Enable reset control */
