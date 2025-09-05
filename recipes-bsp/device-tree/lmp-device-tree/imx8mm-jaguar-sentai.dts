@@ -28,22 +28,11 @@
                 simple-audio-card,frame-master = <&cpudai2>;
                 simple-audio-card,bitclock-master = <&cpudai2>;
                 
-                // Enable full-duplex operation (playback + capture)
-                // This allows TAS2563 SDout to be available as ALSA capture device
-                
-                //simple-audio-card,widgets =
-                //      "Line", "Left Line Out Jack",
-                //      "Line", "Right Line Out Jack",
-                //      "Microphone", "TAS2563 SDout";
-                //simple-audio-card,routing =
-                //      "Left Line Out Jack", "LINEVOUTL",
-                //      "Right Line Out Jack", "LINEVOUTR",
-                //      "TAS2563 SDout", "SDOUT";
-
                 cpudai2: simple-audio-card,cpu {
                         sound-dai = <&sai3>;
-                        dai-tdm-slot-num = <2>;
-                        dai-tdm-slot-width = <32>;
+                        dai-tdm-slot-num = <2>;                /* two 8-bit slots total */
+                        dai-tdm-slot-width = <8>;              /* make one 16-bit word */
+                        dai-tdm-slot-rx-mask = <1 1>;          /* enable RX slots 0 and 1 */
                 };
 
                 simple-audio-card,codec {
@@ -284,41 +273,12 @@
 
 	// Audio Amp with Dual Hardware Support
         tas2563: tas2563@4C {
-                #sound-dai-cells = <0>;
-                compatible = "ti,tas2781";
+                compatible = "ti,tas2563";
                 reg = <0x4C>;
-                ti,channels = <1>; /* channel number */
-                ti,reset-gpio = <&gpio5 4 GPIO_ACTIVE_HIGH>;  /* Enable reset control */
-                ti,irq-gpio = <&gpio5 5 GPIO_ACTIVE_LOW>;
-                
-                // I2S Configuration (common for both hardware variants)
-                ti,asi-format = <0>; /* 0, i2S; 1, DSP;  */
-                ti,left-slot = <0>; /* <left slot number> */
-                ti,right-slot = <1>; /* <right slot number> */
-                ti,imon-slot-no = <0>; /* <current sense slot number> */
-                ti,vmon-slot-no = <2>; /* <current voltage slot number> */
-                ti,echo-ref = <2>;
-                ti,bypass-tmax = <1>; /* 0, not bypass; 1, bypass */
-                ti,i2s-bits = <32>;
-                ti,bypass-calibration = <1>; /* Skip calibration - not currently supported */
-                
-                // PDM Microphone Configuration (for test hardware)
-                // Runtime configurable - will be enabled/disabled by userspace
-                ti,mic-mode = <0>; /* 0=disabled initially, 1=enabled for test HW */
-                ti,mic-bias-enable = <0>; /* Microphone bias - runtime configurable */
-                ti,mic-gain = <0x10>; /* Microphone input gain */
-                ti,pdm-edge = <3>; /* Both rising and falling edge for dual mics */
-                ti,pdm-clk-rate = <3072000>; /* PDM clock rate (3.072 MHz) */
-                ti,pdm-data-width = <16>; /* PDM data width */
-                ti,mic-left-edge = <0>; /* Left mic on rising edge */
-                ti,mic-right-edge = <1>; /* Right mic on falling edge */
-                
-                // SDout Configuration (Serial Data Output for capture)
-                // Enables TAS2563 SDout to be available as ALSA capture source
-                ti,sdout-enable = <1>; /* Enable SDout functionality */
-                ti,sdout-format = <0>; /* 0=I2S, 1=DSP format for SDout */
-                ti,sdout-source = <0>; /* 0=input monitoring, 1=processed audio */
-                
+                #sound-dai-cells = <0>;
+                reset-gpios = <&gpio5 4 GPIO_ACTIVE_HIGH>;
+                interrupt-parent = <&gpio5>;
+                interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
                 status = "okay";
         };
 };

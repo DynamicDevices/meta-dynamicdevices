@@ -1,7 +1,7 @@
 # Load the drivers
 
 modprobe snd-soc-fsl-micfil
-modprobe snd-soc-tas2563
+modprobe snd-soc-tas2781
 
 # Detect and configure audio hardware variant
 if [ -x /usr/bin/detect-audio-hardware.sh ]; then
