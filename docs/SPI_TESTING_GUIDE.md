@@ -79,23 +79,37 @@ This allows both hardware testing with spidev tools and future custom driver dev
 Test the display control GPIOs first:
 
 ```bash
-# Test Reset signal (GPIO2_8 = 72)
-echo 72 > /sys/class/gpio/export
-echo out > /sys/class/gpio/gpio72/direction
+# Test Reset signal (GPIO2_14 = 78)
+echo 78 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio78/direction
 
 # Reset pulse - should see LOW then HIGH on oscilloscope
-echo 0 > /sys/class/gpio/gpio72/value  # Reset active (LOW)
+echo 0 > /sys/class/gpio/gpio78/value  # Reset active (LOW)
 sleep 0.1
-echo 1 > /sys/class/gpio/gpio72/value  # Reset inactive (HIGH)
+echo 1 > /sys/class/gpio/gpio78/value  # Reset inactive (HIGH)
 
-# Test Data/Command signal (GPIO2_10 = 74)
-echo 74 > /sys/class/gpio/export
-echo out > /sys/class/gpio/gpio74/direction
+# Test Data/Command signal (GPIO2_15 = 79)
+echo 79 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio79/direction
 
 # Toggle DC signal - should see transitions on oscilloscope
-echo 0 > /sys/class/gpio/gpio74/value  # Command mode
+echo 0 > /sys/class/gpio/gpio79/value  # Command mode
 sleep 0.1
-echo 1 > /sys/class/gpio/gpio74/value  # Data mode
+echo 1 > /sys/class/gpio/gpio79/value  # Data mode
+
+# Test Left/Right Select (GPIO2_16 = 80)
+echo 80 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio80/direction
+
+# Toggle L/R selection - should see transitions on oscilloscope
+echo 0 > /sys/class/gpio/gpio80/value  # Left panel
+sleep 0.1
+echo 1 > /sys/class/gpio/gpio80/value  # Right panel
+
+# Test Busy Status (GPIO2_17 = 81) - Input only
+echo 81 > /sys/class/gpio/export
+echo in > /sys/class/gpio/gpio81/direction
+cat /sys/class/gpio/gpio81/value  # Read busy status (0=busy, 1=ready)
 
 # Test Power Enable (GPIO2_11 = 75)
 echo 75 > /sys/class/gpio/export

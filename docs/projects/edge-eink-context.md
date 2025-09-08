@@ -29,6 +29,12 @@
 - **Reboot Stability**: Fixed GPIO4_26 conflict, removed regulator GPIO control
 - **Interface Management**: `mlan0` kept down by default, `uap0` ignored by NetworkManager
 
+## Bluetooth Fixes ✅
+- **UART Configuration**: Fixed incorrect `&lpuart4` → `&lpuart5` assignment (commit fdbb5b2)
+- **Hardware RTS/CTS**: Hardware pinout issue resolved, device tree pinout verified correct
+- **Pin Mapping**: All DAP pins correctly mapped to LPUART5 (TX/RX/CTS/RTS)
+- **Reset Control**: BT_RST on GPIO4_IO24 managed by MCXC143VFM power controller
+
 ## Hostname Generation ✅
 - **Solution**: Uses Foundries `lmp-auto-hostname` service (built-in)
 - **Source**: `/sys/devices/soc0/serial_number` via OCOTP/NVMEM
