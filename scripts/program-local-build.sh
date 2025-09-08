@@ -169,9 +169,22 @@ echo "Using locally built mfgtool files from: ${MFGTOOL_DIR}"
 echo "Programming files from: ${DEPLOY_DIR}"
 echo ""
 
-# List available images for verification
+# List available images for verification (show only clean symlink names)
 echo "Available images:"
-find "${DEPLOY_DIR}" -name "*.wic*" -o -name "lmp-factory-image*" | head -5
+cd "${DEPLOY_DIR}"
+# Show only the generic symlink names (user-friendly, no timestamps)
+for image in lmp-factory-image-${KAS_MACHINE}.wic.gz lmp-factory-image-${KAS_MACHINE}.wic; do
+    if [[ -L "$image" || -f "$image" ]]; then
+        # For symlinks, get size of the target file
+        size=$(du -hL "$image" 2>/dev/null | cut -f1)
+        if [[ "$image" == *.gz ]]; then
+            echo "  $image (${size}, compressed - recommended)"
+        else
+            echo "  $image (${size}, uncompressed)"
+        fi
+    fi
+done
+cd - > /dev/null
 echo ""
 
 # Check if running as root (required for UUU)
