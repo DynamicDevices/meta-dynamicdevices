@@ -86,12 +86,53 @@ When the `imx93-jaguar-eink` machine is built, the following will be included:
 
 ## Hardware Configuration
 
-The driver expects the following default GPIO configuration:
-- **Reset GPIO**: 8 (configurable)
-- **Busy GPIO**: 7 (configurable)
-- **CS0 GPIO**: 0 (configurable)
-- **CS1 GPIO**: 1 (configurable)
-- **SPI Device**: `/dev/spidev1.0` (configurable)
+### i.MX93 Jaguar E-Ink Board Configuration
+
+The EL133UF1 E-Ink display controller is configured for the `imx93-jaguar-eink` board with the following hardware mapping:
+
+#### SPI Interface
+- **SPI Device**: `/dev/spidev0.0` (LPSPI1)
+- **SPI Speed**: 10 MHz (conservative for reliable communication)
+
+#### GPIO Configuration (i.MX93 Hardware)
+Based on device tree mapping and actual hardware testing:
+- **Reset GPIO**: 558 (GPIO2_IO14) - Active-Low reset signal
+- **Busy GPIO**: 561 (GPIO2_IO17) - Controller busy status (Input)
+- **DC GPIO**: 559 (GPIO2_IO15) - Data/Command select (LO=Command, HI=Data)
+- **L/R Select GPIO**: 560 (GPIO2_IO16) - Left/Right controller select
+- **Power Enable GPIO**: 555 (GPIO2_IO11) - Display power enable
+
+#### Chip Select Routing Architecture
+
+**✅ HARDWARE AND SOFTWARE ALIGNED:**
+
+**Hardware Design:**
+- The display has **2 chip select signals**: `CS_M` (left controller) and `CS_S` (right controller)
+- Only **one chip select** from the i.MX93 SPI controller is physically connected
+- An additional signal **`L#R_SEL_DIS`** (GPIO2_IO16) routes the chip select:
+  - When `L#R_SEL_DIS` is **LOW**: chip select is routed to `CS_M` (left controller)
+  - When `L#R_SEL_DIS` is **HIGH**: chip select is routed to `CS_S` (right controller)
+
+**Current Software Implementation (CORRECTED):**
+- **CS GPIO**: 559 (GPIO2_IO15) - Single chip select line (same as DC)
+- **L/R Select GPIO**: 560 (GPIO2_IO16) - Routes CS to left/right controller
+- **Sequential Operation**: L/R select set first, then CS activated
+- **Proper Routing**: `spi_set_cs(device, 0, true)` → L/R=LOW + CS=ACTIVE (left controller)
+- **Proper Routing**: `spi_set_cs(device, 1, true)` → L/R=HIGH + CS=ACTIVE (right controller)
+
+**Implementation Details:**
+1. Single GPIO (559) controls the actual chip select signal
+2. GPIO 560 controls L/R routing before CS activation
+3. Controllers accessed sequentially (not simultaneously)
+4. Backward compatibility maintained for existing applications
+
+#### Default Configuration (Generic/Development)
+For development or unknown boards:
+- **Reset GPIO**: 8 (legacy default)
+- **Busy GPIO**: 7 (legacy default)  
+- **CS0 GPIO**: 0 (legacy default)
+- **CS1 GPIO**: 1 (legacy default)
+- **SPI Device**: `/dev/spidev1.0` (legacy default)
 
 ## Testing on Target
 
@@ -99,26 +140,40 @@ After flashing the image to your `imx93-jaguar-eink` board:
 
 ### 1. Basic Communication Test
 ```bash
-# Test SPI communication (will fail gracefully if no hardware)
-el133uf1_test --test-spi
+# Test SPI communication with correct i.MX93 GPIO numbers
+sudo el133uf1_test -d /dev/spidev0.0 -r 558 -b 561 -0 559 -1 560 --test-spi
 ```
 
 ### 2. Hardware Status Check
 ```bash
-# Read controller status (requires actual hardware)
-el133uf1_test --test-status -v
+# Read controller status with verbose output (requires actual hardware)
+sudo el133uf1_test -d /dev/spidev0.0 -r 558 -b 561 -0 559 -1 560 --test-status -v
 ```
 
 ### 3. Display Test
 ```bash
 # Display white screen (requires actual hardware)
-el133uf1_demo white
+sudo el133uf1_demo -d /dev/spidev0.0 -r 558 -b 561 -0 559 -1 560 white
 ```
 
-### 4. Custom Configuration
+### 4. Board Information
 ```bash
-# Use different GPIO pins or SPI device
-el133uf1_demo -d /dev/spidev0.0 -r 10 -b 11 white
+# Show board configuration and GPIO assignments
+el133uf1_test --board-info
+```
+
+### 5. Manual Power Control
+```bash
+# Enable display power before testing (if not automatically controlled)
+echo 555 | sudo tee /sys/class/gpio/export
+echo out | sudo tee /sys/class/gpio/gpio555/direction  
+echo 1 | sudo tee /sys/class/gpio/gpio555/value
+```
+
+### 6. Generic Configuration (Development/Unknown Boards)
+```bash
+# Use legacy GPIO numbers for development boards
+el133uf1_test --test-spi  # Uses default GPIO numbers
 ```
 
 ## Development Workflow

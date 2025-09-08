@@ -18,6 +18,7 @@
 - **Critical**: `fix_soc_imx9.cfg` - Configures ELE for proper operation
 - **Optimized**: Minimal USB/display drivers for fast boot
 - **Testing**: `docs/SPI_TESTING_GUIDE.md` - Hardware validation procedures for E-Ink display interfaces
+- **E-Ink Driver**: `eink-spectra6` recipe with corrected chip select routing implementation
 
 ## WiFi Firmware Config ✅
 - **Production**: `NXP_WIFI_SECURE_FIRMWARE="1"` → `.se` files (secure)
@@ -43,6 +44,35 @@
 ## U-Boot Config ✅
 - **Files**: `u-boot-fio/imx93-jaguar-eink/*.cfg` (SPI, I2C, custom DTB)
 - **Fix**: `disable-fiovb.cfg` prevents boot command error
+
+## E-Ink Display Integration ✅
+
+### Hardware Architecture
+- **Display**: EL133UF1 13.3" E-Ink with dual controllers (left/right)
+- **SPI Interface**: LPSPI1 (`/dev/spidev0.0`) at 10 MHz
+- **Chip Select Routing**: Single CS line + L/R select GPIO for controller routing
+- **GPIO Mapping**: Reset=558, Busy=561, DC=559, L/R=560, Power=555 (GPIO2 base=544)
+
+### Software Implementation ✅ FIXED
+- **Driver**: `eink-spectra6` recipe with corrected chip select routing
+- **Routing Logic**: L/R select GPIO set before CS activation
+- **Sequential Access**: Controllers accessed one at a time (not simultaneously)
+- **Hardware Match**: Software now correctly implements hardware design
+
+### Key Changes Applied
+1. **Fixed CS Routing**: Single CS + L/R routing instead of dual independent CS
+2. **Correct GPIO Numbers**: Updated for i.MX93 GPIO2 base address (544)
+3. **Sequential Operation**: L/R select → CS activate → SPI transfer → CS deactivate
+4. **Backward Compatibility**: Existing API maintained for applications
+
+### Testing Commands
+```bash
+# Test with corrected GPIO numbers
+sudo el133uf1_test -d /dev/spidev0.0 -r 558 -b 561 -0 559 -1 560 --test-spi
+
+# Board configuration info
+el133uf1_test --board-info
+```
 
 ## Status ✅
 - **Build**: SUCCESS (complete with 4GB partition support)
