@@ -64,9 +64,15 @@ SSH into the board and ensure SPI interfaces are available:
 ls -la /dev/spi*
 
 # Expected output:
-# /dev/spidev0.0  <- QSPI interface
-# /dev/spidev1.0  <- Standard SPI interface
+# /dev/spidev0.0  <- QSPI interface (FlexSPI1)
+# /dev/spidev1.0  <- Standard SPI interface (LPSPI1)
 ```
+
+**Note**: The device tree uses dual compatible strings:
+- Primary: `"spectra6,el133uf1-qspi"` and `"spectra6,el133uf1-spi"` for custom E-Ink drivers
+- Fallback: `"spidev"` for testing and development with standard spidev interface
+
+This allows both hardware testing with spidev tools and future custom driver development.
 
 ### Test 1: GPIO Control Signal Testing
 
