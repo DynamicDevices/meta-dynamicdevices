@@ -5,7 +5,7 @@
 ## Hardware
 - **SoC**: i.MX93, **Wireless**: ublox MAYA W2 (IW612), **Power**: MCXC143VFM
 - **Features**: WiFi 6, BT 5.4, 802.15.4, LTE modem, 13" E-ink display
-- **Security**: EdgeLock Enclave (ELE) required for secure functionality, Cortex-M33 not used
+- **Security**: EdgeLock Enclave (ELE) enabled for secure functionality, Cortex-M33 enabled for co-processing
 
 ## Pin Mapping ✅
 - **WiFi SDIO**: USDHC2 (SD2_CLK/CMD/DATA[0-3]), IRQ: GPIO4_IO25, RST: GPIO4_IO26
@@ -26,6 +26,7 @@
 ## WiFi Fixes ✅
 - **Firmware Loading**: Fixed signed builds with explicit `fw_name` module parameter
 - **Reboot Stability**: Fixed GPIO4_26 conflict, removed regulator GPIO control
+- **Interface Management**: `mlan0` kept down by default, `uap0` ignored by NetworkManager
 
 ## Hostname Generation ✅
 - **Solution**: Uses Foundries `lmp-auto-hostname` service (built-in)
@@ -42,6 +43,7 @@
 - **WiFi**: WORKING (firmware loading, reboot stability fixed)
 - **Hostname**: WORKING (OCOTP + lmp-auto-hostname)
 - **EdgeLock Enclave**: WORKING (secure functionality confirmed)
+- **Cortex-M33**: ENABLED (remoteproc and RPMSG support configured)
 - **Partition Size**: FIXED (4GB root partition prevents image overflow)
 
 ## Boot Fixes ✅
@@ -49,6 +51,13 @@
 - **Boot Script**: Explicit `fdt_file` setting in boot.cmd for reliable device tree loading
 - **Partition Size**: Custom WIC file `imx93-jaguar-eink-large.wks` with 4GB root partition
 - **Image Size**: `IMAGE_ROOTFS_EXTRA_SPACE` increased to prevent "Image too large" errors
+
+## EdgeLock Enclave & Cortex-M33 Configuration ✅
+- **ELE Memory Region**: `ele_reserved@90000000` (1MB) for secure enclave operations
+- **M33 Memory Regions**: Resource table, vring buffers, and 16MB non-cacheable section
+- **Device Tree**: `s4muap` enabled for ELE Message Unit, `imx93_cm33` configured for remoteproc
+- **Kernel Config**: `fix_soc_imx9.cfg` enables ELE support, `enable_m33_support.cfg` adds remoteproc/RPMSG
+- **Communication**: RPMSG framework for inter-processor communication with M33 core
 
 ## TODO: Dynamic Partition Sizing
 - **GitHub Issue**: [#20](https://github.com/DynamicDevices/meta-dynamicdevices/issues/20)
