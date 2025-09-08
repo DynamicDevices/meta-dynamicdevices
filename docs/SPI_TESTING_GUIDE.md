@@ -13,6 +13,12 @@ This document provides test procedures for validating the E-Ink display SPI inte
 
 ## Hardware Configuration
 
+### Current Working Status ✅❌
+- ✅ **FlexSPI1 (QSPI)**: `/dev/spidev0.0` - **WORKING** - Primary interface for E-Ink display
+- ❌ **LPSPI1 (Standard SPI)**: Not available - Backup interface (driver binding issue)
+
+**Result**: The primary QSPI interface is functional and sufficient for E-Ink display testing.
+
 ### Board Switch Settings
 
 Before testing, configure the hardware switches:
@@ -64,15 +70,14 @@ SSH into the board and ensure SPI interfaces are available:
 ls -la /dev/spi*
 
 # Expected output:
-# /dev/spidev0.0  <- QSPI interface (FlexSPI1)
-# /dev/spidev1.0  <- Standard SPI interface (LPSPI1)
+# /dev/spidev0.0  <- QSPI interface (FlexSPI1) - PRIMARY INTERFACE
 ```
 
-**Note**: The device tree uses dual compatible strings:
-- Primary: `"spectra6,el133uf1-qspi"` and `"spectra6,el133uf1-spi"` for custom E-Ink drivers
-- Fallback: `"spidev"` for testing and development with standard spidev interface
+**Current Status**:
+- ✅ **FlexSPI1 (QSPI)**: `/dev/spidev0.0` - **Working and preferred for E-Ink display**
+- ❌ **LPSPI1 (Standard SPI)**: Not available - backup interface, not critical
 
-This allows both hardware testing with spidev tools and future custom driver development.
+**Note**: The device tree uses `"spidev"` compatible strings for direct hardware testing access. The FlexSPI1 QSPI interface is the primary interface for the E-Ink display and provides higher performance with quad data lines.
 
 ### Test 1: GPIO Control Signal Testing
 
@@ -126,7 +131,9 @@ echo 74 > /sys/class/gpio/unexport
 echo 75 > /sys/class/gpio/unexport
 ```
 
-### Test 2: QSPI Interface Testing
+### Test 2: QSPI Interface Testing ✅
+
+**Status**: FlexSPI1 QSPI interface is working as `/dev/spidev0.0`
 
 Test the QSPI interface with various data patterns:
 
