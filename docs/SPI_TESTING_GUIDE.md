@@ -14,24 +14,23 @@ This document provides test procedures for validating the E-Ink display SPI inte
 ## Hardware Configuration
 
 ### Current Working Status ✅❌
-- ⚠️ **FlexSPI1 (QSPI)**: `/dev/spidev0.0` - **Device exists but not compatible with standard SPI tools**
-- ❌ **LPSPI1 (Standard SPI)**: Not available - Backup interface (driver binding issue)
+- ❌ **FlexSPI1 (QSPI)**: **DISABLED** - Not compatible with standard SPI tools (see FlexSPI incompatibility section)
+- ✅ **LPSPI1 (Standard SPI)**: **PRIMARY** - Should create `/dev/spidev1.0` for standard SPI testing
 
-**Important**: FlexSPI controller is designed for flash memory operations, not standard SPI communication. Standard spidev tools (like `spidev_test`) will fail with "Unknown error 524" because the FlexSPI driver doesn't implement standard SPI transfer operations.
+**Configuration Change**: FlexSPI1 has been **disabled** in the device tree to avoid conflicts. LPSPI1 is now the **primary** interface for E-Ink display testing with standard SPI tools.
 
-**Result**: Standard SPI testing tools cannot be used with the current configuration. Custom FlexSPI-specific tools or LPSPI1 interface would be needed for proper SPI testing.
+**Expected Result**: With this configuration, `/dev/spidev1.0` should be available for standard SPI testing tools like `spidev_test`.
 
 ### Board Switch Settings
 
-Before testing, configure the hardware switches:
+For **LPSPI1 (Standard SPI)** testing, configure the hardware switches:
 
-**For QSPI Testing:**
-- Board SPI Mode Switches: 4=X, 3=ON, 2=ON, 1=OFF
-- Display Mode Switches: BS1=OFF, BS0=OFF
-
-**For Standard SPI Testing:**
+**Current Configuration - Standard SPI:**
 - Board SPI Mode Switches: 4=X, 3=OFF, 2=ON, 1=ON  
 - Display Mode Switches: BS1=OFF, BS0=ON
+
+**Note**: QSPI mode is disabled in software but preserved for reference:
+- QSPI switches would be: 4=X, 3=ON, 2=ON, 1=OFF (BS1=OFF, BS0=OFF)
 
 ### Signal Connections for Oscilloscope/Logic Analyzer
 
@@ -133,18 +132,19 @@ echo 74 > /sys/class/gpio/unexport
 echo 75 > /sys/class/gpio/unexport
 ```
 
-### Test 2: QSPI Interface Testing ⚠️
+### Test 2: QSPI Interface Testing ❌ (Disabled)
 
-**Status**: FlexSPI1 QSPI interface device exists as `/dev/spidev0.0` but is **not compatible with standard SPI tools**
+**Status**: FlexSPI1 QSPI interface is **DISABLED** in device tree for standard SPI testing
 
-**Known Issue**: Standard SPI testing tools will fail with this interface:
+**Configuration**: FlexSPI1 has been disabled to avoid conflicts with standard SPI tools and to focus testing on LPSPI1.
+
+**Previous Issue**: When enabled, FlexSPI1 was not compatible with standard SPI tools:
 
 ```bash
-# This will FAIL with "Unknown error 524"
+# These commands would FAIL when FlexSPI1 was enabled:
 spidev_test -D /dev/spidev0.0 -s 100000
 # Output: can't send spi message: Unknown error 524
 
-# This will also FAIL
 echo -n -e '\x9f' > /dev/spidev0.0
 # Output: write error: Unknown error 524
 ```
@@ -181,9 +181,23 @@ for i in {1..100}; do
 done
 ```
 
-### Test 3: Standard SPI Interface Testing
+### Test 3: Standard SPI Interface Testing ✅ (Primary)
 
-Test the standard SPI interface:
+**Status**: LPSPI1 is now the **primary** interface for E-Ink display testing
+
+**Expected Device**: `/dev/spidev1.0` (LPSPI1)
+
+**Pre-Test Check**:
+```bash
+# Verify spidev device exists
+ls -la /dev/spidev1.0
+# Expected: /dev/spidev1.0
+
+# Check SPI device in sysfs
+ls -la /sys/bus/spi/devices/spi1.0
+```
+
+**SPI Communication Tests**:
 
 ```bash
 # Test standard SPI with simple data pattern
