@@ -37,15 +37,30 @@
 - **Fix**: `disable-fiovb.cfg` prevents boot command error
 
 ## Status ✅
-- **Build**: SUCCESS (7369 tasks, minor warnings only)
-- **Boot**: SUCCESS (manual fdt_file setting)
+- **Build**: SUCCESS (complete with 4GB partition support)
+- **Boot**: SUCCESS (automatic device tree loading fixed)
 - **WiFi**: WORKING (firmware loading, reboot stability fixed)
 - **Hostname**: WORKING (OCOTP + lmp-auto-hostname)
+- **EdgeLock Enclave**: WORKING (secure functionality confirmed)
+- **Partition Size**: FIXED (4GB root partition prevents image overflow)
+
+## Boot Fixes ✅
+- **U-Boot DTB**: Added missing `01-customise-dtb.patch` to set `fdt_file=imx93-jaguar-eink.dtb`
+- **Boot Script**: Explicit `fdt_file` setting in boot.cmd for reliable device tree loading
+- **Partition Size**: Custom WIC file `imx93-jaguar-eink-large.wks` with 4GB root partition
+- **Image Size**: `IMAGE_ROOTFS_EXTRA_SPACE` increased to prevent "Image too large" errors
+
+## TODO: Dynamic Partition Sizing
+- **Optimization**: Replace fixed 4GB partition with calculated size + auto-resize on boot
+- **Benefits**: Smaller image files, faster flashing, automatic expansion to available space
+- **Implementation**: Use systemd-growfs or similar to expand root partition on first boot
+- **WIC Enhancement**: Calculate minimum required size based on actual rootfs content
 
 ## Implementation Notes
 - **Wireless**: IW612 MOAL/MLAN drivers, 802.15.4 subsystem, BT UART HCI
 - **Power**: MCXC143VFM controller, fixed regulators, shared BT/ZB reset
 - **Removed**: Audio, camera, HDMI/DSI, dual ethernet, extra USB
+- **Security**: EdgeLock Enclave enabled and functional for secure operations
 - **Security**: EdgeLock Enclave (ELE) enabled for secure functionality, Cortex-M33 disabled, ELE-based OCOTP for fuse access
 
 ## Fixed Issues ✅
