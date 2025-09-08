@@ -51,6 +51,7 @@
 - **Image Size**: `IMAGE_ROOTFS_EXTRA_SPACE` increased to prevent "Image too large" errors
 
 ## TODO: Dynamic Partition Sizing
+- **GitHub Issue**: [#20](https://github.com/DynamicDevices/meta-dynamicdevices/issues/20)
 - **Optimization**: Replace fixed 4GB partition with calculated size + auto-resize on boot
 - **Benefits**: Smaller image files, faster flashing, automatic expansion to available space
 - **Implementation**: Use systemd-growfs or similar to expand root partition on first boot
