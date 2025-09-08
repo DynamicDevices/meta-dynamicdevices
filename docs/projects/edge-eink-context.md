@@ -9,7 +9,7 @@
 
 ## Pin Mapping ✅
 - **WiFi SDIO**: USDHC2 (SD2_CLK/CMD/DATA[0-3]), IRQ: GPIO4_IO25, RST: GPIO4_IO26
-- **802.15.4 SPI**: LPSPI3 (GPIO_IO08-11), IRQ: GPIO4_IO27, RST: GPIO4_IO24  
+- **802.15.4 SPI**: LPSPI3 (GPIO_IO08-11), IRQ: GPIO4_IO27, RST: GPIO4_IO24 ✅ CONFIGURED
 - **Bluetooth UART**: LPUART5 (DAP_TDO/TDI/TCLK/TMS pins)
 
 ## Key Files ✅
@@ -67,12 +67,30 @@
 
 ### Testing Commands
 ```bash
-# Test with corrected GPIO numbers
+# Test E-Ink with corrected GPIO numbers
 sudo el133uf1_test -d /dev/spidev0.0 -r 558 -b 561 -0 559 -1 560 --test-spi
 
 # Board configuration info
 el133uf1_test --board-info
+
+# Test 802.15.4 SPI interface
+ls -la /dev/spidev2.0
+echo -n -e '\x55' | spi-pipe -d /dev/spidev2.0 -s 1000000 -b 8
 ```
+
+## 802.15.4 Interface ✅ CONFIGURED
+
+### Hardware Configuration
+- **SPI Interface**: LPSPI3 (`/dev/spidev2.0`) at 12 MHz
+- **Pin Mapping**: GPIO_IO08 (CS), GPIO_IO09 (MOSI), GPIO_IO10 (MISO), GPIO_IO11 (SCK)
+- **Interrupt**: GPIO4_IO27 (ENET2_RD3) - ZB_INT signal
+- **Reset**: Shared with Bluetooth (GPIO4_IO24, controlled by MCXC143VFM)
+
+### Software Implementation ✅ ADDED
+- **Device Tree**: LPSPI3 configured with proper pinctrl settings
+- **SPI Device**: `/dev/spidev2.0` available for 802.15.4 communication
+- **IW612 Support**: ublox MAYA W2 module provides 802.15.4 functionality
+- **Kernel Config**: 802.15.4 subsystem enabled in kernel configuration
 
 ## Status ✅
 - **Build**: SUCCESS (complete with 4GB partition support)
