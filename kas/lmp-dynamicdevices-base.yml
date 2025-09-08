@@ -43,3 +43,8 @@ local_conf_header:
      SIGNING_MODSIGN_X509 = "${TOPDIR}/bitbake.lock"
      OPTEE_TA_SIGN_KEY = "${TOPDIR}/bitbake.lock"
      TF_A_SIGN_KEY_PATH = "${TOPDIR}/bitbake.lock"
+     
+     # Disable SPDX generation to avoid build failures
+     CREATE_SPDX:forcevariable = "0"
+     INHERIT:remove = "create-spdx"
+     INHERIT:remove = "spdx"

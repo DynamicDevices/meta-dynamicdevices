@@ -17,4 +17,4 @@ then
   chmod 755 ~/yocto/persistent
   chmod 755 ~/yocto/sstate
 fi
-kas-container --runtime-args "-v ${HOME}/yocto:/var/cache" build kas/lmp-dynamicdevices-base.yml
+kas-container --ssh-agent --ssh-dir ${HOME}/.ssh --runtime-args "-v ${HOME}/yocto:/var/cache" build kas/lmp-dynamicdevices-base.yml

@@ -5,7 +5,7 @@
 ## Hardware
 - **SoC**: i.MX93, **Wireless**: ublox MAYA W2 (IW612), **Power**: MCXC143VFM
 - **Features**: WiFi 6, BT 5.4, 802.15.4, LTE modem, 13" E-ink display
-- **Security**: ELE/Cortex-M33 not used
+- **Security**: EdgeLock Enclave (ELE) required for secure functionality, Cortex-M33 not used
 
 ## Pin Mapping ✅
 - **WiFi SDIO**: USDHC2 (SD2_CLK/CMD/DATA[0-3]), IRQ: GPIO4_IO25, RST: GPIO4_IO26
@@ -15,7 +15,7 @@
 ## Key Files ✅
 - **DT**: `lmp-device-tree/imx93-jaguar-eink.dts` - Complete rewrite for MAYA W2
 - **Kernel**: `linux-lmp-fslc-imx/imx93-jaguar-eink/*.cfg` - WiFi/BT/802.15.4/LTE configs
-- **Critical**: `fix_soc_imx9.cfg` - Prevents ELE kernel panic
+- **Critical**: `fix_soc_imx9.cfg` - Configures ELE for proper operation
 - **Optimized**: Minimal USB/display drivers for fast boot
 
 ## WiFi Firmware Config ✅
@@ -46,7 +46,7 @@
 - **Wireless**: IW612 MOAL/MLAN drivers, 802.15.4 subsystem, BT UART HCI
 - **Power**: MCXC143VFM controller, fixed regulators, shared BT/ZB reset
 - **Removed**: Audio, camera, HDMI/DSI, dual ethernet, extra USB
-- **Security**: ELE/Cortex-M33 disabled, standard OCOTP for fuse access
+- **Security**: EdgeLock Enclave (ELE) enabled for secure functionality, Cortex-M33 disabled, ELE-based OCOTP for fuse access
 
 ## Fixed Issues ✅
 - Machine config syntax, module autoloading, ZigBee support

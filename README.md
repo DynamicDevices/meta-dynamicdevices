@@ -186,9 +186,9 @@ export KAS_MACHINE=imx8mm-jaguar-sentai
 # Program board (RECOMMENDED: Use Foundries.io programming)
 ./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder program
 
-# Alternative: Local build programming (advanced users only)
+# Alternative: Local build programming (development only)
 # Note: This uses locally built images, not production Foundries.io builds
-# KAS_MACHINE=sentai ./scripts/program.sh  # DEPRECATED - DO NOT USE
+./scripts/program-local-build.sh --machine imx8mm-jaguar-sentai
 ```
 
 ## 📚 Documentation
@@ -235,6 +235,143 @@ export KAS_MACHINE=imx8mm-jaguar-sentai
 - **Docker** - Container runtime for isolated build environment
 - **USB-C Power** - Required for proper board operation
 - **UUU Tool** - For board programming and recovery
+
+## 🔨 Building from Source
+
+### Quick Build Commands
+
+```bash
+# Build for E-Ink board
+KAS_MACHINE=imx93-jaguar-eink ./scripts/kas-build-base.sh
+
+# Build for Audio board
+KAS_MACHINE=imx8mm-jaguar-sentai ./scripts/kas-build-base.sh
+
+# Enhanced build with options
+./scripts/kas-build-base-enhanced.sh -m imx93-jaguar-eink -j 8 -v
+```
+
+### 🔐 Building with Private Repositories
+
+Some recipes in this layer access private repositories (e.g., `eink-spectra6`). To build these successfully, you need SSH key access:
+
+#### **Prerequisites for Private Repository Access**
+
+1. **SSH Key Setup**:
+   ```bash
+   # Ensure you have SSH keys configured for GitHub
+   ssh -T git@github.com
+   # Should show: "Hi username! You've successfully authenticated..."
+   ```
+
+2. **SSH Agent Running**:
+   ```bash
+   # Start SSH agent if not running
+   eval "$(ssh-agent -s)"
+   
+   # Add your SSH key
+   ssh-add ~/.ssh/id_rsa  # or your specific key file
+   
+   # Verify key is loaded
+   ssh-add -l
+   ```
+
+#### **Build Process with SSH Keys**
+
+The build scripts automatically handle SSH key forwarding to the kas-container:
+
+```bash
+# The scripts automatically detect and forward SSH keys
+KAS_MACHINE=imx93-jaguar-eink ./scripts/kas-build-base.sh
+```
+
+**What happens automatically**:
+- ✅ SSH agent forwarding (`--ssh-agent`)
+- ✅ SSH directory mounting (`--ssh-dir ~/.ssh`)
+- ✅ Proper container permissions
+- ✅ GitHub host key handling
+
+#### **Troubleshooting SSH Issues**
+
+If you encounter SSH-related build errors:
+
+1. **Verify SSH Access**:
+   ```bash
+   # Test GitHub access
+   ssh -T git@github.com
+   ```
+
+2. **Check SSH Agent**:
+   ```bash
+   # Verify SSH agent is running
+   echo $SSH_AUTH_SOCK
+   
+   # List loaded keys
+   ssh-add -l
+   ```
+
+3. **Debug in Container**:
+   ```bash
+   # Enter build container shell
+   ./scripts/kas-shell-base.sh
+   
+   # Inside container, test SSH
+   ssh -T git@github.com
+   ```
+
+4. **Manual SSH Setup** (if automatic detection fails):
+   ```bash
+   # Ensure SSH directory exists and has correct permissions
+   chmod 700 ~/.ssh
+   chmod 600 ~/.ssh/id_rsa
+   chmod 644 ~/.ssh/id_rsa.pub
+   ```
+
+#### **CI/CD Considerations**
+
+For automated builds in CI/CD environments:
+
+- **GitHub Actions**: Use `ssh-agent` action to load deploy keys
+- **GitLab CI**: Configure SSH keys in CI/CD variables
+- **Jenkins**: Use SSH Agent plugin with credential management
+
+### Build Artifacts
+
+After successful build, artifacts are available in:
+```
+build/tmp/deploy/images/[machine]/
+├── lmp-factory-image-[machine].wic.gz  # Main system image
+├── imx-boot-[machine]                   # Bootloader
+└── u-boot-[machine].itb                # U-Boot image
+```
+
+### 🔧 Programming Local Builds
+
+After building locally, you can program your board with the development image:
+
+```bash
+# Program local build (development/testing)
+./scripts/program-local-build.sh --machine imx93-jaguar-eink
+
+# Alternative: Using environment variable
+KAS_MACHINE=imx93-jaguar-eink ./scripts/program-local-build.sh
+
+# For other machines
+./scripts/program-local-build.sh --machine imx8mm-jaguar-sentai
+./scripts/program-local-build.sh --machine imx8mm-jaguar-phasora
+```
+
+**Prerequisites for local programming**:
+1. **Build completed successfully** - Run `kas-build-base.sh` first
+2. **Board in download mode** - Set DIP switches and connect USB
+3. **UUU tool available** - Should be in `program/` directory
+4. **Root privileges** - UUU requires sudo access
+
+**Important Notes**:
+- 🔧 **Development Only**: Local builds are for development and testing
+- 🏭 **Production**: Use `fio-program-board.sh` for production deployments
+- ⚠️ **No OTA**: Local builds don't include Foundries.io OTA capabilities
+- 🔒 **Security**: Local builds may have different security configurations
 
 ## 🔒 Licensing
 

@@ -35,4 +35,5 @@ then
 fi
 
 # Pass KAS_MACHINE to kas-container to override the machine in the config file
-kas-container --runtime-args "-v ${HOME}/yocto:/var/cache -e KAS_MACHINE=$KAS_MACHINE" build kas/lmp-dynamicdevices-mfgtool.yml
+# Include SSH support for private repositories
+kas-container --ssh-agent --ssh-dir ${HOME}/.ssh --runtime-args "-v ${HOME}/yocto:/var/cache -e KAS_MACHINE=$KAS_MACHINE" build kas/lmp-dynamicdevices-mfgtool.yml

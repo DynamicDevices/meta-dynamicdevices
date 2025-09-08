@@ -250,12 +250,20 @@ run_kas_build() {
     log_info "Using cache directory: $cache_dir"
     log_info "KAS configuration: $kas_config"
     
-    # Build kas-container command
+    # Build kas-container command with SSH support for private repositories
     local kas_cmd=(
         "kas-container"
         "--runtime-args"
         "-v ${cache_dir}:/var/cache -e KAS_MACHINE=$machine"
     )
+    
+    # Add SSH support for private repositories
+    if [ -n "${SSH_AUTH_SOCK:-}" ] && [ -d "${HOME}/.ssh" ]; then
+        kas_cmd=("kas-container" "--ssh-agent" "--ssh-dir" "${HOME}/.ssh" "--runtime-args" "-v ${cache_dir}:/var/cache -e KAS_MACHINE=$machine")
+        log_info "SSH agent and SSH directory forwarding enabled for private repositories"
+    else
+        log_warn "SSH_AUTH_SOCK not set or ~/.ssh directory not found - private repository access may fail"
+    fi
     
     # Add environment variables for parallel builds
     if [ -n "${BB_NUMBER_THREADS:-}" ]; then
