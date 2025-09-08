@@ -14,10 +14,12 @@ This document provides test procedures for validating the E-Ink display SPI inte
 ## Hardware Configuration
 
 ### Current Working Status ✅❌
-- ✅ **FlexSPI1 (QSPI)**: `/dev/spidev0.0` - **WORKING** - Primary interface for E-Ink display
+- ⚠️ **FlexSPI1 (QSPI)**: `/dev/spidev0.0` - **Device exists but not compatible with standard SPI tools**
 - ❌ **LPSPI1 (Standard SPI)**: Not available - Backup interface (driver binding issue)
 
-**Result**: The primary QSPI interface is functional and sufficient for E-Ink display testing.
+**Important**: FlexSPI controller is designed for flash memory operations, not standard SPI communication. Standard spidev tools (like `spidev_test`) will fail with "Unknown error 524" because the FlexSPI driver doesn't implement standard SPI transfer operations.
+
+**Result**: Standard SPI testing tools cannot be used with the current configuration. Custom FlexSPI-specific tools or LPSPI1 interface would be needed for proper SPI testing.
 
 ### Board Switch Settings
 
@@ -131,14 +133,33 @@ echo 74 > /sys/class/gpio/unexport
 echo 75 > /sys/class/gpio/unexport
 ```
 
-### Test 2: QSPI Interface Testing ✅
+### Test 2: QSPI Interface Testing ⚠️
 
-**Status**: FlexSPI1 QSPI interface is working as `/dev/spidev0.0`
+**Status**: FlexSPI1 QSPI interface device exists as `/dev/spidev0.0` but is **not compatible with standard SPI tools**
 
-Test the QSPI interface with various data patterns:
+**Known Issue**: Standard SPI testing tools will fail with this interface:
 
 ```bash
-# Install spi-tools if not available
+# This will FAIL with "Unknown error 524"
+spidev_test -D /dev/spidev0.0 -s 100000
+# Output: can't send spi message: Unknown error 524
+
+# This will also FAIL
+echo -n -e '\x9f' > /dev/spidev0.0
+# Output: write error: Unknown error 524
+```
+
+**Root Cause**: FlexSPI controller (nxp-fspi driver) is designed for flash memory operations, not standard SPI transfers. It doesn't implement the standard SPI transfer functions that spidev requires.
+
+**Alternative Testing Approaches**:
+
+1. **GPIO Signal Testing**: Test the GPIO control pins instead of SPI data transfer
+2. **Hardware Validation**: Use oscilloscope to verify pin assignments and signal integrity  
+3. **Custom FlexSPI Tools**: Develop FlexSPI-specific testing tools for flash operations
+4. **LPSPI1 Interface**: Fix the LPSPI1 driver binding for standard SPI testing
+
+```bash
+# Install spi-tools if not available (won't work with FlexSPI)
 # opkg install spi-tools
 
 # Test QSPI with simple data pattern
