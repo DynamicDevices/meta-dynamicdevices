@@ -1,9 +1,0 @@
-# U-Boot environment fix for imx93-jaguar-eink
-# Save this to the board's U-Boot environment to permanently set fdt_file
-
-# At U-Boot prompt, run these commands:
-setenv fdt_file imx93-jaguar-eink.dtb
-saveenv
-
-# Or add to uEnv.txt on boot partition:
-# fdt_file=imx93-jaguar-eink.dtb
