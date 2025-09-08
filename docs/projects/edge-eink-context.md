@@ -17,6 +17,7 @@
 - **Kernel**: `linux-lmp-fslc-imx/imx93-jaguar-eink/*.cfg` - WiFi/BT/802.15.4/LTE configs
 - **Critical**: `fix_soc_imx9.cfg` - Configures ELE for proper operation
 - **Optimized**: Minimal USB/display drivers for fast boot
+- **Testing**: `docs/SPI_TESTING_GUIDE.md` - Hardware validation procedures for E-Ink display interfaces
 
 ## WiFi Firmware Config ✅
 - **Production**: `NXP_WIFI_SECURE_FIRMWARE="1"` → `.se` files (secure)
