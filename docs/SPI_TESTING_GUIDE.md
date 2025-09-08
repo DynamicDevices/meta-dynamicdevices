@@ -138,32 +138,33 @@ echo 75 > /sys/class/gpio/unexport
 
 **Configuration**: FlexSPI1 has been disabled to avoid conflicts with standard SPI tools and to focus testing on LPSPI1.
 
-**Previous Issue**: When enabled, FlexSPI1 was not compatible with standard SPI tools:
+**FIXED**: SPI device is now properly configured and working on i.MX93 E-Ink board.
+
+## Device Tree Configuration Fix
+
+The issue was resolved by fixing the device tree configuration:
+
+1. **Machine Configuration**: Added missing `KERNEL_MODULE_AUTOLOAD:imx93-jaguar-eink = " spidev"`
+2. **Device Tree Compatible**: Changed from `"spidev"` to `"rohm,dh2228fv"` for proper driver binding
+3. **Interface Selection**: Using LPSPI1 (standard SPI) instead of FlexSPI1 (memory-mapped interface)
+
+**Current Working Configuration**:
+- **SPI Controller**: LPSPI1 at address `44360000.spi` (mapped as `spi0`)
+- **Device Node**: `/dev/spidev0.0` (automatically created after boot)
+- **Max Speed**: 10 MHz (configurable up to higher speeds)
+- **Mode**: Standard SPI with CPHA and CPOL support
+- **GPIO Control**: Reset, DC, Busy, and LR-select pins properly configured
+
+**FlexSPI vs LPSPI**:
+- **FlexSPI**: Memory-mapped interface for flash devices, uses MTD subsystem (`/dev/mtd*`)
+- **LPSPI**: Standard SPI controller, uses spidev subsystem (`/dev/spidev*`)
 
 ```bash
-# These commands would FAIL when FlexSPI1 was enabled:
-spidev_test -D /dev/spidev0.0 -s 100000
-# Output: can't send spi message: Unknown error 524
-
-echo -n -e '\x9f' > /dev/spidev0.0
-# Output: write error: Unknown error 524
-```
-
-**Root Cause**: FlexSPI controller (nxp-fspi driver) is designed for flash memory operations, not standard SPI transfers. It doesn't implement the standard SPI transfer functions that spidev requires.
-
-**Alternative Testing Approaches**:
-
-1. **GPIO Signal Testing**: Test the GPIO control pins instead of SPI data transfer
-2. **Hardware Validation**: Use oscilloscope to verify pin assignments and signal integrity  
-3. **Custom FlexSPI Tools**: Develop FlexSPI-specific testing tools for flash operations
-4. **LPSPI1 Interface**: Fix the LPSPI1 driver binding for standard SPI testing
-
-```bash
-# Install spi-tools if not available (won't work with FlexSPI)
+# Install spi-tools if not available
 # opkg install spi-tools
 
-# Test QSPI with simple data pattern
-# This will generate clock and data signals on all 4 QSPI lines
+# Test SPI with simple data pattern
+# This will generate clock and data signals on LPSPI1
 
 # Single byte test - should see 8 clock pulses
 echo -n -e '\x55' | spi-pipe -d /dev/spidev0.0 -s 1000000 -b 8
@@ -294,6 +295,40 @@ spi-pipe -d /dev/spidev0.0 -s 1000000 -b 8 -r 4 <<< $'\x9F\x00\x00\x00'
 - **Jitter**: < 5% of clock period
 
 ## Troubleshooting
+
+### SPI Device Not Found (FIXED)
+
+**Issue**: `/dev/spidev0.0` doesn't exist after boot
+
+**Root Cause**: Missing kernel module autoload and incorrect device tree compatible string
+
+**Solution Applied**:
+1. **Machine Configuration Fix** (`imx93-jaguar-eink.conf`):
+   ```
+   KERNEL_MODULE_AUTOLOAD:imx93-jaguar-eink = " spidev"
+   ```
+
+2. **Device Tree Fix** (`imx93-jaguar-eink.dts`):
+   ```dts
+   eink_display_spi: eink@0 {
+       compatible = "rohm,dh2228fv";  // Changed from "spidev"
+       reg = <0>;
+       spi-max-frequency = <10000000>;
+       // ... rest of configuration
+   };
+   ```
+
+**Manual Workaround** (if needed on older builds):
+```bash
+# Set driver override
+echo spidev | sudo tee /sys/bus/spi/devices/spi0.0/driver_override
+
+# Bind the driver
+echo spi0.0 | sudo tee /sys/bus/spi/drivers/spidev/bind
+
+# Fix permissions
+sudo chmod 666 /dev/spidev0.0
+```
 
 ### Common Issues
 
