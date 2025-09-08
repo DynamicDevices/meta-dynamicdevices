@@ -242,10 +242,15 @@ fi
 cd "${MFGTOOL_DIR}"
 
 # Run UUU with the locally built script (using relative paths since we're in mfgtool directory)
+echo "Starting UUU programming..."
 if [[ $EUID -eq 0 ]]; then
-    ./uuu full_image.uuu
+    ./uuu full_image.uuu || {
+        echo "UUU completed with exit code $?, but programming may have succeeded"
+    }
 else
-    sudo ./uuu full_image.uuu
+    sudo ./uuu full_image.uuu || {
+        echo "UUU completed with exit code $?, but programming may have succeeded"
+    }
 fi
 
 echo ""
