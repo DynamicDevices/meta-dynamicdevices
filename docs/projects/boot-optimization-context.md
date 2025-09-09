@@ -98,6 +98,24 @@ Systemd: ~0.1s (22.8s → 22.9s) ✅ GOOD
 Total: 22.7s ❌ CRITICAL - 15x over target
 ```
 
+### Optimized Measurements ✅ (2025-01-15)
+```
+Board: i.MX93 Jaguar E-Ink (with ELE debugging)
+U-Boot: 2.9s (5.0s → 7.9s) ✅ IMPROVED - 38% faster
+Kernel: 3.5s (7.9s → 11.4s) ✅ STABLE
+Systemd: ~0.1s (11.4s → 11.5s) ✅ GOOD
+Total: 11.5s ✅ MAJOR IMPROVEMENT - 49% faster (11.2s saved)
+```
+
+### Optimization Results Summary
+- **Total Improvement**: 11.2 seconds faster (49% reduction)
+- **U-Boot Improvements**: 1.8s faster (38% reduction)
+  - Ethernet removal: ~0.5s savings
+  - Boot delay reduction: 3s → 1s = 2s savings  
+  - Reduced initialization overhead
+- **ELE Functionality**: ✅ Preserved with essential commands
+- **Programming**: ✅ Fixed UUU compatibility with fastboot re-enabled
+
 ### U-Boot Recipe Architecture ✅
 
 #### **Local Development Builds (`kas build`)**
