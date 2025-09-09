@@ -1,9 +1,0 @@
-[Unit]
-Description=CE wifi/bt testing
-
-[Service]
-User=root
-ExecStart=/bin/bash /usr/bin/ce-wifi-bt-test.sh
-
-[Install]
-WantedBy=multi-user.target

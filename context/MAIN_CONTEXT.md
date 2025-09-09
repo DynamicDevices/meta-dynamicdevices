@@ -147,8 +147,9 @@ scripts\fio-program-board.bat /factory dynamic-devices /machine imx93-jaguar-ein
 - **🔧 i.MX93 Fix**: Correct bootloader prevents "image too large"
 
 ## Documentation
-- **Context**: `docs/projects/*-context.md` (project details)
-- **Wiki**: `wiki/` (user documentation)
+- **AI Context**: `context/` (AI assistant context files)
+- **Technical Docs**: `docs/` (layer architecture, compliance, templates)
+- **User Guides**: `wiki/` (testing, development, setup guides)
 - **Board Programming**: `wiki/Board-Programming-with-Foundries-Builds.md`
 - **Contributing**: `CONTRIBUTING.md`
 

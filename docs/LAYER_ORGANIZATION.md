@@ -25,6 +25,58 @@ meta-dynamicdevices/
 └── ...                               # Other project files
 ```
 
+## Layer Separation and Content Organization
+
+### 🏗️ meta-dynamicdevices-bsp (BSP Layer)
+- **Purpose**: Hardware-specific Board Support Package
+- **Priority**: 12 (highest - hardware foundation)
+- **Contains**: 
+  - **Machine configurations** (`conf/machine/`)
+  - **Device trees and kernel patches** (`recipes-kernel/`, `recipes-bsp/device-tree/`)
+  - **Board-specific audio** (ALSA, PulseAudio hardware configurations)
+  - **Hardware testing** (CE testing, ELE testing, board validation)
+  - **Board-specific power management** (WiFi power optimization)
+  - **Hardware-specific network policies** (iptables rules per board)
+  - **Board-specific device registration** (machine-specific scripts)
+  - **Container configurations** with hardware dependencies
+
+### 🎛️ meta-dynamicdevices-distro (Distribution Layer)
+- **Purpose**: Distribution policies and system configuration
+- **Priority**: 10 (lowest - policy overlay)
+- **Contains**:
+  - **Distribution definitions** (`lmp-dynamicdevices`, `lmp-dynamicdevices-base`, etc.)
+  - **Boot signing policies** (systemd-boot with lmp-signing-override)
+  - **Security policies** (OP-TEE, SE050/ELE configuration per distro)
+  - **OTA update policies** (aktualizr configuration)
+  - **Development feature policies** (GDB TUI support)
+  - **Image recipes and feature includes** (`recipes-samples/images/`)
+  - **License policies** (commercial license acceptance)
+
+### 📱 meta-dynamicdevices (Main Application Layer)
+- **Purpose**: Generic applications and middleware
+- **Priority**: 11 (middle - applications over hardware, under policies)
+- **Contains**: 
+  - **Connectivity applications** (UWB MQTT publisher, wireless tools, modem manager)
+  - **Development tools** (Python packages, Meson build system)
+  - **Support services** (boot profiling, network management, WiFi hotspot)
+  - **Multimedia applications** (DTMF decoder)
+  - **Generic libraries** (libgbinder, libglibutil)
+  - **Container support** (Waydroid - generic Android support)
+  - **Build infrastructure** (KAS configurations, scripts, documentation)
+
+### Layer Separation Principles
+
+**Each layer has a clear, distinct purpose:**
+- **BSP Layer** = "What hardware do I have?" (machines, drivers, board-specific configs)
+- **Distro Layer** = "What policies do I want?" (security, boot, updates, features)
+- **Main Layer** = "What applications do I need?" (generic software, libraries, tools)
+
+This follows Yocto Project best practices:
+- ✅ **Clean separation of concerns**
+- ✅ **No cross-layer dependencies for wrong reasons**
+- ✅ **Proper layer priorities and organization**
+- ✅ **Yocto Project Compatible structure**
+
 ## Layer Types
 
 ### 1. **Submodules** (Root Directory)

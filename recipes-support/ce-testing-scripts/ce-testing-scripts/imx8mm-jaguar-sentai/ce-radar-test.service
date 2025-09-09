@@ -1,9 +1,0 @@
-[Unit]
-Description=CE radar testing
-
-[Service]
-User=root
-ExecStart=/bin/bash /usr/bin/ce-radar-test.sh
-
-[Install]
-WantedBy=multi-user.target

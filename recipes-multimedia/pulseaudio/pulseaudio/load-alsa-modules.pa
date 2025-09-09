@@ -1,2 +1,0 @@
-load-module module-alsa-sink device=default                                                                                                                                    
-load-module module-alsa-source device=default

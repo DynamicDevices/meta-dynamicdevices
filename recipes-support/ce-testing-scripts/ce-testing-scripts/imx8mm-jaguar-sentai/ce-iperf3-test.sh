@@ -1,3 +1,0 @@
-#!/bin/sh
-
-echo Running CE iperf3 testing...
