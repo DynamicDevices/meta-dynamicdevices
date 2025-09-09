@@ -294,13 +294,13 @@ EOF
     
     if [ "$VERBOSE" = true ]; then
         python3 "$VALIDATION_DIR/layers/openembedded-core/scripts/yocto-check-layer" \
-            --layer "$layer_path" \
-            --output-log "$log_file" 2>&1 | tee "$log_file.verbose"
+            -o "$log_file" \
+            "$layer_path" 2>&1 | tee "$log_file.verbose"
         local result=${PIPESTATUS[0]}
     else
         python3 "$VALIDATION_DIR/layers/openembedded-core/scripts/yocto-check-layer" \
-            --layer "$layer_path" \
-            --output-log "$log_file" > /dev/null 2>&1
+            -o "$log_file" \
+            "$layer_path" > /dev/null 2>&1
         local result=$?
     fi
     
