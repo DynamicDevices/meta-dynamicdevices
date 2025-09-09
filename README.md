@@ -461,9 +461,9 @@ Our CI pipeline includes enterprise-grade validation across all layers:
 
 #### Current Status (i.MX93 Jaguar E-Ink)
 - **Baseline**: 22.7s total boot time (15x over target)
-- **U-Boot**: 4.7s (includes 3s autoboot delay) 
-- **Kernel**: 3.4s (Linux initialization)
-- **Systemd**: 0.1s (service startup)
+- **Recent test**: 22.936s (only 0.33s improvement after optimizations)
+- **Issue**: U-Boot optimizations showing minimal impact (2.879s → 2.884s)
+- **Major bottleneck**: Kernel+Systemd phase still ~15 seconds
 
 #### U-Boot Recipe Architecture
 

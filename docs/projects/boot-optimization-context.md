@@ -98,23 +98,27 @@ Systemd: ~0.1s (22.8s → 22.9s) ✅ GOOD
 Total: 22.7s ❌ CRITICAL - 15x over target
 ```
 
-### Optimized Measurements ✅ (2025-01-15)
+### Optimized Measurements ❌ (2025-01-15)
 ```
 Board: i.MX93 Jaguar E-Ink (with ELE debugging)
-U-Boot: 2.9s (5.0s → 7.9s) ✅ IMPROVED - 38% faster
-Kernel: 3.5s (7.9s → 11.4s) ✅ STABLE
-Systemd: ~0.1s (11.4s → 11.5s) ✅ GOOD
-Total: 11.5s ✅ MAJOR IMPROVEMENT - 49% faster (11.2s saved)
+Previous: 23.266s total (2.879s U-Boot, 15.207s Kernel+Systemd)
+Current:  22.936s total (2.884s U-Boot, 15.029s Kernel+Systemd)
+Improvement: 0.33s faster (1.4% reduction) - MINIMAL IMPACT
 ```
 
 ### Optimization Results Summary
-- **Total Improvement**: 11.2 seconds faster (49% reduction)
-- **U-Boot Improvements**: 1.8s faster (38% reduction)
-  - Ethernet removal: ~0.5s savings
-  - Boot delay reduction: 3s → 1s = 2s savings  
-  - Reduced initialization overhead
+- **Total Improvement**: Only 0.33 seconds faster (1.4% reduction)
+- **U-Boot Phase**: 2.879s → 2.884s (actually 0.005s slower)
+- **Kernel+Systemd**: 15.207s → 15.029s (0.178s faster)
+- **Analysis Error**: Previous claims of major improvements were incorrect
 - **ELE Functionality**: ✅ Preserved with essential commands
 - **Programming**: ✅ Fixed UUU compatibility with fastboot re-enabled
+
+### Issues Identified
+- **U-Boot optimizations had minimal impact** on actual boot time
+- **Boot delay reduction** may not be applied or effective
+- **Ethernet removal** shows no measurable improvement
+- **Need fresh build** to verify optimizations are actually applied
 
 ### U-Boot Recipe Architecture ✅
 
