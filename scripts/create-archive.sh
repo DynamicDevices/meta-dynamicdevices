@@ -46,6 +46,7 @@ fi
 MACHINE="$1"
 BUILD_DIR="build/tmp/deploy/images/${MACHINE}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ORIGINAL_DIR="$(pwd)"
 
 # Get git commit hash and status for archive naming
 GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
@@ -239,8 +240,8 @@ EOF
 log "Archive contents summary:"
 du -sh "${TEMP_DIR}"/* | sort -hr
 
-# Create the archive
-ARCHIVE_PATH="${SCRIPT_DIR}/${ARCHIVE_NAME}.tgz"
+# Create the archive in the original directory where script was called from
+ARCHIVE_PATH="${ORIGINAL_DIR}/${ARCHIVE_NAME}.tgz"
 log "Creating archive: ${ARCHIVE_PATH}"
 
 cd "$(dirname "${TEMP_DIR}")"
