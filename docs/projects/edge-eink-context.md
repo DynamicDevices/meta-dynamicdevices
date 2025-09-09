@@ -161,6 +161,42 @@ export KAS_MACHINE=imx93-jaguar-eink
 - Prefer kernel config over custom patches
 - KAS config only affects local development builds
 
+## SSH Testing Setup ✅
+
+For automated testing and deployment to target boards, proper SSH configuration is essential:
+
+### Required Setup Steps
+1. **Use `fio` user**: All SSH connections should use the `fio` user account
+2. **Copy SSH public key**: Enable passwordless authentication
+3. **Configure passwordless sudo**: Allow `fio` user to run commands without password prompts
+
+### Setup Commands
+```bash
+# Copy SSH public key to target board
+echo "fio" | ssh-copy-id -f fio@192.168.0.36
+
+# Configure passwordless sudo for fio user
+ssh fio@192.168.0.36 "echo 'fio' | sudo -S sh -c 'echo \"fio ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/fio'"
+```
+
+### Benefits
+- **Automated testing**: Scripts can run without manual password entry
+- **Faster development**: No password prompts during iterative testing
+- **CI/CD ready**: Enables automated deployment and testing pipelines
+- **Consistent workflow**: Same setup across all target boards
+
+### Usage Example
+```bash
+# Deploy and test E-Ink application
+scp el133uf1_test fio@192.168.0.36:/tmp/
+ssh fio@192.168.0.36 "cd /tmp && chmod +x el133uf1_test && sudo ./el133uf1_test --test-spi"
+```
+
+### Security Notes
+- SSH key authentication is more secure than password authentication
+- Passwordless sudo is acceptable for development/testing environments
+- Production deployments should use more restrictive sudo configurations
+
 ---
-*Last Updated: 2025-08-29*
-*Status: ✅ OCOTP ISSUES RESOLVED - Removed problematic patch, confirmed enclave driver enabled, configured WiFi firmware for development*
+*Last Updated: 2025-01-09*
+*Status: ✅ SSH TESTING SETUP DOCUMENTED - Added automated testing workflow for target board deployment*

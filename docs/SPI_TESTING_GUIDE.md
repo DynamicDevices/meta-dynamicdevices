@@ -64,6 +64,25 @@ For **LPSPI1 (Standard SPI)** testing, configure the hardware switches:
 
 ### Prerequisites
 
+#### SSH Setup for Automated Testing
+
+For efficient testing and deployment, configure passwordless SSH access to the target board:
+
+```bash
+# Copy SSH public key to target board (replace IP as needed)
+echo "fio" | ssh-copy-id -f fio@192.168.0.36
+
+# Configure passwordless sudo for fio user
+ssh fio@192.168.0.36 "echo 'fio' | sudo -S sh -c 'echo \"fio ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/fio'"
+```
+
+**Benefits:**
+- Enables automated testing scripts without password prompts
+- Faster iterative development and testing cycles
+- Required for CI/CD integration and automated deployment
+
+#### SPI Interface Verification
+
 SSH into the board and ensure SPI interfaces are available:
 
 ```bash
