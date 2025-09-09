@@ -34,7 +34,7 @@
 | **Edge AI** | i.MX8MM | Audio processing, sensors, radar | [Hardware Guide](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Hardware-Reference/Edge-AI-Pinout-and-Interfaces) |
 | **Edge EInk** | i.MX93 | E-ink display, low power, security | [Hardware Guide](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Hardware-Reference/Edge-EInk-Pinout-and-Interfaces) |
 | **Edge EV** | i.MX8MM | Clean energy management | [Board Details](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-EV-Board) |
-| **Edge GW** | i.MX8MM | Communications gateway | [Board Details](https://github.com/DynamicDevices/meta-dynamicdevices/wiki/Edge-GW-Board) |
+| **Edge GW** | i.MX8MM | Communications gateway | *Documentation coming soon* |
 
 ---
 
