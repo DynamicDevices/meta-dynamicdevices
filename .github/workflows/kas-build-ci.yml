@@ -160,19 +160,32 @@ jobs:
           
           # Remove BitBake test data to avoid collection conflicts
           echo "🔧 Removing BitBake test data to avoid collection conflicts..."
+          
+          # Debug: Show BitBake directory structure
+          echo "🔧 Debugging BitBake directory structure..."
+          find ../build/layers -name "bitbake" -type d 2>/dev/null | head -5
+          find ../build/layers -path "*/layerindexlib/tests" -type d 2>/dev/null | head -5
+          
           # Check multiple possible paths for BitBake test data
+          testdata_found=false
           for testdata_path in \
             "../build/layers/bitbake/lib/layerindexlib/tests/testdata" \
             "../build/layers/openembedded-core/bitbake/lib/layerindexlib/tests/testdata" \
-            "$(find ../build/layers -path "*/bitbake/lib/layerindexlib/tests/testdata" -type d 2>/dev/null | head -1)"; do
+            "$(find ../build/layers -path "*/bitbake/lib/layerindexlib/tests/testdata" -type d 2>/dev/null | head -1)" \
+            "$(find ../build/layers -path "*/layerindexlib/tests/testdata" -type d 2>/dev/null | head -1)"; do
             
-            if [ -d "$testdata_path" ]; then
+            if [ -n "$testdata_path" ] && [ -d "$testdata_path" ]; then
               echo "🔧 Found BitBake test data at: $testdata_path"
               rm -rf "$testdata_path"
               echo "✅ Removed BitBake test data from $testdata_path"
+              testdata_found=true
               break
             fi
           done
+          
+          if [ "$testdata_found" = false ]; then
+            echo "⚠️ No BitBake test data found - this might be okay if it doesn't exist"
+          fi
           
           # Create missing bbclass files that meta-lmp-base recipes depend on
           echo "🔧 Creating missing bbclass files for validation..."
