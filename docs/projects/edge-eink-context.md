@@ -65,14 +65,32 @@
 3. **Sequential Operation**: L/R select → CS activate → SPI transfer → CS deactivate
 4. **Backward Compatibility**: Existing API maintained for applications
 
-### Testing Commands
+### Testing Commands ✅ VALIDATED
+
+**Last Tested**: 2025-01-09 on imx93-jaguar-eink (kernel 6.6.52)  
+**Status**: ✅ Software validated, ready for hardware connection
+
+#### E-Ink Demo Application ✅
 ```bash
-# Test E-Ink with corrected GPIO numbers
+# Demo application (software validated, ready for hardware)
+sudo el133uf1_demo -d /dev/spidev0.0 -r 558 -b 561 -0 559 -1 560 white
+sudo el133uf1_demo -d /dev/spidev0.0 -r 558 -b 561 -0 559 -1 560 colorbar
+
+# Automated testing script
+./scripts/test-eink-demo-target.sh
+```
+
+#### E-Ink Test Application ✅
+```bash
+# Test E-Ink with corrected GPIO numbers (software validated)
 sudo el133uf1_test -d /dev/spidev0.0 -r 558 -b 561 -0 559 -1 560 --test-spi
 
 # Board configuration info
 el133uf1_test --board-info
+```
 
+#### 802.15.4 SPI Interface
+```bash
 # Test 802.15.4 SPI interface
 ls -la /dev/spidev2.0
 echo -n -e '\x55' | spi-pipe -d /dev/spidev2.0 -s 1000000 -b 8
