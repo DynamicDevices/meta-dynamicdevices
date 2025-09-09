@@ -10,6 +10,30 @@ Comprehensive boot time analysis and optimization system for Dynamic Devices Edg
 
 For complete boot analysis including pre-network timing:
 
+#### U-Boot Recipe Architecture
+
+The project uses three different U-Boot recipes for different purposes:
+
+**Local Development & Production Builds**
+- **Recipe**: `u-boot-fio_%.bbappend` 
+- **Used by**: Both local `kas build` and Foundries.io cloud builds
+- **Optimizations**: Ethernet removal, reduced boot delay, ELE commands
+- **Key insight**: Same recipe applies to both local and production builds
+
+**Manufacturing/Programming**
+- **Recipe**: `u-boot-fio-mfgtool_%.bbappend`
+- **Used by**: UUU board programming only
+- **Special config**: SE050 disabled for programming compatibility
+- **Optimizations**: Not needed (brief usage during programming)
+
+**Boot Scripts**
+- **Recipe**: `u-boot-ostree-scr-fit.bbappend`
+- **Used by**: Foundries.io builds for boot command scripts
+- **Contains**: Only `boot.cmd` files, not U-Boot configuration
+- **Optimizations**: `setenv silent 1` for reduced output
+
+#### Serial Logging Usage
+
 ```bash
 # Complete workflow - capture and analyze
 ./scripts/boot-timing-suite.sh capture --name board-test

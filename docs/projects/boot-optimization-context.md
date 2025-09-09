@@ -98,6 +98,33 @@ Systemd: ~0.1s (22.8s → 22.9s) ✅ GOOD
 Total: 22.7s ❌ CRITICAL - 15x over target
 ```
 
+### U-Boot Recipe Architecture ✅
+
+#### **Local Development Builds (`kas build`)**
+- **Recipe**: `u-boot-fio_%.bbappend`
+- **Purpose**: U-Boot binary for local KAS builds and development
+- **Optimizations Applied**: ✅ Ethernet removal, bootdelay=1s, ELE commands
+- **Configuration Files**: `disable-ethernet.cfg`, `enable-ele-secure.cfg`, etc.
+
+#### **Foundries.io Production Builds**
+- **Recipe**: `u-boot-fio_%.bbappend` (same as local!)
+- **Boot Scripts**: `u-boot-ostree-scr-fit.bbappend` (boot.cmd only)
+- **Key Insight**: Foundries.io uses the same U-Boot binary recipe as local builds
+- **Optimizations Applied**: ✅ Same optimizations apply to production builds
+- **Boot Script Optimizations**: `setenv silent 1` in `boot.cmd`
+
+#### **Manufacturing/Programming (`UUU`)**
+- **Recipe**: `u-boot-fio-mfgtool_%.bbappend`
+- **Purpose**: Special U-Boot used only during board programming
+- **Optimizations**: ❌ Not needed (brief usage, programming-only)
+- **Special Config**: SE050 disabled to prevent programming errors
+
+#### **Critical Discovery**
+🎉 **Boot time optimizations apply to BOTH local and Foundries.io builds automatically!**
+- Both use the same `u-boot-fio` recipe
+- `u-boot-ostree-scr-fit` only provides boot scripts, not U-Boot configuration
+- No separate optimization needed for production builds
+
 ### Bottlenecks Identified ✅
 - [x] **U-Boot delays**: 3s autoboot + 1.7s excess initialization
 - [x] **U-Boot initialization**: 4.7s total (target: <0.5s)

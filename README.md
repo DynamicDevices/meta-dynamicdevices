@@ -465,6 +465,15 @@ Our CI pipeline includes enterprise-grade validation across all layers:
 - **Kernel**: 3.4s (Linux initialization)
 - **Systemd**: 0.1s (service startup)
 
+#### U-Boot Recipe Architecture
+
+The project uses three different U-Boot recipes:
+- **`u-boot-fio`**: Main recipe for both local and Foundries.io builds ✅
+- **`u-boot-fio-mfgtool`**: Manufacturing/programming only (UUU)
+- **`u-boot-ostree-scr-fit`**: Boot scripts for Foundries.io (not U-Boot config)
+
+**Key insight**: Boot optimizations in `u-boot-fio` automatically apply to both local and production builds!
+
 #### Serial Boot Logging Tools ✅
 ```bash
 # Complete workflow - capture and analyze
@@ -478,6 +487,7 @@ Our CI pipeline includes enterprise-grade validation across all layers:
 ```
 
 #### Documentation
+- **U-Boot Recipes**: [docs/U_BOOT_RECIPES.md](docs/U_BOOT_RECIPES.md)
 - **Serial Logging**: [scripts/BOOT_TIMING_README.md](scripts/BOOT_TIMING_README.md)
 - **Boot Profiling**: [docs/BOOT_PROFILING.md](docs/BOOT_PROFILING.md)
 - **Optimization Context**: [docs/projects/boot-optimization-context.md](docs/projects/boot-optimization-context.md)
