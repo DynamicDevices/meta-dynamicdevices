@@ -6,7 +6,26 @@ Comprehensive boot time analysis and optimization system for Dynamic Devices Edg
 
 ## Quick Start
 
-### Enable Boot Profiling
+### Serial Boot Logging (Recommended) ✅
+
+For complete boot analysis including pre-network timing:
+
+```bash
+# Complete workflow - capture and analyze
+./scripts/boot-timing-suite.sh capture --name board-test
+# Power cycle board, wait for boot completion
+./scripts/boot-timing-suite.sh latest
+
+# Continuous monitoring
+./scripts/boot-timing-suite.sh monitor --name consistency-test
+
+# Compare multiple boots
+./scripts/boot-timing-suite.sh compare
+```
+
+### On-Target Boot Profiling
+
+For detailed post-boot analysis:
 
 ```bash
 # Set environment variable
@@ -78,6 +97,19 @@ Kernel:    < 1.0s  (kernel init, driver loading)
 Systemd:   < 0.5s  (service startup, user space)
 Total:     < 2.0s  (power-on to login prompt)
 ```
+
+### Current Baseline - i.MX93 Jaguar E-Ink (2025-01-09)
+```
+U-Boot:    4.7s   (includes 3s autoboot delay) ❌ SLOW
+Kernel:    3.4s   (Linux initialization) ⚠️  MODERATE
+Systemd:   0.1s   (service startup) ✅ GOOD
+Total:     22.7s  (15x over target) ❌ CRITICAL
+```
+
+**Primary Bottlenecks Identified:**
+- **U-Boot autoboot delay**: 3s (easy fix with bootdelay=0)
+- **U-Boot initialization**: 1.7s excess (config optimization needed)
+- **Kernel boot time**: 3.4s (optimizable with built-in drivers)
 
 ### Typical Bottlenecks
 1. **U-Boot delays**: Boot menu timeouts, environment loading
@@ -219,6 +251,12 @@ cat /proc/loadavg
 
 ### Build Scripts
 - `scripts/build-with-boot-profiling.sh`: Convenience build script
+
+### Serial Boot Logging Tools ✅
+- `scripts/boot-timing-suite.sh`: Main interface for all boot timing operations
+- `scripts/serial-boot-logger.sh`: Serial capture with precise timestamps
+- `scripts/analyze-boot-logs.sh`: Detailed log analysis and recommendations
+- `scripts/BOOT_TIMING_README.md`: Complete serial logging documentation
 
 ## Advanced Usage
 

@@ -455,6 +455,33 @@ Our CI pipeline includes enterprise-grade validation across all layers:
 - Professional recipe templates and best practices
 - Clear maintainer ownership and contact information
 
+### Boot Performance Optimization ⚡
+
+**Target**: < 1.5s boot time for optimal user experience
+
+#### Current Status (i.MX93 Jaguar E-Ink)
+- **Baseline**: 22.7s total boot time (15x over target)
+- **U-Boot**: 4.7s (includes 3s autoboot delay) 
+- **Kernel**: 3.4s (Linux initialization)
+- **Systemd**: 0.1s (service startup)
+
+#### Serial Boot Logging Tools ✅
+```bash
+# Complete workflow - capture and analyze
+./scripts/boot-timing-suite.sh capture --name board-test
+# Power cycle board, wait for boot completion
+./scripts/boot-timing-suite.sh latest
+
+# Continuous monitoring and comparison
+./scripts/boot-timing-suite.sh monitor --name consistency-test
+./scripts/boot-timing-suite.sh compare
+```
+
+#### Documentation
+- **Serial Logging**: [scripts/BOOT_TIMING_README.md](scripts/BOOT_TIMING_README.md)
+- **Boot Profiling**: [docs/BOOT_PROFILING.md](docs/BOOT_PROFILING.md)
+- **Optimization Context**: [docs/projects/boot-optimization-context.md](docs/projects/boot-optimization-context.md)
+
 ### Contributing
 1. Review [best practices guide](docs/YOCTO_BSP_BEST_PRACTICES.md)
 2. Use [recipe template](docs/RECIPE_TEMPLATE.bb) for new components

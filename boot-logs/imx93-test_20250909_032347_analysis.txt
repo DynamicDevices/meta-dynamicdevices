@@ -1,0 +1,31 @@
+=== Boot Timing Analysis ===
+Generated: Tue  9 Sep 03:24:17 BST 2025
+Board: imx93-test
+Device: /dev/ttyUSB1
+Baudrate: 115200
+
+=== Boot Markers Found ===
+[14.401] U-Boot SPL 2024.04+fio+gadbe53791d8 (Mar 25 2025 - 21:21:54 +0000)
+[15.583] U-Boot 2024.04+fio+gadbe53791d8 (Mar 25 2025 - 21:21:54 +0000)
+[19.128] Found U-Boot script /boot.scr
+
+=== Kernel Boot ===
+[19.358] [    0.000000] Linux version 6.6.52-lmp-standard (oe-user@oe-host) (aarch64-lmp-linux-gcc (GCC) 13.3.0, GNU ld (GNU Binutils) 2.42.0.20240723) #1 SMP PREEMPT Tue Nov 19 23:01:49 UTC 2024
+[22.706] [    2.242629] Freeing unused kernel memory: 7616K
+
+=== Systemd Boot ===
+
+=== Login Ready ===
+[22.753] Welcome to [1mLinux-microPlatform Dynamic Devices (No Factory) 5.0.9[0m!
+
+=== Boot Time Summary ===
+Approximate boot time: 22.753s
+Status: ❌ SLOW - Over 5.0s, needs optimization
+
+=== Log Statistics ===
+Raw log lines: 604
+Timing log lines: 609
+Log files:
+  Raw: ./boot-logs/imx93-test_20250909_032347_raw.log
+  Timing: ./boot-logs/imx93-test_20250909_032347_timing.log
+  Analysis: ./boot-logs/imx93-test_20250909_032347_analysis.txt
