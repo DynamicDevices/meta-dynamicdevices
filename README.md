@@ -7,7 +7,6 @@
 [![Yocto Compatible](https://img.shields.io/badge/Yocto-scarthgap%20|%20kirkstone-orange.svg)](https://www.yoctoproject.org/)
 [![Foundries.io LMP](https://img.shields.io/badge/Foundries.io-v95%20(Scarthgap)-purple.svg)](https://foundries.io/products/releases/95/)
 
-[![Yocto Layer Validation](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/yocto-layer-validation.yml/badge.svg)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/yocto-layer-validation.yml)
 [![KAS Build CI](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml/badge.svg)](https://github.com/DynamicDevices/meta-dynamicdevices/actions/workflows/kas-build-ci.yml)
 [![YP Compliance Ready](https://img.shields.io/badge/YP%20Compliance-Ready%20for%20Certification-blue)](https://docs.yoctoproject.org/test-manual/yocto-project-compatible.html)
 
