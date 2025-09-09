@@ -197,6 +197,46 @@ ssh fio@192.168.0.36 "cd /tmp && chmod +x el133uf1_test && sudo ./el133uf1_test 
 - Passwordless sudo is acceptable for development/testing environments
 - Production deployments should use more restrictive sudo configurations
 
+## Cross-Compilation Requirements ⚠️
+
+**Critical**: Development machine (x86_64) and target board (ARM64) have different architectures:
+
+### Architecture Details
+- **Development Machine**: x86_64 (Intel/AMD 64-bit)
+- **Target Board**: ARM64/AArch64 (i.MX93 processor)
+- **Consequence**: Binaries compiled on development machine **WILL NOT RUN** on target board
+
+### Correct Build Methods
+1. **Yocto/KAS Build** (Recommended):
+   ```bash
+   # Cross-compiles automatically for target architecture
+   export KAS_MACHINE=imx93-jaguar-eink
+   kas-container shell kas/lmp-dynamicdevices-base.yml -c "bitbake eink-spectra6"
+   
+   # Copy ARM64 binary from Yocto build output
+   scp build/tmp/work/cortexa55-lmp-linux/eink-spectra6/*/image/usr/bin/el133uf1_test fio@192.168.0.36:/tmp/
+   ```
+
+2. **Cross-Compiler Toolchain** (Alternative):
+   ```bash
+   # Use ARM64 cross-compiler (if available)
+   aarch64-linux-gnu-gcc -o el133uf1_test src/*.c
+   ```
+
+### Common Mistake ❌
+```bash
+# This creates x86_64 binary that won't run on ARM64 target
+cd /local/project/build && make
+scp el133uf1_test fio@192.168.0.36:/tmp/  # ❌ Will fail with "cannot execute binary file"
+```
+
+### Verification
+```bash
+# Check binary architecture before deployment
+file el133uf1_test
+# Should show: "ELF 64-bit LSB executable, ARM aarch64" (not x86-64)
+```
+
 ---
 *Last Updated: 2025-01-09*
 *Status: ✅ SSH TESTING SETUP DOCUMENTED - Added automated testing workflow for target board deployment*

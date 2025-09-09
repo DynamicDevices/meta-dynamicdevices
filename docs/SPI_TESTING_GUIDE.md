@@ -81,6 +81,24 @@ ssh fio@192.168.0.36 "echo 'fio' | sudo -S sh -c 'echo \"fio ALL=(ALL) NOPASSWD:
 - Faster iterative development and testing cycles
 - Required for CI/CD integration and automated deployment
 
+#### Cross-Compilation Requirements ⚠️
+
+**Critical**: Development machine (x86_64) and target board (ARM64) use different architectures:
+
+```bash
+# ❌ WRONG: Local build creates x86_64 binary
+cd /local/project/build && make
+scp el133uf1_test fio@192.168.0.36:/tmp/  # Fails: "cannot execute binary file"
+
+# ✅ CORRECT: Use Yocto cross-compilation
+export KAS_MACHINE=imx93-jaguar-eink
+kas-container shell kas/lmp-dynamicdevices-base.yml -c "bitbake eink-spectra6"
+scp build/tmp/work/cortexa55-lmp-linux/eink-spectra6/*/image/usr/bin/el133uf1_test fio@192.168.0.36:/tmp/
+
+# Verify architecture before deployment
+file el133uf1_test  # Should show "ARM aarch64", not "x86-64"
+```
+
 #### SPI Interface Verification
 
 SSH into the board and ensure SPI interfaces are available:
