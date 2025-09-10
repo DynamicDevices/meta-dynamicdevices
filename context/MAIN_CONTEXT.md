@@ -25,6 +25,7 @@ Yocto layers for Dynamic Devices Edge boards on Linux microPlatform (LmP).
 
 **Key**: Local changes don't trigger cloud builds. Use `fio-program-board.sh --latest` for production targets.
 
+**Trigger Cloud Build**: `/data_drive/sentai/lmp-manifest/force-build.sh`
 **SE050/ELE Fix**: Disabled for mfgtools builds (`lmp-mfgtool` distro), enabled for production.
 
 **⚠️ Common Pitfalls:**
