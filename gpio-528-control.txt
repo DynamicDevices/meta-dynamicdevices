@@ -1,0 +1,23 @@
+# GPIO 528 Control Commands (L#R_SEL_DIS - Left/Right Select for E-Ink Display)
+# GPIO2_IO16 = 512 + 16 = 528
+
+# 1. Export GPIO 528
+echo 528 | sudo tee /sys/class/gpio/export
+
+# 2. Set as output
+echo out | sudo tee /sys/class/gpio/gpio528/direction
+
+# 3. Set to LOW (routes CS to left controller)
+echo 0 | sudo tee /sys/class/gpio/gpio528/value
+
+# 4. Set to HIGH (routes CS to right controller)  
+echo 1 | sudo tee /sys/class/gpio/gpio528/value
+
+# 5. Read current value
+cat /sys/class/gpio/gpio528/value
+
+# 6. Clean up (unexport when done)
+echo 528 | sudo tee /sys/class/gpio/unexport
+
+# Quick toggle test:
+# echo 0 | sudo tee /sys/class/gpio/gpio528/value && sleep 1 && echo 1 | sudo tee /sys/class/gpio/gpio528/value

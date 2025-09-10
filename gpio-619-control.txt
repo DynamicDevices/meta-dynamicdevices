@@ -1,0 +1,23 @@
+# GPIO 619 Control Commands (SPI_CS1)
+# GPIO4_IO11 = 608 + 11 = 619
+
+# 1. Export GPIO 619
+echo 619 | sudo tee /sys/class/gpio/export
+
+# 2. Set as output
+echo out | sudo tee /sys/class/gpio/gpio619/direction
+
+# 3. Set to LOW
+echo 0 | sudo tee /sys/class/gpio/gpio619/value
+
+# 4. Set to HIGH
+echo 1 | sudo tee /sys/class/gpio/gpio619/value
+
+# 5. Read current value
+cat /sys/class/gpio/gpio619/value
+
+# 6. Clean up (unexport when done)
+echo 619 | sudo tee /sys/class/gpio/unexport
+
+# Quick toggle test:
+# echo 0 | sudo tee /sys/class/gpio/gpio619/value && sleep 1 && echo 1 | sudo tee /sys/class/gpio/gpio619/value
