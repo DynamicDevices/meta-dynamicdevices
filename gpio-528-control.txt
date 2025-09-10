@@ -1,5 +1,6 @@
 # GPIO 528 Control Commands (L#R_SEL_DIS - Left/Right Select for E-Ink Display)
 # GPIO2_IO16 = 512 + 16 = 528
+# Pin: MX93_PAD_GPIO_IO16__GPIO2_IO16
 
 # 1. Export GPIO 528
 echo 528 | sudo tee /sys/class/gpio/export

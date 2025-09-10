@@ -1,5 +1,6 @@
 # GPIO 619 Control Commands (SPI_CS1)
 # GPIO4_IO11 = 608 + 11 = 619
+# Pin: MX93_PAD_ENET2_RD1__GPIO4_IO11
 
 # 1. Export GPIO 619
 echo 619 | sudo tee /sys/class/gpio/export
