@@ -1,6 +1,10 @@
-# GPIO 528 Control Commands (L#R_SEL_DIS - Left/Right Select for E-Ink Display)
+# GPIO 528 Control Commands (SPI_CS0)
 # GPIO2_IO16 = 512 + 16 = 528
 # Pin: MX93_PAD_GPIO_IO16__GPIO2_IO16
+# 
+# CRITICAL i.MX93 GPIO MAPPING:
+# gpiochip0 = GPIO2 (512-543), gpiochip1 = GPIO3 (544-575)
+# gpiochip2 = GPIO4 (576-607), gpiochip3 = GPIO1 (608-639)
 
 # 1. Export GPIO 528
 echo 528 | sudo tee /sys/class/gpio/export
@@ -8,10 +12,10 @@ echo 528 | sudo tee /sys/class/gpio/export
 # 2. Set as output
 echo out | sudo tee /sys/class/gpio/gpio528/direction
 
-# 3. Set to LOW (routes CS to left controller)
+# 3. Set to LOW
 echo 0 | sudo tee /sys/class/gpio/gpio528/value
 
-# 4. Set to HIGH (routes CS to right controller)  
+# 4. Set to HIGH  
 echo 1 | sudo tee /sys/class/gpio/gpio528/value
 
 # 5. Read current value
