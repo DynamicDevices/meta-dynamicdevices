@@ -1,94 +1,31 @@
-# meta-dynamicdevices Main Context
+# meta-dynamicdevices Context
 
 ## Overview
-Yocto/OpenEmbedded layers for Dynamic Devices Edge boards on Linux microPlatform (LmP).
+Yocto layers for Dynamic Devices Edge boards on Linux microPlatform (LmP).
 
-## Boards
-- **Edge AI** (imx8mm-jaguar-sentai) - Audio processing, TAS2563 driver
-- **Edge EInk** (imx93-jaguar-eink) - E-ink display, optimized kernel, flexible WiFi
-- **Edge EV/GW** - Future boards
+**Boards**: Edge AI (imx8mm-jaguar-sentai), Edge EInk (imx93-jaguar-eink)
+**Key Tech**: i.MX8MM/i.MX93, NXP IW612, TAS2563 echo cancellation
 
-## Recent Updates ✅
-- **🚀 fio-program-board.sh v2.0.0**: Complete automation with auto-latest target, default factory support, one-command programming
-- **🪟 fio-program-board.bat**: Windows batch version with dependency checking and auto-install (latest target detection WIP)
-- **⚡ Auto-Programming**: `--program` flag for download + program in single command (no interactive wait)
-- **🔄 Continuous Mode**: `--continuous` flag for batch programming multiple boards with tracking
-- **💾 Smart Caching**: Intelligent file caching with `--force` override
-- **🔧 i.MX93 Optimization**: Fixed bootloader size issues, uses correct MFGTools bootloader
-- **⏱️ Performance Timing**: Real-time download and programming performance tracking
-- **🏭 Default Factory**: Uses fioctl's default factory configuration
-- **TAS2563**: Android driver with firmware support (Edge AI)
-- **WiFi Firmware**: Flexible .se/.bin selection (Edge EInk)
-- **Kernel**: Optimized drivers for faster boot (Edge EInk)  
-
-## Structure
-- **Main**: recipes-*, kas/, scripts/, docs/
-- **BSP**: meta-dynamicdevices-bsp/ (hardware support)
-- **Distro**: meta-dynamicdevices-distro/ (distribution policies)
-- **Build**: build/layers/ (external layers)
-
-## Technologies
-- **SoCs**: i.MX8MM (Edge AI), i.MX93 (Edge EInk)
-- **Wireless**: NXP IW612 (WiFi 6, BT 5.4, 802.15.4)
-- **Audio**: TAS2563 with Android driver + firmware
-- **Power**: Advanced PM for low-power applications
+## Recent Updates
+- **fio-program-board v2.0**: Auto-latest target, one-command programming (`--program`), continuous mode (`--continuous`)
+- **TAS2563 AEC**: Complete echo cancellation with TAS2781 driver, Profile 8 regbin analysis
+- **i.MX93**: Fixed bootloader size issues, optimized kernel boot
+- **WiFi**: Flexible .se/.bin firmware selection
 
 ## Architecture
-- **Main**: meta-dynamicdevices (apps/middleware)
-- **BSP**: meta-dynamicdevices-bsp (hardware support)
-- **Distro**: meta-dynamicdevices-distro (distribution policies)
-- **Dependencies**: meta-lmp, meta-freescale, meta-openembedded
+- **meta-dynamicdevices**: Main recipes, kas/, scripts/
+- **meta-dynamicdevices-bsp**: Hardware support (DTS, drivers)
+- **meta-dynamicdevices-distro**: Distribution policies
 
-## Build Systems Architecture
+## Build Systems
 
-### Critical Understanding: Local vs Cloud Builds
+**⚠️ Two Systems**: 
+- **Local KAS**: Development (`./scripts/kas-shell-base.sh`)
+- **Foundries Cloud**: Production (triggered by `meta-subscriber-overrides`/`lmp-manifest` pushes)
 
-**⚠️ IMPORTANT**: There are **TWO SEPARATE BUILD SYSTEMS**:
+**Key**: Local changes don't trigger cloud builds. Use `fio-program-board.sh --latest` for production targets.
 
-1. **Local Development Builds** (KAS-based)
-   - Uses `kas/` configuration files in this repository
-   - For development, testing, and local debugging
-   - Controlled by local KAS YAML configurations
-   - **NOT used for production mfgtools-files**
-
-2. **Foundries.io Cloud Builds** (Production)
-   - Builds triggered by pushes to Foundries.io-hosted repositories
-   - Generates production `mfgtools-files` downloaded by fio-program-board scripts
-   - **Controlled by recipes/configurations pushed to Foundries.io**
-   - **NOT controlled by local KAS files**
-
-### Key Learnings from SE050 Investigation
-
-**🔍 SE050/OP-TEE Configuration Issues:**
-- SE050 failures in newer builds were **NOT** caused by fio-program-board download paths
-- SE050 failures were **NOT** caused by local KAS mfgtools configuration changes
-- **Root cause**: Changes to OP-TEE recipes that affect Foundries.io cloud builds
-- **Critical**: `CFG_CORE_SE05X_SCP03_EARLY=y` requires proper OP-TEE signing configuration
-- **Debugging approach**: Check git history of `recipes-security/optee/` for cloud build changes
-
-### Foundries.io Cloud Build System
-
-**🏭 How Cloud Builds Work:**
-- Triggered by pushes to Foundries.io-hosted repositories (meta-subscriber-overrides, lmp-manifest)
-- **NOT triggered** by pushes to this meta-dynamicdevices repository
-- Uses recipes and configurations from multiple layers including this one
-- Generates artifacts: `mfgtools-files`, `imx-boot`, `u-boot.itb`, `lmp-factory-image.wic.gz`
-- Downloaded via `fioctl targets artifacts` by fio-program-board scripts
-
-**🔧 Troubleshooting Cloud Build Issues:**
-1. **Check recipe changes**: `git log --oneline --follow recipes-security/optee/`
-2. **Verify machine features**: Check `MACHINE_FEATURES` in machine configs
-3. **OP-TEE configuration**: Look for `CFG_CORE_SE05X_*` settings in OP-TEE recipes
-4. **SE050 vs ELE**: imx8mm uses external SE050, imx93 uses internal EdgeLock Secure Enclave
-5. **Build artifacts**: Use `fioctl targets show <target>` to inspect cloud build details
-
-**🔧 SE050/OP-TEE mfgtools Fix:**
-- **Problem**: SE050/ELE initialization failures in mfgtools builds (OP-TEE 4.4.0+)
-- **Root Cause**: Secure enclaves not needed for manufacturing/UUU programming, only production runtime
-- **Solution**: Conditionally disable SE050/ELE for `lmp-mfgtool` distro builds
-- **Implementation**: `'' if d.getVar('DISTRO') == 'lmp-mfgtool' else 'CFG_CORE_SE05X=y...'`
-- **Machines**: Applied to imx8mm-jaguar-sentai, imx8mm-jaguar-inst, imx93-jaguar-eink
-- **Result**: mfgtools work without secure enclave issues, production builds keep security enabled
+**SE050/ELE Fix**: Disabled for mfgtools builds (`lmp-mfgtool` distro), enabled for production.
 
 **⚠️ Common Pitfalls:**
 - Assuming local KAS changes affect cloud builds (they don't)
@@ -145,6 +82,23 @@ scripts\fio-program-board.bat /factory dynamic-devices /machine imx93-jaguar-ein
 - **💾 Smart Cache**: Skips re-downloading existing files
 - **⏱️ Timing**: Real-time performance feedback per board
 - **🔧 i.MX93 Fix**: Correct bootloader prevents "image too large"
+
+## TAS2563 Echo Cancellation
+
+**Driver**: TAS2781 upstream (`git.ti.com/tas2781-linux-drivers`, commit `124282c`) with IRQ/compatibility patches
+**Profile**: Profile 8 (`08-pdm-rec-i2s-48kHz-32bit-tx-slot-0-1-mic-slot-3-ref`) for echo reference
+**Access**: `arecord -D eref -f S32_LE -r 48000 -c 1` or `hw:Audio,0,1`
+
+### Key Config
+- **DTS**: SAI3 bidirectional, 4 TDM slots, 32-bit, `fsl,sai-synchronous-rx`
+- **ALSA**: `pcm.eref` (S32_LE), `pcm.eref_16bit` (S16_LE legacy)
+- **Init**: `tas2563-init` → Profile 8 (default), music/bypass modes
+- **Pipeline**: Speaker `hw:Audio,0,0` → Echo ref `hw:Audio,0,1` → AEC
+
+### Critical Fixes
+- **IRQ Bug**: Driver used IRQ as GPIO, fixed with `of_irq_get()` + `request_threaded_irq()`
+- **ndev Mismatch**: Modified regbin `ndev=2→1` for single device
+- **Format**: Profile 8 = 32-bit, must align ALSA dsnoop format
 
 ## Documentation
 - **AI Context**: `context/` (AI assistant context files)
