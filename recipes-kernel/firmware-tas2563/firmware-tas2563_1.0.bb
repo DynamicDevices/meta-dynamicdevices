@@ -20,16 +20,18 @@ do_compile[noexec] = "1"
 do_install() {
     install -d ${D}${nonarch_base_libdir}/firmware
     
-    # Install TAS2563 regbin firmware for mainline TAS2781 driver
-    install -m 644 ${WORKDIR}/tas2563-1amp-reg.bin ${D}${nonarch_base_libdir}/firmware/tas2563-1amp-reg.bin
+    # Install TAS2563 regbin firmware with the filename expected by mainline TAS2781 driver
+    # tas2563RCA1.bin = Register Configuration Array for TAS2563 (regbin file)
+    install -m 644 ${WORKDIR}/tas2563-1amp-reg.bin ${D}${nonarch_base_libdir}/firmware/tas2563RCA1.bin
     
-    # Install TAS2563 DSP firmware for mainline TAS2781 driver
-    install -m 644 ${WORKDIR}/TAS2XXX3870.bin ${D}${nonarch_base_libdir}/firmware/tas2563-1amp-dsp.bin
+    # Install TAS2563 DSP firmware (CoefBin) for mainline TAS2781 driver  
+    # This contains DSP algorithms and acoustic parameters
+    install -m 644 ${WORKDIR}/TAS2XXX3870.bin ${D}${nonarch_base_libdir}/firmware/tas2563-coef.bin
 }
 
 FILES:${PN} = " \
-    ${nonarch_base_libdir}/firmware/tas2563-1amp-reg.bin \
-    ${nonarch_base_libdir}/firmware/tas2563-1amp-dsp.bin \
+    ${nonarch_base_libdir}/firmware/tas2563RCA1.bin \
+    ${nonarch_base_libdir}/firmware/tas2563-coef.bin \
 "
 
 # This firmware is required for TAS2563 codec operation with TAS2781 mainline driver
