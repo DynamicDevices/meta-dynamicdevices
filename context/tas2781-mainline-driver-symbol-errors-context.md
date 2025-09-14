@@ -20,11 +20,12 @@
   - `CONFIG_SND_SOC_TAS2781_COMLIB_I2C=m` - I2C communication library
   - `CONFIG_SND_SOC_TAS2781_FMWLIB=m` - Firmware loading library
   - `CONFIG_SND_SOC_TAS2562` disabled - Prevents conflicts
+  - **Debugging enabled (2025-09-14)**: `CONFIG_SND_DEBUG=y`, `CONFIG_SND_VERBOSE_PRINTK=y`, `CONFIG_SND_DEBUG_VERBOSE=y`, `CONFIG_DYNAMIC_DEBUG=y`
 
 ### Device Tree Configuration
 - **Compatible string**: `"ti,tas2563"` in device tree
 - **I2C address**: 0x4C
-- **GPIO control**: Reset via GPIO5_4 (active high)
+- **GPIO control**: Reset via GPIO5_4 (active low) - **FIXED 2025-09-14**
 - **Interrupt**: GPIO5_5 (level low)
 - **Audio routing**: Connected via simple-audio-card to SAI3
 
@@ -199,10 +200,72 @@ This ensures that when `CONFIG_SND_SOC_TAS2781_COMLIB_I2C=m` is enabled via the 
 
 This follows the same pattern used by other kernel drivers (e.g., SERIAL_8250_PCI, INTEL_TCC) where namespace identifiers are unquoted in export/import statements but defined as string literals via #define.
 
+## Runtime Fixes Applied (2025-09-14)
+
+After successful build and deployment, runtime testing revealed two critical issues that were resolved:
+
+### 1. GPIO Reset Property Name Mismatch - FIXED ✅
+**Problem**: Driver was looking for `"reset"` GPIO property but device tree used `"reset-gpios"`
+```
+tasdev-codec 1-004c: tasdevice_parse_dt Can't get reset GPIO
+```
+
+**Root Cause**: The `devm_gpiod_get_optional()` function in the driver patch was incorrectly using `"reset-gpios"` instead of `"reset"`
+
+**Solution**: Fixed the driver patch `0002-asoc-tas2781-add-tas2563-codec-support.patch`:
+```c
+// BEFORE (incorrect):
+tas_priv->reset = devm_gpiod_get_optional(&client->dev, "reset-gpios", GPIOD_OUT_HIGH);
+
+// AFTER (correct):  
+tas_priv->reset = devm_gpiod_get_optional(&client->dev, "reset", GPIOD_OUT_HIGH);
+```
+
+### 2. GPIO Reset Polarity Mismatch - FIXED ✅
+**Problem**: Device tree configured GPIO as `GPIO_ACTIVE_HIGH` but driver expected active-low behavior
+
+**Analysis**: Driver reset sequence:
+- `gpiod_set_value_cansleep(tas_dev->reset, 0);` - Put chip in reset
+- `gpiod_set_value_cansleep(tas_dev->reset, 1);` - Release from reset
+
+This matches active-low GPIO behavior where LOW = reset active, HIGH = normal operation.
+
+**Solution**: Changed device tree configuration in `imx8mm-jaguar-sentai.dts`:
+```dts
+// BEFORE (incorrect):
+reset-gpios = <&gpio5 4 GPIO_ACTIVE_HIGH>;
+
+// AFTER (correct):
+reset-gpios = <&gpio5 4 GPIO_ACTIVE_LOW>;
+```
+
+### 3. Firmware File Naming Mismatch - FIXED ✅
+**Problem**: Driver expected `tas2563_coef.bin` but firmware file was named `tas2563-coef.bin`
+```
+tasdev-codec 1-004c: Direct firmware load for tas2563_coef.bin failed with error -2
+```
+
+**Temporary Solution**: Created symlink on target board:
+```bash
+ln -s tas2563-coef.bin /lib/firmware/tas2563_coef.bin
+```
+
+**Permanent Solution**: Update firmware recipe to provide correct filename (pending)
+
+### 4. Comprehensive Debugging Enabled - ADDED ✅
+**Enhancement**: Added extensive debugging configuration to `tas2781-mainline-driver.cfg`:
+- `CONFIG_SND_DEBUG=y` - General ALSA debugging
+- `CONFIG_SND_VERBOSE_PRINTK=y` - Verbose ALSA messages  
+- `CONFIG_SND_DEBUG_VERBOSE=y` - Extra verbose debugging
+- `CONFIG_DYNAMIC_DEBUG=y` - Runtime debug control
+
+This provides detailed kernel logs for troubleshooting TAS2563 driver behavior.
+
 ## Next Steps
-1. **Test compilation** to verify the namespace export errors are resolved
-2. Download and integrate TAS2563 firmware files (pending task)
-3. Test audio functionality on the target board
+1. **Rebuild kernel** with GPIO and debugging fixes
+2. **Test audio functionality** on target board with new kernel
+3. **Permanently fix firmware naming** in build system
+4. **Verify calibration firmware** handling
 
 ## Key Commands for Debugging
 ```bash
