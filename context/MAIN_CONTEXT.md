@@ -8,7 +8,8 @@ Yocto layers for Dynamic Devices Edge boards on Linux microPlatform (LmP).
 
 ## Recent Updates
 - **fio-program-board v2.0**: Auto-latest target, one-command programming (`--program`), continuous mode (`--continuous`)
-- **TAS2563 AEC**: Complete echo cancellation with TAS2781 driver, Profile 8 regbin analysis
+- **TAS2563 Audio**: Multiple driver options - TAS2562 (current), TAS2781 mainline, out-of-tree legacy
+- **UART4 Access**: Enabled M4 core UART access from Linux on i.MX8MM (/dev/ttymxc3)
 - **i.MX93**: Fixed bootloader size issues, optimized kernel boot
 - **WiFi**: Flexible .se/.bin firmware selection
 
@@ -84,9 +85,18 @@ scripts\fio-program-board.bat /factory dynamic-devices /machine imx93-jaguar-ein
 - **⏱️ Timing**: Real-time performance feedback per board
 - **🔧 i.MX93 Fix**: Correct bootloader prevents "image too large"
 
-## TAS2563 Echo Cancellation
+## TAS2563 Audio Codec
 
-**Driver**: TAS2781 upstream (`git.ti.com/tas2781-linux-drivers`, commit `124282c`) with IRQ/compatibility patches
+### Driver Options (i.MX8MM Jaguar Sentai)
+**Current**: TAS2562 driver (`CONFIG_SND_SOC_TAS2562=m`) - Original Linux 6.6 kernel driver
+- **Feature**: `tas2562` machine feature
+- **Compatibility**: Register-compatible with TAS2563 via "ti,tas2563" device tree binding
+- **Advantage**: Stable, no patches needed
+
+**Alternative**: TAS2781 mainline (`CONFIG_SND_SOC_TAS2781_I2C=m`) - Advanced features
+**Legacy**: Out-of-tree TAS2781 driver - Deprecated, has known bugs
+
+### Echo Cancellation Configuration
 **Profile**: Profile 8 (`08-pdm-rec-i2s-48kHz-32bit-tx-slot-0-1-mic-slot-3-ref`) for echo reference
 **Access**: `arecord -D eref -f S32_LE -r 48000 -c 1` or `hw:Audio,0,1`
 
@@ -96,10 +106,20 @@ scripts\fio-program-board.bat /factory dynamic-devices /machine imx93-jaguar-ein
 - **Init**: `tas2563-init` → Profile 8 (default), music/bypass modes
 - **Pipeline**: Speaker `hw:Audio,0,0` → Echo ref `hw:Audio,0,1` → AEC
 
-### Critical Fixes
-- **IRQ Bug**: Driver used IRQ as GPIO, fixed with `of_irq_get()` + `request_threaded_irq()`
-- **ndev Mismatch**: Modified regbin `ndev=2→1` for single device
-- **Format**: Profile 8 = 32-bit, must align ALSA dsnoop format
+## i.MX8MM UART Configuration
+
+### UART Access
+- **UART1**: Bluetooth (enabled, `/dev/ttymxc0`)
+- **UART2**: Console (default A53 core)
+- **UART3**: Disabled (available for future use)
+- **UART4**: **M4 Core Access** (enabled, `/dev/ttymxc3`)
+
+### UART4 M4 Core Access
+**Status**: Enabled for Linux access to M4 core serial port
+- **Device**: `/dev/ttymxc3` in Linux
+- **Pins**: `MX8MM_IOMUXC_UART4_RXD_UART4_DCE_RX`, `MX8MM_IOMUXC_UART4_TXD_UART4_DCE_TX`
+- **Configuration**: Standard 80MHz clock, proper pin control
+- **Use Case**: Communication with M4 core applications from Linux userspace
 
 ## Documentation
 - **AI Context**: `context/` (AI assistant context files)

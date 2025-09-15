@@ -75,10 +75,23 @@
   - Source: Built into kernel 6.6.52-lmp-standard
   - **ACTIVE when tas2781-mainline feature used**
 
-### ✅ INTEGRATION COMPLETED - NEXT STEPS FOR DEPLOYMENT
+### ✅ DRIVER OPTIONS IMPLEMENTED - MULTIPLE SOLUTIONS AVAILABLE
+
+#### Current Driver Configuration: TAS2562 (Original Linux 6.6 Driver)
+**Status**: **ACTIVE** - Using original TAS2562 driver with native TAS2563 support
+- **Driver**: `CONFIG_SND_SOC_TAS2562=m` (Linux 6.6 kernel built-in)
+- **Feature**: `tas2562` machine feature
+- **Compatibility**: Register-compatible with TAS2563 via "ti,tas2563" device tree binding
+- **Advantage**: Original stable driver, no complex patches needed
+
+#### Alternative: TAS2781 Mainline Driver
+**Status**: Available as alternative option
+- **Driver**: `CONFIG_SND_SOC_TAS2781_I2C=m` 
+- **Feature**: `tas2781-mainline` machine feature
+- **Advantage**: More advanced features, modern architecture
 
 #### Build and Test Process
-1. **Build Kernel with Mainline Driver**:
+1. **Build Kernel with TAS2562 Driver** (Current):
    ```bash
    kas-container --ssh-agent --ssh-dir ${HOME}/.ssh --runtime-args "-v ${HOME}/yocto:/var/cache" \
      shell kas/lmp-dynamicdevices-base.yml -c "MACHINE=imx8mm-jaguar-sentai bitbake linux-lmp-fslc-imx"
@@ -96,11 +109,11 @@
 
 4. **Verify on Target**:
    ```bash
-   # Check new modules loaded
-   lsmod | grep tas2781
-   # Expected: snd_soc_tas2781_i2c, snd_soc_tas2781_fmwlib, etc.
+   # Check TAS2562 module loaded
+   lsmod | grep tas2562
+   # Expected: snd_soc_tas2562
    
-   # Test audio reliability (this should now work on multiple runs)
+   # Test audio reliability
    for i in {1..10}; do
        echo "Test cycle $i"
        aplay /usr/share/sounds/alsa/Front_Left.wav
@@ -108,10 +121,16 @@
    done
    ```
 
-#### Rollback Plan (if needed)
-Change one line in `imx8mm-jaguar-sentai.conf`:
+#### Driver Switching Options
+**Switch to TAS2781 Mainline** (if needed):
 ```diff
-- MACHINE_FEATURES:append:imx8mm-jaguar-sentai = " nxpiw612-sdio bgt60 stusb4500 zigbee tas2781-mainline"
+- MACHINE_FEATURES:append:imx8mm-jaguar-sentai = " nxpiw612-sdio bgt60 stusb4500 zigbee tas2562"
++ MACHINE_FEATURES:append:imx8mm-jaguar-sentai = " nxpiw612-sdio bgt60 stusb4500 zigbee tas2781-mainline"
+```
+
+**Switch to Out-of-tree** (legacy fallback):
+```diff
+- MACHINE_FEATURES:append:imx8mm-jaguar-sentai = " nxpiw612-sdio bgt60 stusb4500 zigbee tas2562"
 + MACHINE_FEATURES:append:imx8mm-jaguar-sentai = " nxpiw612-sdio bgt60 stusb4500 zigbee tas2781-integrated"
 ```
 
