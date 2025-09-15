@@ -27,6 +27,9 @@ local_conf_header:
      # Use default cache directories - kas-container will handle cache mapping
      BB_GENERATE_MIRROR_TARBALLS = "1"
      
+     # Local development build - disable SE050/OP-TEE for smaller bootloader
+     LOCAL_DEVELOPMENT_BUILD = "1"
+     
      # Disable OP-TEE entirely for mfgtool builds - not needed for board programming
      TEE_BINARY = ""
      

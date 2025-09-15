@@ -20,6 +20,9 @@ local_conf_header:
   meta-dynamicdevices: |
      ACCEPT_FSL_EULA = "1"
      
+     # Local development build - disable SE050/OP-TEE for smaller bootloader
+     LOCAL_DEVELOPMENT_BUILD = "1"
+     
      # NXP WiFi Firmware Configuration (for imx93-jaguar-eink)
      # Uncomment one of the following lines to override the default:
      # NXP_WIFI_SECURE_FIRMWARE = "1"
