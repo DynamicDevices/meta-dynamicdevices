@@ -17,4 +17,11 @@ then
   chmod 755 ~/yocto/persistent
   chmod 755 ~/yocto/sstate
 fi
-kas-container --ssh-agent --ssh-dir ${HOME}/.ssh --runtime-args "-v ${HOME}/yocto:/var/cache" build kas/lmp-dynamicdevices-base.yml
+# If no arguments provided, build the default image
+if [ $# -eq 0 ]; then
+    kas-container --ssh-agent --ssh-dir ${HOME}/.ssh --runtime-args "-v ${HOME}/yocto:/var/cache" build kas/lmp-dynamicdevices-base.yml
+else
+    # Pass through all arguments for BitBake commands like -c cleansstate, -c show-versions, etc.
+    # KAS shell expects: kas-container shell <config.yml> -c "bitbake <args>"
+    kas-container --ssh-agent --ssh-dir ${HOME}/.ssh --runtime-args "-v ${HOME}/yocto:/var/cache" shell kas/lmp-dynamicdevices-base.yml -c "bitbake $*"
+fi
