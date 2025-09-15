@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# KAS Shell Base Script
+# Usage: ./kas-shell-base.sh [options]
+#   -c "command"  : Execute command in kas environment
+#   (no args)     : Start interactive shell
+
 # TODO: Look at this to fix missing key issue
 #
 #conf/machine/include/lmp-factory-custom.inc:OPTEE_TA_SIGN_KEY = "${TOPDIR}/conf/factory-keys/opteedev.key"
@@ -17,4 +22,6 @@ then
   chmod 755 ~/yocto/persistent
   chmod 755 ~/yocto/sstate
 fi
-kas-container --ssh-agent --ssh-dir ${HOME}/.ssh --runtime-args "-v ${HOME}/yocto:/var/cache" shell kas/lmp-dynamicdevices-base.yml
+
+# Pass all arguments to kas-container shell command
+kas-container --ssh-agent --ssh-dir ${HOME}/.ssh --runtime-args "-v ${HOME}/yocto:/var/cache" shell kas/lmp-dynamicdevices-base.yml "$@"
