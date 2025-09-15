@@ -80,9 +80,9 @@ show_rdc_status() {
     dmesg | grep -i rdc | tail -10 || echo "  (none found)"
 }
 
-# Function to assign UART4 to Linux domain
+# Function to assign UART4 to Linux domain and enable it
 assign_uart4_to_linux() {
-    log_info "Attempting to assign UART4 to Linux domain..."
+    log_info "Attempting to assign UART4 to Linux domain and enable it..."
     
     if ! check_rdc_driver; then
         log_error "RDC driver not available"
@@ -111,15 +111,49 @@ assign_uart4_to_linux() {
         log_info "Direct register access would require specific RDC register addresses"
     fi
     
+    # Method 4: Enable UART4 via device tree overlay or sysfs
+    log_info "Attempting to enable UART4 device..."
+    
+    # Try to enable UART4 via configfs device tree overlay
+    if [ -d "/sys/kernel/config/device-tree/overlays" ]; then
+        log_info "Device tree overlay support available"
+        # This would require a pre-built overlay - placeholder for now
+    fi
+    
+    # Try to bind UART4 driver manually
+    if [ -f "/sys/bus/platform/drivers/imx-uart/bind" ]; then
+        echo "30a60000.serial" > /sys/bus/platform/drivers/imx-uart/bind 2>/dev/null
+        log_info "Attempted to bind UART4 driver to 30a60000.serial"
+    fi
+    
+    # Check if UART4 device node exists
+    if [ -c "/dev/ttymxc3" ]; then
+        log_info "✓ UART4 device node /dev/ttymxc3 is available"
+        success=1
+    else
+        log_info "UART4 device node /dev/ttymxc3 not yet available"
+    fi
+    
     if [ $success -eq 1 ]; then
-        log_info "UART4 domain assignment attempted successfully"
+        log_info "UART4 domain assignment and enablement attempted successfully"
         log_info "Check dmesg for confirmation and try accessing /dev/ttymxc3"
+        
+        # Test UART4 functionality
+        if [ -c "/dev/ttymxc3" ]; then
+            log_info "Testing UART4 accessibility..."
+            if stty -F /dev/ttymxc3 115200 2>/dev/null; then
+                log_info "✓ UART4 is accessible and configured"
+            else
+                log_info "⚠ UART4 device exists but may not be fully functional"
+            fi
+        fi
     else
         log_error "Could not find RDC control interface for UART4"
         echo "This may indicate:"
         echo "1. RDC driver doesn't support runtime configuration"
         echo "2. UART4 is already assigned correctly"
         echo "3. RDC configuration is handled by ATF/U-Boot only"
+        echo "4. Device tree has UART4 disabled (expected with new configuration)"
     fi
 }
 
@@ -129,12 +163,17 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  status      - Show RDC driver status and available interfaces"
-    echo "  uart4       - Assign UART4 to Linux domain (domain 0)"
+    echo "  uart4       - Assign UART4 to Linux domain and enable it"
+    echo "  enable-uart4 - Alias for uart4 command"
     echo "  help        - Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 status   - Check if RDC driver is loaded"
-    echo "  $0 uart4    - Try to assign UART4 to Linux"
+    echo "  $0 uart4    - Enable UART4 for Linux use after boot"
+    echo "  $0 enable-uart4 - Same as uart4 command"
+    echo ""
+    echo "Note: UART4 is disabled in device tree to prevent boot failures."
+    echo "      Use this script to enable it after the system has booted."
 }
 
 # Main function
@@ -143,7 +182,7 @@ main() {
         "status")
             show_rdc_status
             ;;
-        "uart4")
+        "uart4"|"enable-uart4")
             assign_uart4_to_linux
             ;;
         "help"|"-h"|"--help")
