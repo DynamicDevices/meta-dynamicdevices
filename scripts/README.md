@@ -76,13 +76,47 @@ program/                          # Custom boot files directory
 └── uuu                          # (Optional) UUU executable
 ```
 
-### `program.sh`
+### `program-local-build.sh`
 **Purpose:** Programs a board using UUU (Universal Update Utility) with locally built images.
+
+**Features:**
+- Uses locally built mfgtool-files and UUU scripts
+- Custom boot firmware support with `--mfgfolder` option
+- Automatic file validation and linking
+- Clean temporary file handling
 
 **Usage:**
 ```bash
-# Program board (with board in download mode)
-sudo ./scripts/program.sh
+# Program board with locally built image
+./scripts/program-local-build.sh --machine imx8mm-jaguar-sentai
+
+# Use custom boot firmware files (files used directly, not copied)
+./scripts/program-local-build.sh --machine imx8mm-jaguar-sentai --mfgfolder /path/to/custom/boot/files
+
+# Use custom boot files from relative path
+./scripts/program-local-build.sh --machine imx8mm-jaguar-sentai --mfgfolder ./custom-boot-files
+```
+
+**Custom Boot Files (--mfgfolder option):**
+
+The `--mfgfolder` option allows you to specify a custom directory containing `imx-boot-mfgtool` and `u-boot-mfgtool.itb` files. This is particularly useful for:
+
+- **Board-specific optimizations**: Using custom bootloader configurations
+- **Development testing**: Testing new bootloader versions  
+- **Recovery scenarios**: Using known-good bootloader files
+
+**How it works:**
+1. The script validates your custom folder contains the required files
+2. Creates temporary symbolic links to your custom files with unique names
+3. Generates a temporary UUU script that references these custom files
+4. Runs UUU with the temporary script using your custom boot firmware
+5. Cleans up all temporary files after programming completes
+
+**Example structure:**
+```
+custom-boot-files/               # Custom boot files directory
+├── imx-boot-mfgtool            # Custom manufacturing bootloader
+└── u-boot-mfgtool.itb          # Custom manufacturing U-Boot
 ```
 
 ### `create-archive.sh`

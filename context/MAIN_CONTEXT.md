@@ -7,6 +7,7 @@ Yocto layers for Dynamic Devices Edge boards on Linux microPlatform (LmP).
 **Key Tech**: i.MX8MM/i.MX93, NXP IW612, TAS2563 echo cancellation
 
 ## Recent Updates
+- **Programming Scripts**: Both `fio-program-board.sh` and `program-local-build.sh` now support `--mfgfolder` for custom boot firmware
 - **fio-program-board v2.0**: Auto-latest target, one-command programming (`--program`), continuous mode (`--continuous`)
 - **TAS2563 Audio**: Multiple driver options - TAS2562 (current), TAS2781 mainline, out-of-tree legacy
 - **UART4 Access**: Enabled M4 core UART access from Linux on i.MX8MM (/dev/ttymxc3)
@@ -41,7 +42,11 @@ Yocto layers for Dynamic Devices Edge boards on Linux microPlatform (LmP).
 ```bash
 export MACHINE=imx93-jaguar-eink  # or imx8mm-jaguar-sentai
 kas build kas/lmp-dynamicdevices.yml
-./scripts/program.sh  # Board programming
+./scripts/kas-build-mfgtools.sh  # Build mfgtool files
+./scripts/program-local-build.sh --machine ${MACHINE}  # Board programming
+
+# With custom boot firmware
+./scripts/program-local-build.sh --machine ${MACHINE} --mfgfolder ./custom-boot-files
 ```
 
 ### Production Programming (Foundries.io Builds)

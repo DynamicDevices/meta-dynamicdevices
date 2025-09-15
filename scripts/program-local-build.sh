@@ -23,6 +23,9 @@ Program locally built images to the target board using UUU tool.
 
 OPTIONS:
     -m, --machine MACHINE    Target machine (e.g., imx93-jaguar-eink, imx8mm-jaguar-sentai)
+    --mfgfolder DIR         Custom folder containing imx-boot-mfgtool and u-boot-mfgtool.itb files
+                            (Files are used directly from this folder, not copied)
+                            (Relative paths are relative to current working directory)
     -h, --help              Show this help message
 
 ENVIRONMENT VARIABLES:
@@ -38,6 +41,10 @@ EXAMPLES:
     # For other machines
     $0 --machine imx8mm-jaguar-sentai
     $0 --machine imx8mm-jaguar-phasora
+    
+    # Use custom boot firmware files
+    $0 --machine imx8mm-jaguar-sentai --mfgfolder /path/to/custom/boot/files
+    $0 --machine imx8mm-jaguar-sentai --mfgfolder ./custom-boot-files
 
 PREREQUISITES:
     1. Build the main image first:
@@ -59,10 +66,15 @@ EOF
 
 # Parse command line arguments
 MACHINE=""
+MFGFOLDER=""
 while [[ $# -gt 0 ]]; do
     case $1 in
         -m|--machine)
             MACHINE="$2"
+            shift 2
+            ;;
+        --mfgfolder)
+            MFGFOLDER="$2"
             shift 2
             ;;
         -h|--help)
@@ -93,6 +105,19 @@ elif [[ -z "${KAS_MACHINE:-}" ]]; then
     echo ""
     show_usage
     exit 1
+fi
+
+# Resolve mfgfolder path if provided (relative to current working directory)
+RESOLVED_MFGFOLDER=""
+if [[ -n "$MFGFOLDER" ]]; then
+    if [[ "$MFGFOLDER" = /* ]]; then
+        # Already absolute path
+        RESOLVED_MFGFOLDER="$MFGFOLDER"
+    else
+        # Relative path - make it relative to current working directory
+        RESOLVED_MFGFOLDER="$(pwd)/$MFGFOLDER"
+    fi
+    echo "Custom boot firmware folder: $RESOLVED_MFGFOLDER"
 fi
 
 echo "============================================================"
@@ -167,6 +192,40 @@ fi
 echo "Using locally built UUU script: ${UUU_SCRIPT}"
 echo "Using locally built mfgtool files from: ${MFGTOOL_DIR}"
 echo "Programming files from: ${DEPLOY_DIR}"
+
+# Validate custom mfgfolder if specified
+if [[ -n "$RESOLVED_MFGFOLDER" ]]; then
+    echo ""
+    echo "Validating custom boot firmware files..."
+    
+    # Validate custom folder exists and has required files
+    if [[ ! -d "$RESOLVED_MFGFOLDER" ]]; then
+        echo "Error: Custom mfgfolder does not exist: $RESOLVED_MFGFOLDER"
+        exit 1
+    fi
+    
+    MISSING_FILES=()
+    if [[ ! -f "$RESOLVED_MFGFOLDER/imx-boot-mfgtool" ]]; then
+        MISSING_FILES+=("imx-boot-mfgtool")
+    fi
+    if [[ ! -f "$RESOLVED_MFGFOLDER/u-boot-mfgtool.itb" ]]; then
+        MISSING_FILES+=("u-boot-mfgtool.itb")
+    fi
+    
+    if [[ ${#MISSING_FILES[@]} -gt 0 ]]; then
+        echo "Error: Missing required files in custom mfgfolder: $RESOLVED_MFGFOLDER"
+        for file in "${MISSING_FILES[@]}"; do
+            echo "  - $file"
+        done
+        exit 1
+    fi
+    
+    echo "Custom boot firmware files validated:"
+    echo "  - imx-boot-mfgtool: $(du -h "$RESOLVED_MFGFOLDER/imx-boot-mfgtool" | cut -f1)"
+    echo "  - u-boot-mfgtool.itb: $(du -h "$RESOLVED_MFGFOLDER/u-boot-mfgtool.itb" | cut -f1)"
+    echo "  Will use files from: $RESOLVED_MFGFOLDER"
+fi
+
 echo ""
 
 # List available images for verification (show only clean symlink names)
@@ -238,19 +297,47 @@ if [[ -f "${MFGTOOL_DIR}/full_image.uuu" ]]; then
     fi
 fi
 
-# Change to mfgtool directory where the UUU script and files are located
-cd "${MFGTOOL_DIR}"
-
-# Run UUU with the locally built script (using relative paths since we're in mfgtool directory)
+# Run UUU with the locally built script
 echo "Starting UUU programming..."
-if [[ $EUID -eq 0 ]]; then
-    ./uuu full_image.uuu || {
-        echo "UUU completed with exit code $?, but programming may have succeeded"
-    }
+
+if [[ -n "$RESOLVED_MFGFOLDER" ]]; then
+    # Use custom boot firmware files - create temporary symbolic links in mfgtool directory
+    echo "Creating temporary links to custom boot firmware files..."
+    cd "${MFGTOOL_DIR}"
+    
+    # Create temporary links to custom files (will override the originals during execution)
+    ln -sf "$RESOLVED_MFGFOLDER/imx-boot-mfgtool" "./imx-boot-mfgtool-custom"
+    ln -sf "$RESOLVED_MFGFOLDER/u-boot-mfgtool.itb" "./u-boot-mfgtool-custom.itb"
+    
+    # Create a temporary UUU script that uses the custom files
+    sed 's|imx-boot-mfgtool|imx-boot-mfgtool-custom|g; s|u-boot-mfgtool\.itb|u-boot-mfgtool-custom.itb|g' full_image.uuu > full_image_custom.uuu
+    
+    if [[ $EUID -eq 0 ]]; then
+        ./uuu full_image_custom.uuu || {
+            echo "UUU completed with exit code $?, but programming may have succeeded"
+        }
+    else
+        sudo ./uuu full_image_custom.uuu || {
+            echo "UUU completed with exit code $?, but programming may have succeeded"
+        }
+    fi
+    
+    # Cleanup temporary files
+    rm -f "./imx-boot-mfgtool-custom" "./u-boot-mfgtool-custom.itb" "./full_image_custom.uuu"
 else
-    sudo ./uuu full_image.uuu || {
-        echo "UUU completed with exit code $?, but programming may have succeeded"
-    }
+    # Use original files - change to mfgtool directory where the UUU script and files are located
+    cd "${MFGTOOL_DIR}"
+    
+    # Run UUU with the locally built script (using relative paths since we're in mfgtool directory)
+    if [[ $EUID -eq 0 ]]; then
+        ./uuu full_image.uuu || {
+            echo "UUU completed with exit code $?, but programming may have succeeded"
+        }
+    else
+        sudo ./uuu full_image.uuu || {
+            echo "UUU completed with exit code $?, but programming may have succeeded"
+        }
+    fi
 fi
 
 echo ""
