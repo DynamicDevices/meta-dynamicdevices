@@ -90,20 +90,20 @@ jobs:
           mkdir -p yocto-validation/layers
           cd yocto-validation
           
-          # Clone essential repositories including all required layers for our stack
-          echo "📦 Cloning essential repositories..."
-          git clone --depth 1 --branch scarthgap https://github.com/openembedded/openembedded-core.git layers/openembedded-core
-          git clone --depth 1 --branch scarthgap https://github.com/openembedded/meta-openembedded.git layers/meta-openembedded
-          git clone --depth 1 --branch 2.8 https://github.com/openembedded/bitbake.git layers/bitbake
+          # Clone essential repositories using LmP mirrors (matching our KAS config exactly)
+          echo "📦 Cloning essential repositories using LmP mirrors..."
+          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/openembedded-core.git layers/openembedded-core
+          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/meta-openembedded.git layers/meta-openembedded
+          git clone --depth 1 --branch 2.8 https://github.com/lmp-mirrors/bitbake.git layers/bitbake
           git clone --depth 1 --branch scarthgap-6.6.52-2.2.1 https://github.com/nxp-imx/meta-imx.git layers/meta-imx
           
           # Clone Foundries.io LmP layers (required dependencies)
           git clone --depth 1 --branch scarthgap https://github.com/foundriesio/meta-lmp.git layers/meta-lmp
           
-          # Clone additional required layers
-          git clone --depth 1 --branch scarthgap https://github.com/yoctoproject/meta-security.git layers/meta-security
-          git clone --depth 1 --branch scarthgap https://github.com/advancedtelematic/meta-updater.git layers/meta-updater
-          git clone --depth 1 --branch scarthgap https://github.com/yoctoproject/meta-virtualization.git layers/meta-virtualization
+          # Clone additional required layers using LmP mirrors
+          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/meta-security.git layers/meta-security
+          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/meta-updater.git layers/meta-updater
+          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/meta-virtualization.git layers/meta-virtualization
           
           # Create minimal build environment
           mkdir -p build/conf
