@@ -10,19 +10,29 @@ target:
 build_system: openembedded
 
 repos:
-  meta-dynamicdevices:
-    path: ..
+  # Note: meta-dynamicdevices main layer is not included here
+  # We validate individual layers (BSP, distro) separately to avoid dependency issues
+
+  # BitBake (tool, not a layer)
+  bitbake:
+    url: https://github.com/lmp-mirrors/bitbake
+    commit: 696c2c1ef095f8b11c7d2eff36fae50f58c62e5e
+    path: build/layers/bitbake
+    layers:
+      .: disabled
 
   # Core Yocto layers
   openembedded-core:
-    url: https://github.com/lmp-mirrors/openembedded-core.git
-    branch: scarthgap
+    url: https://github.com/lmp-mirrors/openembedded-core
+    commit: 87cadf62ba0d6b0fc3dc0151a5d320919b7eb1ab
+    path: build/layers/openembedded-core
     layers:
       meta:
 
   meta-openembedded:
-    url: https://github.com/lmp-mirrors/meta-openembedded.git
-    branch: scarthgap
+    url: https://github.com/lmp-mirrors/meta-openembedded
+    commit: e92d0173a80ea7592c866618ef5293203c50544c
+    path: build/layers/meta-openembedded
     layers:
       meta-oe:
       meta-python:
@@ -35,6 +45,7 @@ repos:
   meta-imx:
     url: https://github.com/nxp-imx/meta-imx.git
     branch: scarthgap-6.6.52-2.2.1
+    path: build/layers/meta-imx
     layers:
       meta-imx-bsp:
       meta-imx-sdk:
@@ -42,23 +53,27 @@ repos:
   # Foundries.io LmP layers (required dependencies)
   meta-lmp:
     url: https://github.com/foundriesio/meta-lmp.git
-    branch: scarthgap
+    commit: 4dffdff79b4df49c683c9a7faea406595cb7e9ca
+    path: build/layers/meta-lmp
     layers:
       meta-lmp-base:
       meta-lmp-bsp:
 
   # Additional layers for comprehensive validation
   meta-security:
-    url: https://github.com/lmp-mirrors/meta-security.git
-    branch: scarthgap
+    url: https://github.com/lmp-mirrors/meta-security
+    commit: bc865c5276c2ab4031229916e8d7c20148dfbac3
+    path: build/layers/meta-security
 
   meta-updater:
-    url: https://github.com/lmp-mirrors/meta-updater.git
-    branch: scarthgap
+    url: https://github.com/lmp-mirrors/meta-updater
+    commit: d57b19f885fe11916c91569e20288581eff512aa
+    path: build/layers/meta-updater
 
   meta-virtualization:
-    url: https://github.com/lmp-mirrors/meta-virtualization.git
-    branch: scarthgap
+    url: https://github.com/lmp-mirrors/meta-virtualization
+    commit: 9e040ee8dd6025558ea60ac9db60c41bfeddf221
+    path: build/layers/meta-virtualization
 
 local_conf_header:
   validation: |
@@ -70,6 +85,9 @@ local_conf_header:
     PACKAGE_CLASSES = "package_rpm"
     EXTRA_IMAGE_FEATURES = "debug-tweaks"
     
+    # Enable required DISTRO_FEATURES for layer compatibility
+    DISTRO_FEATURES:append = " security virtualization"
+    
     # Disable unnecessary features for validation
     DISTRO_FEATURES:remove = "x11 wayland"
     IMAGE_FEATURES:remove = "splash"
@@ -80,3 +98,6 @@ local_conf_header:
     
     # Enable validation-specific logging
     BB_CONSOLELOG = "${TOPDIR}/validation.log"
+    
+    # Skip problematic recipes for validation
+    BBMASK += "optee-test-imx.inc"

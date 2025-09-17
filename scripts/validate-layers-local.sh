@@ -126,9 +126,11 @@ setup_kas_environment() {
     
     cd "$PROJECT_ROOT"
     
-    # Initialize KAS build environment with dedicated build directory
+    # Initialize KAS build environment
     log_info "Initializing KAS build environment..."
-    kas shell --build-dir "$BUILD_DIR" "$KAS_CONFIG" -c "echo 'KAS environment initialized'"
+    cd "$BUILD_DIR"
+    kas shell "$KAS_CONFIG" -c "echo 'KAS environment initialized'"
+    cd "$PROJECT_ROOT"
     
     log_success "KAS environment ready"
 }
@@ -143,7 +145,8 @@ run_layer_validation() {
     cd "$PROJECT_ROOT"
     
     # Run yocto-check-layer in KAS environment
-    if kas shell --build-dir "$BUILD_DIR" "$KAS_CONFIG" -c "
+    cd "$BUILD_DIR"
+    if kas shell "$KAS_CONFIG" -c "
         # Use the yocto-check-layer script from openembedded-core
         YOCTO_CHECK_LAYER='./layers/openembedded-core/scripts/yocto-check-layer'
         
@@ -161,9 +164,11 @@ run_layer_validation() {
         python3 \"\$YOCTO_CHECK_LAYER\" \"$layer_path\"
     "; then
         log_success "$layer_name validation PASSED"
+        cd "$PROJECT_ROOT"
         return 0
     else
         log_error "$layer_name validation FAILED"
+        cd "$PROJECT_ROOT"
         return 1
     fi
 }
