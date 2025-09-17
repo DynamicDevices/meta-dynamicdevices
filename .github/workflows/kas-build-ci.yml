@@ -90,18 +90,26 @@ jobs:
           mkdir -p yocto-validation/layers
           cd yocto-validation
           
-          # Clone essential repositories including NXP layers for i.MX support
+          # Clone essential repositories including all required layers for our stack
           echo "📦 Cloning essential repositories..."
           git clone --depth 1 --branch scarthgap https://github.com/openembedded/openembedded-core.git layers/openembedded-core
           git clone --depth 1 --branch scarthgap https://github.com/openembedded/meta-openembedded.git layers/meta-openembedded
           git clone --depth 1 --branch 2.8 https://github.com/openembedded/bitbake.git layers/bitbake
           git clone --depth 1 --branch scarthgap-6.6.52-2.2.1 https://github.com/nxp-imx/meta-imx.git layers/meta-imx
           
+          # Clone Foundries.io LmP layers (required dependencies)
+          git clone --depth 1 --branch scarthgap https://github.com/foundriesio/meta-lmp.git layers/meta-lmp
+          
+          # Clone additional required layers
+          git clone --depth 1 --branch scarthgap https://github.com/yoctoproject/meta-security.git layers/meta-security
+          git clone --depth 1 --branch scarthgap https://github.com/advancedtelematic/meta-updater.git layers/meta-updater
+          git clone --depth 1 --branch scarthgap https://github.com/yoctoproject/meta-virtualization.git layers/meta-virtualization
+          
           # Create minimal build environment
           mkdir -p build/conf
           cd build
           
-          # Create bblayers.conf with core layers and NXP i.MX support
+          # Create bblayers.conf with all required layers for validation
           echo 'LCONF_VERSION = "7"' > conf/bblayers.conf
           echo 'BBPATH = "${TOPDIR}"' >> conf/bblayers.conf
           echo 'BBFILES ?= ""' >> conf/bblayers.conf
@@ -110,8 +118,16 @@ jobs:
           echo '  ${TOPDIR}/../layers/meta-openembedded/meta-oe \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../layers/meta-openembedded/meta-python \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../layers/meta-openembedded/meta-multimedia \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-networking \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-filesystems \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-perl \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../layers/meta-imx/meta-bsp \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../layers/meta-imx/meta-sdk \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-lmp/meta-lmp-base \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-lmp/meta-lmp-bsp \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-security \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-updater \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-virtualization \' >> conf/bblayers.conf
           echo '"' >> conf/bblayers.conf
           
           # Create minimal local.conf with nodistro (no distro dependencies)
@@ -150,8 +166,16 @@ jobs:
             ../layers/meta-openembedded/meta-oe \
             ../layers/meta-openembedded/meta-python \
             ../layers/meta-openembedded/meta-multimedia \
+            ../layers/meta-openembedded/meta-networking \
+            ../layers/meta-openembedded/meta-filesystems \
+            ../layers/meta-openembedded/meta-perl \
             ../layers/meta-imx/meta-bsp \
             ../layers/meta-imx/meta-sdk \
+            ../layers/meta-lmp/meta-lmp-base \
+            ../layers/meta-lmp/meta-lmp-bsp \
+            ../layers/meta-security \
+            ../layers/meta-updater \
+            ../layers/meta-virtualization \
             ../../meta-dynamicdevices-bsp; then
             echo "✅ meta-dynamicdevices-bsp validation PASSED"
           else
@@ -173,8 +197,16 @@ jobs:
             ../layers/meta-openembedded/meta-oe \
             ../layers/meta-openembedded/meta-python \
             ../layers/meta-openembedded/meta-multimedia \
+            ../layers/meta-openembedded/meta-networking \
+            ../layers/meta-openembedded/meta-filesystems \
+            ../layers/meta-openembedded/meta-perl \
             ../layers/meta-imx/meta-bsp \
             ../layers/meta-imx/meta-sdk \
+            ../layers/meta-lmp/meta-lmp-base \
+            ../layers/meta-lmp/meta-lmp-bsp \
+            ../layers/meta-security \
+            ../layers/meta-updater \
+            ../layers/meta-virtualization \
             ../../meta-dynamicdevices-bsp \
             ../..; then
             echo "✅ meta-dynamicdevices validation PASSED"
