@@ -15,7 +15,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-BUILD_DIR="$PROJECT_ROOT/build-validation"
+BUILD_DIR="$PROJECT_ROOT/yocto-layer-validation"
 KAS_CONFIG="$PROJECT_ROOT/kas/layer-validation.yml"
 
 # Colors for output
@@ -126,9 +126,9 @@ setup_kas_environment() {
     
     cd "$PROJECT_ROOT"
     
-    # Initialize KAS build environment
+    # Initialize KAS build environment with dedicated build directory
     log_info "Initializing KAS build environment..."
-    kas shell "$KAS_CONFIG" -c "echo 'KAS environment initialized'"
+    kas shell --build-dir "$BUILD_DIR" "$KAS_CONFIG" -c "echo 'KAS environment initialized'"
     
     log_success "KAS environment ready"
 }
@@ -143,22 +143,21 @@ run_layer_validation() {
     cd "$PROJECT_ROOT"
     
     # Run yocto-check-layer in KAS environment
-    if kas shell "$KAS_CONFIG" -c "
-        cd build-validation
+    if kas shell --build-dir "$BUILD_DIR" "$KAS_CONFIG" -c "
+        # Use the yocto-check-layer script from openembedded-core
+        YOCTO_CHECK_LAYER='./layers/openembedded-core/scripts/yocto-check-layer'
         
-        # Find yocto-check-layer script
-        YOCTO_CHECK_LAYER=\$(find . -name 'yocto-check-layer' -type f | head -1)
-        if [ -z \"\$YOCTO_CHECK_LAYER\" ]; then
-            echo 'yocto-check-layer script not found in build environment'
+        if [ ! -f \"\$YOCTO_CHECK_LAYER\" ]; then
+            echo 'yocto-check-layer script not found at expected location'
             exit 1
         fi
         
         echo 'Found yocto-check-layer: '\$YOCTO_CHECK_LAYER
         
-        # Clean up potential conflicts
+        # Clean up potential conflicts from BitBake test data
         rm -rf layers/bitbake/lib/layerindexlib/tests/testdata/ 2>/dev/null || true
         
-        # Run validation
+        # Run validation from build directory
         python3 \"\$YOCTO_CHECK_LAYER\" \"$layer_path\"
     "; then
         log_success "$layer_name validation PASSED"
