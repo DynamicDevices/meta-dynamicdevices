@@ -1,0 +1,91 @@
+header:
+  version: 14
+  includes:
+    - base.yml
+
+machine: qemux86-64
+distro: nodistro
+
+target:
+  - core-image-minimal
+
+repos:
+  meta-dynamicdevices:
+    path: ..
+
+  # Core Yocto layers
+  openembedded-core:
+    url: https://github.com/lmp-mirrors/openembedded-core.git
+    branch: scarthgap
+    layers:
+      meta:
+
+  bitbake:
+    url: https://github.com/lmp-mirrors/bitbake.git
+    branch: "2.8"
+
+  meta-openembedded:
+    url: https://github.com/lmp-mirrors/meta-openembedded.git
+    branch: scarthgap
+    layers:
+      meta-oe:
+      meta-python:
+      meta-multimedia:
+      meta-networking:
+      meta-filesystems:
+      meta-perl:
+
+  # NXP i.MX layers (required for our BSP layer)
+  meta-imx:
+    url: https://github.com/nxp-imx/meta-imx.git
+    branch: scarthgap-6.6.52-2.2.1
+    layers:
+      meta-bsp:
+      meta-sdk:
+
+  # Foundries.io LmP layers (required dependencies)
+  meta-lmp:
+    url: https://github.com/foundriesio/meta-lmp.git
+    branch: scarthgap
+    layers:
+      meta-lmp-base:
+      meta-lmp-bsp:
+
+  # Additional layers for comprehensive validation
+  meta-security:
+    url: https://github.com/lmp-mirrors/meta-security.git
+    branch: scarthgap
+
+  meta-updater:
+    url: https://github.com/lmp-mirrors/meta-updater.git
+    branch: scarthgap
+
+  meta-virtualization:
+    url: https://github.com/lmp-mirrors/meta-virtualization.git
+    branch: scarthgap
+
+local_conf_header:
+  validation: |
+    # Layer validation configuration
+    MACHINE = "qemux86-64"
+    DISTRO = "nodistro"
+    
+    # Minimal configuration for validation
+    PACKAGE_CLASSES = "package_rpm"
+    EXTRA_IMAGE_FEATURES = "debug-tweaks"
+    
+    # Disable unnecessary features for validation
+    DISTRO_FEATURES:remove = "x11 wayland"
+    IMAGE_FEATURES:remove = "splash"
+    
+    # Speed up validation by reducing parallelism
+    BB_NUMBER_THREADS = "4"
+    PARALLEL_MAKE = "-j 4"
+    
+    # Enable validation-specific logging
+    BB_CONSOLELOG = "${TOPDIR}/validation.log"
+
+bblayers_conf_header:
+  validation: |
+    # Layer validation bblayers configuration
+    # This configuration includes all layers needed for comprehensive validation

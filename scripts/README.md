@@ -28,6 +28,7 @@ This directory contains utility scripts for building, testing, managing, and aut
 | `prioritize-all-issues.sh` | Project Management | Issue prioritization | Automated priority labeling |
 | `rdc-control.sh` | Hardware Control | Resource domain control | i.MX8MM RDC management |
 | `validation/validate-layers.sh` | Quality Assurance | Yocto layer validation | Project compatibility |
+| `validate-layers-local.sh` | Quality Assurance | Comprehensive yocto-check-layer validation | KAS-based local validation |
 
 ## 📋 Table of Contents
 
@@ -254,6 +255,42 @@ bitbake core-image-minimal
 
 #### `validate-layers.sh`
 **Purpose:** Validates Yocto layer compatibility using official Yocto tools.
+
+#### `validate-layers-local.sh`
+**Purpose:** Comprehensive yocto-check-layer validation using KAS environment setup.
+
+**Features:**
+- Sets up proper Yocto environment with all dependencies using KAS
+- Runs official `yocto-check-layer` tool for comprehensive validation
+- Validates all meta-dynamicdevices layers (BSP, distro, main)
+- Includes all required layer dependencies (meta-imx, meta-lmp, etc.)
+- Provides detailed validation reports and logging
+- Supports clean build option for fresh validation
+
+**Usage:**
+```bash
+# Run validation with existing build
+./scripts/validate-layers-local.sh
+
+# Clean build and run validation
+./scripts/validate-layers-local.sh --clean
+
+# Show help
+./scripts/validate-layers-local.sh --help
+```
+
+**Requirements:**
+- KAS installed (`pip3 install kas`)
+- Git access to required repositories
+- Sufficient disk space for full Yocto environment
+
+**Validation Coverage:**
+- Layer structure and configuration syntax
+- Recipe parsing and BitBake compatibility  
+- Machine and distro compatibility testing
+- Patch upstream status validation
+- BitBake signature generation testing
+- Collection name conflict detection
 
 #### `pre-commit-hook.sh`
 **Purpose:** Pre-commit validation hook for code quality and standards compliance.
