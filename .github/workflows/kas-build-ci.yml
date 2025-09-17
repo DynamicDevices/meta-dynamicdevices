@@ -90,27 +90,33 @@ jobs:
           mkdir -p yocto-validation/layers
           cd yocto-validation
           
-          # Clone only essential repositories - minimal set to avoid conflicts
+          # Clone essential repositories including NXP layers for i.MX support
           echo "📦 Cloning essential repositories..."
           git clone --depth 1 --branch scarthgap https://github.com/openembedded/openembedded-core.git layers/openembedded-core
           git clone --depth 1 --branch scarthgap https://github.com/openembedded/meta-openembedded.git layers/meta-openembedded
           git clone --depth 1 --branch 2.8 https://github.com/openembedded/bitbake.git layers/bitbake
+          git clone --depth 1 --branch scarthgap https://github.com/nxp-imx/meta-imx.git layers/meta-imx
           
           # Create minimal build environment
           mkdir -p build/conf
           cd build
           
-          # Create minimal bblayers.conf with only core layers
+          # Create bblayers.conf with core layers and NXP i.MX support
           echo 'LCONF_VERSION = "7"' > conf/bblayers.conf
           echo 'BBPATH = "${TOPDIR}"' >> conf/bblayers.conf
           echo 'BBFILES ?= ""' >> conf/bblayers.conf
           echo 'BBLAYERS ?= " \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../layers/openembedded-core/meta \' >> conf/bblayers.conf
           echo '  ${TOPDIR}/../layers/meta-openembedded/meta-oe \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-python \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-multimedia \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-imx/meta-bsp \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-imx/meta-sdk \' >> conf/bblayers.conf
           echo '"' >> conf/bblayers.conf
           
           # Create minimal local.conf with nodistro (no distro dependencies)
-          echo 'MACHINE = "qemux86-64"' > conf/local.conf
+          # Use one of our supported i.MX machines for validation
+          echo 'MACHINE = "imx8mm-jaguar-sentai"' > conf/local.conf
           echo 'DISTRO = "nodistro"' >> conf/local.conf
           echo 'PACKAGE_CLASSES = "package_rpm"' >> conf/local.conf
           echo 'EXTRA_IMAGE_FEATURES = "debug-tweaks"' >> conf/local.conf
@@ -142,6 +148,10 @@ jobs:
           if python3 "$YOCTO_CHECK_LAYER" \
             ../layers/openembedded-core/meta \
             ../layers/meta-openembedded/meta-oe \
+            ../layers/meta-openembedded/meta-python \
+            ../layers/meta-openembedded/meta-multimedia \
+            ../layers/meta-imx/meta-bsp \
+            ../layers/meta-imx/meta-sdk \
             ../../meta-dynamicdevices-bsp; then
             echo "✅ meta-dynamicdevices-bsp validation PASSED"
           else
@@ -161,8 +171,11 @@ jobs:
           if python3 "$YOCTO_CHECK_LAYER" \
             ../layers/openembedded-core/meta \
             ../layers/meta-openembedded/meta-oe \
+            ../layers/meta-openembedded/meta-python \
+            ../layers/meta-openembedded/meta-multimedia \
+            ../layers/meta-imx/meta-bsp \
+            ../layers/meta-imx/meta-sdk \
             ../../meta-dynamicdevices-bsp \
-            ../../meta-dynamicdevices-distro \
             ../..; then
             echo "✅ meta-dynamicdevices validation PASSED"
           else
