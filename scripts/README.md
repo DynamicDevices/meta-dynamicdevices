@@ -2,6 +2,33 @@
 
 This directory contains utility scripts for building, testing, managing, and automating the meta-dynamicdevices BSP layer development workflow.
 
+## 📊 Script Summary
+
+| Script | Category | Purpose | Key Features |
+|--------|----------|---------|--------------|
+| `fio-program-board.sh/.bat` | Board Programming | Foundries.io board programming | Interactive config, caching, timing |
+| `program-local-build.sh` | Board Programming | Local build programming | UUU integration, custom boot files |
+| `kas-build-base.sh` | Build System | Base LmP image builds | KAS container integration |
+| `kas-shell-base.sh` | Build System | Interactive KAS shell | Development environment |
+| `build-with-boot-profiling.sh` | Build System | Profiling-enabled builds | Boot optimization targeting |
+| `boot-timing-suite.sh` | Performance | Complete boot analysis | Capture, analyze, compare |
+| `serial-boot-logger.sh` | Performance | Serial boot capture | Real-time monitoring |
+| `analyze-boot-logs.sh` | Performance | Boot log analysis | Timing breakdown, recommendations |
+| `test-tas2563-mics.sh` | Audio Testing | TAS2563 microphone tests | Dual mic validation |
+| `test-tas2563-sdout.sh` | Audio Testing | TAS2563 serial data output | Echo reference testing |
+| `detect-audio-hardware.sh` | Audio Testing | Audio hardware detection | PDM vs TAS2563 detection |
+| `eink-dual-cs-control.sh` | E-Ink Testing | Dual chip select control | CS0/CS1 independent control |
+| `toggle-eink-cs.sh` | E-Ink Testing | Simple CS toggle | Display routing verification |
+| `test-eink-cs-routing.sh` | E-Ink Testing | CS routing tests | Connectivity validation |
+| `check_ele_status.sh` | Security | EdgeLock Enclave status | ELE driver verification |
+| `generate-dummy-keys.sh` | Security | Development key generation | Local build signing keys |
+| `validate-dummy-keys.sh` | Security | Key validation | Development key verification |
+| `create-github-issue.sh` | Project Management | Issue creation | Automated GitHub issues |
+| `cleanup-workflow-runs.sh` | CI/CD | Workflow cleanup | GitHub Actions maintenance |
+| `prioritize-all-issues.sh` | Project Management | Issue prioritization | Automated priority labeling |
+| `rdc-control.sh` | Hardware Control | Resource domain control | i.MX8MM RDC management |
+| `validation/validate-layers.sh` | Quality Assurance | Yocto layer validation | Project compatibility |
+
 ## 📋 Table of Contents
 
 - [Board Programming & Deployment](#board-programming--deployment)
@@ -329,6 +356,157 @@ bitbake core-image-minimal
 
 ### `create-archive.sh`
 **Purpose:** Creates distribution archives of built images and programming tools.
+
+### `rdc-control.sh`
+**Purpose:** i.MX8MM Resource Domain Controller (RDC) management script for runtime peripheral domain assignments.
+
+**Features:**
+- Checks RDC driver status and availability
+- Shows current peripheral domain assignments
+- Provides runtime control over resource domains
+- Useful for debugging multi-core resource conflicts
+
+### `toggle-eink-cs.sh`
+**Purpose:** Simple script to toggle E-Ink chip select routing between CS0 and CS1 for testing display connectivity.
+
+**Features:**
+- Toggles L#R_SEL_DIS (GPIO2_IO16) every 250ms
+- Remote execution on target boards via SSH
+- Useful for E-Ink display routing verification
+
+### `eink-dual-cs-control.sh`
+**Purpose:** Advanced E-Ink dual chip select control for left/right display halves.
+
+**Features:**
+- Controls CS0 (GPIO2_IO17) and CS1 (GPIO1_IO11) independently
+- Supports sequential, alternating, and simultaneous control modes
+- Color-coded logging and comprehensive error handling
+- Essential for E-Ink display testing and debugging
+
+---
+
+## 🔍 Hardware Testing & Diagnostics
+
+### `check_ele_status.sh`
+**Purpose:** EdgeLock Enclave (ELE) status verification script for i.MX93 boards.
+
+**Features:**
+- Checks ELE kernel driver status and device availability
+- Verifies secure boot configuration
+- Tests ELE-based OCOTP/NVMEM functionality
+- Validates ELE hardware random number generator
+- Examines ELE crypto driver status
+
+**Usage:**
+```bash
+# Run directly on target board
+./scripts/check_ele_status.sh
+```
+
+### `detect-audio-hardware.sh`
+**Purpose:** Detects and configures audio hardware variants (PDM vs TAS2563 microphones).
+
+**Features:**
+- Automatic detection of audio hardware configuration
+- Sets environment variables for ALSA configuration selection
+- Persistent configuration storage for consistent behavior
+- Runtime hardware switching support
+
+---
+
+## ⏱️ Boot Performance & Timing
+
+### `boot-timing-suite.sh`
+**Purpose:** Complete boot analysis workflow combining capture and analysis tools.
+
+**Features:**
+- Unified interface for boot timing capture and analysis
+- Serial boot log capture with configurable timeouts
+- Automated analysis of captured logs
+- Comparison mode for multiple boot logs
+- Continuous monitoring for boot time regression testing
+
+**Usage:**
+```bash
+# Complete workflow - capture and analyze
+./scripts/boot-timing-suite.sh capture --name imx93-test
+./scripts/boot-timing-suite.sh latest
+
+# Custom serial device
+./scripts/boot-timing-suite.sh capture --device /dev/ttyUSB0 --name board-v2
+
+# Compare all captured logs
+./scripts/boot-timing-suite.sh compare
+
+# Monitor boot times over multiple reboots
+./scripts/boot-timing-suite.sh monitor
+```
+
+### `serial-boot-logger.sh`
+**Purpose:** Captures boot timing data over serial port before networking is available.
+
+**Features:**
+- Configurable serial device, baud rate, and timeout
+- Timestamped log file generation
+- Real-time boot progress monitoring
+- Integration with boot analysis tools
+
+### `analyze-boot-logs.sh`
+**Purpose:** Processes serial boot logs to extract detailed timing information.
+
+**Features:**
+- Detailed timing breakdown by boot phases
+- Service timing analysis and optimization recommendations
+- Comparison charts for multiple boot logs
+- Automated report generation
+
+---
+
+## 🔧 Build System Extensions
+
+### `build-uboot-ele.sh`
+**Purpose:** Specialized U-Boot build script with EdgeLock Enclave (ELE) support for i.MX93.
+
+### `kas-build-profiling.sh`
+**Purpose:** Builds images with comprehensive profiling enabled for performance analysis.
+
+### `kas-build-mfgtools.sh`
+**Purpose:** Builds manufacturing/flashing tools image for board programming.
+
+---
+
+## 📊 Project Management & Documentation
+
+### Issue Management Scripts
+
+#### `add-additional-labels.sh`
+**Purpose:** Adds additional categorization labels to GitHub issues.
+
+#### `add-time-estimates.sh`
+**Purpose:** Adds time estimate labels to GitHub issues for project planning and resource allocation.
+
+#### `label-software-firmware-issues.sh`
+**Purpose:** Automatically categorizes issues as software or firmware related based on content analysis.
+
+#### `organize-issues-by-board.sh`
+**Purpose:** Organizes GitHub issues by target board/hardware platform for better project management.
+
+#### `prioritize-all-issues.sh`
+**Purpose:** Applies priority labels (critical/high/medium/low) to all issues based on predefined criteria.
+
+#### `update-hardware-issues.sh`
+**Purpose:** Updates hardware-related issues with current status and implementation information.
+
+### Issue Creation Scripts
+
+#### `create-board-projects.sh`
+**Purpose:** Creates GitHub project boards for organizing board-specific development tasks.
+
+#### `create-identified-issues.sh`
+**Purpose:** Batch creates GitHub issues from identified problems, TODO items, or code review feedback.
+
+#### `create-issues-from-review.sh`
+**Purpose:** Creates issues from documentation maintenance reviews and code audits.
 
 ---
 
