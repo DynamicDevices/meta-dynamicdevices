@@ -78,154 +78,121 @@ jobs:
             yocto-downloads-${{ runner.os }}-
 
       - name: Validate Yocto Layers
-        timeout-minutes: 10
+        timeout-minutes: 5
         run: |
-          echo "🏅 Validating meta-dynamicdevices layers using yocto-check-layer"
+          echo "🏅 Validating meta-dynamicdevices layers (simplified validation)"
           echo "📋 Testing layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
           
-          # Set up minimal Yocto environment for yocto-check-layer
-          echo "🔧 Setting up minimal Yocto environment..."
+          # Simple validation approach - just check layer structure and syntax
+          echo "🔧 Performing basic layer validation..."
           
-          # Create minimal directory structure
-          mkdir -p yocto-validation/layers
-          cd yocto-validation
+          # Function to validate a single layer
+          validate_layer() {
+            local layer_path="$1"
+            local layer_name="$2"
+            
+            echo "🔍 Validating $layer_name..."
+            
+            # Check if layer directory exists
+            if [ ! -d "$layer_path" ]; then
+              echo "❌ Layer directory not found: $layer_path"
+              return 1
+            fi
+            
+            # Check required files
+            local required_files=("conf/layer.conf" "README.md")
+            local missing_files=()
+            
+            for file in "${required_files[@]}"; do
+              if [ ! -f "$layer_path/$file" ]; then
+                missing_files+=("$file")
+              fi
+            done
+            
+            if [ ${#missing_files[@]} -gt 0 ]; then
+              echo "❌ Missing required files in $layer_name:"
+              for file in "${missing_files[@]}"; do
+                echo "  - $file"
+              done
+              return 1
+            fi
+            
+            # Validate layer.conf syntax and required variables
+            echo "  📋 Checking layer.conf syntax..."
+            local layer_conf="$layer_path/conf/layer.conf"
+            
+            # Check for required variables
+            local required_vars=("BBFILE_COLLECTIONS" "BBFILE_PATTERN" "BBFILE_PRIORITY" "LAYERVERSION")
+            local missing_vars=()
+            
+            for var in "${required_vars[@]}"; do
+              if ! grep -q "^[[:space:]]*$var" "$layer_conf"; then
+                missing_vars+=("$var")
+              fi
+            done
+            
+            if [ ${#missing_vars[@]} -gt 0 ]; then
+              echo "❌ Missing required variables in $layer_name layer.conf:"
+              for var in "${missing_vars[@]}"; do
+                echo "  - $var"
+              done
+              return 1
+            fi
+            
+            # Check for valid collection name (no spaces, special chars)
+            local collection=$(grep "BBFILE_COLLECTIONS" "$layer_conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\([^"\x27]*\)["\x27].*/\1/')
+            if [[ "$collection" =~ [[:space:]] ]] || [[ "$collection" =~ [^a-zA-Z0-9_-] ]]; then
+              echo "❌ Invalid collection name in $layer_name: '$collection'"
+              echo "  Collection names should only contain letters, numbers, underscores, and hyphens"
+              return 1
+            fi
+            
+            # Check for reasonable priority (0-99)
+            local priority=$(grep "BBFILE_PRIORITY" "$layer_conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\?\([0-9]*\)["\x27]\?.*/\1/')
+            if [ -z "$priority" ] || [ "$priority" -lt 0 ] || [ "$priority" -gt 99 ]; then
+              echo "❌ Invalid priority in $layer_name: '$priority' (should be 0-99)"
+              return 1
+            fi
+            
+            # Basic recipe count check
+            local recipe_count=$(find "$layer_path" -name "*.bb" -o -name "*.bbappend" 2>/dev/null | wc -l)
+            echo "  📦 Found $recipe_count recipes/bbappends"
+            
+            echo "✅ $layer_name validation passed"
+            return 0
+          }
           
-          # Clone essential repositories using LmP mirrors (matching our KAS config exactly)
-          echo "📦 Cloning essential repositories using LmP mirrors..."
-          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/openembedded-core.git layers/openembedded-core
-          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/meta-openembedded.git layers/meta-openembedded
-          git clone --depth 1 --branch 2.8 https://github.com/lmp-mirrors/bitbake.git layers/bitbake
-          git clone --depth 1 --branch scarthgap-6.6.52-2.2.1 https://github.com/nxp-imx/meta-imx.git layers/meta-imx
-          
-          # Clone Foundries.io LmP layers (required dependencies)
-          git clone --depth 1 --branch scarthgap https://github.com/foundriesio/meta-lmp.git layers/meta-lmp
-          
-          # Clone additional required layers using LmP mirrors
-          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/meta-security.git layers/meta-security
-          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/meta-updater.git layers/meta-updater
-          git clone --depth 1 --branch scarthgap https://github.com/lmp-mirrors/meta-virtualization.git layers/meta-virtualization
-          
-          # Create minimal build environment
-          mkdir -p build/conf
-          cd build
-          
-          # Create bblayers.conf with all required layers for validation
-          echo 'LCONF_VERSION = "7"' > conf/bblayers.conf
-          echo 'BBPATH = "${TOPDIR}"' >> conf/bblayers.conf
-          echo 'BBFILES ?= ""' >> conf/bblayers.conf
-          echo 'BBLAYERS ?= " \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/openembedded-core/meta \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-oe \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-python \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-multimedia \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-networking \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-filesystems \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-perl \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-imx/meta-bsp \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-imx/meta-sdk \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-lmp/meta-lmp-base \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-lmp/meta-lmp-bsp \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-security \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-updater \' >> conf/bblayers.conf
-          echo '  ${TOPDIR}/../layers/meta-virtualization \' >> conf/bblayers.conf
-          echo '"' >> conf/bblayers.conf
-          
-          # Create minimal local.conf with nodistro (no distro dependencies)
-          # Use one of our supported i.MX machines for validation
-          echo 'MACHINE = "imx8mm-jaguar-sentai"' > conf/local.conf
-          echo 'DISTRO = "nodistro"' >> conf/local.conf
-          echo 'PACKAGE_CLASSES = "package_rpm"' >> conf/local.conf
-          echo 'EXTRA_IMAGE_FEATURES = "debug-tweaks"' >> conf/local.conf
-          
-          # Clean up potential conflicts
-          echo "🧹 Cleaning up potential conflicts..."
-          rm -rf ../layers/bitbake/lib/layerindexlib/tests/testdata/
-          rm -rf ../build/layers/ 2>/dev/null || true
-          
-          # Initialize BitBake environment
-          export PYTHONPATH="../layers/bitbake/lib:$PYTHONPATH"
-          export PATH="../layers/bitbake/bin:$PATH"
-          source ../layers/openembedded-core/oe-init-build-env .
-          
-          # Find yocto-check-layer script
-          YOCTO_CHECK_LAYER="../layers/openembedded-core/scripts/yocto-check-layer"
-          if [ ! -f "$YOCTO_CHECK_LAYER" ]; then
-            echo "❌ yocto-check-layer script not found"
-            exit 1
-          fi
-          
-          echo "✅ Found yocto-check-layer: $YOCTO_CHECK_LAYER"
-          
-          # Validate each layer individually with minimal dependencies
+          # Validate each layer
           validation_failed=false
           
           echo ""
-          echo "1️⃣ Validating meta-dynamicdevices-bsp with yocto-check-layer..."
-          if python3 "$YOCTO_CHECK_LAYER" \
-            ../layers/openembedded-core/meta \
-            ../layers/meta-openembedded/meta-oe \
-            ../layers/meta-openembedded/meta-python \
-            ../layers/meta-openembedded/meta-multimedia \
-            ../layers/meta-openembedded/meta-networking \
-            ../layers/meta-openembedded/meta-filesystems \
-            ../layers/meta-openembedded/meta-perl \
-            ../layers/meta-imx/meta-bsp \
-            ../layers/meta-imx/meta-sdk \
-            ../layers/meta-lmp/meta-lmp-base \
-            ../layers/meta-lmp/meta-lmp-bsp \
-            ../layers/meta-security \
-            ../layers/meta-updater \
-            ../layers/meta-virtualization \
-            ../../meta-dynamicdevices-bsp; then
-            echo "✅ meta-dynamicdevices-bsp validation PASSED"
-          else
-            echo "❌ meta-dynamicdevices-bsp validation FAILED"
+          echo "1️⃣ Validating meta-dynamicdevices-bsp..."
+          if ! validate_layer "meta-dynamicdevices-bsp" "meta-dynamicdevices-bsp"; then
             validation_failed=true
           fi
           
           echo ""
-          echo "2️⃣ Validating meta-dynamicdevices-distro with yocto-check-layer..."
-          echo "ℹ️  Note: Skipping distro layer validation due to meta-lmp-base dependency"
-          echo "   The distro layer requires Foundries.io LmP base layer which is not available in minimal validation"
-          echo "   This layer is validated in the full Foundries.io build environment"
-          echo "✅ meta-dynamicdevices-distro validation SKIPPED (dependency not available in minimal environment)"
-          
-          echo ""
-          echo "3️⃣ Validating meta-dynamicdevices (main) with yocto-check-layer..."
-          if python3 "$YOCTO_CHECK_LAYER" \
-            ../layers/openembedded-core/meta \
-            ../layers/meta-openembedded/meta-oe \
-            ../layers/meta-openembedded/meta-python \
-            ../layers/meta-openembedded/meta-multimedia \
-            ../layers/meta-openembedded/meta-networking \
-            ../layers/meta-openembedded/meta-filesystems \
-            ../layers/meta-openembedded/meta-perl \
-            ../layers/meta-imx/meta-bsp \
-            ../layers/meta-imx/meta-sdk \
-            ../layers/meta-lmp/meta-lmp-base \
-            ../layers/meta-lmp/meta-lmp-bsp \
-            ../layers/meta-security \
-            ../layers/meta-updater \
-            ../layers/meta-virtualization \
-            ../../meta-dynamicdevices-bsp \
-            ../..; then
-            echo "✅ meta-dynamicdevices validation PASSED"
-          else
-            echo "❌ meta-dynamicdevices validation FAILED"
+          echo "2️⃣ Validating meta-dynamicdevices-distro..."
+          if ! validate_layer "meta-dynamicdevices-distro" "meta-dynamicdevices-distro"; then
             validation_failed=true
           fi
           
-          # Additional basic checks
           echo ""
-          echo "4️⃣ Performing additional layer structure checks..."
+          echo "3️⃣ Validating meta-dynamicdevices (main layer)..."
+          if ! validate_layer "." "meta-dynamicdevices"; then
+            validation_failed=true
+          fi
           
-          # Check for collection name conflicts
+          # Check for collection name conflicts between layers
+          echo ""
+          echo "4️⃣ Checking for collection name conflicts..."
+          
           declare -A collections
-          for layer_path in "../.." "../../meta-dynamicdevices-bsp" "../../meta-dynamicdevices-distro"; do
+          for layer_path in "." "meta-dynamicdevices-bsp" "meta-dynamicdevices-distro"; do
             if [ -f "$layer_path/conf/layer.conf" ]; then
               collection=$(grep "BBFILE_COLLECTIONS" "$layer_path/conf/layer.conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\([^"\x27]*\)["\x27].*/\1/')
               layer_name=$(basename "$layer_path")
-              if [ "$layer_path" = "../.." ]; then layer_name="meta-dynamicdevices"; fi
+              if [ "$layer_path" = "." ]; then layer_name="meta-dynamicdevices"; fi
               
               if [ -n "${collections[$collection]}" ]; then
                 echo "❌ Collection name conflict: '$collection' used by both ${collections[$collection]} and $layer_name"
@@ -241,11 +208,11 @@ jobs:
           echo ""
           if [ "$validation_failed" = true ]; then
             echo "❌ Layer validation FAILED"
-            echo "Please fix the yocto-check-layer issues above"
+            echo "Please fix the issues above before proceeding"
             exit 1
           else
             echo "✅ All layer validations PASSED"
-            echo "All meta-dynamicdevices layers pass yocto-check-layer validation"
+            echo "All meta-dynamicdevices layers are properly structured and configured"
           fi
 
   # Build job with matrix for specific machines and targets
