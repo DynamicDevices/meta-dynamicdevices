@@ -164,13 +164,10 @@ run_layer_validation() {
         find ../.. -name 'bitbake' -type d -exec rm -rf {}/lib/layerindexlib/tests/testdata/ 2>/dev/null \\; || true
         
         # Clean up old build directories that might cause collection conflicts
-        find ../.. -maxdepth 2 -name 'build*' -type d ! -path '*/yocto-layer-validation/build' -exec echo 'Temporarily moving {}' \\; -exec mv {} {}.bak 2>/dev/null \\; || true
+        find ../.. -maxdepth 2 -name 'build*' -type d ! -path '*/yocto-layer-validation/build' -exec echo 'Removing conflicting build directory: {}' \\; -exec rm -rf {} \\; 2>/dev/null || true
         
         # Run validation from build directory - layer path is absolute
         python3 \"\$YOCTO_CHECK_LAYER\" \"$layer_path\"
-        
-        # Restore moved directories
-        find ../.. -maxdepth 2 -name 'build*.bak' -type d -exec sh -c 'mv \"\$1\" \"\${1%.bak}\"' _ {} \\; 2>/dev/null || true
     "; then
         log_success "$layer_name validation PASSED"
         cd "$PROJECT_ROOT"
