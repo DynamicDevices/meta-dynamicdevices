@@ -94,6 +94,7 @@ jobs:
           echo "📦 Cloning essential repositories..."
           git clone --depth 1 --branch scarthgap https://github.com/openembedded/openembedded-core.git layers/openembedded-core
           git clone --depth 1 --branch scarthgap https://github.com/openembedded/meta-openembedded.git layers/meta-openembedded
+          git clone --depth 1 --branch 2.8 https://github.com/openembedded/bitbake.git layers/bitbake
           
           # Create minimal build environment
           mkdir -p build/conf
@@ -115,6 +116,8 @@ jobs:
           echo 'EXTRA_IMAGE_FEATURES = "debug-tweaks"' >> conf/local.conf
           
           # Initialize BitBake environment
+          export PYTHONPATH="../layers/bitbake/lib:$PYTHONPATH"
+          export PATH="../layers/bitbake/bin:$PATH"
           source ../layers/openembedded-core/oe-init-build-env .
           
           # Find yocto-check-layer script
