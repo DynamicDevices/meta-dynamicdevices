@@ -95,7 +95,7 @@ jobs:
           git clone --depth 1 --branch scarthgap https://github.com/openembedded/openembedded-core.git layers/openembedded-core
           git clone --depth 1 --branch scarthgap https://github.com/openembedded/meta-openembedded.git layers/meta-openembedded
           git clone --depth 1 --branch 2.8 https://github.com/openembedded/bitbake.git layers/bitbake
-          git clone --depth 1 --branch scarthgap https://github.com/nxp-imx/meta-imx.git layers/meta-imx
+          git clone --depth 1 --branch scarthgap-6.6.52-2.2.1 https://github.com/nxp-imx/meta-imx.git layers/meta-imx
           
           # Create minimal build environment
           mkdir -p build/conf
