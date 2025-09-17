@@ -4,8 +4,6 @@ LICENSE = "MIT"
 
 inherit cargo_bin
 
-EXTRA_CARGO_FLAGS = "--release"
-
 # Enable network for the compile task allowing cargo to download dependencies
 do_compile[network] = "1"
 
