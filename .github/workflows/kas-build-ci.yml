@@ -78,142 +78,92 @@ jobs:
             yocto-downloads-${{ runner.os }}-
 
       - name: Validate Yocto Layers
-        timeout-minutes: 5
+        timeout-minutes: 15
         run: |
-          echo "🏅 Validating meta-dynamicdevices layers (simplified validation)"
-          echo "📋 Testing layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
-          
-          # Simple validation approach - just check layer structure and syntax
-          echo "🔧 Performing basic layer validation..."
-          
-          # Function to validate a single layer
-          validate_layer() {
-            local layer_path="$1"
-            local layer_name="$2"
-            
-            echo "🔍 Validating $layer_name..."
-            
-            # Check if layer directory exists
-            if [ ! -d "$layer_path" ]; then
-              echo "❌ Layer directory not found: $layer_path"
-              return 1
-            fi
-            
-            # Check required files
-            local required_files=("conf/layer.conf" "README.md")
-            local missing_files=()
-            
-            for file in "${required_files[@]}"; do
-              if [ ! -f "$layer_path/$file" ]; then
-                missing_files+=("$file")
-              fi
-            done
-            
-            if [ ${#missing_files[@]} -gt 0 ]; then
-              echo "❌ Missing required files in $layer_name:"
-              for file in "${missing_files[@]}"; do
-                echo "  - $file"
-              done
-              return 1
-            fi
-            
-            # Validate layer.conf syntax and required variables
-            echo "  📋 Checking layer.conf syntax..."
-            local layer_conf="$layer_path/conf/layer.conf"
-            
-            # Check for required variables
-            local required_vars=("BBFILE_COLLECTIONS" "BBFILE_PATTERN" "BBFILE_PRIORITY" "LAYERVERSION")
-            local missing_vars=()
-            
-            for var in "${required_vars[@]}"; do
-              if ! grep -q "^[[:space:]]*$var" "$layer_conf"; then
-                missing_vars+=("$var")
-              fi
-            done
-            
-            if [ ${#missing_vars[@]} -gt 0 ]; then
-              echo "❌ Missing required variables in $layer_name layer.conf:"
-              for var in "${missing_vars[@]}"; do
-                echo "  - $var"
-              done
-              return 1
-            fi
-            
-            # Check for valid collection name (no spaces, special chars)
-            local collection=$(grep "BBFILE_COLLECTIONS" "$layer_conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\([^"\x27]*\)["\x27].*/\1/')
-            if [[ "$collection" =~ [[:space:]] ]] || [[ "$collection" =~ [^a-zA-Z0-9_-] ]]; then
-              echo "❌ Invalid collection name in $layer_name: '$collection'"
-              echo "  Collection names should only contain letters, numbers, underscores, and hyphens"
-              return 1
-            fi
-            
-            # Check for reasonable priority (0-99)
-            local priority=$(grep "BBFILE_PRIORITY" "$layer_conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\?\([0-9]*\)["\x27]\?.*/\1/')
-            if [ -z "$priority" ] || [ "$priority" -lt 0 ] || [ "$priority" -gt 99 ]; then
-              echo "❌ Invalid priority in $layer_name: '$priority' (should be 0-99)"
-              return 1
-            fi
-            
-            # Basic recipe count check
-            local recipe_count=$(find "$layer_path" -name "*.bb" -o -name "*.bbappend" 2>/dev/null | wc -l)
-            echo "  📦 Found $recipe_count recipes/bbappends"
-            
-            echo "✅ $layer_name validation passed"
-            return 0
-          }
-          
-          # Validate each layer
-          validation_failed=false
-          
+          echo "🏅 Meta-DynamicDevices Layer Validation (CI)"
+          echo "============================================="
+          echo "📋 Using official yocto-check-layer for Yocto Project compliance"
           echo ""
-          echo "1️⃣ Validating meta-dynamicdevices-bsp..."
-          if ! validate_layer "meta-dynamicdevices-bsp" "meta-dynamicdevices-bsp"; then
-            validation_failed=true
+          
+          # Install KAS if not available
+          if ! command -v kas >/dev/null 2>&1; then
+            echo "📦 Installing KAS..."
+            pip3 install kas
           fi
           
-          echo ""
-          echo "2️⃣ Validating meta-dynamicdevices-distro..."
-          if ! validate_layer "meta-dynamicdevices-distro" "meta-dynamicdevices-distro"; then
-            validation_failed=true
-          fi
+          # Create validation workspace
+          VALIDATION_DIR="ci-layer-validation"
+          rm -rf "$VALIDATION_DIR"
+          mkdir -p "$VALIDATION_DIR"
+          cd "$VALIDATION_DIR"
           
-          echo ""
-          echo "3️⃣ Validating meta-dynamicdevices (main layer)..."
-          if ! validate_layer "." "meta-dynamicdevices"; then
-            validation_failed=true
-          fi
+          echo "🔧 Setting up KAS environment for layer validation..."
           
-          # Check for collection name conflicts between layers
-          echo ""
-          echo "4️⃣ Checking for collection name conflicts..."
+          # Copy KAS configuration for validation
+          cp ../kas/layer-validation.yml .
           
-          declare -A collections
-          for layer_path in "." "meta-dynamicdevices-bsp" "meta-dynamicdevices-distro"; do
-            if [ -f "$layer_path/conf/layer.conf" ]; then
-              collection=$(grep "BBFILE_COLLECTIONS" "$layer_path/conf/layer.conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\([^"\x27]*\)["\x27].*/\1/')
-              layer_name=$(basename "$layer_path")
-              if [ "$layer_path" = "." ]; then layer_name="meta-dynamicdevices"; fi
-              
-              if [ -n "${collections[$collection]}" ]; then
-                echo "❌ Collection name conflict: '$collection' used by both ${collections[$collection]} and $layer_name"
-                validation_failed=true
-              else
-                collections[$collection]="$layer_name"
-                echo "✅ Collection '$collection' registered for $layer_name"
-              fi
+          # Initialize KAS environment
+          echo "📋 Initializing KAS build environment..."
+          kas shell layer-validation.yml -c "echo 'KAS environment initialized'"
+          
+          echo "✅ KAS environment ready"
+          echo ""
+          
+          echo "🔍 Starting comprehensive layer validation..."
+          echo ""
+          
+          # Run yocto-check-layer validation
+          echo "1️⃣ Validating all meta-dynamicdevices layers together..."
+          
+          if kas shell layer-validation.yml -c "
+            # Use the yocto-check-layer script from openembedded-core
+            YOCTO_CHECK_LAYER='./layers/openembedded-core/scripts/yocto-check-layer'
+            
+            if [ ! -f \"\$YOCTO_CHECK_LAYER\" ]; then
+              echo '❌ yocto-check-layer script not found at expected location'
+              exit 1
             fi
-          done
-          
-          # Final result
-          echo ""
-          if [ "$validation_failed" = true ]; then
-            echo "❌ Layer validation FAILED"
-            echo "Please fix the issues above before proceeding"
-            exit 1
-          else
+            
+            echo '✅ Found yocto-check-layer: '\$YOCTO_CHECK_LAYER
+            
+            # Clean up all potential conflicts from BitBake test data
+            rm -rf layers/bitbake/lib/layerindexlib/tests/testdata/ 2>/dev/null || true
+            find ../.. -name 'bitbake' -type d -exec rm -rf {}/lib/layerindexlib/tests/testdata/ 2>/dev/null \\; || true
+            
+            # Clean up any other build directories that might cause collection conflicts
+            find ../.. -maxdepth 2 -name 'build*' -type d ! -path '*/ci-layer-validation/build' -exec echo '🧹 Temporarily moving {}' \\; -exec mv {} {}.bak 2>/dev/null \\; || true
+            
+            # Run validation on all meta-dynamicdevices layers together to handle dependencies
+            echo '🔍 Running yocto-check-layer validation...'
+            python3 \"\$YOCTO_CHECK_LAYER\" \"$PWD/../meta-dynamicdevices-bsp\" \"$PWD/../meta-dynamicdevices-distro\" \"$PWD/..\"
+            
+            # Restore moved directories
+            find ../.. -maxdepth 2 -name 'build*.bak' -type d -exec sh -c 'mv \"\$1\" \"\${1%.bak}\"' _ {} \\; 2>/dev/null || true
+          "; then
+            echo ""
+            echo "✅ meta-dynamicdevices layers validation PASSED"
+            echo ""
+            echo "============================================="
             echo "✅ All layer validations PASSED"
-            echo "All meta-dynamicdevices layers are properly structured and configured"
+            echo "✅ All meta-dynamicdevices layers pass comprehensive yocto-check-layer validation!"
+            echo "✅ Layers are ready for Yocto Project compatibility."
+            echo ""
+          else
+            echo ""
+            echo "❌ meta-dynamicdevices layers validation FAILED"
+            echo ""
+            echo "============================================="
+            echo "❌ Layer validation FAILED"
+            echo ""
+            echo "ℹ️  Please fix the yocto-check-layer issues above before proceeding."
+            echo "ℹ️  Run './scripts/validate-layers-local.sh' locally to debug issues."
+            echo ""
+            exit 1
           fi
+          
+          # Cleanup validation workspace
+          cd ..
+          rm -rf "$VALIDATION_DIR"
 
   # Build job with matrix for specific machines and targets
   build:

@@ -128,6 +128,7 @@ setup_kas_environment() {
     
     # Initialize KAS build environment
     log_info "Initializing KAS build environment..."
+    mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
     kas shell "$KAS_CONFIG" -c "echo 'KAS environment initialized'"
     cd "$PROJECT_ROOT"
@@ -145,6 +146,7 @@ run_layer_validation() {
     cd "$PROJECT_ROOT"
     
     # Run yocto-check-layer in KAS environment
+    mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
     if kas shell "$KAS_CONFIG" -c "
         # Use the yocto-check-layer script from openembedded-core
@@ -157,11 +159,18 @@ run_layer_validation() {
         
         echo 'Found yocto-check-layer: '\$YOCTO_CHECK_LAYER
         
-        # Clean up potential conflicts from BitBake test data
+        # Clean up all potential conflicts from BitBake test data and old builds
         rm -rf layers/bitbake/lib/layerindexlib/tests/testdata/ 2>/dev/null || true
+        find ../.. -name 'bitbake' -type d -exec rm -rf {}/lib/layerindexlib/tests/testdata/ 2>/dev/null \\; || true
         
-        # Run validation from build directory
+        # Clean up old build directories that might cause collection conflicts
+        find ../.. -maxdepth 2 -name 'build*' -type d ! -path '*/yocto-layer-validation/build' -exec echo 'Temporarily moving {}' \\; -exec mv {} {}.bak 2>/dev/null \\; || true
+        
+        # Run validation from build directory - layer path is absolute
         python3 \"\$YOCTO_CHECK_LAYER\" \"$layer_path\"
+        
+        # Restore moved directories
+        find ../.. -maxdepth 2 -name 'build*.bak' -type d -exec sh -c 'mv \"\$1\" \"\${1%.bak}\"' _ {} \\; 2>/dev/null || true
     "; then
         log_success "$layer_name validation PASSED"
         cd "$PROJECT_ROOT"
@@ -190,23 +199,9 @@ main() {
     log_info "Starting comprehensive layer validation..."
     echo ""
     
-    # Validate meta-dynamicdevices-bsp
-    echo "1️⃣ Validating meta-dynamicdevices-bsp..."
-    if ! run_layer_validation "../meta-dynamicdevices-bsp" "meta-dynamicdevices-bsp"; then
-        validation_failed=true
-    fi
-    echo ""
-    
-    # Validate meta-dynamicdevices-distro
-    echo "2️⃣ Validating meta-dynamicdevices-distro..."
-    if ! run_layer_validation "../meta-dynamicdevices-distro" "meta-dynamicdevices-distro"; then
-        validation_failed=true
-    fi
-    echo ""
-    
-    # Validate meta-dynamicdevices (main layer)
-    echo "3️⃣ Validating meta-dynamicdevices (main layer)..."
-    if ! run_layer_validation ".." "meta-dynamicdevices"; then
+    # Validate all meta-dynamicdevices layers together to handle dependencies
+    echo "1️⃣ Validating all meta-dynamicdevices layers together..."
+    if ! run_layer_validation "$PROJECT_ROOT/meta-dynamicdevices-bsp $PROJECT_ROOT/meta-dynamicdevices-distro $PROJECT_ROOT" "meta-dynamicdevices-all"; then
         validation_failed=true
     fi
     echo ""
