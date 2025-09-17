@@ -78,121 +78,107 @@ jobs:
             yocto-downloads-${{ runner.os }}-
 
       - name: Validate Yocto Layers
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: |
-          echo "🏅 Validating meta-dynamicdevices layers (simplified validation)"
+          echo "🏅 Validating meta-dynamicdevices layers using yocto-check-layer"
           echo "📋 Testing layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
           
-          # Simple validation approach - just check layer structure and syntax
-          echo "🔧 Performing basic layer validation..."
+          # Set up minimal Yocto environment for yocto-check-layer
+          echo "🔧 Setting up minimal Yocto environment..."
           
+          # Create minimal directory structure
+          mkdir -p yocto-validation/layers
+          cd yocto-validation
+          
+          # Clone only essential repositories - minimal set to avoid conflicts
+          echo "📦 Cloning essential repositories..."
+          git clone --depth 1 --branch scarthgap https://github.com/openembedded/openembedded-core.git layers/openembedded-core
+          git clone --depth 1 --branch scarthgap https://github.com/openembedded/meta-openembedded.git layers/meta-openembedded
+          
+          # Create minimal build environment
+          mkdir -p build/conf
+          cd build
+          
+          # Create minimal bblayers.conf with only core layers
+          echo 'LCONF_VERSION = "7"' > conf/bblayers.conf
+          echo 'BBPATH = "${TOPDIR}"' >> conf/bblayers.conf
+          echo 'BBFILES ?= ""' >> conf/bblayers.conf
+          echo 'BBLAYERS ?= " \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/openembedded-core/meta \' >> conf/bblayers.conf
+          echo '  ${TOPDIR}/../layers/meta-openembedded/meta-oe \' >> conf/bblayers.conf
+          echo '"' >> conf/bblayers.conf
+          
+          # Create minimal local.conf
+          echo 'MACHINE = "qemux86-64"' > conf/local.conf
+          echo 'DISTRO = "poky"' >> conf/local.conf
+          echo 'PACKAGE_CLASSES = "package_rpm"' >> conf/local.conf
+          echo 'EXTRA_IMAGE_FEATURES = "debug-tweaks"' >> conf/local.conf
+          
+          # Initialize BitBake environment
+          source ../layers/openembedded-core/oe-init-build-env .
+          
+          # Find yocto-check-layer script
+          YOCTO_CHECK_LAYER="../layers/openembedded-core/scripts/yocto-check-layer"
+          if [ ! -f "$YOCTO_CHECK_LAYER" ]; then
+            echo "❌ yocto-check-layer script not found"
+            exit 1
+          fi
+          
+          echo "✅ Found yocto-check-layer: $YOCTO_CHECK_LAYER"
+          
+          # Validate each layer individually with minimal dependencies
           validation_failed=false
           
-          # Function to validate a single layer
-          validate_layer() {
-            local layer_path="$1"
-            local layer_name="$2"
-            
-            echo "🔍 Validating $layer_name..."
-            
-            # Check if layer directory exists
-            if [ ! -d "$layer_path" ]; then
-              echo "❌ Layer directory not found: $layer_path"
-              return 1
-            fi
-            
-            # Check required files
-            local required_files=("conf/layer.conf" "README.md")
-            local missing_files=()
-            
-            for file in "${required_files[@]}"; do
-              if [ ! -f "$layer_path/$file" ]; then
-                missing_files+=("$file")
-              fi
-            done
-            
-            if [ ${#missing_files[@]} -gt 0 ]; then
-              echo "❌ Missing required files in $layer_name:"
-              for file in "${missing_files[@]}"; do
-                echo "  - $file"
-              done
-              return 1
-            fi
-            
-            # Validate layer.conf syntax and required variables
-            echo "  📋 Checking layer.conf syntax..."
-            local layer_conf="$layer_path/conf/layer.conf"
-            
-            # Check for required variables
-            local required_vars=("BBFILE_COLLECTIONS" "BBFILE_PATTERN" "BBFILE_PRIORITY" "LAYERVERSION")
-            local missing_vars=()
-            
-            for var in "${required_vars[@]}"; do
-              if ! grep -q "^[[:space:]]*$var" "$layer_conf"; then
-                missing_vars+=("$var")
-              fi
-            done
-            
-            if [ ${#missing_vars[@]} -gt 0 ]; then
-              echo "❌ Missing required variables in $layer_name layer.conf:"
-              for var in "${missing_vars[@]}"; do
-                echo "  - $var"
-              done
-              return 1
-            fi
-            
-            # Check for valid collection name (no spaces, special chars)
-            local collection=$(grep "BBFILE_COLLECTIONS" "$layer_conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\([^"\x27]*\)["\x27].*/\1/')
-            if [[ "$collection" =~ [[:space:]] ]] || [[ "$collection" =~ [^a-zA-Z0-9_-] ]]; then
-              echo "❌ Invalid collection name in $layer_name: '$collection'"
-              echo "  Collection names should only contain letters, numbers, underscores, and hyphens"
-              return 1
-            fi
-            
-            # Check for reasonable priority (0-99)
-            local priority=$(grep "BBFILE_PRIORITY" "$layer_conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\?\([0-9]*\)["\x27]\?.*/\1/')
-            if [ -z "$priority" ] || [ "$priority" -lt 0 ] || [ "$priority" -gt 99 ]; then
-              echo "❌ Invalid priority in $layer_name: '$priority' (should be 0-99)"
-              return 1
-            fi
-            
-            # Basic recipe count check
-            local recipe_count=$(find "$layer_path" -name "*.bb" -o -name "*.bbappend" 2>/dev/null | wc -l)
-            echo "  📦 Found $recipe_count recipes/bbappends"
-            
-            echo "✅ $layer_name validation passed"
-            return 0
-          }
-          
-          # Validate each layer
           echo ""
-          echo "1️⃣ Validating meta-dynamicdevices-bsp..."
-          if ! validate_layer "meta-dynamicdevices-bsp" "meta-dynamicdevices-bsp"; then
+          echo "1️⃣ Validating meta-dynamicdevices-bsp with yocto-check-layer..."
+          if python3 "$YOCTO_CHECK_LAYER" \
+            ../layers/openembedded-core/meta \
+            ../layers/meta-openembedded/meta-oe \
+            ../../meta-dynamicdevices-bsp; then
+            echo "✅ meta-dynamicdevices-bsp validation PASSED"
+          else
+            echo "❌ meta-dynamicdevices-bsp validation FAILED"
             validation_failed=true
           fi
           
           echo ""
-          echo "2️⃣ Validating meta-dynamicdevices-distro..."
-          if ! validate_layer "meta-dynamicdevices-distro" "meta-dynamicdevices-distro"; then
+          echo "2️⃣ Validating meta-dynamicdevices-distro with yocto-check-layer..."
+          if python3 "$YOCTO_CHECK_LAYER" \
+            ../layers/openembedded-core/meta \
+            ../layers/meta-openembedded/meta-oe \
+            ../../meta-dynamicdevices-bsp \
+            ../../meta-dynamicdevices-distro; then
+            echo "✅ meta-dynamicdevices-distro validation PASSED"
+          else
+            echo "❌ meta-dynamicdevices-distro validation FAILED"
             validation_failed=true
           fi
           
           echo ""
-          echo "3️⃣ Validating meta-dynamicdevices (main layer)..."
-          if ! validate_layer "." "meta-dynamicdevices"; then
+          echo "3️⃣ Validating meta-dynamicdevices (main) with yocto-check-layer..."
+          if python3 "$YOCTO_CHECK_LAYER" \
+            ../layers/openembedded-core/meta \
+            ../layers/meta-openembedded/meta-oe \
+            ../../meta-dynamicdevices-bsp \
+            ../../meta-dynamicdevices-distro \
+            ../..; then
+            echo "✅ meta-dynamicdevices validation PASSED"
+          else
+            echo "❌ meta-dynamicdevices validation FAILED"
             validation_failed=true
           fi
           
-          # Check for collection name conflicts between layers
+          # Additional basic checks
           echo ""
-          echo "4️⃣ Checking for collection name conflicts..."
+          echo "4️⃣ Performing additional layer structure checks..."
           
+          # Check for collection name conflicts
           declare -A collections
-          for layer_path in "." "meta-dynamicdevices-bsp" "meta-dynamicdevices-distro"; do
+          for layer_path in "../.." "../../meta-dynamicdevices-bsp" "../../meta-dynamicdevices-distro"; do
             if [ -f "$layer_path/conf/layer.conf" ]; then
               collection=$(grep "BBFILE_COLLECTIONS" "$layer_path/conf/layer.conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\([^"\x27]*\)["\x27].*/\1/')
               layer_name=$(basename "$layer_path")
-              if [ "$layer_path" = "." ]; then layer_name="meta-dynamicdevices"; fi
+              if [ "$layer_path" = "../.." ]; then layer_name="meta-dynamicdevices"; fi
               
               if [ -n "${collections[$collection]}" ]; then
                 echo "❌ Collection name conflict: '$collection' used by both ${collections[$collection]} and $layer_name"
@@ -208,11 +194,11 @@ jobs:
           echo ""
           if [ "$validation_failed" = true ]; then
             echo "❌ Layer validation FAILED"
-            echo "Please fix the issues above before proceeding"
+            echo "Please fix the yocto-check-layer issues above"
             exit 1
           else
             echo "✅ All layer validations PASSED"
-            echo "All meta-dynamicdevices layers are properly structured and configured"
+            echo "All meta-dynamicdevices layers pass yocto-check-layer validation"
           fi
 
   # Build job with matrix for specific machines and targets
