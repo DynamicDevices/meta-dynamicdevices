@@ -7,6 +7,10 @@ inherit cargo_bin
 # Enable network for the compile task allowing cargo to download dependencies
 do_compile[network] = "1"
 
+# Fix buildpaths QA warnings by ensuring debug prefix mapping is applied to Rust builds
+RUSTFLAGS:append = " --remap-path-prefix=${WORKDIR}=/usr/src/debug/${PN}/${PV}"
+RUSTFLAGS:append = " --remap-path-prefix=${TMPDIR}=/usr/src/debug/tmpdir"
+
 SRC_URI = "git://github.com/rust-embedded/gpio-utils.git;protocol=https;branch=master"
 SRCREV="02b0658cd7e13e46f6b1a5de3fd9655711749759"
 S = "${WORKDIR}/git"
