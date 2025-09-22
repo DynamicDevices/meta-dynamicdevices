@@ -134,7 +134,7 @@ jobs:
             
             # Run validation on all meta-dynamicdevices layers together to handle dependencies
             echo '🔍 Running yocto-check-layer validation...'
-            python3 \"\$YOCTO_CHECK_LAYER\" \"$PWD/../meta-dynamicdevices-bsp\" \"$PWD/../meta-dynamicdevices-distro\" \"$PWD/..\""
+            python3 \"\$YOCTO_CHECK_LAYER\" \"$PWD/../meta-dynamicdevices-bsp\" \"$PWD/../meta-dynamicdevices-distro\" \"$PWD/..\"
           "; then
             echo ""
             echo "✅ meta-dynamicdevices layers validation PASSED"
