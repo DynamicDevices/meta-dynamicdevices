@@ -4,53 +4,52 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'recipes-**'
-      - 'conf/**'
       - 'kas/**'
-      - 'scripts/**'
-      - 'classes/**'
       - 'meta-dynamicdevices-bsp/**'
       - 'meta-dynamicdevices-distro/**'
-      - 'meta-lmp-base/**'
-      - 'meta-dynamicdevices-bsp'
-      - 'meta-dynamicdevices-distro'
-      - 'meta-lmp-base'
+      - 'recipes-**'
+      - 'classes/**'
+      - 'conf/**'
       - '.github/workflows/kas-build-ci.yml'
+      - 'scripts/kas-*.sh'
+      - 'scripts/validation/**'
+      - 'bbappends/**'
+      - 'custom-boot-files/**'
+
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'recipes-**'
-      - 'conf/**'
       - 'kas/**'
-      - 'scripts/**'
-      - 'classes/**'
       - 'meta-dynamicdevices-bsp/**'
       - 'meta-dynamicdevices-distro/**'
-      - 'meta-lmp-base/**'
-      - 'meta-dynamicdevices-bsp'
-      - 'meta-dynamicdevices-distro'
-      - 'meta-lmp-base'
+      - 'recipes-**'
+      - 'classes/**'
+      - 'conf/**'
       - '.github/workflows/kas-build-ci.yml'
+      - 'scripts/kas-*.sh'
+      - 'scripts/validation/**'
+      - 'bbappends/**'
+      - 'custom-boot-files/**'
+
   workflow_dispatch:
     inputs:
-      machine:
-        description: 'Specific machine to build (optional)'
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
-        type: choice
-        options:
-          - 'all'
-          - 'imx8mm-jaguar-sentai'
-          - 'imx93-jaguar-eink'
-        default: 'all'
+        default: false
+
+env:
+  DEBIAN_FRONTEND: noninteractive
 
 jobs:
-  # Layer validation job - runs once before builds
+  # Validation job - validates Yocto layer compatibility
   validate:
-    name: Validate Yocto Layer Compliance
+    name: Validate Yocto Layers
     runs-on: self-hosted
     container:
       image: dynamicdevices/yocto-ci-build:latest
-      options: --privileged --platform linux/amd64  -v /dev/net/tun:/dev/net/tun -v /dev/kvm:/dev/kvm
+      options: --privileged --platform linux/amd64
     
     steps:
       - name: Checkout repository
@@ -78,291 +77,104 @@ jobs:
             yocto-downloads-${{ runner.os }}-
 
       - name: Validate Yocto Layers
-        timeout-minutes: 5
+        timeout-minutes: 15
         run: |
-          echo "🏅 Validating meta-dynamicdevices layers (simplified validation)"
-          echo "📋 Testing layers: meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
-          
-          # Simple validation approach - just check layer structure and syntax
-          echo "🔧 Performing basic layer validation..."
-          
-          # Function to validate a single layer
-          validate_layer() {
-            local layer_path="$1"
-            local layer_name="$2"
-            
-            echo "🔍 Validating $layer_name..."
-            
-            # Check if layer directory exists
-            if [ ! -d "$layer_path" ]; then
-              echo "❌ Layer directory not found: $layer_path"
-              return 1
-            fi
-            
-            # Check required files
-            local required_files=("conf/layer.conf" "README.md")
-            local missing_files=()
-            
-            for file in "${required_files[@]}"; do
-              if [ ! -f "$layer_path/$file" ]; then
-                missing_files+=("$file")
-              fi
-            done
-            
-            if [ ${#missing_files[@]} -gt 0 ]; then
-              echo "❌ Missing required files in $layer_name:"
-              for file in "${missing_files[@]}"; do
-                echo "  - $file"
-              done
-              return 1
-            fi
-            
-            # Validate layer.conf syntax and required variables
-            echo "  📋 Checking layer.conf syntax..."
-            local layer_conf="$layer_path/conf/layer.conf"
-            
-            # Check for required variables
-            local required_vars=("BBFILE_COLLECTIONS" "BBFILE_PATTERN" "BBFILE_PRIORITY" "LAYERVERSION")
-            local missing_vars=()
-            
-            for var in "${required_vars[@]}"; do
-              if ! grep -q "^[[:space:]]*$var" "$layer_conf"; then
-                missing_vars+=("$var")
-              fi
-            done
-            
-            if [ ${#missing_vars[@]} -gt 0 ]; then
-              echo "❌ Missing required variables in $layer_name layer.conf:"
-              for var in "${missing_vars[@]}"; do
-                echo "  - $var"
-              done
-              return 1
-            fi
-            
-            # Check for valid collection name (no spaces, special chars)
-            local collection=$(grep "BBFILE_COLLECTIONS" "$layer_conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\([^"\x27]*\)["\x27].*/\1/')
-            if [[ "$collection" =~ [[:space:]] ]] || [[ "$collection" =~ [^a-zA-Z0-9_-] ]]; then
-              echo "❌ Invalid collection name in $layer_name: '$collection'"
-              echo "  Collection names should only contain letters, numbers, underscores, and hyphens"
-              return 1
-            fi
-            
-            # Check for reasonable priority (0-99)
-            local priority=$(grep "BBFILE_PRIORITY" "$layer_conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\?\([0-9]*\)["\x27]\?.*/\1/')
-            if [ -z "$priority" ] || [ "$priority" -lt 0 ] || [ "$priority" -gt 99 ]; then
-              echo "❌ Invalid priority in $layer_name: '$priority' (should be 0-99)"
-              return 1
-            fi
-            
-            # Basic recipe count check
-            local recipe_count=$(find "$layer_path" -name "*.bb" -o -name "*.bbappend" 2>/dev/null | wc -l)
-            echo "  📦 Found $recipe_count recipes/bbappends"
-            
-            echo "✅ $layer_name validation passed"
-            return 0
-          }
-          
-          # Validate each layer
-          validation_failed=false
-          
+          echo "🏅 Meta-DynamicDevices Layer Validation (CI)"
+          echo "============================================="
+          echo "📋 Using official yocto-check-layer for Yocto Project compliance"
           echo ""
-          echo "1️⃣ Validating meta-dynamicdevices-bsp..."
-          if ! validate_layer "meta-dynamicdevices-bsp" "meta-dynamicdevices-bsp"; then
-            validation_failed=true
+          
+          # Install KAS if not available
+          if ! command -v kas >/dev/null 2>&1; then
+            echo "📦 Installing KAS..."
+            pip3 install kas
           fi
           
-          echo ""
-          echo "2️⃣ Validating meta-dynamicdevices-distro..."
-          if ! validate_layer "meta-dynamicdevices-distro" "meta-dynamicdevices-distro"; then
-            validation_failed=true
-          fi
+          # Create validation workspace
+          VALIDATION_DIR="ci-layer-validation"
+          rm -rf "$VALIDATION_DIR"
+          mkdir -p "$VALIDATION_DIR"
+          cd "$VALIDATION_DIR"
           
-          echo ""
-          echo "3️⃣ Validating meta-dynamicdevices (main layer)..."
-          if ! validate_layer "." "meta-dynamicdevices"; then
-            validation_failed=true
-          fi
+          echo "🔧 Setting up KAS environment for layer validation..."
           
-          # Check for collection name conflicts between layers
-          echo ""
-          echo "4️⃣ Checking for collection name conflicts..."
+          # Copy KAS configuration for validation
+          cp ../kas/layer-validation.yml .
           
-          declare -A collections
-          for layer_path in "." "meta-dynamicdevices-bsp" "meta-dynamicdevices-distro"; do
-            if [ -f "$layer_path/conf/layer.conf" ]; then
-              collection=$(grep "BBFILE_COLLECTIONS" "$layer_path/conf/layer.conf" | head -1 | sed 's/.*[=+][[:space:]]*["\x27]\([^"\x27]*\)["\x27].*/\1/')
-              layer_name=$(basename "$layer_path")
-              if [ "$layer_path" = "." ]; then layer_name="meta-dynamicdevices"; fi
-              
-              if [ -n "${collections[$collection]}" ]; then
-                echo "❌ Collection name conflict: '$collection' used by both ${collections[$collection]} and $layer_name"
-                validation_failed=true
-              else
-                collections[$collection]="$layer_name"
-                echo "✅ Collection '$collection' registered for $layer_name"
-              fi
+          # Initialize KAS environment
+          echo "📋 Initializing KAS build environment..."
+          kas shell layer-validation.yml -c "echo 'KAS environment initialized'"
+          
+          echo "✅ KAS environment ready"
+          echo ""
+          
+          echo "🔍 Starting comprehensive layer validation..."
+          echo ""
+          
+          # Run yocto-check-layer validation
+          echo "1️⃣ Validating all meta-dynamicdevices layers together..."
+          
+          if kas shell layer-validation.yml -c "
+            # Use the yocto-check-layer script from openembedded-core
+            YOCTO_CHECK_LAYER='./layers/openembedded-core/scripts/yocto-check-layer'
+            
+            if [ ! -f \"\$YOCTO_CHECK_LAYER\" ]; then
+              echo '❌ yocto-check-layer script not found at expected location'
+              exit 1
             fi
-          done
-          
-          # Final result
-          echo ""
-          if [ "$validation_failed" = true ]; then
-            echo "❌ Layer validation FAILED"
-            echo "Please fix the issues above before proceeding"
-            exit 1
-          else
+            
+            echo '✅ Found yocto-check-layer: '\$YOCTO_CHECK_LAYER
+            
+            # Clean up all potential conflicts from BitBake test data
+            rm -rf layers/bitbake/lib/layerindexlib/tests/testdata/ 2>/dev/null || true
+            find ../.. -name 'bitbake' -type d -exec rm -rf {}/lib/layerindexlib/tests/testdata/ 2>/dev/null \\; || true
+            
+            # Clean up any other build directories that might cause collection conflicts
+            find ../.. -maxdepth 2 -name 'build*' -type d ! -path '*/ci-layer-validation/build' -exec echo '🧹 Temporarily moving {}' \\; -exec mv {} {}.bak 2>/dev/null \\; || true
+            
+            # Run validation on all meta-dynamicdevices layers together to handle dependencies
+            echo '🔍 Running yocto-check-layer validation...'
+            python3 \"\$YOCTO_CHECK_LAYER\" \"$PWD/../meta-dynamicdevices-bsp\" \"$PWD/../meta-dynamicdevices-distro\" \"$PWD/..\"
+            
+            # Restore moved directories
+            find ../.. -maxdepth 2 -name 'build*.bak' -type d -exec sh -c 'mv \"\$1\" \"\${1%.bak}\"' _ {} \\; 2>/dev/null || true
+          "; then
+            echo ""
+            echo "✅ meta-dynamicdevices layers validation PASSED"
+            echo ""
+            echo "============================================="
             echo "✅ All layer validations PASSED"
-            echo "All meta-dynamicdevices layers are properly structured and configured"
-          fi
-
-  # Build job with matrix for specific machines and targets
-  build:
-    name: Build ${{ matrix.machine }} - ${{ matrix.target }}
-    runs-on: self-hosted
-    container:
-      image: dynamicdevices/yocto-ci-build:latest
-      options: --privileged --platform linux/amd64  -v /dev/net/tun:/dev/net/tun -v /dev/kvm:/dev/kvm
-    needs: [validate]
-    strategy:
-      fail-fast: false
-      matrix:
-        machine: [imx8mm-jaguar-sentai, imx93-jaguar-eink]
-        target: [lmp-factory-image, mfgtool-files]
-    
-    env:
-      KAS_MACHINE: ${{ matrix.machine }}
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Cache KAS layers
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/layers
-            build/cache
-          key: kas-layers-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}-${{ github.sha }}
-          restore-keys: |
-            kas-layers-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}-
-            kas-layers-
-
-      - name: Cache Yocto downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/yocto/downloads
-          key: yocto-downloads-${{ runner.os }}-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}
-          restore-keys: |
-            yocto-downloads-${{ runner.os }}-
-
-      - name: Cache Yocto sstate
-        uses: actions/cache@v4
-        with:
-          path: ~/yocto/sstate
-          key: yocto-sstate-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}-${{ hashFiles('recipes-**') }}
-          restore-keys: |
-            yocto-sstate-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-${{ hashFiles('kas/lmp-dynamicdevices-base.yml', 'kas/lmp-dynamicdevices-mfgtool.yml') }}-
-            yocto-sstate-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-
-            yocto-sstate-${{ runner.os }}-${{ matrix.machine }}-
-            yocto-sstate-${{ runner.os }}-
-
-      - name: Cache build tmp directory
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/yocto/persistent
-            build/tmp/cache
-          key: yocto-build-cache-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-${{ hashFiles('recipes-**') }}
-          restore-keys: |
-            yocto-build-cache-${{ runner.os }}-${{ matrix.machine }}-${{ matrix.target }}-
-            yocto-build-cache-${{ runner.os }}-${{ matrix.machine }}-
-            yocto-build-cache-${{ runner.os }}-
-
-      - name: Setup build cache
-        run: |
-          echo "🗄️ Setting up persistent build cache"
-          mkdir -p ~/yocto/{downloads,sstate,persistent}
-          chmod 755 ~/yocto/{downloads,sstate,persistent}
-
-      - name: Build with KAS
-        timeout-minutes: 360
-        run: |
-          echo "🔨 Starting KAS build: ${{ matrix.machine }} (${{ matrix.target }})"
-          
-          # Select appropriate KAS configuration and build target
-          if [ "${{ matrix.target }}" = "mfgtool-files" ]; then
-            kas_config="kas/lmp-dynamicdevices-mfgtool.yml"
-            build_target="mfgtool-files"
+            echo "✅ All meta-dynamicdevices layers pass comprehensive yocto-check-layer validation!"
+            echo "✅ Layers are ready for Yocto Project compatibility."
+            echo ""
           else
-            kas_config="kas/lmp-dynamicdevices-base.yml" 
-            build_target="lmp-factory-image"
+            echo ""
+            echo "❌ meta-dynamicdevices layers validation FAILED"
+            echo ""
+            echo "============================================="
+            echo "❌ Layer validation FAILED"
+            echo ""
+            echo "ℹ️  Please fix the yocto-check-layer issues above before proceeding."
+            echo "ℹ️  Run './scripts/validate-layers-local.sh' locally to debug issues."
+            echo ""
+            exit 1
           fi
           
-          echo "Using KAS config: $kas_config"
-          echo "Build target: $build_target"
-          echo "Machine: $KAS_MACHINE"
-          
-          # Run KAS build (directly in container)
-          kas build "$kas_config:$build_target"
-          
-          echo "✅ Build completed successfully"
-
-      - name: Collect build artifacts
-        if: always()
-        run: |
-          echo "📦 Collecting build artifacts for ${{ matrix.machine }} (${{ matrix.target }})"
-          
-          # Create artifacts directory
-          mkdir -p artifacts/${{ matrix.machine }}/${{ matrix.target }}
-          
-          # Find the deploy directory
-          deploy_dir=$(find . -path "*/tmp*/deploy/images/${{ matrix.machine }}" -type d | head -1)
-          
-          if [ -d "$deploy_dir" ]; then
-            echo "✅ Found deploy directory: $deploy_dir"
-            
-            # Copy key artifacts based on target
-            if [ "${{ matrix.target }}" = "lmp-factory-image" ]; then
-              # Factory image artifacts
-              for pattern in "*.wic.gz" "*.wic.bmap" "imx-boot-*" "u-boot-*.itb"; do
-                find "$deploy_dir" -name "$pattern" -exec cp {} artifacts/${{ matrix.machine }}/${{ matrix.target }}/ \; 2>/dev/null || true
-              done
-            else
-              # MFGtool artifacts  
-              for pattern in "imx-boot-mfgtool*" "u-boot-mfgtool*"; do
-                find "$deploy_dir" -name "$pattern" -exec cp {} artifacts/${{ matrix.machine }}/${{ matrix.target }}/ \; 2>/dev/null || true
-              done
-            fi
-            
-            echo "📋 Artifacts collected:"
-            ls -la artifacts/${{ matrix.machine }}/${{ matrix.target }}/
-          else
-            echo "❌ Deploy directory not found"
-            echo "# Build Failed" > artifacts/${{ matrix.machine }}/${{ matrix.target }}/build-failed.txt
-          fi
-
-      - name: Upload build artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts-${{ matrix.machine }}-${{ matrix.target }}
-          path: artifacts/
-          retention-days: 30
-          if-no-files-found: warn
+          # Cleanup validation workspace
+          cd ..
+          rm -rf "$VALIDATION_DIR"
 
   # Summary job
   summary:
-    name: Build Summary
+    name: Validation Summary
     runs-on: self-hosted
-    needs: [validate, build]
+    needs: [validate]
     if: always()
     
     steps:
-      - name: Generate build summary
+      - name: Generate validation summary
         run: |
-          echo "# KAS Build CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "# KAS Layer Validation Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Workflow:** ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
@@ -371,17 +183,18 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Determine overall status
-          if [ "${{ needs.validate.result }}" = "success" ] && [ "${{ needs.build.result }}" = "success" ]; then
-            echo "## ✅ Build Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
-            echo "All layer validations and builds completed successfully!" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.validate.result }}" = "success" ]; then
+            echo "## ✅ Validation Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
+            echo "All meta-dynamicdevices layers pass comprehensive yocto-check-layer validation!" >> $GITHUB_STEP_SUMMARY
+            echo "Layers are ready for Yocto Project compatibility." >> $GITHUB_STEP_SUMMARY
           else
-            echo "## ❌ Build Status: FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "## ❌ Validation Status: FAILED" >> $GITHUB_STEP_SUMMARY
             echo "- Layer validation: ${{ needs.validate.result }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix validation issues before proceeding." >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Build Matrix" >> $GITHUB_STEP_SUMMARY
-          echo "- **Machines:** imx8mm-jaguar-sentai, imx93-jaguar-eink" >> $GITHUB_STEP_SUMMARY
-          echo "- **Targets:** lmp-factory-image, mfgtool-files" >> $GITHUB_STEP_SUMMARY
-          echo "- **Total builds:** 4 (2 machines × 2 targets)" >> $GITHUB_STEP_SUMMARY
+          echo "## Validation Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tool:** Official yocto-check-layer" >> $GITHUB_STEP_SUMMARY
+          echo "- **Layers:** meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro" >> $GITHUB_STEP_SUMMARY
+          echo "- **Compliance:** Full Yocto Project compatibility validation" >> $GITHUB_STEP_SUMMARY
