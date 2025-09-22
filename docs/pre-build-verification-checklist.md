@@ -39,10 +39,17 @@ Foundries.io builds take a LONG TIME to run. This checklist ensures comprehensiv
 - [ ] **Runtime vs build-time** dependency separation
 
 ### 6. Local Testing (When Possible)
+- [ ] **ALWAYS use kas container scripts** (never raw kas commands)
+- [ ] **Use ./scripts/kas-shell-base.sh** to avoid TMPDIR sanity check errors
 - [ ] **Compile individual components** locally if feasible
-- [ ] **Test configuration parsing** with kas/bitbake
+- [ ] **Test configuration parsing** with kas/bitbake in container
 - [ ] **Verify syntax** of all modified files
 - [ ] **Check for obvious errors** before cloud build
+
+#### Critical Local Build Requirements
+- ❌ **NEVER use**: `kas shell`, `kas build`, or raw kas commands
+- ✅ **ALWAYS use**: `./scripts/kas-shell-base.sh` and container scripts
+- ⚠️ **Why**: Raw kas commands cause TMPDIR sanity check errors and path conflicts
 
 ### 7. Historical Pattern Analysis
 - [ ] **Review previous similar failures** and their solutions
@@ -100,9 +107,10 @@ Foundries.io builds take a LONG TIME to run. This checklist ensures comprehensiv
 
 ### Time-Saving Practices
 1. **Batch related fixes** into single build when possible
-2. **Verify locally first** using kas/bitbake when feasible
-3. **Learn from build logs** to catch patterns early
-4. **Document solutions** to avoid repeating analysis
+2. **Verify locally first** using kas container scripts when feasible
+3. **ALWAYS use ./scripts/kas-shell-base.sh** for local testing
+4. **Learn from build logs** to catch patterns early
+5. **Document solutions** to avoid repeating analysis
 
 ### Waste Prevention
 1. **Never assume "obvious" fixes** will work
