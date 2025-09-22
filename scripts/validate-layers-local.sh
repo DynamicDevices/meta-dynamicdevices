@@ -166,8 +166,8 @@ run_layer_validation() {
         # Clean up old build directories that might cause collection conflicts
         find ../.. -maxdepth 2 -name 'build*' -type d ! -path '*/yocto-layer-validation/build' -exec echo 'Removing conflicting build directory: {}' \\; -exec rm -rf {} \\; 2>/dev/null || true
         
-        # Run validation from build directory - layer path is absolute
-        python3 \"\$YOCTO_CHECK_LAYER\" \"$layer_path\"
+        # Run validation from build directory - layer paths are absolute
+        python3 \"\$YOCTO_CHECK_LAYER\" $layer_path
     "; then
         log_success "$layer_name validation PASSED"
         cd "$PROJECT_ROOT"

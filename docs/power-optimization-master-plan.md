@@ -137,6 +137,12 @@ sudo systemctl start docker containerd
 
 ### 📈 **Success Metrics & Real-Time Power Measurement**
 
+#### RTC Implementation Status
+- **Current**: PCF2131 RTC disabled due to I2C dependency conflicts with SPL optimization
+- **Future**: Separate RTC chip will be implemented for imx93-jaguar-eink board
+- **Interim**: Time management via network/GPS synchronization
+- **Benefit**: Maintains U-Boot SPL size optimization while eliminating linking errors
+
 #### Coulomb Meter Integration (Hardware: Michael Hull)
 - **Hardware present**: Coulomb meter exists on imx93-jaguar-eink board
 - **Status**: Currently disabled in firmware - needs enablement

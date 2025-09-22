@@ -132,6 +132,12 @@ jobs:
             # Clean up any other build directories that might cause collection conflicts
             find ../.. -maxdepth 2 -name 'build*' -type d ! -path '*/ci-layer-validation/build' -exec echo '🧹 Removing conflicting build directory: {}' \\; -exec rm -rf {} \\; 2>/dev/null || true
             
+            # Remove problematic meta-parsec layer that causes yocto-check-layer to crash
+            if [ -d 'layers/meta-security/meta-parsec' ]; then
+              echo '🧹 Removing problematic meta-parsec layer to avoid yocto-check-layer bugs'
+              rm -rf layers/meta-security/meta-parsec
+            fi
+            
             # Run validation on all meta-dynamicdevices layers together to handle dependencies
             echo '🔍 Running yocto-check-layer validation...'
             python3 \"\$YOCTO_CHECK_LAYER\" \"$PWD/../meta-dynamicdevices-bsp\" \"$PWD/../meta-dynamicdevices-distro\" \"$PWD/..\"
