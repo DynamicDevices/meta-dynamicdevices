@@ -129,6 +129,11 @@ Foundries.io builds take a LONG TIME to run. This checklist ensures comprehensiv
 - **Note any assumptions made**
 - **Track success/failure patterns**
 
+## File Location Notes
+- **Downloaded files**: Always check `~/Downloads/` first when user mentions downloading files
+- **User documents**: Default download location is `/home/ajlennon/Downloads/`
+- **Reference manuals**: Look for PDF files in Downloads before searching system-wide
+
 ## Example Verification (Build 2022 RTC Fix)
 
 ### Problem Analysis
