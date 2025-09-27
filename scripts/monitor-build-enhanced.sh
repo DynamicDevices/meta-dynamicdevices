@@ -134,12 +134,9 @@ monitor_build() {
         elapsed=$((current_time - start_time))
         local remaining=$((timeout - elapsed))
         
-        # Show detailed progress every 5 checks or every 5 minutes
-        if [ $((check_count % 5)) -eq 0 ] || [ $((elapsed % 300)) -eq 0 ]; then
+        # Show progress every 5 checks (every ~50 seconds with 10s interval)
+        if [ $((check_count % 5)) -eq 0 ]; then
             print_progress "Check #${check_count}: Build $build_id still building... ($(format_duration $elapsed) elapsed, $(format_duration $remaining) remaining)"
-        else
-            # Show simple progress dot with timestamp
-            echo -n -e "${CYAN}[$(date '+%H:%M:%S')]${NC} ."
         fi
         
         sleep "$interval"
