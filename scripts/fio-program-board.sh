@@ -1092,7 +1092,7 @@ download_target_artifacts() {
     
     # Device tree blob (optional)
     if download_artifact "$target_number" "$factory" \
-        "$machine-mfgtools/devicetree/$machine.dtb" \
+        "$machine/other/devicetree/$machine.dtb" \
         "$output_dir/$machine.dtb" \
         "Device tree blob"; then
         ((artifacts_downloaded++))
@@ -1100,15 +1100,8 @@ download_target_artifacts() {
         ((artifacts_failed++))
     fi
     
-    # SIT file (required for some UUU scripts)
-    if download_artifact "$target_number" "$factory" \
-        "$machine/sit-$machine.bin" \
-        "$output_dir/sit-$machine.bin" \
-        "SIT file"; then
-        ((artifacts_downloaded++))
-    else
-        ((artifacts_failed++))
-    fi
+    # SIT file (not needed for i.MX93 - UUU scripts don't reference it)
+    # Removed to eliminate unnecessary download warnings
     
     # Try to get main system image from different possible paths
     local system_image_downloaded=false
@@ -1142,7 +1135,7 @@ download_target_artifacts() {
     
     # Manifest file (optional)
     if download_artifact "$target_number" "$factory" \
-        "$machine-mfgtools/manifest.xml" \
+        "$machine/other/manifest.xml" \
         "$output_dir/manifest.xml" \
         "Build manifest"; then
         ((artifacts_downloaded++))
