@@ -1,0 +1,23 @@
+=== Boot Log Started ===
+Device: /dev/ttyUSB1
+Baud: 115200
+Time: 2025-09-27 13:19:53.589612
+========================================
+
+U-Boot SPL 2023.04+fio+gd5bf13df210 (Mar 06 2024 - 13:51:22 +0000)
+SOC: 0xa1009300
+LC: 0x2040010
++ OK
+I/TC: 
+Could not get PHY for FEC0: addr 2
++ sha256,rsa2048:ubootdev+ sha256+    Data Size:    6894352 Bytes = 6.6 MiB
+     Architecture: AArch64
+     OS:           Linux
+     Load Address: unavailable
+     Entry Point:  unavailable
+     Hash algo:    sha256
+     Hash value:   4e2a0daecb571107a3838447e287506e1095559acaf08d94ffI/TC: Reserved shared memory is enabled
+I/TC: Dynamic shared memory is enabled
+I/TC: Normal World virtualization support is disabled
+I/TC: Asynchronous notifications are disabled
+[    0.333727] fsl_lpspi 42550000.spi: Error applying setting, reverse things back
