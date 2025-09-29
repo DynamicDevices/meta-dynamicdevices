@@ -1233,7 +1233,7 @@ Prerequisites:
 USAGE
 }
 
-# Check for UUU tool
+# Check for UUU tool - NEVER use system UUU as it can cause compatibility issues
 check_uuu() {
     # Try the extracted mfgtool-files UUU (with machine-specific directory name)
     if [[ -f "\$SCRIPT_DIR/mfgtool-files-\$MACHINE/uuu" ]]; then
@@ -1244,15 +1244,20 @@ check_uuu() {
         UUU_CMD="\$SCRIPT_DIR/mfgtool-files/uuu"
         chmod +x "\$UUU_CMD"
         log_info "Using extracted MFGTools UUU tool"
-    elif command -v uuu &> /dev/null; then
-        UUU_CMD="uuu"
-        log_info "Using system UUU tool"
+    # REMOVED: Never use system UUU as it can cause compatibility issues
     elif [[ -f "\$SCRIPT_DIR/../program/uuu" ]]; then
         UUU_CMD="\$SCRIPT_DIR/../program/uuu"
         chmod +x "\$UUU_CMD"
         log_info "Using project UUU tool"
     else
-        log_error "UUU tool not found. Install UUU or use programming package with included UUU."
+        log_error "Build-specific UUU tool not found!"
+        log_error "Expected locations:"
+        log_error "  1. \$SCRIPT_DIR/mfgtool-files-\$MACHINE/uuu (from mfgtool package)"
+        log_error "  2. \$SCRIPT_DIR/mfgtool-files/uuu (from mfgtool package)"
+        log_error "  3. \$SCRIPT_DIR/../program/uuu (project UUU)"
+        log_error ""
+        log_error "CRITICAL: System UUU is NOT used to prevent compatibility issues."
+        log_error "Download the proper mfgtool package or ensure project UUU is available."
         return 1
     fi
 }
