@@ -88,23 +88,41 @@ scripts\fio-program-board.bat /factory dynamic-devices /machine imx93-jaguar-ein
 - **⏱️ Timing**: Real-time performance feedback per board
 - **🔧 i.MX93 Fix**: Correct bootloader prevents "image too large"
 
-## USB Audio Gadget (imx8mm-jaguar-sentai)
+## USB OTG Gadget Support (imx8mm-jaguar-sentai) ✅ WORKING
 
-### Configuration
-- **Purpose**: Debugging only - allows board to appear as USB audio device to host computer
-- **Service**: `usb-audio-gadget.service` (disabled by default)
+### Status: FULLY INTEGRATED AND TESTED
+- **Root Issue Fixed**: Device tree `dr_mode` changed from `"host"` to `"otg"` 
+- **USB Device Controller**: `ci_hdrc.0` available in `/sys/class/udc/`
+- **Both gadgets working**: CDC serial and USB audio class
+
+### USB CDC Serial Gadget
+- **Purpose**: Debugging via serial console over USB
+- **Script**: `/usr/bin/setup-usb-cdc-gadget {setup|stop|status|restart}`
+- **Device**: Creates `/dev/ttyGS0` for serial communication
+- **Host Detection**: "Jaguar Sentai USB CDC Serial"
+
+### USB Audio Gadget  
+- **Purpose**: Audio development - board appears as USB audio device
 - **Script**: `/usr/bin/setup-usb-audio-gadget {setup|stop|status|restart}`
-- **Audio**: 48kHz, 16-bit, stereo (playback and capture)
+- **Audio**: UAC2, 48kHz, 16-bit, stereo (playback and capture)
+- **Host Detection**: "Jaguar Sentai USB Audio"
+- **ALSA Cards**: Creates `UAC2Gadget` audio devices
 
 ### Usage
 ```bash
-# Enable for debugging session
-sudo systemctl start usb-audio-gadget.service
+# USB CDC Serial Gadget (for debugging)
+sudo setup-usb-cdc-gadget setup
+# Creates /dev/ttyGS0 - host sees CDC ACM serial device
 
-# Manual control
+# USB Audio Gadget (for audio development)  
 sudo setup-usb-audio-gadget setup
-setup-usb-audio-gadget status
-sudo setup-usb-audio-gadget stop
+# Host sees USB audio device with playback/capture
+
+# Check status of either gadget
+sudo setup-usb-cdc-gadget status
+sudo setup-usb-audio-gadget status
+
+# Note: Only one gadget can be active at a time (shared UDC)
 ```
 
 ## TAS2563 Audio Codec
