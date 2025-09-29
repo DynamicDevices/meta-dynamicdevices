@@ -1360,19 +1360,15 @@ program_bootloader_only() {
     fi
 }
 
-# Check if running as root (required for USB access)
+# Check if running as root (warn but don't block)
 check_root() {
     if [[ \$EUID -ne 0 ]]; then
         log_warn "Not running as root - USB device access may fail"
         log_info "If programming fails, try running with sudo:"
         log_info "  sudo \$0 \$*"
         echo
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! \$REPLY =~ ^[Yy]\$ ]]; then
-            log_info "Exiting. Run with sudo for reliable USB access."
-            exit 1
-        fi
+        # Continue automatically - modern UUU can handle USB permissions
+        log_info "Continuing with current user permissions..."
     fi
 }
 
