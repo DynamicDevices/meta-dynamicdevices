@@ -56,8 +56,20 @@ __pycache__/
 
 # Local development
 local/
-scratch/.kas_shell_history
+scratch/
 .kas_shell_history
+*.local
+
+# Development artifacts
+foundries-cookie.local
+serial_monitor.log
+test-*.sh
+
 # Dummy signing keys for local development
 conf/factory-keys/
+
+# Archive directories (preserved in docs/archive/)
 boot-logs/
+
+# Validation build artifacts
+yocto-layer-validation/build/
