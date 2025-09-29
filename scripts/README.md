@@ -626,3 +626,15 @@ sudo ./scripts/program.sh
 - Scripts follow shellcheck linting standards for code quality
 - Most scripts support `--help` flag for detailed usage information
 - Scripts are designed to be run from the repository root directory
+
+## setup-target-debug.sh
+**Target Board Debug Setup**
+- **Purpose**: Automate setup of target boards for debugging and development
+- **Usage**: `./setup-target-debug.sh <target-ip> [username] [password]`
+- **Features**: 
+  - Configures passwordless SSH access
+  - Sets up passwordless sudo
+  - Checks USB audio gadget support
+  - Validates target board connectivity and capabilities
+- **Example**: `./setup-target-debug.sh 192.168.0.203`
+- **Prerequisites**: sshpass installed, SSH public key available
