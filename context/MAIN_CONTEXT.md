@@ -4,15 +4,13 @@
 Yocto layers for Dynamic Devices Edge boards on Linux microPlatform (LmP).
 
 **Boards**: Edge AI (imx8mm-jaguar-sentai), Edge EInk (imx93-jaguar-eink)
-**Key Tech**: i.MX8MM/i.MX93, NXP IW612, TAS2563 echo cancellation
+**Key Tech**: i.MX8MM/i.MX93, NXP IW612, TAS2563 audio, USB audio gadget
 
 ## Recent Updates
-- **Programming Scripts**: Both `fio-program-board.sh` and `program-local-build.sh` now support `--mfgfolder` for custom boot firmware
-- **fio-program-board v2.0**: Auto-latest target, one-command programming (`--program`), continuous mode (`--continuous`)
-- **TAS2563 Audio**: Multiple driver options - TAS2562 (current), TAS2781 mainline, out-of-tree legacy
-- **UART4 Access**: Enabled M4 core UART access from Linux on i.MX8MM (/dev/ttymxc3)
+- **USB Audio Gadget**: Added USB Audio Class support for imx8mm-jaguar-sentai (debugging only, disabled by default)
+- **Programming Scripts**: Support `--mfgfolder` for custom boot firmware
+- **TAS2563 Audio**: Multiple driver options - TAS2562 (current), TAS2781 mainline
 - **i.MX93**: Fixed bootloader size issues, optimized kernel boot
-- **WiFi**: Flexible .se/.bin firmware selection
 
 ## Architecture
 - **meta-dynamicdevices**: Main recipes, kas/, scripts/
@@ -89,6 +87,25 @@ scripts\fio-program-board.bat /factory dynamic-devices /machine imx93-jaguar-ein
 - **💾 Smart Cache**: Skips re-downloading existing files
 - **⏱️ Timing**: Real-time performance feedback per board
 - **🔧 i.MX93 Fix**: Correct bootloader prevents "image too large"
+
+## USB Audio Gadget (imx8mm-jaguar-sentai)
+
+### Configuration
+- **Purpose**: Debugging only - allows board to appear as USB audio device to host computer
+- **Service**: `usb-audio-gadget.service` (disabled by default)
+- **Script**: `/usr/bin/setup-usb-audio-gadget {setup|stop|status|restart}`
+- **Audio**: 48kHz, 16-bit, stereo (playback and capture)
+
+### Usage
+```bash
+# Enable for debugging session
+sudo systemctl start usb-audio-gadget.service
+
+# Manual control
+sudo setup-usb-audio-gadget setup
+setup-usb-audio-gadget status
+sudo setup-usb-audio-gadget stop
+```
 
 ## TAS2563 Audio Codec
 
