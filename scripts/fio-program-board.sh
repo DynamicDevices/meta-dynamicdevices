@@ -1272,9 +1272,15 @@ program_full_image() {
     if [[ -n "\$mfgtool_dir" ]]; then
         log_info "Using MFGTools full_image.uuu script from \$mfgtool_dir"
         
-        # Run UUU with the extracted script (using absolute paths like manual command)
+        # Create fixed UUU script without missing SIT file
+        if [[ ! -f "\$mfgtool_dir/full_image_fixed.uuu" ]]; then
+            log_info "Creating fixed UUU script without missing SIT file..."
+            sed '/sit.*bin/d' "\$mfgtool_dir/full_image.uuu" > "\$mfgtool_dir/full_image_fixed.uuu"
+        fi
+        
+        # Run UUU with the fixed script (using absolute paths like manual command)
         log_info "Starting UUU programming with MFGTools script..."
-        if "\$UUU_CMD" "\$mfgtool_dir/full_image.uuu"; then
+        if "\$UUU_CMD" "\$mfgtool_dir/full_image_fixed.uuu"; then
             log_success "Programming completed successfully!"
             log_info "Set board to normal boot mode and power cycle"
         else
