@@ -30,8 +30,8 @@ local_conf_header:
      # Local development build - disable SE050/OP-TEE for smaller bootloader
      LOCAL_DEVELOPMENT_BUILD = "1"
      
-     # Disable OP-TEE entirely for mfgtool builds - not needed for board programming
-     TEE_BINARY = ""
+     # Disable OP-TEE only for imx8mm mfgtool builds (imx93 requires OP-TEE)
+     TEE_BINARY:imx8mm-jaguar-sentai = ""
      
      # Disable all signing for CI/development builds
      OPTEE_TA_SIGN_ENABLE = "0"
