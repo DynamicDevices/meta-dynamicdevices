@@ -1029,6 +1029,7 @@ download_target_artifacts() {
     else
         ((artifacts_failed++))
         log_error "MFGTools programming package is required for programming"
+        log_error "Use --mfgfolder to specify custom mfgtool files if download fails"
         
         # Fallback: try individual mfgtool files
         log_info "Trying individual mfgtool files as fallback..."
@@ -1244,20 +1245,18 @@ check_uuu() {
         UUU_CMD="\$SCRIPT_DIR/mfgtool-files/uuu"
         chmod +x "\$UUU_CMD"
         log_info "Using extracted MFGTools UUU tool"
-    # REMOVED: Never use system UUU as it can cause compatibility issues
-    elif [[ -f "\$SCRIPT_DIR/../program/uuu" ]]; then
-        UUU_CMD="\$SCRIPT_DIR/../program/uuu"
-        chmod +x "\$UUU_CMD"
-        log_info "Using project UUU tool"
     else
         log_error "Build-specific UUU tool not found!"
         log_error "Expected locations:"
         log_error "  1. \$SCRIPT_DIR/mfgtool-files-\$MACHINE/uuu (from mfgtool package)"
         log_error "  2. \$SCRIPT_DIR/mfgtool-files/uuu (from mfgtool package)"
-        log_error "  3. \$SCRIPT_DIR/../program/uuu (project UUU)"
         log_error ""
-        log_error "CRITICAL: System UUU is NOT used to prevent compatibility issues."
-        log_error "Download the proper mfgtool package or ensure project UUU is available."
+        log_error "CRITICAL: Only downloaded mfgtool packages are used to prevent compatibility issues."
+        log_error "The script will not fallback to local files unless --mfgfolder is specified."
+        log_error ""
+        log_error "Solutions:"
+        log_error "  1. Use a target build that includes a complete mfgtool package"
+        log_error "  2. Use --mfgfolder to specify custom mfgtool files (e.g., --mfgfolder ./mfgboot-imx93)"
         return 1
     fi
 }
