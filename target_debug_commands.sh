@@ -49,7 +49,7 @@ FUNCTIONS=$GADGET/functions
 # USB Device Descriptor
 VID="0x1d6b"
 PID="0x0104"
-SERIALNUMBER="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || echo '0123456789')"
+SERIALNUMBER="$(cat /sys/devices/soc0/serial_number 2>/dev/null || cat /etc/machine-id 2>/dev/null || echo 'DD-UNKNOWN')"
 MANUFACTURER="Dynamic Devices Ltd"
 PRODUCT="Jaguar Sentai Mixed Audio Device"
 

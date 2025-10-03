@@ -96,7 +96,7 @@ setup_simple_gadget() {
     mkdir -p "$gadget_dir/strings/0x409"
     echo "Test UAC2 Gadget" > "$gadget_dir/strings/0x409/product"
     echo "Dynamic Devices" > "$gadget_dir/strings/0x409/manufacturer"
-    echo "123456789" > "$gadget_dir/strings/0x409/serialnumber"
+    echo "$(cat /sys/devices/soc0/serial_number 2>/dev/null || cat /etc/machine-id 2>/dev/null || echo 'DD-UNKNOWN')" > "$gadget_dir/strings/0x409/serialnumber"
     
     # Create config
     mkdir -p "$config_dir/strings/0x409"

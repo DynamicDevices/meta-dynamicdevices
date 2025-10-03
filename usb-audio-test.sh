@@ -39,7 +39,7 @@ setup_base() {
     echo $PID > "$GADGET/idProduct"
     
     mkdir -p "$GADGET/strings/0x409"
-    echo "$(cat /proc/sys/kernel/random/uuid 2>/dev/null || echo '0123456789')" > "$GADGET/strings/0x409/serialnumber"
+    echo "$(cat /sys/devices/soc0/serial_number 2>/dev/null || cat /etc/machine-id 2>/dev/null || echo 'DD-UNKNOWN')" > "$GADGET/strings/0x409/serialnumber"
     echo "$MANUFACTURER" > "$GADGET/strings/0x409/manufacturer"
     echo "$PRODUCT" > "$GADGET/strings/0x409/product"
     
