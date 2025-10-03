@@ -1,0 +1,20 @@
+uuu_version 1.2.39
+
+SDP: boot -f imx-boot-mfgtool
+
+SDPV: delay 1000
+SDPV: write -f u-boot-mfgtool.itb
+SDPV: jump
+
+FB: ucmd setenv fastboot_dev mmc
+FB: ucmd setenv mmcdev ${emmc_dev}
+FB: ucmd mmc dev ${emmc_dev} 1; mmc erase 0 0x2000
+FB: flash -raw2sparse all /home/ajlennon/Downloads/sentai-v94/lmp-factory-image-imx8mm-jaguar-sentai.wic
+FB: flash bootloader /home/ajlennon/Downloads/sentai-v94/imx-boot-imx8mm-jaguar-sentai
+FB: flash bootloader2 /home/ajlennon/Downloads/sentai-v94/u-boot-imx8mm-jaguar-sentai.itb
+FB: flash bootloader_s /home/ajlennon/Downloads/sentai-v94/imx-boot-imx8mm-jaguar-sentai
+FB: flash bootloader2_s /home/ajlennon/Downloads/sentai-v94/u-boot-imx8mm-jaguar-sentai.itb
+FB: flash sit /home/ajlennon/Downloads/sentai-v94/sit-imx8mm-jaguar-sentai.bin
+FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
+FB: ucmd mmc partconf ${emmc_dev} ${emmc_ack} 1 0
+FB: done
