@@ -6,6 +6,24 @@ cache/
 downloads/
 sstate-cache/
 
+# Large binary files (should use Git LFS if needed)
+*.pdf
+*.bin
+*.img
+*.wic
+*.itb
+*.dtb
+*.elf
+*.so
+*.a
+
+# UUU executables and mfgtool binaries
+uuu
+uuu.exe
+uuu_*
+*mfgtool*
+fitImage-*
+
 # Legacy layer locations (now organized under build/layers/)
 # Keep these for backwards compatibility during transition
 bitbake/
@@ -73,3 +91,6 @@ boot-logs/
 
 # Validation build artifacts
 yocto-layer-validation/build/
+yocto-layer-validation/tmp/
+yocto-layer-validation/downloads/
+yocto-layer-validation/sstate-cache/
