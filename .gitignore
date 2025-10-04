@@ -6,23 +6,25 @@ cache/
 downloads/
 sstate-cache/
 
-# Large binary files (should use Git LFS if needed)
-*.pdf
-*.bin
+# Large binary files (now handled by Git LFS - see .gitattributes)
+# *.pdf - tracked by Git LFS
+# *.bin - tracked by Git LFS  
+# *.itb - tracked by Git LFS
+# *mfgtool* - tracked by Git LFS
+# fitImage-* - tracked by Git LFS
+
+# Other binary files that should still be ignored
 *.img
 *.wic
-*.itb
 *.dtb
 *.elf
 *.so
 *.a
 
-# UUU executables and mfgtool binaries
+# UUU executables (platform-specific, not tracked)
 uuu
 uuu.exe
 uuu_*
-*mfgtool*
-fitImage-*
 
 # Legacy layer locations (now organized under build/layers/)
 # Keep these for backwards compatibility during transition

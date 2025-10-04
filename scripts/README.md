@@ -74,7 +74,7 @@ This directory contains utility scripts for building, testing, managing, and aut
 ./scripts/fio-program-board.sh --factory my-factory --machine imx8mm-jaguar-sentai 1451
 
 # Program imx8mm-jaguar-sentai with custom boot files (RECOMMENDED)
-./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder program
+./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder custom-boot-files
 
 # Use custom boot files from relative path
 ./scripts/fio-program-board.sh --factory sentai --machine imx8mm-jaguar-sentai --program --mfgfolder ./custom-boot-files
@@ -98,10 +98,10 @@ The `--mfgfolder` option allows you to specify a custom directory containing `im
 
 **Example structure:**
 ```
-program/                          # Custom boot files directory
-├── imx-boot-mfgtool             # Custom manufacturing bootloader
-├── u-boot-mfgtool.itb           # Custom manufacturing U-Boot
-└── uuu                          # (Optional) UUU executable
+custom-boot-files/                   # Custom boot files directory  
+├── imx-boot-mfgtool                # Custom manufacturing bootloader
+├── u-boot-mfgtool.itb              # Custom manufacturing U-Boot
+└── README.md                       # Usage documentation
 ```
 
 ### `program-local-build.sh`

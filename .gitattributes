@@ -1,0 +1,5 @@
+*.pdf filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.itb filter=lfs diff=lfs merge=lfs -text
+*mfgtool* filter=lfs diff=lfs merge=lfs -text
+fitImage-* filter=lfs diff=lfs merge=lfs -text
