@@ -1,0 +1,69 @@
+# i.MX93 Reference Manual - Key Sections
+
+*Extracted from NXP i.MX93 Applications Processor Reference Manual (IMX93RM.pdf)*
+
+## Document Information
+- **Title**: i.MX 93 Applications Processor Reference Manual
+- **Version**: Rev. 6, 2025-07-01
+- **Pages**: 5593 total
+- **Location**: `docs/datasheets/IMX93RM.pdf`
+
+## Key Chapters for Development
+
+### Chapter 2: Memory Maps (Pages 34-90)
+- **2.4**: AIPS Peripheral Bridge 1 Memory Map (page 56) - LPUART1-2 addresses
+- **2.5**: AIPS Peripheral Bridge 2 Memory Map (page 68) - LPUART3-8 addresses
+
+### Chapter 62: LPUART (Pages 4857-4925)
+- **62.1**: Chip-specific LPUART information (page 4857)
+- **62.2**: Overview and block diagram (page 4857)
+- **62.6**: LPUART register descriptions (page 4877)
+
+## LPUART Memory Map (Quick Reference)
+
+| Instance | Base Address | Domain | IPS Slot | Signal Support |
+|----------|--------------|---------|----------|----------------|
+| LPUART1  | 0x44380000   | AONMIX  | 55       | Full (DTR/DSR/DCD/RI) |
+| LPUART2  | 0x44390000   | AONMIX  | 56       | Full (DTR/DSR/DCD/RI) |
+| LPUART3  | 0x42570000   | WAKEUPMIX | 86     | Full (DTR/DSR/DCD/RI) |
+| LPUART4  | 0x42580000   | WAKEUPMIX | 87     | Full (DTR/DSR/DCD/RI) |
+| LPUART5  | 0x42590000   | WAKEUPMIX | 88     | **Limited** (No DTR/DSR/DCD/RI) |
+| LPUART6  | 0x425A0000   | WAKEUPMIX | 89     | **Limited** (No DTR/DSR/DCD/RI) |
+| LPUART7  | 0x42690000   | WAKEUPMIX | 104    | **Limited** (No DTR/DSR/DCD/RI) |
+| LPUART8  | 0x426A0000   | WAKEUPMIX | 105    | **Limited** (No DTR/DSR/DCD/RI) |
+
+## Key Hardware Facts
+
+### Power Domains
+- **AONMIX (Always-On)**: LPUART1-2 remain active during deep sleep
+- **WAKEUPMIX**: LPUART3-8 can be powered down for power optimization
+
+### Signal Limitations
+- **LPUART1-4**: Support all signals including DTR_B, DSR_B, DCD_B, and RI_B
+- **LPUART5-8**: Do **NOT** support DTR_B, DSR_B, DCD_B, and RI_B signals
+
+### Low Power Features
+- All 8 LPUART instances support **DOZE low power mode**
+- CTRL(0x18) bit[6] must be set to 1 to enable doze mode
+- Doze mode controlled by CCM CCGRs and GPC CMCs
+
+## Parsing Commands
+
+```bash
+# Extract specific chapters
+pdftotext -f 4857 -l 4925 IMX93RM.pdf lpuart_chapter.txt
+
+# Extract memory maps
+pdftotext -f 56 -l 90 IMX93RM.pdf memory_maps.txt
+
+# Search for specific content
+pdftotext IMX93RM.pdf - | grep -A10 -B5 "LPUART"
+```
+
+## Related Documents
+- **Linux Reference Manual**: RM00293 (LPUART section 12.3.5)
+- **Device Tree**: `imx93-jaguar-eink.dts`
+- **Driver Source**: `drivers/tty/serial/fsl_lpuart.c`
+
+---
+*Reference extracted for engineering use - 2025*
