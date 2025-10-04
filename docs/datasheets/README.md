@@ -11,6 +11,11 @@
 - **Full Manual**: `IMX8MMRM.pdf`
 - **Text Extract**: `IMX8MMRM_Official.txt` - Searchable text version
 
+### i.MX Linux Reference Manual
+- **Full Manual**: `RM00293.pdf` - i.MX Linux Reference Manual (Rev. LF6.12.34_2.1.0)
+- **Key Chapter**: Section 2.5.1 - Power Management and CPU Frequency Scaling
+- **i.MX93 Specific**: Uses system-wide mode switching (OD/ND/LD) instead of CPUFreq
+
 ### MCXC Power Management Microcontroller
 - **Board Manual**: `UM12120.pdf` - FRDM-MCXC444 Board User Manual
 - **Reference Manual**: `MCXC44XP64M48RM.pdf` - MCX C44X Sub-Family Reference Manual
