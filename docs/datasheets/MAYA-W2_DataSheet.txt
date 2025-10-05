@@ -1,0 +1,6891 @@
+MAYA-W2 series
+Host-based multiradio modules with Wi-Fi 6, Bluetooth
+5.3, and IEEE 802.15.4
+Data sheet
+
+Abstract
+Targeted towards system integrators and design engineers, this technical data sheet includes the
+functional description, pin definition, specifications, country approval status, handling instructions,
+and ordering information for MAYA-W2 short-range radio modules.
+This range of ultra-compact, cost-efficient, host-based, short range multiradio modules support triradio Wi-Fi 6, Bluetooth 5.3, and IEEE 802.15.4 connectivity. The modules are designed for a wide
+range of industrial applications and are supplied with or without internal antenna. Integrated with a
+MAC/Baseband processor and RF front end components, this module series connects to a host
+processor through various interfaces, including SDIO for Wi-Fi, High-Speed UART for Bluetooth, and
+SPI for 802.15.4.
+
+UBX-22009721 - R07
+C1-Public
+
+www.u-blox.com
+
+MAYA-W2 series - Data sheet
+
+Document information
+Title
+
+MAYA-W2 series
+
+Subtitle
+
+Host-based multiradio modules with Wi-Fi 6, Bluetooth 5.3, and IEEE
+802.15.4
+
+Document type
+
+Data sheet
+
+Document number
+
+UBX-22009721
+
+Revision and date
+
+R07
+
+Disclosure restriction
+
+C1-Public
+
+22-Nov-2024
+
+Product status
+
+Corresponding content status
+
+Functional sample
+
+Draft
+
+For functional testing. Revised and supplementary data will be published later.
+
+In development /
+Prototype
+
+Objective specification
+
+Target values. Revised and supplementary data will be published later.
+
+Engineering sample
+
+Advance information
+
+Data based on early testing. Revised and supplementary data will be published later.
+
+Initial production
+
+Early production information
+
+Data from product verification. Revised and supplementary data may be published later.
+
+Mass production /
+End of life
+
+Production information
+
+Document contains the final product specification.
+
+This document applies to the following products:
+Product name
+
+Type number
+
+Product status
+
+MAYA-W260
+
+MAYA-W260-00B-00
+
+Initial production
+
+MAYA-W261
+
+MAYA-W261-00B-00
+
+Initial production
+
+MAYA-W266
+
+MAYA-W266-00B-00
+
+Initial production
+
+MAYA-W271
+
+MAYA-W271-00B-00
+
+Initial production
+
+MAYA-W276
+
+MAYA-W276-00B-00
+
+Initial production
+
+u- blox or third parties may hold intellectual property rights in the products, names, logos and designs included in this
+document. Copying, reproduction, or modification of this document or any part thereof is only permitted with the express
+written permission of u-blox. Disclosure to third parties is permitted for clearly public documents only.
+The information contained herein is provided “as is” and u-blox assumes no liability for its use. No warranty, either express or
+implied, is given, including but not limited to, with respect to the accuracy, correctness, reliability and fitness for a particular
+purpose of the information. This document may be revised by u-blox at any time without notice. For the most recent
+documents and statuses, visit www.u-blox.com.
+Copyright © u-blox AG.
+
+UBX-22009721 - R07
+C1-Public
+
+Document information
+
+Page 2 of 49
+
+MAYA-W2 series - Data sheet
+
+Contents
+Document information ................................................................................................................................ 2
+Contents .......................................................................................................................................................... 3
+1
+
+Functional description ......................................................................................................................... 5
+1.1 Overview ........................................................................................................................................................ 5
+1.2 Product features ......................................................................................................................................... 5
+1.3 Block diagram .............................................................................................................................................. 7
+1.4 Product description .................................................................................................................................... 8
+1.5 Supported features .................................................................................................................................... 8
+1.5.1
+
+Wi-Fi features ...................................................................................................................................... 8
+
+1.5.2
+
+Bluetooth features ............................................................................................................................. 9
+
+1.5.3
+
+802.15.4 features ............................................................................................................................... 9
+
+1.6 Reserved MAC addresses ......................................................................................................................... 9
+
+2
+
+Interfaces .............................................................................................................................................. 10
+2.1 Interface configuration ............................................................................................................................10
+2.2 Host interfaces ..........................................................................................................................................10
+2.2.1
+
+SDIO interface ...................................................................................................................................10
+
+2.2.2
+
+UART interface ..................................................................................................................................15
+
+2.2.3
+
+SPI interface ......................................................................................................................................15
+
+2.3 Antenna interfaces ...................................................................................................................................15
+2.3.1
+
+Internal antenna ................................................................................................................................16
+
+2.3.2
+
+External RF antenna interface .......................................................................................................16
+
+2.4 Power supply interfaces ..........................................................................................................................16
+2.4.1
+
+Power up sequence timing ..............................................................................................................17
+
+2.4.2
+
+Power down ........................................................................................................................................17
+
+2.4.3
+
+Reset ...................................................................................................................................................17
+
+2.5 Wake-up and reset interfaces ................................................................................................................17
+2.6 GPIOs ...........................................................................................................................................................18
+2.7 PCM/I2S audio interfaces ........................................................................................................................18
+2.7.1
+
+Central mode .....................................................................................................................................19
+
+2.7.2
+
+Peripheral mode ................................................................................................................................19
+
+2.8 PTA/WCI-2 external coexistence interfaces .......................................................................................21
+2.9 JTAG ............................................................................................................................................................21
+
+3
+
+Pin definition ........................................................................................................................................ 22
+3.1 Pin assignment ..........................................................................................................................................22
+
+4
+
+Electrical specifications ................................................................................................................... 27
+4.1 Absolute maximum ratings ....................................................................................................................27
+4.1.1
+
+Maximum ESD ratings .....................................................................................................................27
+
+4.2 Recommended operating conditions ....................................................................................................27
+4.3 Digital pad settings ..................................................................................................................................28
+4.4 Power consumption ..................................................................................................................................28
+UBX-22009721 - R07
+C1-Public
+
+Contents
+
+Page 3 of 49
+
+MAYA-W2 series - Data sheet
+4.4.1
+
+Wi-Fi power consumption ...............................................................................................................28
+
+4.4.2
+
+Bluetooth power consumption .......................................................................................................30
+
+4.4.3
+
+802.15.4 power consumption ........................................................................................................31
+
+4.5 Radio specification ...................................................................................................................................31
+4.5.1
+
+Bluetooth ............................................................................................................................................31
+
+4.5.2
+
+IEEE 802.15.4 ....................................................................................................................................32
+
+4.5.3
+
+Wi-Fi ....................................................................................................................................................32
+
+4.5.4
+
+Antenna radiation patterns ............................................................................................................36
+
+5
+
+Software support ................................................................................................................................ 38
+
+6
+
+Mechanical specifications ............................................................................................................... 39
+6.1 MAYA-W2 footprint dimensions ...........................................................................................................39
+6.2 MAYA-W2 mechanical specifications ..................................................................................................40
+6.2.1
+
+MAYA-W266 and MAYA-W276.....................................................................................................40
+
+6.2.2
+
+MAYA-W261 and MAYA-W271.....................................................................................................41
+
+6.2.3
+
+MAYA-W260 ......................................................................................................................................42
+
+6.3 Module weight ...........................................................................................................................................42
+
+7
+
+Qualifications and approvals .......................................................................................................... 43
+7.1 Country approvals .....................................................................................................................................43
+7.2 Bluetooth qualification .............................................................................................................................43
+
+8
+
+Product handling ................................................................................................................................. 44
+8.1 Packaging ...................................................................................................................................................44
+8.1.1
+
+Reels ....................................................................................................................................................44
+
+8.1.2
+
+Tapes ...................................................................................................................................................44
+
+8.2 Moisture sensitivity levels .......................................................................................................................45
+8.3 Reflow soldering ........................................................................................................................................45
+8.4 ESD handling precautions .......................................................................................................................45
+
+9
+
+Labeling and ordering information ............................................................................................... 46
+9.1 Product labeling .........................................................................................................................................46
+9.2 Explanation of codes ................................................................................................................................47
+9.3 Identification codes ..................................................................................................................................47
+9.4 Ordering information ................................................................................................................................47
+
+Appendix ....................................................................................................................................................... 48
+A
+
+Glossary ................................................................................................................................................. 48
+
+Related documentation ........................................................................................................................... 49
+Revision history .......................................................................................................................................... 49
+Contact .......................................................................................................................................................... 49
+
+UBX-22009721 - R07
+C1-Public
+
+Contents
+
+Page 4 of 49
+
+MAYA-W2 series - Data sheet
+
+1
+
+Functional description
+
+1.1 Overview
+Comprising ultra-compact, multiradio modules with Bluetooth 5.3, Wi-Fi 6, and IEEE 802.15.4
+connectivity, the MAYA-W2 series supports IEEE 802.11a/b/g/n/ac/ax standards and delivers a data
+throughput of up to 480 Mbit/s (PHY data rate up to 600 Mbit/s) with dual band 2.4 / 5 GHz W-Fi and
+channel bandwidths up to 80 MHz. The modules can work as a station with different types of Access
+Points, as a simple Access Point, in P2P communication, or in combinations of these modes.
+MAYA-W2 supports both Bluetooth BR/EDR and Bluetooth Low Energy 5.3, including long-range PHY
+and isochronous channels for LE audio. The MAYA-W271 and MAYA-W276 variants also include an
+802.15.4 subsystem that supports the Thread mesh network.
+MAYA-W2 supports an optional LTE filter and is available with or without an antenna, including
+variants with U.FL connectors, antenna pins, or an internal antenna. MAYA-W2 modules come with
+RF calibration and MAC addresses available in the integrated OTP memory.
+The modules are developed for reliable, high-demanding, industrial devices and applications that
+demand high performance.
+Radio type approvals for Europe (RED), Great Britain (UKCA), the United States (FCC), Canada (ISED),
+and other countries are completed. See also Country approvals.
+
+1.2 Product features
+Radio features
+
+Description
+
+Chipset
+
+MAYA-W26x: NXP IW611
+MAYA-W27x: NXP IW612
+
+Wi-Fi Standards
+
+Wi-Fi 6 IEEE 802.11a/b/g/n/ac/ax
+
+Wi-Fi frequency bands
+
+2.4 GHz, channel 1-13
+5 GHz, channel 36-177
+
+Bluetooth
+
+Bluetooth BR/EDR and Bluetooth Low Energy 5.3
+
+802.15.4
+
+IEEE 802.15.4-2020 compliant; supports Thread in 2.4 GHz band (MAYA-W271
+and -W276)
+
+Antenna configurations
+
+Dual antenna for simultaneous Wi-Fi and Bluetooth/802.15.4 operation (MAYAW260, -W261, and -W271)
+Single internal antenna or antenna pin for shared 2.4 GHz Wi-Fi and
+Bluetooth/802.15.4 operation (MAYA-W266 and -W276)
+
+Software features
+Security
+
+WPA3, WPA2, and WPA mixed mode
+
+RF calibration and MAC addresses
+
+Available in on-board OTP memory
+
+Wi-Fi operational modes
+
+Station, Access-Point, Wi-Fi direct, or combination of these
+
+Driver support
+
+Free drivers for Linux and Android. RTOS (with certain types of NXP MCUs)
+
+Interfaces
+Wi-Fi
+
+SDIO 3.0 (4-bit, up to 208 MHz clock)
+
+Bluetooth
+
+4-wire high-speed UART, HCI transport layer
+PCM/I2S for audio
+
+802.15.4
+
+SPI (up to 10 MHz clock)
+
+Other
+
+GPIOs
+
+UBX-22009721 - R07
+C1-Public
+
+Functional description
+
+Page 5 of 49
+
+MAYA-W2 series - Data sheet
+
+Radio features
+
+Description
+
+Package
+Dimensions
+
+10.4 x 14.3 x 2.0 mm
+
+Mounting
+
+Soldering, 86 pins (LGA)
+
+Environmental data, quality, and
+reliability
+Operating temperature
+
+-40 °C to +85 °C (Professional Grade)
+
+Moisture Sensitivity Level (MSL)
+
+4
+
+RoHS and REACH compliance
+
+Yes
+
+Electrical data
+RF power supply
+
+3.0–3.6 VDC, 1.8 VDC
+
+I / O power supply
+
+3.3 VDC or 1.8 VDC
+
+Certifications and approvals
+Type approvals
+
+Europe (RED), Great Britain (UKCA), US (FCC), Canada (ISED), Japan (Giteki),
+Brazil (ANATEL), South Korea (KCC), Australia/New Zealand (ACMA)
+Other country certifications can be provided on request
+
+Bluetooth qualification
+
+Bluetooth BR/EDR and Bluetooth Low Energy 5.3
+
+Support Products
+EVK-MAYA-W276
+
+Evaluation kit for MAYA-W276, -W266
+
+EVK-MAYA-W271
+
+Evaluation kit for MAYA-W271, -W261, -W260
+
+Table 1: MAYA-W2 series product features
+
+☞
+
+For information about the supported product variants of MAYA-W260, MAYA-W261,
+MAYA-W266, MAYA-W271, and MAYA-W276. See also Ordering information.
+
+UBX-22009721 - R07
+C1-Public
+
+Functional description
+
+Page 6 of 49
+
+MAYA-W2 series - Data sheet
+
+1.3 Block diagram
+Figure 1 shows the block diagram of the single antenna variants in the MAYA-W2 series. MAYA-W266
+and MAYA-W276 support a single RF pin and optional antenna feed to the internal antenna.
+
+Figure 1: MAYA-W266 and MAYA-W276 block diagram
+
+Figure 2 shows the block diagram of the dual antenna variants of MAYA-W2 series:
+•
+•
+•
+
+MAYA-W261 supports one Wi-Fi RF pin and one Bluetooth RF pin
+MAYA-W260 supports one Wi-Fi RF U.FL connector and one Bluetooth RF U.FL connector
+MAYA-W271 supports one Wi-Fi RF pin and one shared Bluetooth/802.15.4 RF pin
+
+Figure 2: MAYA-W260, MAYA-W261, and MAYA-W271 block diagram
+
+UBX-22009721 - R07
+C1-Public
+
+Functional description
+
+Page 7 of 49
+
+MAYA-W2 series - Data sheet
+
+1.4 Product description
+MAYA-W2 series comprises ultra-compact Wi-Fi front-end modules with a footprint of only
+14.3 x 10.4 mm and is developed for reliable, high-demanding, industrial devices and applications.
+Based on the NXP IW611 and IW612 chipsets, MAYA-W2 includes an integrated MAC/Baseband
+processor and RF front-end components.
+All module variants support:
+•
+•
+
+Integrated discrete filters in the 2.4 GHz band and 5 GHz band
+Optional LTE filter for improved coexistence with LTE bands 7, 38, 40, 41
+
+The MAYA-W2 series also offers multiple antenna solutions:
+•
+•
+•
+•
+
+MAYA-W260 has two U.FL connectors for connecting external antennas
+MAYA-W261 and MAYA-W271 have two antenna pins for connecting external antennas: one for
+Wi-Fi and the other for Bluetooth (shared with 802.15.4 on MAYA-W271)
+MAYA-W266 and MAYA-W276 include a single RF antenna pin and optional antenna feed pin to
+the internal antenna
+Wi-Fi antenna diversity support for optimized performance with multiple external antennas
+
+1.5 Supported features
+•
+•
+•
+•
+
+Highly effective integrated antenna, antenna pin, or U. FL connectors
+Extended operating temperature range of -40 °C to +85 °C for professional grade
+Selectable 1.8 V or 3.3 V IO levels
+Internal Wi-Fi/Bluetooth/802.15.4 coexistence support
+
+1.5.1
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+
+Wi-Fi features
+
+Supports Wi-Fi 6, IEEE 802.11 a/b/g/n/ac/ax
+Dual band 2.4 GHz and 5 GHz
+Single stream 802.11ax with 20, 40 and 80 MHz channel bandwidth
+Data rate up to 600 Mbit/s (MCS11)
+802.11n short and long guard interval
+802.11ax Extended Range, DCM and TWT
+802.11h transmit power control (STA mode)
+802.11h DFS radar pulse detection
+Power saving features
+SDIO 3.0 device interface
+Security: WPA3, WPA2 and WPA mixed mode
+Wi-Fi Standards IEEE 802.11e/h/i/k/mc/r/u/v/w/z
+Supports simultaneous station, access point and P2P modes
+Supports up to 16 stations in AP mode (for i.MX RT MCUs 8 stations)
+
+UBX-22009721 - R07
+C1-Public
+
+Functional description
+
+Page 8 of 49
+
+MAYA-W2 series - Data sheet
+
+1.5.2
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+
+Dual mode Bluetooth Low Energy (LE) and Bluetooth BR/EDR
+Bluetooth 5.3 specification support
+Bluetooth Class 1 and Class 2 operation
+Bluetooth LE long range (125/500 kbps) support – improving the range up to four times
+Bluetooth LE 1, 2 Mbit/s PHY
+Bluetooth LE advertising extensions for improved capacity
+Isochronous channels (ISOC) supporting Bluetooth Low Energy (LE) audio
+High-speed UART host interface with standard HCI transport layer
+I2S and PCM interface for voice applications
+Encryption (AES) support
+Bluetooth LE Broadcaster, Observer, Central, and Peripheral roles
+Bluetooth LE link layer topology (connects to 16 links)
+Bluetooth LE Privacy 1.2
+Bluetooth LE Secure Connection
+Bluetooth LE Data Length and Advertising Extension
+
+1.5.3
+•
+•
+•
+•
+
+Bluetooth features
+
+802.15.4 features
+
+IEEE 802.15.4-2020 compliant supporting Thread in 2.4 GHz band
+Shared transmitter and antenna pin with Bluetooth
+Simultaneous receive with Wi-Fi and Bluetooth
+MAC accelerator with packet formatting, CRCs, address check, auto-acks, timers
+
+1.6 Reserved MAC addresses
+MAYA-W2 series modules have four consecutive MAC addresses that are unique for each module
+variant. The first three of these four addresses are configured during production.
+The first address is used for Bluetooth communication, while the second address is configured for WiFi communication. The third address is extended to a 64-bit MAC address by inserting two 00-hex
+bytes and used for the 802.15.4 radio. The Data Matrix Code shown on the product label includes the
+Bluetooth MAC address. See also Product labeling. The remaining MAC address is not used in the
+manufacturing configuration but is reserved for module usage.
+MAC address
+
+Assignment
+
+Last two bits of
+MAC address
+
+Example
+
+Module1, address 1
+
+Bluetooth
+
+00
+
+D4:CA:6E:44:00:04
+
+Module1, address 2
+
+Wi-Fi
+
+01
+
+D4:CA:6E:44:00:05
+
+Module1, address 3
+
+802.15.4
+
+10
+
+D4:CA:6E:00:00:44:00:06
+
+Module1, address 4
+
+(free for use)
+
+11
+
+D4:CA:6E:44:00:07
+
+Module2, address 1
+
+Bluetooth
+
+00
+
+D4:CA:6E:44:00:08
+
+Module2, address 2
+
+Wi-Fi
+
+01
+
+D4:CA:6E:44:00:09
+
+Module2, address 3
+
+802.15.4
+
+10
+
+D4:CA:6E:00:00:44:00:0A
+
+Module2, address 4
+
+(free for use)
+
+11
+
+D4:CA:6E:44:00:0B
+
+Table 2: MAC address assignment
+
+UBX-22009721 - R07
+C1-Public
+
+Functional description
+
+Page 9 of 49
+
+MAYA-W2 series - Data sheet
+
+2
+
+Interfaces
+
+2.1 Interface configuration
+Depending on the pin multiplexing and strap settings, the hardware state at power-on can differ. The
+state of the hardware is determined by the pin state at power-on – after the boot code finishes and
+before the firmware download begins.
+To set a configuration bit to 0, attach a 51 k resistor from the pin to ground. No external circuitry is
+required to set a configuration bit to 1.
+MAYA-W2 supports two configuration pins, CONFIG[0] and CONFIG[1], for selecting the host
+interface configuration, as shown in Table 3. Additional configuration pins are required to set
+configuration parameters following a hardware reset, as described in Table 4. Configuration pins
+revert to normal function after boot-up.
+CONFIG[1:0]
+
+Wi-Fi
+
+Bluetooth
+
+802.15.4
+
+11
+
+SDIO
+
+UART
+
+SPI
+
+Others
+
+Reserved
+
+Reserved
+
+Reserved
+
+Table 3: Firmware boot options
+Configuration bits
+
+Pin name
+
+Configuration function
+
+CON[7]
+
+RF_CNTL4
+
+Reserved. Set to 1 or do not connect.
+
+CON[5]
+
+RF_CNTL3
+
+Reserved. Set to 1 or do not connect.
+
+CON[1:0]
+
+CONFIG[1:0]
+
+Host configuration options. Selects the host interface used for
+Wi-Fi and Bluetooth. 11 = (default). See Table 3.
+
+Table 4: Configuration pins
+
+2.2 Host interfaces
+MAYA-W2 supports the following high-speed host interfaces:
+•
+•
+•
+
+SDIO 3.0 device interface for Wi-Fi
+UART interface for Bluetooth
+SPI interface for 802.15.4 radio (MAYA-W271 and -W276)
+
+The host interfaces for Wi-Fi and Bluetooth are selected using the configuration pins described in
+Table 3.
+
+2.2.1
+
+SDIO interface
+
+MAYA-W2 supports an SDIO device interface that conforms to the industry standard SDIO 3.0
+specification, including default speed (25 MHz), high-speed (50 MHz), SDR12/25/50/104
+(12/25/50/104 MB/s), and DDR50 (50 MB/s) modes. The interface supports 1-bit and 4-bit SDIO
+transfer modes at the full clock range up to 208 MHz for SDR104. All mandatory SDIO commands are
+supported.
+In 4-bit SDIO mode, data is transferred on all four data pins (SD_DAT[3:0]). The interrupt pin is not
+available for exclusive use as it is utilized as a data transfer line. If the interrupt function is required,
+special timing is required to provide interrupts. The 4-bit SDIO mode provides the highest data
+transfer possible with speeds up to 104 MB/s in SDR104 mode.
+The pull-up resistors required for the SD interface on SD_CMD, SD_DAT [3:0] must be provided by
+the host, the value of resistors should be between 10–100 kΩ.
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 10 of 49
+
+MAYA-W2 series - Data sheet
+Low value series termination resistors can be required to help with signal integrity. The SDIO signals
+levels are selectable according to the VIO_SD 1.8/3.3 voltage levels (depending on SDIO mode
+selection). See Power supply interfaces.
+Table 5 describes the required pins for the SDIO interface.
+Pin name
+
+I/O type
+
+1-bit mode
+
+4-bit mode
+
+SD_DAT[0]
+
+I/O
+
+DATA: Data line
+
+Data line 0
+
+SD_DAT[1]
+
+I/O
+
+IRQ: Interrupt
+
+Data line 1
+
+SD_DAT[2]
+
+I/O
+
+RW: Read Wait
+
+Data line 2
+
+SD_DAT[3]
+
+I/O
+
+N/C: Not used
+
+Data line 3
+
+SD_CMD
+
+I/O
+
+Command line
+
+Command line
+
+SD_CLK
+
+I
+
+Clock input
+
+Clock input
+
+Table 5: SDIO interface pin description
+
+2.2.1.1 Default speed and high-speed modes (3.3 V)
+
+Figure 3: SDIO protocol timing diagram - default speed mode
+
+Figure 4: SDIO protocol timing diagram – high speed mode
+
+Table 6 describes the SDIO timing data for the default and high-speed modes with the SDIO clock
+running at 25 MHz or 50 MHz.
+Symbol
+
+Parameter
+
+Condition
+
+MIn
+
+Typ
+
+Max
+
+Unit
+
+fpp
+
+Clock frequency
+
+Default speed
+
+0
+
+-
+
+25
+
+MHz
+
+High speed
+
+0
+
+-
+
+50
+
+MHz
+
+Default speed
+
+10
+
+-
+
+-
+
+ns
+
+High speed
+
+7
+
+-
+
+-
+
+ns
+
+Default speed
+
+10
+
+-
+
+-
+
+ns
+
+High speed
+
+7
+
+-
+
+-
+
+ns
+
+Default speed
+
+5
+
+-
+
+-
+
+ns
+
+TWL
+
+Clock low time
+
+TWH
+
+Clock high time
+
+TISU
+
+Input setup time
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 11 of 49
+
+MAYA-W2 series - Data sheet
+
+Symbol
+
+Parameter
+
+TIH
+
+Input hold time
+
+TODLY
+
+Output Delay Time
+
+TOH
+
+CL≤40 pF (1 card)
+
+Condition
+
+MIn
+
+Typ
+
+Max
+
+Unit
+
+High speed
+
+6
+
+-
+
+-
+
+ns
+
+Default speed
+
+5
+
+-
+
+-
+
+ns
+
+High speed
+
+2
+
+-
+
+-
+
+ns
+
+Default speed
+
+-
+
+-
+
+14
+
+ns
+
+High speed
+
+-
+
+-
+
+14
+
+ns
+
+Default speed
+
+2.5
+
+-
+
+-
+
+ns
+
+High speed
+
+-
+
+-
+
+-
+
+ns
+
+Table 6: SDIO timing data – default and high-speed modes
+
+2.2.1.2 SDR12, SDR25, SDR50 modes (up to 100 MHz) (1.8 V)
+Table 7 describes the SDIO timing data for the SDR12/25/50 modes with the SDIO clock running at
+up to 100 MHz. The VIO_SD power pin must be supplied at 1.8 V.
+
+Figure 5: SDIO protocol timing diagram – SDR12, SDR25, SDR50 modes (up to 100 MHz) (1.8 V)
+Symbol
+
+Parameter
+
+Condition
+
+Min
+
+Typ
+
+Max
+
+Unit
+
+fpp
+
+Clock frequency
+
+SDR 12
+
+0
+
+–
+
+25
+
+MHz
+
+SDR 25
+
+0
+
+-
+
+50
+
+SDR 50
+
+0
+
+-
+
+100
+
+SDR 12
+
+5
+
+–
+
+–
+
+SDR 25
+
+6
+
+-
+
+-
+
+SDR 50
+
+3
+
+-
+
+-
+
+SDR 12
+
+5
+
+–
+
+–
+
+ns
+
+SDR 25
+
+2
+
+SDR 50
+
+0.8
+
+SDR 12
+
+40
+
+–
+
+40
+
+ns
+
+SDR 25
+
+10
+
+-
+
+20
+
+SDR 50
+
+10
+
+-
+
+10
+
+Rise time, fall time
+TCR ,TCF < 2 ns (max) at 100 MHz
+CCARD = 10 pF
+
+SDR 12
+
+–
+
+–
+
+0.2*TCLK
+
+ns
+
+SDR 25
+
+–
+
+–
+
+0.2*TCLK
+
+ns
+
+SDR 50
+
+–
+
+–
+
+0.2*TCLK
+
+ns
+
+Output delay time
+CL < 30 pF
+
+SDR 12
+
+–
+
+–
+
+7.5
+
+ns
+
+SDR 25
+
+–
+
+–
+
+14
+
+ns
+
+SDR 50
+
+–
+
+–
+
+14
+
+ns
+
+SDR 12
+
+1.5
+
+–
+
+–
+
+ns
+
+SDR 25
+
+1.5
+
+–
+
+–
+
+ns
+
+SDR 50
+
+1.5
+
+–
+
+–
+
+ns
+
+TIS
+
+TIH
+
+TCLK
+
+TCR ,TCF
+
+TOLDY
+
+TOH
+
+Input setup time
+
+Input hold time
+
+Clock time
+
+Output hold time
+CL = 15 pF
+
+ns
+
+Table 7: SDIO timing data – SDR12, SDR25, SRD50 modes (up to 100 MHz) (1.8 V)
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 12 of 49
+
+MAYA-W2 series - Data sheet
+
+2.2.1.3 DDR50 mode (50 MHz) (1.8 V)
+Table 8 describes the SDIO timing data for the DDR50 mode with the SDIO clock running at 50 MHz.
+The VIO_SD power pin must be supplied at 1.8 V.
+
+Figure 6: SDIO CMD timing diagram – DDR50 mode (50 MHz)
+
+Figure 7: SDIO DAT[3:0] timing diagram – DDR50 mode
+Symbol
+
+Parameter
+
+Condition
+
+Min
+
+Typ
+
+Max
+
+Unit
+
+TCLK
+
+Clock time 50 MHz (max) between rising edges
+
+DDR 50
+
+20
+
+–
+
+–
+
+ns
+
+TCR ,TCF
+
+Rise time, fall time
+TCR ,TCF < 4.00 ns (max) at 50 MHz
+CCARD = 10 pF
+
+DDR 50
+
+–
+
+–
+
+0.2*TCLK
+
+ns
+
+Clock duty
+
+–
+
+DDR 50
+
+45
+
+–
+
+55
+
+%
+
+Clock
+
+CMD input (with reference to rising clock edge)
+TIS
+
+Input setup time
+CCARD = 10 pF (1 card)
+
+DDR 50
+
+6
+
+–
+
+–
+
+ns
+
+TIH
+
+Input hold time
+CCARD = 10 pF (1 card)
+
+DDR 50
+
+0.8
+
+–
+
+–
+
+ns
+
+CMD output (referenced to clock rising edge)
+TODLY
+
+Output delay time during data transfer mode
+CL < 30 pF (1 card)
+
+DDR 50
+
+–
+
+–
+
+13.7
+
+ns
+
+TOHLD
+
+Output hold
+CL >15 pF (1 card)
+
+DDR 50
+
+1.5
+
+–
+
+–
+
+ns
+
+DAT[3:0] Input (referenced to clock rising and falling edges)
+TIS2x
+
+Input setup time
+CCARD < 10 pF (1 card)
+
+DDR 50
+
+3
+
+–
+
+–
+
+ns
+
+TIH2x
+
+Input hold time
+CCARD < 10 pF (1 card)
+
+DDR 50
+
+0.8
+
+–
+
+–
+
+ns
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 13 of 49
+
+MAYA-W2 series - Data sheet
+
+Symbol
+
+Parameter
+
+Condition
+
+Min
+
+Typ
+
+Max
+
+Unit
+
+DAT[3:0] Output (referenced to clock rising and falling edges)
+TODLY2x (max)
+
+Output delay time during data transfer mode
+CL < 25 pF (1 card)
+
+DDR 50
+
+–
+
+–
+
+7.0
+
+ns
+
+TODLY2x (min)
+
+Output hold time
+CL > 15 pF (1 card)
+
+DDR 50
+
+1.5
+
+–
+
+–
+
+ns
+
+Table 8: SDIO timing data – DDR50 mode (50 MHz)
+
+2.2.1.4 SDR104 mode (208 MHz) (1.8 V)
+Table 9 describes the SDIO timing data for the SDR104 mode with SDIO clock running at 208 MHz.
+The VIO_SD power pin must be supplied at 1.8 V.
+
+Figure 8: SDIO DAT[3:0] timing diagram – SDR104 mode
+Symbol
+
+Parameter
+
+Condition
+
+Min
+
+Typ
+
+Max
+
+Unit
+
+fPP
+
+Clock frequency
+
+SDR104
+
+0
+
+-
+
+208
+
+MHz
+
+TIS
+
+Input setup time
+
+SDR104
+
+1.4
+
+–
+
+–
+
+ns
+
+TIH
+
+Input hold time
+
+SDR104
+
+0.8
+
+–
+
+–
+
+ns
+
+TCLK
+
+Clock time
+
+SDR104
+
+4.8
+
+–
+
+–
+
+ns
+
+TCR , TCF
+
+Rise time, fall time
+TCR ,TCF < 0.96 ns (max) at 208 MHz
+CCARD = 10 pF
+
+SDR104
+
+--
+
+--
+
+0.2*TCLK
+
+ns
+
+TOP
+
+Card output phase
+
+SDR104
+
+0
+
+–
+
+2
+
+ns
+
+TODW
+
+Output timing of variable data
+window
+
+SDR104
+
+2.88
+
+–
+
+–
+
+ns
+
+Table 9: SDIO timing data – SDR104 mode (208MHz)
+
+2.2.1.5 SDIO internal pull-up and pull-down specifications
+Parameter
+
+Condition
+
+Internal nominal pull-up/pull-down resistance
+
+Min
+
+Typ
+
+Max
+
+Unit
+
+70
+
+100
+
+140
+
+k
+
+Table 10: SDIO internal pull-up and pull-down specifications
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 14 of 49
+
+MAYA-W2 series - Data sheet
+
+2.2.2
+
+UART interface
+
+MAYA-W2 supports a high-speed UART host interface for Bluetooth operation. The baud rate is
+adjustable from 1200 bps to 3.0 Mbit/s and the default baud rate after reset is 115.2 Kbps. The
+acceptable deviation from the UART Rx target baud rate is ±3%. The UART supports RX/TX pins and
+mandatory RTS/CTS flow control signals. Table 11 describes the module pins for the UART interface.
+Pin name
+
+I/O type
+
+Description
+
+GPIO pin multiplexing
+
+UART_CTS
+
+I
+
+Active low clear-to-send input signal
+
+GPIO[8]
+
+UART_TX
+
+O
+
+UART serial output signal
+
+GPIO[11]
+
+UART_RX
+
+I
+
+UART serial input signal
+
+GPIO[10]
+
+UART_RTS
+
+O
+
+Active low request-to-send signal
+
+GPIO[9]
+
+Table 11: Bluetooth UART interface description
+
+2.2.3
+
+SPI interface
+
+MAYA-W271 and MAYA-W276 support an SPI host interface for the 802.15.4 radio with a maximum
+clock speed of 10 MHz. The pins are shared with the external PTA coexistence interface. Table 12
+describes the module pins for the SPI interface.
+Pin name
+
+I/O type
+
+Description
+
+GPIO pin multiplexing
+
+SPI_FRM
+
+I
+
+SPI frame input signal
+
+GPIO[13]
+
+SPI_CLK
+
+I
+
+SPI clock input signal
+
+GPIO[12]
+
+SPI_RX
+
+I
+
+SPI receive input signal
+
+GPIO[14]
+
+SPI_TX
+
+O
+
+SPI transmit output signal
+
+GPIO[15]
+
+Table 12: 802.15.4 SPI interface description
+
+2.3 Antenna interfaces
+The MAYA-W2 series supports either an internal antenna or single antenna pin – configured
+externally by either a 0 Ω jumper (MAYA-266 and MAYA-W276), two external antennas connected
+through the antenna pins (MAYA-W261, MAYA-W271), or through the on-module U.FL connectors
+(MAYA-W260).
+To prevent mutual interference and improve coexistence performance with LTE bands, MAYA-W2
+supports an optionally integrated, high-performance 2.4 GHz SAW LTE band pass filter.
+Table 13 shows the available antenna interfaces on MAYA-W2 series modules.
+Product name
+
+Antenna interface
+
+Description
+
+MAYA-W260
+
+RF_ANT0
+
+U.FL connector (J2) for external 2.4/5 GHz Wi-Fi antenna
+
+RF_ANT1
+
+U.FL connector (J1) for external Bluetooth antenna
+
+RF_ANT0
+
+Antenna pin for external 2.4/5 GHz Wi-Fi antenna
+
+RF_ANT1
+
+Antenna pin for external Bluetooth antenna
+
+RF_ANT1
+
+Antenna pin for external 2.4/5 GHz Wi-Fi and Bluetooth antenna.
+Bluetooth and 2.4 GHz Wi-Fi are time-shared.
+
+ANT_FEED
+
+External antenna feed pin from RF_ANT1 for internal PCB antenna.
+
+RF_ANT0
+
+Antenna pin for external 2.4/5 GHz Wi-Fi antenna
+
+RF_ANT1
+
+Antenna pin for external Bluetooth/802.15.4 antenna
+
+RF_ANT1
+
+Antenna pin for external 2.4/5 GHz Wi-Fi, Bluetooth and 802.15.4
+antenna. Bluetooth, 802.15.4, and 2.4 GHz Wi-Fi are time-shared.
+
+ANT_FEED
+
+External antenna feed pin from RF_ANT1 for internal PCB antenna.
+
+MAYA-W261
+MAYA-W266
+
+MAYA-W271
+MAYA-W276
+
+Table 13: MAYA-W2 antenna configurations
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 15 of 49
+
+MAYA-W2 series - Data sheet
+
+2.3.1
+
+Internal antenna
+
+MAYA-W266 and MAYA-W276 have an internal (embedded niche) 2.4/5 GHz antenna that is
+specifically designed and optimized for the MAYA form factor. The module has an RF signal pin
+(RF_ANT1) and an antenna feed pin for the internal antenna (ANT_FEED), so it is possible to use
+either an external antenna connected to RF_ANT1, or the internal antenna by connecting RF_ANT1
+to the ANT_FEED pin.
+
+2.3.2
+
+External RF antenna interface
+
+MAYA-W260, MAYA-W261, and MAYA-W271 are equipped with either dual RF pins (RF_ANT0,
+RF_ANT1) or U.FL connectors (J1, J2) that have a 50 Ω characteristic impedance for use with an
+external antenna. The antenna connectors / pins support Wi-Fi dual band on connector J2 (RF_ANT0)
+and Bluetooth/802.15.4 on connector J1 (RF_ANT1).
+
+Figure 9 MAYA-W260 antenna configuration (top view)
+
+The external antenna can be an SMD antenna (or PCB integrated antenna) mounted on the host
+board. An antenna connector for use with an external antenna through a coaxial cable can also be
+considered. The use of a cable antenna can be necessary if the module is mounted in a shielded
+enclosure, such as a metal box or cabinet. See the list of approved antennas [2].
+All MAYA-W2 variants support a switching antenna diversity solution for Wi-Fi through RF control of
+an external antenna switch. The switch is controlled by the RF_CNTL3 signal from the MAYA-W2
+module. For more information about antenna switch design, see also the MAYA-W2 series system
+integration manual [2].
+
+2.4 Power supply interfaces
+The DC power for MAYA-W2 series modules is supplied through 3V3, 1V8, VIO and VIO_SD pins.
+The separate VIO pin enables integration of MAYA-W2 in either 1.8 V or 3.3 V applications – without
+the need for level converters.
+VIO_SD is used for digital 1.8 V/3.3 V SDIO power supply.
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 16 of 49
+
+MAYA-W2 series - Data sheet
+
+2.4.1
+
+Power up sequence timing
+
+The module has no power up-sequence requirements. The power-down (PDn) pin must be held low
+(asserted) until all external power supply rails are stable. See Figure 10. TPU_RESET is defined in
+Table 14.
+
+Figure 10: Power-up sequence for MAYA-W2 module
+
+2.4.2
+
+Power down
+
+MAYA-W2 series modules can be put into the lowest power mode when Wi-Fi and Bluetooth are not
+in use. To do this, assert PDn low to enter power-down mode. Firmware download is required again
+after exiting power-down mode. If the firmware is not downloaded, the device must be kept in powerdown mode to reduce leakage. Alternatively, 3V3, 1V8, VIO and VIO_SD can be powered off. In this
+case, the state of the PDn pin becomes irrelevant. See Figure 11.
+
+Figure 11: PDn timing
+Symbol
+
+Parameter
+
+Condition
+
+MIn
+
+Typ
+
+Max
+
+Unit
+
+TPU_RESET
+
+Valid power to PDn deasserted
+
+-
+
+0
+
+-
+
+-
+
+ms
+
+TRPW
+
+PDn pulse width
+
+-
+
+1
+
+-
+
+-
+
+us
+
+VIH
+
+Input high voltage
+
+-
+
+1.4
+
+-
+
+4.5
+
+V
+
+VIL
+
+Input low voltage
+
+-
+
+-0.4
+
+-
+
+0.5
+
+V
+
+Table 14: PDn pin specifications
+
+2.4.3
+
+Reset
+
+MAYA-W2 series is reset by asserting PDn low while power supplies remain active.
+
+2.5 Wake-up and reset interfaces
+A deep sleep mode in MAYA-W2 is used to reduce power consumption. Table 15 shows optional outof-band wake-up pins to wake up the radios from sleep mode. Radio-to-host, wake-up output signals
+can be used to wake up the host from sleep mode.
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 17 of 49
+
+MAYA-W2 series - Data sheet
+
+Pin name
+
+I/O type
+
+Description
+
+GPIO pin muxing
+
+WL_WAKE_HOST
+
+O
+
+Wi-Fi radio to host wake-up output signal
+
+GPIO[17]
+
+WL_DEV_WAKE
+
+I
+
+Wi-Fi radio wake-up input signal
+
+GPIO[16]
+
+BT_15.4_WAKE_HOST
+
+O
+
+Bluetooth/802.15.4 radio to host wake-up output signal
+
+GPIO[19]
+
+BT_15.4_DEV_WAKE
+
+I
+
+Bluetooth/802.15.4 radio wake-up input signal
+
+GPIO[18]
+
+SPI_INT
+
+O
+
+SPI interrupt output signal
+
+GPIO[20]
+
+SD_INT
+
+O
+
+Optional SDIO interrupt output signal
+
+GPIO[21]
+
+Table 15: Wake-up pins
+
+Software reset pins can be used to independently reset the Wi-Fi and Bluetooth/802.15.4 radios in
+MAYA-W2.
+Pin name
+
+I/O Type
+
+Description
+
+GPIO pin muxing
+
+WL_RST
+
+I
+
+Independent software reset for Wi-Fi
+
+GPIO[1]
+
+BT_15.4_RST
+
+I
+
+Independent software reset for Bluetooth. The request to reset
+GPIO[2]
+Bluetooth will also reset the 802.15.4 radio in MAYA-W271/-W276.
+
+RST_IND
+
+O
+
+Bluetooth/802.15.4 independent software reset indicator to host
+
+GPIO[22]
+
+Table 16: Software reset pins
+
+2.6 GPIOs
+MAYA-W2 supports up to 20 GPIO pins. On power-up and reset, the GPIO pins assume a highimpedance tristate. The UART, PCM, and JTAG interfaces can be assigned to the GPIO pins. After
+initialization, firmware is downloaded, and the pads are programmed in line with the functionality of
+the GPIOs. See also Pin assignment.
+For information describing what GPIOs are used for the interfaces, see UART, PCM/I2S audio
+interfaces, PTA/WCI-2 external coexistence interfaces and JTAG. All other GPIOs are described in the
+Pin definition.
+
+2.7 PCM/I2S audio interfaces
+MAYA-W2 supports PCM and I2C interfaces on the same pins with:
+•
+•
+•
+•
+•
+•
+•
+
+PCM pins shared with I2S pins
+PCM central or peripheral mode
+PCM bit-width size of 8 bits or 16 bits
+Up to 4 PCM slots with configurable bit width and start positions
+PCM short-frame and long-frame synchronization
+I2S central and peripheral modes for I2S, MSB, and LSB audio interfaces
+Tri-state capability
+
+The interfaces connect to linear codec devices in central or peripheral mode.
+Table 17 describes the chipset pins that connect directly to the PCM pins of MAYA-W2.
+Pin name
+
+I/O Type
+
+Description
+
+GPIO pin muxing
+
+PCM_DOUT / I2S_DOUT
+
+O
+
+PCM/I2S data out
+
+GPIO[5]
+
+PCM_DIN / I2S_DIN
+
+I
+
+PCM/I2S data in
+
+GPIO[6]
+
+PCM_CLK / I2S_BLCK
+
+I/O
+
+PCM/I2S clock, can be output (if central) or input (if peripheral)
+
+GPIO[4]
+
+PCM_SYNC / I2S_LRCLK
+
+I/O
+
+PCM/I2S sync, can be output (if central) or input (if peripheral)
+
+GPIO[7]
+
+PCM_MCLK / I2S_CCLK
+
+O
+
+Optional clock pins
+
+GPIO[3]
+
+Table 17: Bluetooth PCM/I2S interface description
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 18 of 49
+
+MAYA-W2 series - Data sheet
+
+2.7.1
+
+Central mode
+
+Figure 12: PCM timing specification diagram for PCM_SYNC signal – Central mode
+
+Table 18: PCM timing specification diagram for data signals – Central mode
+
+Symbol
+
+Parameter
+
+Condition Min
+
+FBCLK
+
+Bit clock frequency
+
+–
+
+Duty Cycle BCLK
+
+Bit clock duty cycle
+
+–
+
+TBCLK rise/fall
+
+PCM_CLK rise/fall time
+
+TDO
+
+Typ
+
+Max
+
+Unit
+
+2
+
+2/2.048 2.048
+
+MHz
+
+0.4
+
+0.5
+
+0.6
+
+–
+
+–
+
+–
+
+3
+
+–
+
+ns
+
+Delay from PCM_CLK rising edge to PCM_DOUT rising
+edge
+
+–
+
+–
+
+–
+
+15
+
+ns
+
+TDISU
+
+Setup time for PCM_DIN before PCM_CLK falling edge
+
+–
+
+20
+
+–
+
+–
+
+ns
+
+TDIHO
+
+Hold time for PCM_DIN after PCM_CLK falling edge
+
+–
+
+15
+
+–
+
+–
+
+ns
+
+TBF
+
+Delay from PCM_CLK rising edge to PCM_SYNC rising
+edge
+
+–
+
+–
+
+–
+
+15
+
+ns
+
+Table 19: PCM timing specification data – Central mode
+
+2.7.2
+
+Peripheral mode
+
+Figure 13: PCM timing specification diagram for data signals – Peripheral mode
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 19 of 49
+
+MAYA-W2 series - Data sheet
+
+Figure 14: PCM timing specification diagram for PCM_SYNC signal – Peripheral mode
+
+Symbol
+
+Parameter
+
+Condition
+
+Min
+
+Typ
+
+Max
+
+Unit
+
+FBCLK
+
+Bit clock
+frequency
+
+–
+
+0.512
+
+2/2.048
+
+4
+
+MHz
+
+Duty Cycle BCLK
+
+Bit clock duty
+cycle
+
+–
+
+0.4
+
+0.5
+
+0.6
+
+–
+
+TBCLK rise/fall
+
+PCM_CLK
+rise/fall time
+
+–
+
+–
+
+3
+
+–
+
+ns
+
+TDO
+
+Delay from
+PCM_CLK rising
+edge to
+PCM_DOUT
+rising edge
+
+–
+
+–
+
+–
+
+30
+
+ns
+
+TDISU
+
+Setup time for
+PCM_DIN before
+PCM_CLK falling
+edge
+
+–
+
+15
+
+–
+
+–
+
+ns
+
+TDIHO
+
+Hold time for
+PCM_DIN after
+PCM_CLK falling
+edge
+
+–
+
+10
+
+–
+
+–
+
+ns
+
+TBFSU
+
+Setup time for
+PCM_SYNC
+before
+PCM_CLK falling
+edge
+
+–
+
+15
+
+–
+
+–
+
+ns
+
+TBFHO
+
+Hold time for
+PCM_SYNC
+after PCM_CLK
+falling edge
+
+–
+
+10
+
+–
+
+–
+
+ns
+
+Table 20: PCM timing specification data – Peripheral mode
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 20 of 49
+
+MAYA-W2 series - Data sheet
+
+2.8 PTA/WCI-2 external coexistence interfaces
+External coexistence interfaces enable signaling between the internal radios and external co-located
+wireless devices for optimal performance when sharing the wireless medium. External radios can be
+connected to the 5-wire packet traffic arbitration interface (PTA) shared with SPI on MAYA-W271
+and -W276 or the 2-wire wireless coexistence interface 2 (WCI-2). The WCI-2 message format and
+message type comply with Bluetooth special interest group (SIG) core specification volume 7, part C.
+Pin name
+
+I/O type
+
+Description
+
+GPIO pin multiplexing
+
+EXT_STATE
+
+I
+
+External radio state input signal
+External radio traffic direction (Tx/Rx):
+1: Tx
+0: Rx
+
+GPIO[12]
+
+EXT_GNT
+
+O
+
+External radio grant output signal
+
+GPIO[14]
+
+EXT_FREQ
+
+I
+
+External radio frequency input signal
+Frequency overlap between external radio and Wi-Fi:
+1: overlap
+0: non-overlap
+This signal is useful when the external radio is a frequency hopping
+device.
+
+GPIO[20]
+
+EXT_PRI
+
+I
+
+External radio input priority signal
+Priority of the request from the external radio. Can support 1 bit
+priority (sample once) and 2-bit priority (sample twice). Can also have
+Tx/Rx information following the priority information if EXT_STATE is
+not used.
+
+GPIO[15]
+
+EXT_REQ
+
+I
+
+Request from the external radio
+
+GPIO[13]
+
+Table 21: PTA external coexistence interface description
+
+Pin name
+
+I/O type
+
+Description
+
+GPIO pin multiplexing
+
+WCI-2_SIN
+
+I
+
+WCI-2 serial interface input
+
+GPIO[25]
+
+WCI-2_SOUT
+
+O
+
+WCI-2 serial interface output
+
+GPIO[26]
+
+Table 22: WCI external coexistence interface description
+
+2.9 JTAG
+The module includes a JTAG test interface that is supported using the GPIO pins.
+Pin name
+
+I/O type
+
+Description
+
+GPIO pin multiplexing
+
+JTAG_TCK
+
+I
+
+JTAG test clock input signal
+
+GPIO[28]
+
+JTAG_TMS
+
+I
+
+JTAG controller select input
+signal
+
+GPIO[29]
+
+JTAG_TDI
+
+I
+
+JTAG test data input signal
+
+GPIO[30]
+
+JTAG_TDO
+
+O
+
+JTAG test data output signal
+
+GPIO[31]
+
+Table 23: JTAG interface description
+
+UBX-22009721 - R07
+C1-Public
+
+Interfaces
+
+Page 21 of 49
+
+MAYA-W2 series - Data sheet
+
+3
+
+Pin definition
+
+3.1 Pin assignment
+
+Figure 15: MAYA-W2 series pin assignment (top view)
+
+☞
+
+All signal pins are mounted in a land grid array (LGA) package on the bottom side of the PCB. The
+RF pins (RF_ANT0 and RF_ANT1) are not available on MAYA-W260.
+
+UBX-22009721 - R07
+C1-Public
+
+Pin definition
+
+Page 22 of 49
+
+MAYA-W2 series - Data sheet
+
+No.
+
+Name
+
+Pin
+type1
+
+Description
+
+Power Down Power
+supply
+domain
+
+A1
+
+GND
+
+GND
+
+Ground
+
+-
+
+A2
+
+1V8
+
+PWR
+
+A3
+
+SD_DAT[1]
+
+I/O
+
+SD_DAT[1]
+
+1.8 V supply
+
+-
+
+1V8
+
+SDIO data 1
+
+Tristate
+
+VIO_SD
+
+A4
+
+SD_CLK
+
+I
+
+SD_CLK
+
+SDIO clock
+
+Tristate
+
+VIO_SD
+
+A5
+
+SD_DAT[3]
+
+I/O
+
+SD_DAT[3]
+
+SDIO data 3
+
+Tristate
+
+VIO_SD
+
+A6
+
+VIO_SD
+
+A7
+
+3V3
+
+PWR
+
+1.8 V / 3.3 V SDIO supply
+
+-
+
+VIO_SD
+
+PWR
+
+3.3 V supply
+
+-
+
+3V3
+
+A8
+
+VIO
+
+PWR
+
+1.8 V / 3.3 V I/O supply
+
+-
+
+VIO
+
+A9
+
+GND
+
+GND
+
+Ground
+
+-
+
+B1
+
+GPIO[27]
+
+I/O
+
+Multi-functional pin:
+•
+GPIO[27]
+•
+BLE ISOC trigger mode: Host trigger pin
+
+Tristate
+
+B2
+
+GND
+
+GND
+
+Ground
+
+-
+
+B3
+
+SD_DAT[0]
+
+I/O
+
+SD_DAT[0]
+
+SDIO data 0
+
+Tristate
+
+VIO_SD
+
+B4
+
+SD_CMD
+
+I/O
+
+SD_CMD
+
+SDIO command/response
+
+Tristate
+
+VIO_SD
+
+B5
+
+SD_DAT[2]
+
+I/O
+
+SD_DAT[2]
+
+SDIO data 2
+
+Tristate
+
+VIO_SD
+
+B6
+
+WCI_SOUT
+
+I/O
+
+GPIO[26]/
+WCI-2_SOUT
+
+Multi-functional pin:
+•
+GPIO[26]
+•
+WCI-2 coexistence serial interface output
+
+Drive low
+
+VIO
+
+B7
+
+3V3
+
+PWR
+
+3.3 V supply
+
+-
+
+3V3
+
+B8
+
+GND
+
+GND
+
+Ground
+
+-
+
+B9
+
+NC
+
+NC
+
+Reserved for VUSB
+
+-
+
+C1
+
+NC
+
+NC
+
+Reserved for PCIe
+
+-
+
+C2
+
+EXT_REQ/SPI_FRM I/O
+
+Multi-functional pin:
+•
+GPIO[13]
+•
+SPI mode: SPI frame signal (input)
+•
+PTA mode: EXT_REQ - External radio
+request input signal
+
+Drive high
+
+C4
+
+NC
+
+NC
+
+Reserved for I2C
+
+-
+
+C5
+
+NC
+
+NC
+
+Reserved for I2C
+
+-
+
+C6
+
+WCI_SIN
+
+I/O
+
+GPIO[25]/
+WCI-2_SIN
+
+Multi-functional pin:
+•
+GPIO[25]
+•
+WCI-2 coexistence serial interface input
+
+Tristate
+
+VIO
+
+C8
+
+RST_IND
+
+I/O
+
+GPIO[22]/
+RST_IND
+
+Tristate
+Multi-functional pin:
+•
+GPIO[22]
+•
+RST_IND - Bluetooth/802.15.4 independent
+software reset indicator to host (output)
+
+VIO
+
+C9
+
+NC
+
+NC
+
+Reserved for USB
+
+-
+
+D1
+
+NC
+
+NC
+
+Reserved for PCIe
+
+-
+
+D2
+
+EXT_FREQ/SPI_INT I/O
+
+GPIO[20]/
+SPI_INT
+
+Multi-functional pin:
+•
+GPIO[20]
+•
+SPI mode: SPI interrupt signal (output)
+•
+PTA mode: EXT_FREQ - External radio
+frequency input signal
+
+Drive low
+
+VIO
+
+D3
+
+CONFIG[0]
+
+CONFIG_HOST_ Configuration pin: CON[0]
+BOOT[0]
+
+Tristate
+
+1V8
+
+1
+
+I
+
+Chipset pin
+
+GPIO[27]
+
+GPIO[13]/
+SPI_FRM
+
+VIO
+
+VIO
+
+I/O notations: I=Input, O=Output, I/O=Input or Output, OD=Open Drain, NC=Not Connected, PWR=Power, GND=Ground, RF=Radio i/f
+
+UBX-22009721 - R07
+C1-Public
+
+Pin definition
+
+Page 23 of 49
+
+MAYA-W2 series - Data sheet
+
+No.
+
+Name
+
+Pin
+type1
+
+Chipset pin
+
+Description
+
+Power Down Power
+supply
+domain
+
+D7
+
+SD_INT
+
+I/O
+
+GPIO[21]/
+SD_INT
+
+Multi-functional pin:
+•
+GPIO[21]
+•
+SD_INT: SDIO interrupt signal (output)
+
+Drive low
+
+VIO
+
+D8
+
+PCM_CLK
+
+I/O
+
+GPIO[4]/
+PCM_CLK
+
+Multi-functional pin:
+•
+GPIO[4]
+•
+PCM mode: PCM_CLK - PCM data clock
+•
+I2S mode: I2S_BCLK - I2S bit clock
+
+Tristate
+
+VIO
+
+D9
+
+NC
+
+NC
+
+Reserved for USB
+
+-
+
+E1
+
+NC
+
+NC
+
+Reserved for PCIe
+
+-
+
+E2
+
+EXT_STATE/SPI_CL I/O
+K
+
+GPIO[12]/
+SPI_CLK
+
+Multi-functional pin:
+•
+GPIO[12]
+•
+SPI mode: SPI clock signal (input)
+•
+PTA mode: EXT_STATE - External radio
+state input signal
+
+Tristate
+
+VIO
+
+E3
+
+CONFIG[1]
+
+I
+
+CONFIG_HOST_ Configuration pin: CON[1]
+BOOT[1]
+
+Tristate
+
+1V8
+
+E4
+
+GND
+
+GND
+
+E5
+
+GND
+
+GND
+
+E7
+
+BT_15.4_WAKE_
+HOST
+
+I/O
+
+GPIO[19]/
+Multi-functional pin:
+GPIO[19]
+BT_15.4_WAKE •
+_OUT
+•
+Bluetooth/802.15.4 to host wake-up signal
+(output)
+
+Drive low
+
+VIO
+
+E8
+
+PCM_MCLK
+
+I/O
+
+GPIO[3]/
+PCM_MCLK
+
+Multi-functional pin:
+•
+GPIO[3]
+•
+PCM/I2S codec main clock output signal
+(optional)
+
+Tristate
+
+VIO
+
+E9
+
+PCM_DIN
+
+I/O
+
+GPIO[6]/
+PCM_DIN
+
+Multi-functional pin:
+•
+GPIO[6]
+•
+PCM/I2S mode: PCM/I2S receive data
+signal (input)
+
+Tristate
+
+VIO
+
+F1
+
+NC
+
+NC
+
+Reserved for PCIe
+
+-
+
+F2
+
+EXT_PRI/SPI_TX
+
+I/O
+
+GPIO[15]/
+SPI_TXD
+
+F3
+
+RF_CNTL3
+
+I/O
+
+RF_CNTL3/
+RF control, used to control an external Wi-Fi
+CONFIG_XOSC_ antenna diversity switch
+SEL
+Configuration pin: CON[5]
+
+F4
+
+GND
+
+GND
+
+F5
+
+GND
+
+GND
+
+F7
+
+WL_WAKE_HOST
+
+I/O
+
+GPIO[17]/
+Multi-functional pin:
+GPIO[17]
+WL_WAKE_OUT •
+•
+Wi-Fi radio to host wake-up signal (output)
+
+Drive low
+
+VIO
+
+F8
+
+PCM_SYNC
+
+I/O
+
+GPIO[7]/
+PCM_SYNC
+
+Multi-functional pin:
+•
+GPIO[7]
+•
+PCM mode: PCM_SYNC - PCM frame sync
+•
+I2S mode: I2S_LRCLK - I2S left/right clock
+
+Tristate
+
+VIO
+
+F9
+
+PCM_DOUT
+
+I/O
+
+GPIO[5]/
+PCM_DOUT
+
+Multi-functional pin:
+•
+GPIO[5]
+•
+PCM/I2S mode: PCM/I2S transmit data
+signal (output)
+
+Tristate
+
+VIO
+
+UBX-22009721 - R07
+C1-Public
+
+Ground
+
+-
+
+Ground
+
+-
+
+Drive low
+Multi-functional pin:
+•
+GPIO[15]
+•
+SPI mode: SPI transmit signal (output)
+•
+PTA mode: EXT_PRI - External radio priority
+input signal
+Drive high
+
+Ground
+
+-
+
+Ground
+
+-
+
+Pin definition
+
+VIO
+
+VIO
+
+Page 24 of 49
+
+MAYA-W2 series - Data sheet
+
+No.
+
+Name
+
+Pin
+type1
+
+G1
+
+NC
+
+NC
+
+G2
+
+EXT_GNT/SPI_RX
+
+I/O
+
+G3
+
+RF_CNTL4
+
+G4
+
+Description
+
+Power Down Power
+supply
+domain
+
+Reserved for PCIe
+
+-
+
+GPIO[14]/
+SPI_RXD
+
+Multi-functional pin:
+•
+GPIO[14]
+•
+SPI mode: SPI receive signal (input)
+•
+PTA mode: EXT_GNT - External radio grant
+output signal
+
+Tristate
+
+VIO
+
+I/O
+
+RF_CNTL4
+
+RF control
+Configuration pin: CON[7]
+
+Drive low
+
+VIO
+
+RF_CNTL2
+
+I/O
+
+RF_CNTL2
+
+RF control
+
+Drive low
+
+VIO
+
+G5
+
+JTAG_TDO
+
+I/O
+
+GPIO[31]/
+JTAG_TDO
+
+Multi-functional pin:
+•
+GPIO[31]
+•
+JTAG test data signal (output)
+
+Tristate
+
+VIO
+
+G7
+
+JTAG_TDI
+
+I/O
+
+GPIO[30]/
+JTAG_TDI
+
+Multi-functional pin:
+•
+GPIO[30]
+•
+JTAG test data signal (input)
+
+Tristate
+
+VIO
+
+G8
+
+UART_RX
+
+I/O
+
+GPIO[10]/
+UART_RX
+
+Multi-functional pin:
+•
+GPIO[10]
+•
+UART serial input signal
+
+Tristate
+
+VIO
+
+G9
+
+UART_TX
+
+I/O
+
+GPIO[11]/
+UART_TX
+
+Multi-functional pin:
+•
+GPIO[11]
+•
+UART serial output signal
+
+Drive low
+
+VIO
+
+H1
+
+NC
+
+NC
+
+Reserved for PCIe
+
+-
+
+H2
+
+NC
+
+NC
+
+Reserved for PCIe
+
+-
+
+H3
+
+RF_CNTL0
+
+I/O
+
+RF control
+
+Drive low
+
+H4
+
+GND
+
+GND
+
+Ground
+
+-
+
+H5
+
+GND
+
+GND
+
+Ground
+
+-
+
+H7
+
+WL_RST
+
+I/O
+
+GPIO[1]/
+IND_RST_WL
+
+Multi-functional pin:
+•
+GPIO[1]
+•
+Independent software reset for Wi-Fi
+(input)
+
+Tristate
+
+VIO
+
+H8
+
+UART_CTS
+
+I/O
+
+GPIO[8]/
+UART_CTS
+
+Tristate
+Multi-functional pin:
+•
+GPIO[8]
+•
+UART clear-to-send input signal (active low)
+
+VIO
+
+H9
+
+UART_RTS
+
+I/O
+
+GPIO[9]/
+UART_RTS
+
+Drive high
+Multi-functional pin:
+•
+GPIO[9]
+•
+UART request-to-send output signal (active
+low)
+
+VIO
+
+J1
+
+NC
+
+NC
+
+Reserved for PCIe
+
+-
+
+J2
+
+NC
+
+NC
+
+Reserved for PCIe
+
+-
+
+J3
+
+PDn
+
+I
+
+PDn
+
+Power Down Signal (input)
+0 – power-down mode
+1 – normal mode
+This pin has an always-on internal 10 kΩ pull-up
+on the module. It can accept an input of 1.8 –
+4.5 V.
+
+J4
+
+JTAG_TCK
+
+I/O
+
+GPIO[28]/
+JTAG_TCK
+
+Multi-functional pin :
+•
+GPIO[28]
+•
+JTAG test clock signal (input)
+
+Tristate
+
+VIO
+
+J5
+
+JTAG_TMS
+
+I/O
+
+GPIO[29]/
+JTAG_TMS
+
+Multi-functional pin:
+•
+GPIO[29]
+•
+JTAG controller select (input)
+
+Tristate
+
+VIO
+
+UBX-22009721 - R07
+C1-Public
+
+Chipset pin
+
+RF_CNTL0
+
+Pin definition
+
+VIO
+
+1V8
+
+Page 25 of 49
+
+MAYA-W2 series - Data sheet
+
+No.
+
+Name
+
+Pin
+type1
+
+Chipset pin
+
+Description
+
+Power Down Power
+supply
+domain
+
+J7
+
+BT_15.4_RST
+
+I/O
+
+GPIO[2]/
+IND_RST_BT
+
+Multi-functional pin:
+•
+GPIO[2]
+•
+Independent software reset for Bluetooth
+and 802.15.4 (input)
+
+Tristate
+
+VIO
+
+J8
+
+WL_DEV_WAKE
+
+I/O
+
+GPIO[16]/
+WL_WAKE_IN
+
+Multi-functional pin:
+•
+GPIO[16]
+•
+Wi-Fi radio wake-up signal (input)
+
+Tristate
+
+VIO
+
+J9
+
+BT_15.4_DEV_WAK I/O
+E
+
+Tristate
+
+VIO
+
+K1
+
+RF_ANT0
+
+RF
+
+Wi-Fi I/O (only in MAYA-W261 and MAYAW271)
+
+-
+
+K2
+
+GND
+
+GND
+
+Ground
+
+-
+
+K3
+
+GND
+
+GND
+
+Ground
+
+-
+
+K4
+
+GND
+
+GND
+
+Ground
+
+-
+
+K5
+
+NC
+
+NC
+
+Reserved for RF_ANT
+
+-
+
+K6
+
+GND
+
+GND
+
+Ground
+
+-
+
+K7
+
+GND
+
+GND
+
+Ground
+
+-
+
+K8
+
+GND
+
+GND
+
+Ground
+
+-
+
+K9
+
+RF_ANT1
+
+RF
+
+MAYA-W261: Bluetooth I/O
+MAYA-W271: Bluetooth/802.15.4 I/O
+MAYA-W266: Combined Bluetooth and Wi-Fi I/O
+MAYA-W276: Combined Bluetooth, 802.15.4,
+and Wi-Fi I/O
+
+L1
+
+GND
+
+GND
+
+Ground
+
+-
+
+L9
+
+ANT_FEED
+
+RF
+
+External antenna feed pin for internal PCB
+antenna on MAYA-W266 and W276
+Others: NC
+
+-
+
+M1
+
+GND
+
+GND
+
+Ground
+
+-
+
+M2
+
+GND
+
+GND
+
+Ground
+
+-
+
+M8
+
+GND
+
+GND
+
+Ground
+
+-
+
+M9
+
+GND
+
+GND
+
+Ground
+
+-
+
+GPIO[18]/
+Multi-functional pin:
+GPIO[18]
+BT_15.4_WAKE •
+_IN
+•
+Bluetooth/802.15.4 radio wake-up signal
+(input)
+
+Table 24: MAYA-W2 series pin description
+
+UBX-22009721 - R07
+C1-Public
+
+Pin definition
+
+Page 26 of 49
+
+MAYA-W2 series - Data sheet
+
+4
+
+Electrical specifications
+
+⚠
+
+Stressing the device above one or more of the ratings of the Absolute maximum ratings can cause
+permanent damage. These are stress ratings only. Operating the module at these ratings or in
+conditions other than those specified in the Operating conditions should be avoided. Exposure to
+absolute maximum rating conditions for extended periods can affect device reliability.
+
+☞
+
+All given application information is only advisory and does not form part of the specification.
+
+4.1 Absolute maximum ratings
+Symbol
+
+Parameter
+
+Min.
+
+Max.
+
+Units
+
+3V3
+
+Power supply voltage
+
+-
+
+3.96
+
+V
+
+1V8
+
+Power supply voltage 1.8 V
+
+-
+
+2.16
+
+V
+
+VIO
+
+I/O supply voltage 1.8 V
+
+-
+
+2.16
+
+V
+
+I/O supply voltage 3.3 V
+
+-
+
+3.96
+
+V
+
+SDIO power supply voltage 1.8 V
+
+-
+
+2.16
+
+V
+
+VIO_SD
+
+SDIO power supply voltage 3.3 V
+
+-
+
+3.96
+
+V
+
+PIN_MAX
+
+Maximum RX input power level without device damage on all
+module RF pins
+
+-
+
+2
+
+dBm
+
+TSTORAGE
+
+Storage temperature
+
+-55
+
++125
+
+ºC
+
+Table 25: Absolute maximum ratings
+
+⚠
+
+The product is not protected against overvoltage or reversed voltages. If necessary, voltage spikes
+exceeding the power supply voltage specifications given in Table 25 must be limited to values
+within the specified boundaries by using appropriate protection devices.
+
+4.1.1
+
+Maximum ESD ratings
+
+Applicability
+
+Min.
+
+Max.
+
+Units
+
+Human Body Model (HBM), ANSA/ESDA/JEDEC JS-001-2014.
+
+-2000
+
++2000
+
+V
+
+Charged Device Model (CDM), JESD22-C101.
+
+-500
+
++500
+
+V
+
+Table 26: Maximum ESD ratings
+
+4.2 Recommended operating conditions
+Symbol
+
+Parameter
+
+Min.
+
+Typ
+
+Max.
+
+Units
+
+3V3
+
+Power supply voltage
+
+3.14
+
+3.3
+
+3.46
+
+V
+
+1V8
+
+Power supply voltage 1.8 V
+
+1.71
+
+1.80
+
+1.89
+
+V
+
+VIO
+
+I/O supply voltage 1.8 V
+
+1.71
+
+1.80
+
+1.89
+
+V
+
+I/O supply voltage 3.3 V
+
+3.14
+
+3.30
+
+3.46
+
+V
+
+I/O supply voltage 1.8 V
+
+1.71
+
+1.80
+
+1.89
+
+V
+
+I/O supply voltage 3.3 V
+
+3.14
+
+3.30
+
+3.46
+
+V
+
+Ambient operating temperature for
+professional grade modules
+
+-40
+
++85
+
+ºC
+
+Ambient operating temperature for standard
+grade modules
+
+0
+
++70
+
+ºC
+
+Maximum junction temperature
+
+-
+
+125
+
+ºC
+
+VIO_SD
+TA
+
+TJ
+
+-
+
+Table 27: Operating conditions
+
+UBX-22009721 - R07
+C1-Public
+
+Electrical specifications
+
+Page 27 of 49
+
+MAYA-W2 series - Data sheet
+
+4.3 Digital pad settings
+Symbol
+
+Parameter
+
+VIO
+
+Min.
+
+Max.
+
+Units
+
+VIH
+
+Input high voltage
+
+1.8 V / 3.3 V
+
+0.7*VIO
+
+VIO+0.4
+
+V
+
+VIL
+
+Input low voltage
+
+1.8 V / 3.3 V
+
+-0.4
+
+0.3*VIO
+
+V
+
+VHYS
+
+Input hysteresis
+
+1.8 V / 3.3 V
+
+100
+
+-
+
+mV
+
+VOH
+
+Output high voltage
+
+1.8 V / 3.3 V
+
+VIO-0.4
+
+-
+
+V
+
+VOL
+
+Output low voltage
+
+1.8 V / 3.3 V
+
+-
+
+0.4
+
+V
+
+Table 28: DC characteristics VIO
+
+4.4 Power consumption
+4.4.1
+
+☞
+
+Wi-Fi power consumption
+
+Unless otherwise stated, all specifications are valid at 25° C and given at nominal voltage with typical SDIO clock speed of 200 MHz.
+3V3 (3.3V) [mA]
+
+1V8 (1.8 V) [mA]
+
+VIO+VIO_SD (1.8 V)
+[mA]
+
+Power down
+
+0.01
+
+0.04
+
+0.01
+
+Wi-Fi only enabled in deep-sleep
+
+0.01
+
+1.80
+
+0.04
+
+Wi-Fi, Bluetooth and 802.15.4 in deep-sleep mode
+
+0.02
+
+0.41
+
+0.12
+
+IEEE Power Save DTIM 10 and Bluetooth deep-sleep, 2G
+
+0.02
+
+0.72
+
+0.06
+
+IEEE Power Save DTIM 5 and Bluetooth deep-sleep, 2G
+
+0.02
+
+0.9
+
+0.06
+
+IEEE Power Save DTIM 3 and Bluetooth deep-sleep, 2G
+
+0.02
+
+1.14
+
+0.06
+
+IEEE Power Save DTIM 1 and Bluetooth deep-sleep, 2G
+
+0.02
+
+2.52
+
+0.06
+
+IEEE Power Save DTIM 10 and Bluetooth deep-sleep, 5G
+
+0.02
+
+0.66
+
+0.06
+
+IEEE Power Save DTIM 5 and Bluetooth deep-sleep, 5G
+
+0.02
+
+0.72
+
+0.06
+
+IEEE Power Save DTIM 3 and Bluetooth deep-sleep, 5G
+
+0.02
+
+0.91
+
+0.06
+
+IEEE Power Save DTIM 1 and Bluetooth deep-sleep, 5G
+
+0.02
+
+1.57
+
+0.06
+
+CCK 1 Mbit/s, BW20, Ch6, 21 dBm
+
+261
+
+168
+
+0.1
+
+CCK 11 Mbit/s, BW20, Ch6, 20 dBm
+
+239
+
+150
+
+0.1
+
+OFDM 54 Mbit/s, BW20, Ch6, 20dBm
+
+234
+
+182
+
+0.1
+
+OFDM 54 Mbit/s, BW20, Ch6, 19dBm
+
+205
+
+175
+
+0.1
+
+MCS0, HT20, Ch6, 20 dBm
+
+235
+
+189
+
+0.1
+
+MCS7, HT20, Ch6, 20 dBm
+
+232
+
+182
+
+0.1
+
+MCS0, HT40, Ch6, 20 dBm
+
+249
+
+194
+
+0.1
+
+MCS7, HT40, Ch6, 20 dBm
+
+233
+
+183
+
+0.1
+
+MCS0, HE20, Ch6, 20 dBm
+
+247
+
+189
+
+0.1
+
+MCS11, HE20, Ch6, 20 dBm
+
+221
+
+180
+
+0.1
+
+MCS0, HE40, Ch6, 20 dBm
+
+258
+
+199
+
+0.1
+
+MCS11, HE40, Ch6, 20 dBm
+
+212
+
+183
+
+0.1
+
+Wi-Fi operation modes
+Power – save modes [1]
+
+Active transmit modes for 2G Wi-Fi operation
+
+UBX-22009721 - R07
+C1-Public
+
+[1]
+
+Electrical specifications
+
+Page 28 of 49
+
+MAYA-W2 series - Data sheet
+
+3V3 (3.3V) [mA]
+
+1V8 (1.8 V) [mA]
+
+VIO+VIO_SD (1.8 V)
+[mA]
+
+OFDM 6 Mbit/s, BW20, Ch100, 19 dBm
+
+279
+
+224
+
+0.1
+
+OFDM 54 Mbit/s, BW20, Ch100, 19 dBm
+
+260
+
+220
+
+0.1
+
+MCS0, HT20, Ch100, 19 dBm
+
+287
+
+229
+
+0.1
+
+MCS7, HT20, Ch100, 19 dBm
+
+269
+
+219
+
+0.1
+
+MCS0, VHT20, Ch100, 19 dBm
+
+293
+
+229
+
+0.1
+
+MCS8, VHT20, Ch100, 19 dBm
+
+265
+
+217
+
+0.1
+
+MCS0, HE20, Ch100, 19 dBm
+
+269
+
+229
+
+0.1
+
+MCS11, HE20, Ch100, 19 dBm
+
+246
+
+220
+
+0.1
+
+MCS0, HT40, Ch102, 17 dBm
+
+219
+
+232
+
+0.1
+
+MCS7, HT40, Ch102, 17 dBm
+
+185
+
+211
+
+0.1
+
+MCS0, VHT40, Ch102, 17 dBm
+
+244
+
+235
+
+0.1
+
+MCS9, VHT40, Ch102, 17 dBm
+
+217
+
+220
+
+0.1
+
+MCS0, HE40, Ch102, 17 dBm
+
+221
+
+232
+
+0.1
+
+MCS11, HE40, Ch102, 17 dBm
+
+184
+
+209
+
+0.1
+
+MCS0, VHT80, Ch106, 15 dBm
+
+201
+
+229
+
+0.1
+
+MCS9, VHT80, Ch106, 15 dBm
+
+218
+
+188
+
+0.1
+
+MCS0, HE80, Ch106, 15 dBm
+
+212
+
+236
+
+0.1
+
+MCS11, HE80, Ch106, 15 dBm
+
+193
+
+227
+
+0.1
+
+CCK 11 Mbit/s, BW20, Ch6, -50 dBm
+
+0.1
+
+103
+
+0.1
+
+OFDM 54 Mbit/s, BW20, Ch6, -50 dBm
+
+0.1
+
+103
+
+0.1
+
+MCS7, HT20, Ch6, -50 dBm
+
+0.1
+
+103
+
+0.1
+
+MCS11, HE20, Ch6, -50 dBm
+
+0.1
+
+103
+
+0.1
+
+MCS7, HT40, Ch6, -50 dBm
+
+0.1
+
+113
+
+0.1
+
+MCS11, HE40, Ch6, -50 dBm
+
+0.1
+
+113
+
+0.1
+
+OFDM 54, BW20, Ch100, -50dBm
+
+0.1
+
+119
+
+0.1
+
+MCS7, HT20, Ch100, -50 dBm
+
+0.1
+
+119
+
+0.1
+
+MCS8, VHT20, Ch100, -50 dBm
+
+0.1
+
+119
+
+0.1
+
+MCS11, HE20, Ch100, -50 dBm
+
+0.1
+
+119
+
+0.1
+
+MCS7, HT40, Ch102, -50 dBm
+
+0.1
+
+135
+
+0.1
+
+MCS9, VHT40, Ch102, -50 dBm
+
+0.1
+
+135
+
+0.1
+
+MCS11, HE40, Ch102, -50 dBm
+
+0.1
+
+135
+
+0.1
+
+MCS9, VHT80, Ch106, -50 dBm
+
+0.1
+
+165
+
+0.1
+
+MCS11, HE80, Ch106, -50 dBm
+
+0.1
+
+165
+
+0.1
+
+Active transmission
+
+400
+
+1000
+
+2
+
+Firmware initialization
+
+0.4
+
+129
+
+0.1
+
+Wi-Fi operation modes
+Active transmit modes for 5G Wi-Fi operation [1]
+
+Receive modes for 2G Wi-Fi operation [1]
+
+Receive modes for 5G Wi-Fi operation
+
+[1]
+
+Peak current (at room temperature)
+
+Table 29: Typical Wi-Fi radio current consumption with different modes of operation
+
+UBX-22009721 - R07
+C1-Public
+
+Electrical specifications
+
+Page 29 of 49
+
+MAYA-W2 series - Data sheet
+
+4.4.2
+
+☞
+
+Bluetooth power consumption
+
+Unless otherwise stated, all specifications are valid at 25° C and given at nominal voltage with
+typical SDIO clock speed of 200 MHz.
+
+Bluetooth operation modes
+
+3V3 (3.3 V) [mA]
+
+1V8 (1.8 V) [mA]
+
+VIO+VIO_SD (1.8 V) [mA]
+
+Bluetooth and 802.15.4 only
+in deep sleep
+
+0.02
+
+0.25
+
+0.06
+
+Bluetooth in idle (without
+deep sleep)
+
+0.01
+
+11.2
+
+0.02
+
+Bluetooth classic inquiry scan 0.02
+
+1.0
+
+0.1
+
+Bluetooth classic page scan
+
+0.02
+
+0.7
+
+0.1
+
+Bluetooth LE advertisement
+(interval = 1.28 s)
+
+0.02
+
+0.3
+
+0.1
+
+0.02
+
+0.6
+
+Bluetooth BDR 1DH5, 1
+Mbit/s, Ch39, 0 dBm
+
+0.1
+
+79
+
+0.1
+
+Bluetooth BDR 1DH5, 1
+Mbit/s, Ch39, 4 dBm
+
+0.1
+
+99
+
+0.1
+
+Bluetooth BDR 1DH5, 1
+Mbit/s, Ch39, 10 dBm
+
+0.1
+
+130
+
+0.1
+
+Bluetooth BDR 1DH5, 1
+Mbit/s, Ch39, 13 dBm
+
+0.1
+
+144
+
+0.1
+
+Bluetooth BDR 1DH5, 1
+Mbit/s, Ch39, 16 dBm
+
+0.1
+
+293
+
+Bluetooth BDR 1DH5, 1
+Mbit/s, Ch39, 20 dBm
+
+0.1
+
+348
+
+Bluetooth EDR 3DH5, 3
+Mbit/s, Ch39, 0 dBm
+
+0.1
+
+62
+
+Bluetooth EDR 3DH5, 3
+Mbit/s, Ch39, 3 dBm
+
+0.1
+
+79
+
+Bluetooth EDR 3DH5, 3
+Mbit/s, Ch39, 9 dBm
+
+0.1
+
+135
+
+BLE, 1 Mbit/s, Ch1, 0 dBm
+
+0.1
+
+53
+
+0.1
+
+BLE, 1 Mbit/s, Ch1, 4 dBm
+
+0.1
+
+63
+
+0.1
+
+BLE, 1 Mbit/s, Ch1, 10 dBm
+
+0.1
+
+87
+
+0.1
+
+BLE, 1 Mbit/s, Ch1, 13 dBm
+
+0.1
+
+117
+
+0.1
+
+BLE, 1 Mbit/s, Ch1, 16 dBm
+
+0.1
+
+140
+
+0.1
+
+BLE, 1 Mbit/s, Ch1, 20 dBm
+
+0.1
+
+189
+
+0.1
+
+Bluetooth, BDR, DH1
+
+0.1
+
+42
+
+0.1
+
+Bluetooth, BDR, DH5
+
+0.1
+
+42
+
+0.1
+
+Bluetooth, EDR, 2DH5
+
+0.1
+
+42
+
+0.1
+
+Bluetooth, EDR, 3DH5
+
+0.1
+
+42
+
+0.1
+
+Bluetooth Low Energy, 1
+Mbit/s
+
+0.1
+
+42
+
+0.1
+
+Bluetooth Low Energy, 2
+Mbit/s
+
+0.1
+
+42
+
+0.1
+
+Operating modes [1]
+
+Bluetooth LE scanning
+(interval = 1.28 s,
+window = 11.25 ms)
+
+Active receive mode
+
+0.1
+
+0.1
+0.1
+0.1
+0.1
+0.1
+
+[1]
+
+Table 30: Typical Bluetooth current consumption with different modes of operation
+
+UBX-22009721 - R07
+C1-Public
+
+Electrical specifications
+
+Page 30 of 49
+
+MAYA-W2 series - Data sheet
+
+4.4.3
+
+☞
+
+802.15.4 power consumption
+
+Unless otherwise stated, all specifications are valid at 25° C and given at nominal voltage with
+typical SDIO clock speed of 200 MHz.
+
+802.15.4 operation modes
+
+3V3 (3.3 V) [mA]
+
+1V8 (1.8 V) [mA]
+
+VIO+VIO_SD (1.8 V)
+[mA]
+
+802.15.4 transmit, 0 dBm
+
+0.05
+
+121
+
+0.1
+
+802.15.4 transmit, 10 dBm
+
+0.05
+
+187
+
+0.1
+
+802.15.4 transmit, 21 dBm
+
+0.05
+
+437
+
+0.1
+
+802.15.4 peak receive idle mode
+
+0.05
+
+31
+
+0.1
+
+802.15.4 peak receive active mode
+
+0.05
+
+31
+
+0.1
+
+Operating modes
+
+Active receive mode
+
+Table 31: Typical 802.15.4 current consumption
+
+4.5 Radio specification
+4.5.1
+
+Bluetooth
+
+Parameter
+
+Specification (typical values)
+
+RF Frequency Range
+
+2.402 – 2.480 GHz
+
+Supported Modes
+
+Bluetooth 5.3
+Bluetooth Low Energy (LE)
+•
+LE long range coded PHY
+•
+Shared RF with BDR/EDR
+•
+LE 2 Mbit/s PHY
+
+Modulation
+
+1 Mbit/s: GFSK (BDR)
+2 Mbit/s: π/4 DQPSK (EDR)
+3 Mbit/s: 8DQPSK (EDR)
+
+Transmit Power [1] [2][3]
+
+Class 1 BDR: 19 dBm
+Class 2 BDR: 3 dBm
+Class 1 EDR: 9 dBm
+Class 2 EDR: 3 dBm
+Bluetooth LE 1M and 2M: 19 dBm
+Bluetooth LE Coded: 14 dBm
+
+Receiver sensitivity [1] [2]
+
+Bluetooth BDR 1DH1: -93 dBm
+Bluetooth EDR 2DH1: -93 dBm
+Bluetooth EDR 3DH1: -87 dBm
+Bluetooth LE Coded 125 kb/s: -104 dBm
+Bluetooth LE Coded 500 kb/s: -103 dBm
+Bluetooth LE 1M: -99 dBm
+Bluetooth LE 2M: -97 dBm
+
+Table 32: Bluetooth radio parameters
+[1] Values are valid at antenna pin ports and at room temperature.
+[2] Single antenna variants, MAYA-W266 and MAYA-W276, typically have output power values up to 2 dBm lower.
+[3] Bluetooth transmit power must be limited to <= 10 dBm EIRP to comply with EN 300 328 regulations.
+
+UBX-22009721 - R07
+C1-Public
+
+Electrical specifications
+
+Page 31 of 49
+
+MAYA-W2 series - Data sheet
+
+4.5.2
+
+IEEE 802.15.4
+
+Parameter
+
+Specification (typical Values)
+
+RF Frequency Range
+
+2.405 – 2.480 GHz
+
+Supported Mode
+
+IEEE 802.15.4-2020
+•
+Support for Thread in 2.4 GHz band
+•
+Support for Matter over Thread
+
+Modulation
+
+O-QPSK
+
+Transmit Power
+
+[1] [2]
+
+19 dBm (tolerance ±2 dBm),
+Channel 26: 0 dBm
+
+Receiver sensitivity [1] [2]
+
+Channel 11 (2405 MHz): -101 dBm
+Channel 12 (2410 MHz): -101 dBm
+Channel 13 (2415 MHz): -101 dBm
+Channel 14 (2420 MHz): -101 dBm
+Channel 15 (2425 MHz): -101 dBm
+Channel 16 (2430 MHz): -101 dBm
+Channel 17 (2435 MHz): -101 dBm
+Channel 18 (2440 MHz): -100 dBm
+Channel 19 (2445 MHz): -101 dBm
+Channel 20 (2450 MHz): -101 dBm
+Channel 21 (2455 MHz): -101 dBm
+Channel 22 (2460 MHz): -101 dBm
+Channel 23 (2465 MHz): -101 dBm
+Channel 24 (2470 MHz): -101 dBm
+Channel 25 (2475 MHz): -101 dBm
+Channel 26 (2480 MHz): -100 dBm
+
+Table 33: IEEE 802.15.4 parameters
+[1] Values are valid at antenna pin ports and at room temperature.
+[2] Single antenna variants, MAYA-W266 and MAYA-W276, typically have output power values up to 2 dBm lower.
+
+4.5.3
+
+Wi-Fi
+
+MAYA-W2 series modules support dual-band Wi-Fi with 802.11a/b/g/n/ac/ax operation in the 2.4 GHz
+and 5 GHz radio bands. The module is designed to operate in only one frequency band at a time.
+Parameter
+
+Operation Mode
+
+Specification
+
+RF Frequency range
+
+802.11b/g/n/ax
+
+2.400 – 2.500 GHz
+
+802.11a/n/ac/ax
+
+4.900 – 5.895 GHz
+
+802.11b
+
+CCK and DSSS
+
+802.11a/g/n/ac/ax
+
+OFDM
+
+802.11b
+
+1, 2, 5.5, 11 Mbit/s
+
+802.11a/g
+
+6, 9, 12, 18, 24, 36, 48, 54 Mbit/s
+
+802.11n
+
+MCS0 – MCS7
+
+802.11 ac
+
+MCS0 – MCS9
+
+802.11.ax
+
+MCS0 – MCS11
+
+802.11b/g
+
+20 MHz
+
+802.11n
+
+20, 40 MHz
+
+802.11ac/ax
+
+20, 40, 80 MHz
+
+802.11ax
+
+800, 1600, 3200 ns
+
+Modulation
+
+Supported data rates
+
+Supported channel bandwidth
+
+Supported guard interval (GI)
+
+Table 34: Wi-Fi radio parameters
+
+UBX-22009721 - R07
+C1-Public
+
+Electrical specifications
+
+Page 32 of 49
+
+MAYA-W2 series - Data sheet
+
+Parameter
+
+Maximum
+transmit
+power
+
+Operation mode
+
+2.4 GHz
+
+5 GHz
+
+802.11 EVM Specification
+limit
+(typical output power tolerance ±2 dB) [1]
+Dual Antenna Variants
+(20/40/80 MHz)
+
+Single antenna variants
+(20/40/80 MHz)
+
+DSSS/CCK
+
+-9 dB
+
+18 dBm / - / -
+
+18 dBm / - / -
+
+OFDM, BPSK
+
+-5 dB
+
+18 dBm / 17 dBm / -
+
+16 dBm / 16 dBm / -
+
+OFDM, QPSK
+
+-13 dB
+
+18 dBm / 17 dBm / -
+
+16 dBm / 16 dBm / -
+
+OFDM, 16-QAM
+
+-19 dB
+
+18 dBm / 17 dBm / -
+
+16 dBm / 15 dBm / -
+
+OFDM, 64-QAM, 3/4
+
+-25 dB
+
+18 dBm / 17 dBm / -
+
+16 dBm / 15 dBm / -
+
+OFDM, 64-QAM, 5/6
+
+-27 dB
+
+17 dBm / 17 dBm / -
+
+16 dBm / 15 dBm / -
+
+OFDM, 1024-QAM, 3/4
+
+-35 dB
+
+17 dBm / 16 dBm / -
+
+15 dBm / 14 dBm / -
+
+OFDM, 1024-QAM, 5/6
+
+-35 dB
+
+16 dBm / 16 dBm / -
+
+14 dBm / 14 dBm / -
+
+OFDM, BPSK
+
+-5 dB
+
+18 dBm / 18 dBm / 17 dBm
+
+18 dBm / 18 dBm / 17 dBm
+
+OFDM, QPSK
+
+-13 dB
+
+18 dBm / 18 dBm / 16 dBm
+
+18 dBm / 18 dBm / 16 dBm
+
+OFDM, 16-QAM
+
+-19 dB
+
+18 dBm / 18 dBm / 16 dBm
+
+18 dBm / 18 dBm / 16 dBm
+
+OFDM, 64-QAM, 3/4
+
+-25 dB
+
+18 dBm / 18 dBm / 16 dBm
+
+18 dBm / 18 dBm / 16 dBm
+
+OFDM, 64-QAM, 5/6
+
+-27 dB
+
+17 dBm / 17 dBm / 15 dBm
+
+17 dBm / 17 dBm / 15 dBm
+
+OFDM, 256-QAM, 3/4
+
+-30 dB
+
+16 dBm / 16dBm / 14 dBm
+
+16 dBm / 16 dBm / 14 dBm
+
+OFDM, 256-QAM, 5/6
+
+-32 dB
+
+15 dBm / 15 dBm / 13 dBm
+
+15 dBm / 15 dBm / 13 dBm
+
+OFDM, 1024-QAM, 3/4
+
+-35 dB
+
+14 dBm / 14 dBm / 12 dBm
+
+14 dBm / 14 dBm / 12 dBm
+
+OFDM, 1024-QAM, 5/6
+
+-35 dB
+
+13 dBm / 13 dBm / 11 dBm
+
+13 dBm / 13 dBm / 11 dBm
+
+Table 35: Wi-Fi radio maximum transmit power parameters
+
+Band
+
+Operating mode
+
+Data rate
+
+Bandwidth
+
+2.4 GHz
+
+802.11b
+
+1 Mbit/s / 2 Mbit/s
+
+20 MHz
+
+5.5 Mbit/s / 11 Mbit/s
+802.11g
+
+802.11n
+
+6 Mbit/s / 9 Mbit/s
+
+UBX-22009721 - R07
+C1-Public
+
+-93 dBm / -92 dBm
+-90 dBm / -87 dBm
+
+20 MHz
+
+-90 dBm / -89 dBm
+
+12 Mbit/s / 18 Mbit/s
+
+-88 dBm / -86 dBm
+
+24 Mbit/s / 36 Mbit/s
+
+-83 dBm / -80 dBm
+
+48 Mbit/s / 54 Mbit/s
+
+-75 dBm / -74 dBm
+
+MCS0 / MCS1
+
+20 MHz
+
+-90 dBm / -88 dBm
+
+MCS2 / MCS3
+
+-85 dBm / -82 dBm
+
+MCS4 / MCS5
+
+-79 dBm / -75 dBm
+
+MCS6 / MCS7
+
+-73 dBm / -72 dBm
+
+MCS0 / MCS1
+
+802.11ax
+
+Specification
+(typical values tolerance ±2 dBm) [1]
+
+40 MHz
+
+-87 dBm / -86 dBm
+
+MCS2 / MCS3
+
+-84 dBm / -80 dBm
+
+MCS4 / MCS5
+
+-77 dBm / -73 dBm
+
+MCS6 / MCS7
+
+-71 dBm / -70 dBm
+
+MCS0 / MCS1
+
+20 MHz
+
+-90 dBm / -88 dBm
+
+MCS2 / MCS3
+
+-87 dBm / -84 dBm
+
+MCS4 / MCS5
+
+-81 dBm / -77 dBm
+
+Electrical specifications
+
+Page 33 of 49
+
+MAYA-W2 series - Data sheet
+
+Band
+
+Operating mode
+
+Data rate
+
+Bandwidth
+
+MCS6 / MCS7
+
+-75 dBm / -74 dBm
+
+MCS8 / MCS9
+
+-70 dBm / -69 dBm
+
+MCS10 / MCS11
+
+-64 dBm / -62 dBm
+
+MCS0 / MCS1
+
+5 GHz
+
+802.11a
+
+802.11n
+
+40 MHz
+
+-85 dBm / -82 dBm
+
+MCS4 / MCS5
+
+-79 dBm / -75 dBm
+
+MCS6 / MCS7
+
+-73 dBm / -72 dBm
+
+MCS8 / MCS9
+
+-68 dBm / -66 dBm
+
+MCS10 / MCS11
+
+-63 dBm / -60 dBm
+
+6 Mbit/s / 9 Mbit/s
+
+20 MHz
+
+-92 dBm / -92 dBm
+
+12 Mbit/s / 18 Mbit/s
+
+-90 dBm / -88 dBm
+
+24 Mbit/s / 36 Mbit/s
+
+-85 dBm / -82 dBm
+
+48 Mbit/s / 54 Mbit/s
+
+-78 dBm / -76 dBm
+
+MCS0 / MCS1
+
+20 MHz
+
+-92 dBm / -90 dBm
+
+MCS2 / MCS3
+
+-88 dBm / -84 dBm
+
+MCS4 / MCS5
+
+-81 dBm / -77 dBm
+
+MCS6 / MCS7
+
+-75 dBm / -74 dBm
+40 MHz
+
+-90 dBm / -88 dBm
+
+MCS2 / MCS3
+
+-86 dBm / -83 dBm
+
+MCS4 / MCS5
+
+-79 dBm / -75 dBm
+
+MCS6 / MCS7
+
+-74 dBm / -72 dBm
+
+MCS0 / MCS1
+
+20 MHz
+
+-92 dBm / -90 dBm
+
+MCS2 / MCS3
+
+-88 dBm / -85 dBm
+
+MCS4 / MCS5
+
+-82 dBm / -77 dBm
+
+MCS6 / MCS7
+
+-76 dBm / -75 dBm
+
+MCS8
+
+-70 dBm
+
+MCS0 / MCS1
+
+40 MHz
+
+-90 dBm / -88 dBm
+
+MCS2 / MCS3
+
+-86 dBm / -83 dBm
+
+MCS4 / MCS5
+
+-80 dBm /-76 dBm
+
+MCS6 / MCS7
+
+-74 dBm / -73 dBm
+
+MCS8 / MCS9
+
+-69 dBm / -67 dBm
+
+MCS0 / MCS1
+
+UBX-22009721 - R07
+C1-Public
+
+-87 dBm / -86 dBm
+
+MCS2 / MCS3
+
+MCS0 / MCS1
+
+802.11ac
+
+Specification
+(typical values tolerance ±2 dBm) [1]
+
+80 MHz
+
+-86 dBm / -85 dBm
+
+MCS2 / MCS3
+
+-83 dBm / -80 dBm
+
+MCS4 / MCS5
+
+-77 dBm / -73 dBm
+
+MCS6 / MCS7
+
+-71 dBm / -70 dBm
+
+MCS8 / MCS9
+
+-66 dBm / -64 dBm
+
+Electrical specifications
+
+Page 34 of 49
+
+MAYA-W2 series - Data sheet
+
+Band
+
+Operating mode
+
+Data rate
+
+Bandwidth
+
+802.11ax
+
+MCS0 / MCS1
+
+20 MHz
+
+Specification
+(typical values tolerance ±2 dBm) [1]
+-93 dBm / -91 dBm
+
+MCS2 / MCS3
+
+-89 dBm / -86 dBm
+
+MCS4 / MCS5
+
+-83 dBm / -79 dBm
+
+MCS6 / MCS7
+
+-78 dBm / -76 dBm
+
+MCS8 / MCS9
+
+-72 dBm / -71 dBm
+
+MCS10 / MCS11
+
+-66 dBm / -64 dBm
+
+MCS0 / MCS1
+
+40 MHz
+
+-90 dBm / -89 dBm
+
+MCS2 / MCS3
+
+-87 dBm / -84 dBm
+
+MCS4 / MCS5
+
+-81 dBm / 77 dBm
+
+MCS6 / MCS7
+
+-76 dBm / -74 dBm
+
+MCS8 / MCS9
+
+-70 dBm / -69 dBm
+
+MCS10 / MCS11
+
+-66 dBm / -62 dBm
+
+MCS0 / MCS1
+
+80 MHz
+
+-87 dBm / -86 dBm
+
+MCS2 / MCS3
+
+-84 dBm / -81 dBm
+
+MCS4 / MCS5
+
+-79 dBm / -74 dBm
+
+MCS6 / MCS7
+
+-74 dBm / -72 dBm
+
+MCS8 / MCS9
+
+-68 dBm / -66 dBm
+
+MCS10 / MCS11
+
+-63 dBm / -61 dBm
+
+[1] Values are valid at antenna pin ports and at room temperature.
+Table 36: Wi-Fi receiver characteristics
+
+UBX-22009721 - R07
+C1-Public
+
+Electrical specifications
+
+Page 35 of 49
+
+MAYA-W2 series - Data sheet
+
+4.5.4
+
+Antenna radiation patterns
+
+The radiation patterns displayed in Table 37 and Table 38 show the radiation patterns for
+MAYA-W266 and MAYA-W276 modules with internal (embedded niche) antenna for 2.44 GHz and
+5.5 GHz. Table 39 shows the total radiated power (TRP) and peak gain for the low, mid, and high
+channel of the 2.4 GHz and 5 GHz frequency bands.
+
+Table 37: Wi-Fi and Bluetooth antenna characteristics at 2.44 GHz
+
+UBX-22009721 - R07
+C1-Public
+
+Electrical specifications
+
+Page 36 of 49
+
+MAYA-W2 series - Data sheet
+
+Table 38: Wi-Fi antenna characteristics at 5.50 GHz
+Transmission
+
+Measured TRP
+
+Measured peak gain
+
+Channel 1, 2.412 GHz
+
+-7.99 dBm
+
+-5.85 dBi
+
+Channel 6, 2.437 GHz
+
+-6.75 dBm
+
+-4.62 dBi
+
+Channel 13, 2.472 GHz
+
+-6.64 dBm
+
+-4.13 dBi
+
+Channel 36, 5.180 GHz
+
+-4.48 dBm
+
+-2.77 dBi
+
+Channel 100, 5.500 GHz
+
+-2.53 dBm
+
+-1.2 dBi
+
+Channel 159, 5.795 GHz
+
+-5.96 dBm
+
+-3.83 dBi
+
+Channel 177, 5.885 GHz
+
+-8.76 dBm
+
+-7.04 dBi
+
+Table 39: Measured total radiated power and peak gain for 0 dBm transmission power
+
+UBX-22009721 - R07
+C1-Public
+
+Electrical specifications
+
+Page 37 of 49
+
+MAYA-W2 series - Data sheet
+
+5
+
+Software support
+
+MAYA-W2 series modules are based on the NXP IW611 and NXP IW612 chipset and the drivers and
+firmware required to operate the modules are developed by NXP. A firmware binary is downloaded to
+the module by the host operating system driver at start-up.
+The following software options are available for the MAYA-W2 module:
+•
+•
+
+Open-source Linux/Android driver (mxm_mwifiex) for mainstream use is available free of charge and
+already integrated into Linux BSP for NXP i.MX application processors
+MCUXpresso Wi-Fi/Bluetooth support for supported NXP MCUs
+
+The software packages typically include:
+•
+•
+•
+•
+•
+
+Dedicated kernel driver that binds the Wi-Fi device to the kernel. Driver sources are provided.
+Dedicated Wi-Fi firmware image that is uploaded during initialization of the Wi-Fi device.
+Dedicated Bluetooth firmware image that is uploaded during initialization of the Bluetooth device.
+Wi-Fi and Bluetooth release notes and a list of supported software features.
+Laboratory and manufacturing tools.
+
+UBX-22009721 - R07
+C1-Public
+
+Software support
+
+Page 38 of 49
+
+MAYA-W2 series - Data sheet
+
+6
+
+Mechanical specifications
+
+6.1 MAYA-W2 footprint dimensions
+
+Figure 16: MAYA-W2 footprint
+
+UBX-22009721 - R07
+C1-Public
+
+Mechanical specifications
+
+Page 39 of 49
+
+MAYA-W2 series - Data sheet
+
+6.2 MAYA-W2 mechanical specifications
+6.2.1
+
+MAYA-W266 and MAYA-W276
+
+Figure 17 and Figure 18 show the top and side views of MAYA-W266/-W276 module variants.
+All dimensions are shown in millimeters (mm).
+
+Figure 17: MAYA-W266/-W276 mechanical specifications (top view)
+
+Figure 18: MAYA-W266/-W276 mechanical specifications (side view)
+
+UBX-22009721 - R07
+C1-Public
+
+Mechanical specifications
+
+Page 40 of 49
+
+MAYA-W2 series - Data sheet
+
+6.2.2
+
+MAYA-W261 and MAYA-W271
+
+Figure 19 and Figure 20 show the top and side views of MAYA-W261/-W271 module variants.
+All dimensions are shown in millimeters (mm).
+
+Figure 19: MAYA-W261/-W271 mechanical specifications (top view)
+
+Figure 20: MAYA-W261/-W271 mechanical specifications (side view)
+
+UBX-22009721 - R07
+C1-Public
+
+Mechanical specifications
+
+Page 41 of 49
+
+MAYA-W2 series - Data sheet
+
+6.2.3
+
+MAYA-W260
+
+Figure 21 and Figure 22 show the top and side views of MAYA-W260. All dimensions are shown in
+millimeters (mm).
+
+Figure 21: MAYA-W260 mechanical specifications (top view)
+
+Figure 22: MAYA-W260 Mechanical Specifications (side view)
+
+6.3 Module weight
+Module
+
+Typ
+
+Unit
+
+MAYA-W260
+
+<1
+
+g
+
+MAYA-W261
+
+<1
+
+g
+
+MAYA-W271
+
+<1
+
+g
+
+MAYA-W266
+
+<1
+
+g
+
+MAYA-W276
+
+<1
+
+g
+
+Table 40: Module weight
+
+UBX-22009721 - R07
+C1-Public
+
+Mechanical specifications
+
+Page 42 of 49
+
+MAYA-W2 series - Data sheet
+
+7
+
+Qualifications and approvals
+
+7.1 Country approvals
+The MAYA-W2 module series is certified for use in the countries/regions shown in Table 41. Other
+country certifications can be scheduled on request.
+Country/region
+
+MAYA-W260
+
+MAYA-W261
+
+MAYA-W271
+
+MAYA-W266
+
+MAYA-W276
+
+Europe (RED)
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Great Britain (UKCA)
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+USA (FCC)
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Canada (ISED)
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Japan (Giteki)
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Brazil (ANATEL)
+
+-
+
+-
+
+-
+
+Approved
+
+Approved
+
+South Korea (KCC)
+
+-
+
+-
+
+-
+
+Approved
+
+Approved
+
+Australia/New
+Zealand (ACMA)
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Approved
+
+Table 41: Certification status
+
+☞
+
+For detailed information about the regulatory requirements that must be met when using
+MAYA-W2 modules in an end product, see the MAYA-W2 system integration manual [2].
+
+7.2 Bluetooth qualification
+End products must be qualified and listed with the Bluetooth Special Interest Group (SIG).
+Product declarations are submitted through the Bluetooth Launch Studio website.
+MAYA-W2 series modules are qualified as a Controller Subsystem in accordance with the Bluetooth
+5.3 specification and registered with the SIG Qualified Design IDs (QDID) shown in Table 42.
+To list your product that integrates MAYA-W2 with no additional testing required, combine the QDID
+of the pre-qualified Controller Subsystem, as shown in Table 42, with the QDID of a Bluetooth stack
+implemented in the Host Subsystem.
+Model
+
+Product type
+
+QD ID
+
+Listing date
+
+MAYA-W260, MAYA-W261,
+MAYA-W266, MAYA-W271,
+MAYA-W276
+
+Controller subsystem
+
+237565
+
+2024-03-13
+
+Table 42: MAYA-W2 series Bluetooth qualified design IDs
+
+UBX-22009721 - R07
+C1-Public
+
+Qualifications and approvals
+
+Page 43 of 49
+
+MAYA-W2 series - Data sheet
+
+8
+
+Product handling
+
+8.1 Packaging
+MAYA-W2 series modules are delivered as hermetically sealed, reeled tapes to enable efficient
+production, production lot set-up and tear-down. For more information about packaging, see the
+Product packaging guide [1].
+
+8.1.1
+
+Reels
+
+MAYA-W2 series modules are deliverable in quantities of 500 pieces on a reel. MAYA-W2 series
+modules are shipped on reel Type A3 as described in the Product packaging guide [1].
+
+8.1.2
+
+Tapes
+
+Figure 23 shows the position and orientation of MAYA-W2 series modules as they are delivered on
+tape. The dimensions of the tapes are specified in Figure 24.
+
+Figure 23: Orientation of MAYA-W2 modules on tape
+
+Figure 24: MAYA-W2 tape dimensions
+
+UBX-22009721 - R07
+C1-Public
+
+Product handling
+
+Page 44 of 49
+
+MAYA-W2 series - Data sheet
+
+8.2 Moisture sensitivity levels
+⚠
+
+MAYA-W2 series modules are rated as MSL Level 4 devices in accordance with the IPC/JEDEC J
+STD-020 standard. For detailed information, see the moisture sensitive warning label on the MBB
+(Moisture Barrier Bag).
+
+After opening the dry pack, the modules must be mounted within 168 hours in factory conditions of
+maximum 30 °C/60%RH or must be stored at less than 10%RH. The modules require baking if the
+humidity indicator card shows more than 10% when read at 23±5 °C or if the conditions mentioned
+above are not met. For information about the bake procedure, see also the J-STD-033B standard.
+For more information regarding MSL (Moisture Sensitivity Level), labeling, and storage, see also the
+Packaging information guide [1].
+
+8.3 Reflow soldering
+Reflow profiles must be selected in accordance with u-blox recommendations:
+•
+•
+
+⚠
+
+MAYA-W260 is suitable for one-time reflow
+MAYA-W261, MAYA-W271, MAYA-W266, and MAYA-W276 are suitable for two-time reflow
+Reflow soldering profiles must be selected in accordance with u-blox soldering recommendations
+described in the system integration manual [2]. Failure to observe these recommendations can
+result in severe damage to the product.
+
+8.4 ESD handling precautions
+⚠
+
+MAYA-W2 series modules are electrostatic sensitive devices (ESD) that demand adherence to
+special ESD precautions. Failure to observe these recommendations can result in severe damage
+to the product.
+
+Proper ESD handling and packaging procedures must be applied throughout the processing, handling
+and operation of any application that incorporates MAYA-W2. We recommend that the module is not
+handled in a non-ESD protected environment. The RF antenna pins (RF_ANT0 and RF_ANT1) are
+especially sensitive to ESD, and special care must be taken when connecting antennas. ESD safe
+soldering equipment is recommended.
+
+UBX-22009721 - R07
+C1-Public
+
+Product handling
+
+Page 45 of 49
+
+MAYA-W2 series - Data sheet
+
+9
+
+Labeling and ordering information
+
+9.1 Product labeling
+The labels applied to MAYA-W2 series modules include important product information. Figure 25
+shows the given label information, where each of the given references are described in Table 43.
+
+3
+
+2a
+
+2b
+1
+
+2c
+4
+Figure 25: Label information shown on the MAYA-W2 series modules
+
+Reference
+
+Description
+
+1
+
+Text box containing product name (MODEL ID) and version
+
+2a
+
+Data Matrix with unique serial number of 19 alphanumeric symbols:
+•
+The first 3 symbols are used for production tracking and are an abbreviated representation of
+the Type number that is unique to each module variant.
+•
+The following 12 symbols represent the unique hexadecimal Bluetooth address of the module
+AABBCCDDEEFF. See also MAC addresses.
+•
+The last 4 symbols represent the hardware and firmware version encoded HHFF.
+
+2b
+
+The six last hex symbols of the MAC address (AABBCCDDEEFF)
+
+2c
+
+Date of production in the format YY/WW (year/week)
+
+3
+
+Placeholder for certification IDs
+
+4
+
+u-blox logo, where the red dot indicates the position of pin 1
+
+Table 43: MAYA-W2 series label references
+
+UBX-22009721 - R07
+C1-Public
+
+Labeling and ordering information
+
+Page 46 of 49
+
+MAYA-W2 series - Data sheet
+
+9.2 Explanation of codes
+Table 44 describes the three product identifiers, namely the Type number, Model name and Ordering
+code.
+Format
+
+Description
+
+Nomenclature
+
+Product name
+
+Describes the form factor, platform technology and platform
+variant. Used mostly in product documentation like this data
+sheet, the model name represents the most common identity
+for all u-blox products.
+
+PPPP-TGVV
+
+Ordering code
+
+Comprises the model name – with additional identifiers to
+describe the major product version and quality grade.
+
+PPPP -TGVV-TTQ
+
+Type number
+
+Comprises the model name and ordering code – with additional PPPP -TGVV-TTQ-XX
+identifiers that describe minor product versions.
+
+Table 44: Product code formats
+
+9.3 Identification codes
+Code
+
+Meaning
+
+Example
+
+PPPP
+
+Form factor
+
+MAYA
+
+TG
+
+Platform (Technology and Generation)
+T – Dominant technology, For example, W: Wi-Fi, B: Bluetooth®
+G - Generation
+
+W2: Wi-Fi, Generation 2
+
+VV
+
+Variant based on the same platform; range [00…99]
+
+60, 61, or 66
+
+TT
+
+Major Product Version
+
+00: first version
+
+Q
+
+Quality grade
+A: Automotive
+B: Professional
+C: Standard
+
+B: Professional grade
+
+XX
+
+Minor product version (not relevant for certification)
+
+Default value: 00
+
+Table 45: Part identification code
+
+9.4 Ordering information
+Ordering Code
+
+Product
+
+MAYA-W260-00B
+
+MAYA-W260 Wi-Fi 6/Bluetooth 5.3 module with two U. FL connectors, 500 pcs/reel, NXP IW611
+
+MAYA-W261-00B
+
+MAYA-W261 Wi-Fi 6/Bluetooth 5.3 module with two antenna pins, 500 pcs/reel, NXP IW611
+
+MAYA-W266-00B
+
+MAYA-W266 Wi-Fi 6/Bluetooth 5.3 module with single antenna pin and internal PCB antenna, 500
+pcs/reel, NXP IW611
+
+MAYA-W271-00B
+
+MAYA-W271 Wi-Fi 6/Bluetooth 5.3/802.15.4 module with two antenna pins, 500 pcs/reel, NXP IW612
+
+MAYA-W276-00B
+
+MAYA-W276 Wi-Fi 6/Bluetooth 5.3/802.15.4 module with single antenna pin and internal PCB
+antenna, 500 pcs/reel, NXP IW612
+
+Table 46: Product ordering codes
+
+UBX-22009721 - R07
+C1-Public
+
+Labeling and ordering information
+
+Page 47 of 49
+
+MAYA-W2 series - Data sheet
+
+Appendix
+A Glossary
+Abbreviation
+
+Definition
+
+ADC
+
+Analog to digital converter
+
+BPF
+
+Band pass filter
+
+CAN
+
+Controller area network
+
+CTS
+
+Clear to send
+
+DC
+
+Direct current
+
+DSR
+
+Data set ready
+
+DTR
+
+Data terminal ready
+
+EIRP
+
+Effective isotropic radiated power
+
+GND
+
+Ground
+
+GPIO
+
+General purpose input/output
+
+H
+
+High
+
+I
+
+Input (means that this is an input port of the module)
+
+IEEE
+
+Institute of Electrical and Electronics Engineers
+
+I2C
+
+Inter-integrated circuit
+
+L
+
+Low
+
+LPO
+
+Low power oscillator
+
+MIMO
+
+Multi-input multi-output
+
+MSD
+
+Moisture sensitive device
+
+N/A
+
+Not applicable
+
+O
+
+Output (means that this is an output port of the module)
+
+PCN/IN
+
+Product change notification / Information note
+
+PD
+
+Pull-down
+
+PU
+
+Pull-up
+
+RMII
+
+Reduced media independent interface
+
+RTS
+
+Request to send
+
+RXD
+
+Receive data
+
+SDIO
+
+Secure digital input output
+
+SPI
+
+Serial peripheral interface
+
+TXD
+
+Transmit data
+
+UART
+
+Universal asynchronous Receiver/Transmitter
+
+USB
+
+Universal serial bus
+
+Table 47: Explanation of the abbreviations and terms used
+
+UBX-22009721 - R07
+C1-Public
+
+Appendix
+
+Page 48 of 49
+
+MAYA-W2 series - Data sheet
+
+Related documentation
+[1]
+[2]
+[3]
+
+☞
+
+Package information reference guide, UBX-14001652
+MAYA-W2 system integration manual, UBX-22011459
+MAYA-W2 product summary, UBX-21047385
+For product change notifications and regular updates of u-blox documentation, register on our
+website, www.u-blox.com.
+
+Revision history
+Revision
+
+Date
+
+Name
+
+Comments
+
+R01
+
+02-May-2022 bcur
+
+Initial release
+
+R02
+
+20-May-2022 bcur
+
+Power down pin specification table added in Power down section.
+
+R03
+
+20-May-2022 lfar
+
+Revised references to regulatory compliance information previously envisaged as a
+separate application note but now included in the system integration manual.
+Updated Contact information boilerplate.
+
+R04
+
+05-Jul-2022
+
+lfar
+
+Updated to include the new modules variant MAYA-W276.
+
+R05
+
+18-Jul-2023
+
+lfar
+
+Document updated for release of Engineering samples: Included minor updates to
+Functional description. Added table data for typical current consumption in
+Bluetooth power consumption and IEEE 02.15.4 power consumption. Added typical
+output power and antenna performance values for single antenna module variants in
+Wi-Fi. Revised measured radiated power and peak gain in Antenna radiation
+patterns. Revised target country/regions in Qualifications and approvals. Added
+MAYA-W266 and MAYA-W267 block diagrams. Added Figure 9 MAYA-W260
+antenna configuration (top view). Updated Reserved MAC addresses to include
+802.15.4 radio. Updated contact information.
+
+R06
+
+26-Jan-2024 lfar, tngu, Product status updated to Initial production for MAYA-W2xx-00B variants. Added
+mzes
+standard grade MAYA-W276-00C.
+Added tape and reel specification in Packaging. Changed default baud rate of the
+UART interface to 115200 baud. Updated Qualifications and approvals and Product
+labeling. Corrected internal pull-up value on PDn pin in Table 24.
+Added Antenna Diversity feature in External RF antenna interface and other relevant
+sections.
+
+R07
+
+16-Feb-2024 lfar
+
+R08
+
+22-Nov-2024 mzes, lfar Added Bluetooth QD ID in Bluetooth qualification. Removed type version MAYAW276-00C-00 in Document information. Updated certification status for Canada,
+Japan, Brazil, South Korea, and Australia/New Zealand in Country approvals.
+
+Added approval expectations for Canada (ISED) approvals in Qualifications and
+approvals.
+
+Contact
+u-blox AG
+Address:
+
+Zürcherstrasse 68
+8800 Thalwil
+Switzerland
+For further support and contact information, visit us at www.u-blox.com/support.
+
+UBX-22009721 - R07
+C1-Public
+
+Related documentation
+
+Page 49 of 49
+
+
