@@ -1,0 +1,12703 @@
+PCF2131
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Rev. 2.2 — 20 June 2025
+
+Product data sheet
+
+Document information
+Information
+
+Content
+
+Keywords
+
+PCF2131, RTC, accuracy, low power, integrated temperature compensated crystal, I C, SPI
+
+Abstract
+
+The PCF2131 is a CMOS Real Time Clock (RTC) and calendar with an integrated Temperature
+Compensated Crystal (Xtal) Oscillator (TCXO) and a 32.768 kHz quartz crystal optimized for high
+accuracy and ultra-low power consumption
+
+2
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+1 General description
+The PCF2131 is a CMOS Real Time Clock (RTC) and calendar with an integrated Temperature Compensated
+Crystal (Xtal) Oscillator (TCXO) and a 32.768 kHz quartz crystal optimized for high accuracy and ultra-low
+2
+power consumption. The PCF2131 has a selectable I C-bus or SPI-bus, a backup battery switch-over circuit, a
+programmable watchdog function, four timestamps function, and many other features.
+For a selection of NXP RTCs, see Section 15.1.
+
+2 Features and benefits
+• Operating temperature ranges from -40 °C to +85 °C
+• Temperature Compensated Crystal Oscillator (TCXO) with trimmed integrated capacitors
+• Ultra low supply current: typical 64 nA at VDD = 3.3 V
+• Temperature compensated RTC, typical accuracy ±3 ppm from -40 °C to +85 °C
+• Integration of a 32.768 kHz quartz crystal and oscillator in the same package
+• Provides year, month, day, weekday, hours, minutes, seconds, and 1/100 seconds
+• Provides leap year correction
+• Timestamp function
+– with interrupt capability
+– detection of four different events on four input pins (for example, for tamper detection)
+2
+• 2-line bidirectional 400 kHz Fast-mode I C-bus interface
+• 4-line SPI-bus with separate data input and output (maximum speed 6.5 Mbit/s)
+• Battery backup input pin and switch-over circuitry
+• Battery backed output voltage
+• Battery low detection function
+• Power-on reset (POR)
+• Software reset function
+• Two interrupt outputs (open-drain)
+• Programmable 1 second or 1 minute interrupt
+• Programmable watchdog timer with interrupt
+• Programmable alarm function with interrupt capability
+• Programmable square output
+• Clock operating voltage: 1.2 V to 5.5 V
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+2 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+3 Applications
+• Electronic metering for electricity, water, and gas
+• Precision timekeeping
+• Access to accurate time of the day
+• GPS equipment to reduce time to first fix
+• Applications that require an accurate process timing
+• Products with long automated unattended operation time
+
+4 Ordering information
+Table 1. Ordering information
+Type number
+PCF2131TF
+
+Topside
+marking
+
+Package
+Name
+
+Description
+
+Version
+
+F31
+
+HLSON16
+
+Thermal enhanced low profile small outline; no leads,
+16 terminals, 0.125 dimple wettable flank, 0.5 mm pitch,
+4.5 mm x 3.5 mm x 1.45 mm body
+
+SOT1992-1
+
+4.1 Ordering options
+Table 2. Ordering options
+Product type
+number
+
+Orderable part
+number
+
+Package
+
+Packing method
+
+Minimum
+Order
+Quantity
+
+Temperature
+
+PCF2131TF
+
+PCF2131TFY
+
+HLSON16
+
+REEL 13" Q1 DP
+
+4000
+
+Tamb = -40 °C to +85 °C
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+3 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+5 Block diagram
+INTA / INTB
+TEMP
+
+OSCO
+
+DIVIDER
+AND
+TIMER
+
+32.768 kHz
+OSCI
+
+TCXO
+100 Hz
+CLKOUT
+VDD
+VBAT
+VSS
+BBS
+
+DIVIDER
+
+BATTERY BACK UP
+SWITCH-OVER
+CIRCUITRY
+
+OSCILLATOR
+MONITOR
+
+LOGIC
+CONTROL
+internal operating
+voltage Voper(int)
+
+RESET
+
+ADDRESS
+REGISTER
+
+SPI-BUS
+INTERFACE
+SDA/CE
+SDO
+SDI
+SCL
+IFS
+TS1
+TS2
+TS3
+TS4
+
+SERIAL BUS
+INTERFACE
+SELECTOR
+
+I2C-BUS
+INTERFACE
+
+PCF2131
+RPU 1/2/3/4
+
+Control_1
+
+00h
+
+Control_2
+
+01h
+
+Control_3
+
+02h
+
+Control_4
+
+03h
+
+Control_5
+
+04h
+
+Sofware Reset
+1/100thSeconds
+
+05h
+
+Seconds
+
+07h
+
+Minutes
+
+08h
+
+Hours
+
+09h
+
+Days
+
+0Ah
+
+Weekdays
+
+0Bh
+
+Months
+
+0Ch
+
+Years
+
+0Dh
+
+Second_alarm
+
+0Eh
+
+Minute_alarm
+
+0Fh
+
+Hour_alarm
+
+10h
+
+Day_alarm
+
+11h
+
+Weekday_alarm
+
+12h
+
+CLKOUT_ctl
+
+13h
+
+Timestp_ctl 1/2/3/4
+
+14h/1Bh/22h/29h
+
+Sec_timestp 1/2/3/4
+
+15h/1Ch/23h/2Ah
+
+Min_timestp 1/2/3/4
+
+16h/1Dh/24h/2Bh
+
+Hour_timestp 1/2/3/4
+
+17h/1Eh/25h/2Ch
+
+Day_timestp 1/2/3/4
+
+18h/1Fh/26h/2Dh
+
+Mon_timestp 1/2/3/4
+
+19h/20h/27h/2Eh
+
+Year_timestp 1/2/3/4
+
+1Ah/21h/28h/2Fh
+
+Aging_offset
+TEMP
+
+TEMPERATURE
+SENSOR
+
+06h
+
+30h
+
+INT_A_MASK 1/2
+
+31h/32h
+
+INT_B_MASK 1/2
+
+33h/34h
+
+Watchdg_tim_ctl
+
+35h
+
+Watchdg_tim_val
+
+36h
+aaa-041884
+
+Figure 1. Block diagram of PCF2131
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+4 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+6 Pinning information
+This section outlines the pin configuration and provides a detailed description of the PCF2131.
+
+6.1 Pinning
+IFS
+
+1
+
+16
+
+VBAT
+
+SCL
+
+2
+
+15
+
+VDD
+
+SDI
+
+3
+
+14
+
+BBS
+
+SDO
+
+4
+
+13
+
+INTA
+
+SDA/CE
+
+5
+
+12
+
+INTB
+
+CLKOUT
+
+6
+
+11
+
+TS4
+
+VSS
+
+7
+
+10
+
+TS3
+
+TS1
+
+8
+
+9
+
+TS2
+
+PCF2131
+
+aaa-041885
+
+Figure 2. Pin configuration for PCF2131 (transparent top view)
+
+6.2 Pin description
+Table 3. Pin description
+Input or input/output pins must always be at a defined level (VSS or VDD) unless otherwise specified.
+Symbol
+
+Pin
+
+Description
+
+SCL
+
+2
+
+Combined serial clock input for both I C-bus and SPI-bus
+
+SDI
+
+3
+
+Serial data input for SPI-bus
+2
+Connect to pin VSS if I C-bus is selected
+
+SDO
+
+4
+
+Serial data output for SPI-bus, push-pull
+2
+Leave open or connect to pin VSS if I C-bus is selected
+
+SDA/CE
+
+5
+
+Combined serial data input and output for the I C-bus and chip enable
+input (active LOW) for the SPI-bus
+
+IFS
+
+1
+
+Interface selector input
+Connect to pin VSS to select the SPI-bus
+2
+Connect to pin VDD to select the I C-bus
+
+TS1,TS2,TS3,TS4
+
+8,9,10,11
+
+Timestamp input (active LOW) with 500 kΩ internal pull-up resistor (RPU)
+
+CLKOUT
+
+6
+
+Clock output (push-pull)
+
+VSS
+
+7
+
+Ground supply voltage
+
+INTB
+
+12
+
+Interrupt B output (open-drain; active LOW)
+
+INTA
+
+13
+
+Interrupt A output (open-drain; active LOW)
+
+BBS
+
+14
+
+Output voltage (battery backed)
+
+PCF2131
+
+Product data sheet
+
+2
+
+2
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+5 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 3. Pin description...continued
+Input or input/output pins must always be at a defined level (VSS or VDD) unless otherwise specified.
+Symbol
+
+Pin
+
+Description
+
+VBAT
+
+16
+
+Battery supply voltage (backup)
+Connect to VSS if battery switch-over is not used
+
+VDD
+
+15
+
+Supply voltage
+
+Exposed Pad
+
+Leave floating
+
+7 Functional description
+The PCF2131 is an RTC and calendar with an on-chip Temperature Compensated Crystal (Xtal) Oscillator
+(TCXO) and a 32.768 kHz quartz crystal integrated into the same package.
+2
+
+Address and data are transferred by a selectable 400 kHz Fast-mode I C-bus or a 4-line SPI-bus with separate
+data input and output (see Section 7.15). The maximum speed of the SPI-bus is 6.5 Mbit/s.
+The PCF2131 has a backup battery input pin and backup battery switch-over circuit which monitors the main
+power supply. The backup battery switch-over circuit automatically switches to the backup battery when a power
+failure condition is detected (see Section 7.5.1). Accurate timekeeping is maintained even when the main power
+supply is interrupted.
+A battery low detection circuit monitors the status of the battery (see Section 7.5.2). When the battery voltage
+drops below a certain threshold value, a flag is set to indicate that the battery must be replaced soon. This
+ensures the integrity of the data during periods of battery backup.
+
+7.1 Register overview
+The PCF2131 contains an auto-incrementing address register: the built-in address register increments
+automatically after each read or write of a data byte up to the register 36h. After register 36h, the autoincrementing wraps around to address 00h (see Figure 3).
+address register
+00h
+01h
+02h
+
+auto-increment
+
+03h
+...
+34h
+35h
+36h
+
+wrap around
+aaa-041564
+
+Figure 3. Handling address registers
+
+• The first five registers (memory address 00h, 01h, 02h, 03h, and 04h) are used as control registers (see
+Section 7.2).
+• The register at address 05h is for software reset.
+• The memory addresses 06h through to 0Dh are used as counters for the clock function (1/100 seconds
+up to years). The date is automatically adjusted for months with fewer than 31 days, including corrections
+for leap years. The clock can operate in 12-hour mode with an AM/PM indication or in 24-hour mode (see
+Section 7.9).
+• The registers at addresses 0Eh through 12h define the alarm function. It can be selected that an interrupt is
+generated when an alarm event occurs (see Section 7.10).
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+6 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+• The register at address 13h defines the temperature measurement period and the clock out mode. The
+temperature measurement can be selected from every 32 minutes (default) down to every 4 minutes (see
+Table 17). CLKOUT frequencies of 32.768 kHz (default) down to 1 Hz for use as system clock, microcontroller
+clock, and so on, can be chosen (see Table 18).
+• The registers at addresses 14h to 2Fh are used for the timestamp function. When the trigger event happens,
+the actual time is saved in the timestamp registers (see Section 7.12).
+• The register at address 30h is used for the correction of the crystal aging effect (see Section 7.4.1).
+• The registers at addresses 31h to 34h are used for interrupt configuration.
+• The registers at addresses 35h and 36h are used for the watchdog timer functions. The watchdog timer has
+four selectable source clocks allowing for timer periods from less than 20 ms to greater than 4 hours (see
+Table 59). An interrupt is generated when the watchdog times out.
+• The registers 100th Seconds, Seconds, Minutes, Hours, Days, Months, and Years are all coded in Binary
+Coded Decimal (BCD) format to simplify application use. Other registers are either bitwise or standard binary.
+When one of the RTC registers is written or read, the content of all counters is temporarily frozen, all registers
+2
+hold their state during SPI or I C transactions. The time stamp registers would update once the bus transaction
+completes. This prevents a faulty writing or reading of the clock and calendar during a carry condition (see
+Section 7.9.9).
+Table 4. Register overview
+Bit positions labeled as T are unused and return 0 when read. Bits labeled as X are undefined at power-on and unchanged by subsequent resets.
+Address
+
+Register name
+
+Bit
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+Reset value
+
+Reference
+
+SI
+
+0000 1000
+
+Table 5
+
+0
+
+Control registers
+00h
+
+Control_1
+
+EXT_
+TEST
+
+TC_DIS
+
+STOP
+
+01h
+
+Control_2
+
+MSF
+
+02h
+
+Control_3
+
+WDTF
+
+T
+
+03h
+
+Control_4
+
+TSF1
+
+TSF2
+
+04h
+
+Control_5
+
+TSIE1
+
+TSIE2
+
+100TH_
+S_DIS
+
+POR_
+OVRD
+
+12_24
+
+MI
+
+AF
+
+T
+
+T
+
+AIE
+
+T
+
+0000 0000
+
+Table 7
+
+BTSE
+
+BF
+
+BLF
+
+BIE
+
+BLIE
+
+1110 0000
+
+Table 9
+
+TSF3
+
+TSF4
+
+T
+
+T
+
+T
+
+T
+
+0000 0000
+
+Table 11
+
+TSIE3
+
+TSIE4
+
+T
+
+T
+
+T
+
+T
+
+0000 0000
+
+Table 13
+
+0010 0100
+
+Table 24
+
+PWRMNG[2:0]
+
+Software Reset
+05h
+
+SR_Reset
+
+CPR
+
+0
+
+1
+
+0
+
+SR
+
+1
+
+0
+
+CTS
+
+Time and date registers
+100TH_SECONDS(0 to 99)
+
+06h
+
+100th_Seconds
+
+0000 0000
+
+Table 25
+
+07h
+
+Seconds
+
+OSF
+
+SECONDS (0 to 59)
+
+1000 0000
+
+Table 28
+
+08h
+
+Minutes
+
+-
+
+MINUTES (0 to 59)
+
+0000 0000
+
+Table 31
+
+09h
+
+Hours
+
+-
+
+0000 0000
+
+Table 33
+
+-
+
+HOURS (1 to 12) in 12-hour mode
+
+AMPM
+
+0Ah
+
+Days
+
+-
+
+-
+
+0Bh
+
+Weekdays
+
+-
+
+-
+
+-
+
+0Ch
+
+Months
+
+-
+
+-
+
+-
+
+0Dh
+
+Years
+
+HOURS (0 to 23) in 24-hour mode
+
+0000 0000
+
+DAYS (1 to 31)
+
+0000 0001
+
+Table 35
+
+0000 0001
+
+Table 37
+
+0000 0001
+
+Table 40
+
+YEARS (0 to 99)
+
+0000 0001
+
+Table 43
+
+-
+
+WEEKDAYS (0 to 6)
+
+-
+
+MONTHS (1 to 12)
+
+Alarm registers
+0Eh
+
+Second_alarm
+
+AE_S
+
+SECOND_ALARM (0 to 59)
+
+1000 0000
+
+Table 45
+
+0Fh
+
+Minute_alarm
+
+AE_M
+
+MINUTE_ALARM (0 to 59)
+
+1000 0000
+
+Table 47
+
+10h
+
+Hour_alarm
+
+AE_H
+
+1000 0000
+
+Table 49
+
+-
+
+11h
+
+Day_alarm
+
+AE_D
+
+-
+
+12h
+
+Weekday_alarm
+
+AE_W
+
+-
+
+HOUR_ALARM (1 to 12) in 12-hour mode
+
+AMPM
+
+HOUR_ALARM (0 to 23) in 24-hour mode
+
+1000 0000
+
+DAY_ALARM (1 to 31)
+
+1000 0000
+
+Table 51
+
+-
+
+-
+
+-
+
+WEEKDAY_ALARM (0 to 6)
+
+1000 0000
+
+Table 53
+
+OTPR
+
+-
+
+-
+
+COF[2:0]
+
+00X0 0000
+
+Table 15
+
+0000 0000
+
+Table 64
+
+0000 0000
+
+Table 66
+
+CLKOUT control register
+13h
+
+TCR[1:0]
+
+CLKOUT_ctl
+
+Timestamp1 registers
+14h
+
+Timestp_ctl1
+
+TSM
+
+15h
+
+Sec_timestp1
+
+-
+
+PCF2131
+
+Product data sheet
+
+TSOFF
+
+-
+
+SUBSEC_TIMESTP[4:0]
+SECOND_TIMESTP (0 to 59)
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+7 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 4. Register overview...continued
+Bit positions labeled as T are unused and return 0 when read. Bits labeled as X are undefined at power-on and unchanged by subsequent resets.
+Address
+
+Register name
+
+Bit
+7
+
+6
+
+16h
+
+Min_timestp1
+
+-
+
+17h
+
+Hour_timestp1
+
+-
+
+5
+
+4
+
+3
+
+2
+
+1
+
+MINUTE_TIMESTP (0 to 59)
+-
+
+18h
+
+Day_timestp1
+
+-
+
+-
+
+19h
+
+Mon_timestp1
+
+-
+
+-
+
+1Ah
+
+Year_timestp1
+
+HOUR_TIMESTP (1 to 12) in 12-hour mode
+
+AMPM
+
+Reset value
+
+Reference
+
+0000 0000
+
+Table 68
+
+0000 0000
+
+Table 70
+
+0
+
+HOUR_TIMESTP (0 to 23) in 24-hour mode
+
+0000 0000
+
+DAY_TIMESTP (1 to 31)
+
+0000 0000
+
+Table 72
+
+0000 0000
+
+Table 74
+
+0000 0000
+
+Table 76
+
+MONTH_TIMESTP (1 to 12)
+
+-
+
+YEAR_TIMESTP (0 to 99)
+
+Timestamp2 registers
+TSOFF
+
+SUBSEC_TIMESTP[4:0]
+
+1Bh
+
+Timestp_ctl2
+
+TSM
+
+0000 0000
+
+Table 64
+
+1Ch
+
+Sec_timestp2
+
+-
+
+SECOND_TIMESTP (0 to 59)
+
+0000 0000
+
+Table 66
+
+1Dh
+
+Min_timestp2
+
+-
+
+MINUTE_TIMESTP (0 to 59)
+
+0000 0000
+
+Table 68
+
+1Eh
+
+Hour_timestp2
+
+-
+
+0000 0000
+
+Table 70
+
+-
+
+1Fh
+
+Day_timestp2
+
+-
+
+-
+
+20h
+
+Mon_timestp2
+
+-
+
+-
+
+21h
+
+Year_timestp2
+
+-
+
+HOUR_TIMESTP (1 to 12) in 12-hour mode
+
+AMPM
+
+HOUR_TIMESTP (0 to 23) in 24-hour mode
+
+0000 0000
+
+DAY_TIMESTP (1 to 31)
+
+0000 0000
+
+Table 72
+
+0000 0000
+
+Table 74
+
+0000 0000
+
+Table 76
+
+MONTH_TIMESTP (1 to 12)
+
+-
+
+YEAR_TIMESTP (0 to 99)
+
+Timestamp3 registers
+TSOFF
+
+SUBSEC_TIMESTP[4:0]
+
+22h
+
+Timestp_ctl3
+
+TSM
+
+0000 0000
+
+Table 64
+
+23h
+
+Sec_timestp3
+
+-
+
+SECOND_TIMESTP (0 to 59)
+
+0000 0000
+
+Table 66
+
+24h
+
+Min_timestp3
+
+-
+
+MINUTE_TIMESTP (0 to 59)
+
+0000 0000
+
+Table 68
+
+25h
+
+Hour_timestp3
+
+-
+
+0000 0000
+
+Table 70
+
+-
+
+26h
+
+Day_timestp3
+
+-
+
+-
+
+27h
+
+Mon_timestp3
+
+-
+
+-
+
+28h
+
+Year_timestp3
+
+-
+
+HOUR_TIMESTP (1 to 12) in 12-hour mode
+
+AMPM
+
+HOUR_TIMESTP (0 to 23) in 24-hour mode
+
+0000 0000
+
+DAY_TIMESTP (1 to 31)
+
+0000 0000
+
+Table 72
+
+0000 0000
+
+Table 74
+
+0000 0000
+
+Table 76
+
+MONTH_TIMESTP (1 to 12)
+
+-
+
+YEAR_TIMESTP (0 to 99)
+
+Timestamp4 registers
+TSOFF
+
+SUBSEC_TIMESTP[4:0]
+
+29h
+
+Timestp_ctl4
+
+TSM
+
+0000 0000
+
+Table 64
+
+2Ah
+
+Sec_timestp4
+
+-
+
+SECOND_TIMESTP (0 to 59)
+
+0000 0000
+
+Table 66
+
+2Bh
+
+Min_timestp4
+
+-
+
+MINUTE_TIMESTP (0 to 59)
+
+0000 0000
+
+Table 68
+
+2Ch
+
+Hour_timestp4
+
+-
+
+0000 0000
+
+Table 70
+
+-
+
+2Dh
+
+Day_timestp4
+
+-
+
+-
+
+2Eh
+
+Mon_timestp4
+
+-
+
+-
+
+2Fh
+
+Year_timestp4
+
+-
+
+HOUR_TIMESTP (1 to 12) in 12-hour mode
+
+AMPM
+
+HOUR_TIMESTP (0 to 23) in 24-hour mode
+
+0000 0000
+
+DAY_TIMESTP (1 to 31)
+
+0000 0000
+
+Table 72
+
+0000 0000
+
+Table 74
+
+0000 0000
+
+Table 76
+
+0000 1000
+
+Table 19
+
+MONTH_TIMESTP (1 to 12)
+
+-
+
+YEAR_TIMESTP (0 to 99)
+
+Aging offset register
+30h
+
+Aging_offset
+
+-
+
+-
+
+-
+
+-
+
+AO[3:0]
+
+Interrupt mask registers
+31h
+
+INT_A_MASK1
+
+-
+
+-
+
+MIA
+
+SIA
+
+WD_CDA
+
+AIEA
+
+BIEA
+
+BLIEA
+
+0011 1111
+
+Table 80
+
+32h
+
+INT_A_MASK2
+
+-
+
+-
+
+-
+
+-
+
+TSIE1A
+
+TSIE2A
+
+TSIE3A
+
+TSIE4A
+
+0000 1111
+
+Table 80
+
+33h
+
+INT_B_MASK1
+
+-
+
+-
+
+MIB
+
+SIB
+
+WD_CDB
+
+AIEB
+
+BIEB
+
+BLIEB
+
+0011 1111
+
+Table 82
+
+34h
+
+INT_B_MASK2
+
+-
+
+-
+
+-
+
+-
+
+TSIE1B
+
+TSIE2B
+
+TSIE3B
+
+TSIE4B
+
+0000 1111
+
+Table 82
+
+WD_CD
+
+T
+
+TI_TP
+
+-
+
+-
+
+-
+
+0000 0011
+
+Table 55
+
+0000 0000
+
+Table 57
+
+Watchdog registers
+35h
+
+Watchdg_tim_ctl
+
+36h
+
+Watchdg_tim_val
+
+TF[1:0]
+
+WATCHDG_TIM_VAL[7:0]
+
+7.2 Control registers
+The first five registers of the PCF2131, with the addresses 00h, 01h, 02h, 03h, and 04h, are used as control
+registers.
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+8 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+7.2.1 Register control_1
+Table 5. Control_1 - control and status register 1 (address 00h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+Symbol
+
+T
+
+TC_DIS
+
+STOP
+
+100TH_S_
+DIS
+
+T
+
+12_24
+
+MI
+
+SI
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+1
+
+0
+
+0
+
+0
+
+Table 6. Control_1 - control and status register 1 (address 00h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+Reference
+
+7
+
+T
+
+0
+
+Unused
+
+-
+
+6
+
+TC_DIS
+
+0
+
+Temperature compensation enabled
+
+Section 7.3.1
+
+1
+
+Temperature compensation disabled
+
+0
+
+RTC source clock runs
+
+1
+
+RTC clock is stopped;
+RTC divider chain flip-flops are asynchronously
+set logic 0
+CLKOUT output frequencies are still available
+
+0
+
+100th seconds counter enabled
+
+5
+
+4
+
+STOP
+
+100TH_S_DIS
+
+Section 7.14
+
+1
+
+100th seconds counter Disabled, register 06h reset to 00h.
+
+3
+
+T
+
+1
+
+Unused
+
+-
+
+2
+
+12_24
+
+0
+
+24-hour mode selected
+
+1
+
+12-hour mode selected
+
+Table 34,
+Table 50,
+Table 71
+
+0
+
+Minute interrupt disabled
+
+1
+
+Minute interrupt enabled
+
+0
+
+Second interrupt disabled
+
+1
+
+Second interrupt enabled
+
+1
+0
+
+MI
+SI
+
+Section 7.13.1
+
+7.2.2 Register control_2
+Table 7. Control_2 - control and status register 2 (address 01h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+Symbol
+
+MSF
+
+Reset
+value
+
+0
+
+PCF2131
+
+Product data sheet
+
+0
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+WDTF
+
+T
+
+AF
+
+T
+
+T
+
+AIE
+
+T
+
+0
+
+0
+
+0
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+0
+
+0
+
+0
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+9 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 8. Control_2 - control and status register 2 (address 01h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+Reference
+
+7
+
+MSF
+
+0
+
+No minute or second interrupt generated
+
+Section 7.13
+
+1
+
+Flag set when minute or second interrupt
+generated;
+Flag must be cleared to clear interrupt
+
+0
+
+No watchdog timer interrupt generated
+
+1
+
+Flag set when watchdog timer interrupt generated;
+Flag must be cleared to clear interrupt
+
+6
+
+WDTF
+
+Section 7.13.3
+
+5
+
+T
+
+0
+
+Unused
+
+-
+
+4
+
+AF
+
+0
+
+No alarm interrupts were triggered
+
+Section 7.10.6
+
+1
+
+Flag set when alarm triggered;
+Flag must be cleared to clear interrupt
+
+3:2
+
+T
+
+0
+
+Unused
+
+-
+
+1
+
+AIE
+
+0
+
+No interrupt generated from the alarm flag
+
+Section 7.13.4
+
+1
+
+Interrupt generated when alarm flag set
+
+0
+
+Unused
+
+0
+
+T
+
+-
+
+7.2.3 Register control_3
+Table 9. Control_3 - control and status register 3 (address 02h) bit allocation
+Bit
+
+7
+
+Symbol
+
+PWRMNG[2:0]
+
+Reset
+value
+
+1
+
+PCF2131
+
+Product data sheet
+
+6
+1
+
+5
+1
+
+4
+
+3
+
+2
+
+1
+
+0
+
+BTSE
+
+BF
+
+BLF
+
+BIE
+
+BLIE
+
+0
+
+0
+
+0
+
+0
+
+0
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+10 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 10. Control_3 - control and status register 3 (address 02h) bit description
+Bit
+
+Symbol
+
+Value
+
+Description
+
+Reference
+
+7 to 5
+
+PWRMNG[2:0]
+
+See
+Table 22
+
+Control of the battery switch-over, battery low
+detection, and extra power fail detection functions
+
+Section 7.5
+
+4
+
+BTSE
+
+0
+
+No timestamp when battery switch-over occurs
+
+Section 7.12.4
+
+1
+
+Time-stamped when battery switch-over occurs
+
+0
+
+No battery switch-over interrupt occurred
+
+1
+
+Flag set when battery switch-over occurs;
+Flag must be cleared to clear interrupt
+
+0
+
+Battery status ok;
+No battery low interrupt generated
+
+1
+
+Battery status low
+flag cannot be cleared by command, the flag is
+automatically cleared when battery is replaced.
+
+0
+
+No interrupt generated from the Battery Flag (BF)
+
+1
+
+Interrupt generated when BF is set
+
+0
+
+No interrupt generated from Battery Low Flag
+(BLF)
+
+1
+
+Interrupt generated when BLF is set
+
+3
+
+2
+
+1
+0
+
+BF
+
+BLF
+
+BIE
+BLIE
+
+Section 7.5.1
+and
+Section 7.12.4
+Section 7.5.2
+
+Section 7.13.6
+Section 7.13.7
+
+7.2.4 Register control_4
+Table 11. Control_4 - control and status register 4 (address 03h) bit allocation
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+Symbol
+
+TSF1
+
+TSF2
+
+TSF3
+
+TSF4
+
+T
+
+T
+
+T
+
+T
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 12. Control_4 - control and status register 4 (address 03h) bit description
+Bit
+
+Symbol
+
+Value
+
+Description
+
+Reference
+
+7
+
+TSF1
+
+0
+
+No timestamp interrupt generated for pin TS1
+
+Section 7.12.1
+
+1
+
+Flag set when TS1 input is driven to ground:
+Flag must be cleared to clear interrupt
+
+0
+
+No timestamp interrupt generated when pin TS2
+
+1
+
+Flag set when TS2 input is driven to ground;
+Flag must be cleared to clear interrupt
+
+0
+
+No timestamp interrupt generated for pin TS3
+
+1
+
+Flag set when TS3 input is driven to ground;
+Flag must be cleared to clear interrupt
+
+0
+
+No timestamp interrupt generated when pin TS4
+
+1
+
+flag set when TS4 input is driven to ground;
+Flag must be cleared to clear interrupt
+
+6
+
+5
+
+4
+
+TSF2
+
+TSF3
+
+TSF4
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+Section 7.12.1
+
+Section 7.12.1
+
+Section 7.12.1
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+11 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 12. Control_4 - control and status register 4 (address 03h) bit description...continued
+Bit
+
+Symbol
+
+Value
+
+Description
+
+Reference
+
+3
+
+T
+
+0
+
+Unused
+
+-
+
+2
+
+T
+
+0
+
+Unused
+
+-
+
+1
+
+T
+
+0
+
+Unused
+
+-
+
+0
+
+T
+
+0
+
+Unused
+
+-
+
+7.2.5 Register control_5
+Table 13. Control_5 - control and status register 5 (address 04h) bit allocation
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+Symbol
+
+TSIE1
+
+TSIE2
+
+TSIE3
+
+TSIE4
+
+T
+
+T
+
+T
+
+T
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 14. Control_5 - control and status register 5 (address 04h) bit description
+Bit
+
+Symbol
+
+Value
+
+Description
+
+Reference
+
+7
+
+TSIE1
+
+0
+
+No interrupt generated from timestamp flag of TS1
+
+Section 7.13.5
+
+1
+
+Interrupt generated when timestamp flag set of
+TS1
+
+0
+
+No interrupt generated from timestamp flag of TS2
+
+1
+
+Interrupt generated when timestamp flag set of
+TS2
+
+0
+
+No interrupt generated from timestamp flag of TS3
+
+1
+
+Interrupt generated when timestamp flag set of
+TS3
+
+0
+
+No interrupt generated from timestamp flag of TS4
+
+1
+
+Interrupt generated when timestamp flag set of
+TS4
+
+0
+
+Unused
+
+6
+
+5
+
+4
+
+3 to 0
+
+TSIE2
+
+TSIE3
+
+TSIE4
+
+T
+
+Section 7.13.5
+
+Section 7.13.5
+
+Section 7.13.5
+
+-
+
+7.3 Register CLKOUT_ctl
+Table 15. CLKOUT_ctl - CLKOUT control register (address 13h) bit allocation
+Bits labeled as T are unused and return 0 when read. Bits labeled as X are undefined at power-on and unchanged by
+subsequent resets.
+Bit
+
+7
+
+Symbol
+
+TCR[1:0]
+
+Reset
+value
+
+0
+
+PCF2131
+
+Product data sheet
+
+6
+0
+
+5
+
+4
+
+3
+
+2
+
+OTPR
+
+T
+
+T
+
+COF[2:0]
+
+X
+
+0
+
+0
+
+0
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+1
+
+0
+
+0
+
+0
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+12 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 16. CLKOUT_ctl - CLKOUT control register (address 13h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7 to 6
+
+TCR[1:0]
+
+See Table 17
+
+Temperature measurement period
+
+5
+
+OTPR
+
+0
+
+No OTP refresh
+
+1
+
+OTP refresh performed
+
+Section 7.3.2
+
+[1]
+
+4
+
+T
+
+0
+
+Unused
+
+3
+
+T
+
+0
+
+Unused
+
+2 to 0
+
+COF[2:0]
+
+See Table 18
+
+CLKOUT frequency selection
+
+[1]
+
+Reference
+
+Section 7.3.3
+
+Programming this bit to 1 may lead to a decrease of timing accuracy.
+
+7.3.1 Temperature compensated RTC
+The frequency of tuning fork quartz crystal oscillators is temperature-dependent. In the PCF2131, the frequency
+deviation caused by temperature variation is corrected by adjusting the RTC frequency divider with digital
+method.
+The load capacitance is trimmed to the required value at 25 °C to compensate the frequency deviation over
+process variation.
+The frequency accuracy at 25 °C can be evaluated by measuring the frequency of the square wave signal
+available at the output pin CLKOUT. However, the selection of fCLKOUT = 32.768 kHz (default value) can lead
+to inaccurate measurements. Accurate frequency measurement occurs when fCLKOUT = 16.384 kHz or lower is
+selected (see Table 18).
+The temperature compensated frequency input for the RTC cannot be observed at the CLKOUT pin but can be
+evaluated by following these steps.
+• Set the Second Interrupt and also set bit SI in register Control_1 to 1.
+• Set bit TI_TP in register Watchdg_tim_ctl to 1 for a pulsed interrupt signal.
+• Set bit SIA in register INTA_MASK_1 to 0 to direct the Second Interrupt to pin INTA for a 1 Hz pulse output.
+The RTC temperature compensation works by adding or deleting pulses at the 32.768 kHz level. These
+correction pulses are spaced evenly over a sufficiently long period of time to reach the required resolution and
+accuracy. Every second corrections with a resolution of about 30.5 ppm (1/32768) can be generated by the
+temperature compensation engine. If for instance a 10 ppm correction is called for, the correction pulses will be
+generated approximately once every 3 seconds, for a 50 ppm correction every 0.6 s and so on.
+The 1 Hz interrupt output signal can be measured with a counter and by selecting an appropriate gating time
+the measurement resolution can be set to the desired level. A gating time of 100 s for instance determines the
+averaged 1 second period with a resolution of 0.3 ppm.
+The feature of temperature compensation can be turned off for ultra low power consumption by first performing
+a software reset (SR) followed by setting TC_DIS to ‘1’ within 5 seconds.
+
+7.3.1.1 Temperature measurement
+The PCF2131 has a temperature sensor circuit used to perform temperature compensation of the clock input to
+the RTC. The temperature is measured immediately after power-on and then periodically with a period set by
+the temperature conversion rate TCR[1:0] in the register CLKOUT_ctl. During the first approximately 60 s after
+startup, the compensation will be inactive, after this period the temperature compensation is active.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+13 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 17. Temperature measurement period
+TCR[1:0]
+
+Note
+[1]
+
+00
+
+Temperature measurement period
+32 min
+
+01
+
+16 min
+
+10
+
+8 min
+
+11
+
+4 min
+
+[1]
+
+Default value.
+
+7.3.2 OTP refresh
+Each IC is calibrated during production and testing of the device. The calibration parameters are stored on
+EPROM cells called One Time Programmable (OTP) cells. It is recommended to process an OTP refresh once
+after the power is up and the oscillator is operating stable. The OTP refresh takes less than 100 ms to complete.
+To perform an OTP refresh, bit OTPR has to be cleared (set to logic 0) and then set to logic 1 again.
+When read OTPR bit, its state is:
+"0" until the OTP read state machine completes copying of the eFuse data into the shadow registers. This could
+be due to a POR event or to writing a 0 > 1 to the OTPR register bit.
+"1" when the OTP read state machine completes copying to the shadow registers from the eFuse instances.
+During normal operation OTPR must be kept at 1 to prevent higher power usage.
+The OTP logic is not affected by the Software Reset. The OTPR functionality is only reset by the initial digital
+POR.
+During OTP refresh, VDD must be above 1.8 V. The rising speed from 0 V to 1.8 V needs to be faster than 2
+V/100 ms. After OTP refresh has finished, PCF2131 can operate with VDD as low as 1.2 V.
+
+7.3.3 Clock output
+A programmable square wave is available at pin CLKOUT. Operation is controlled by the COF[2:0] control bits
+in register CLKOUT_ctl. Frequencies of 32.768 kHz (default) down to 1 Hz can be generated for use as system
+clock, microcontroller clock, charge pump input, or for calibrating the oscillator at 25 °C to determine aging
+offset. The CLKOUT output is not temperature compensated to prevent jitter due to the digital compensation
+method.
+CLKOUT is a push-pull output and is enabled at power-on. When disabled, the output is high-impedance.
+Table 18. CLKOUT frequency selection
+COF[2:0]
+
+CLKOUT frequency (Hz)
+
+Typical duty cycle
+
+32 768
+
+60 : 40 to 40 : 60
+
+001
+
+16 384
+
+50 : 50
+
+010
+
+8 192
+
+50 : 50
+
+011
+
+4 096
+
+50 : 50
+
+100
+
+2 048
+
+50 : 50
+
+101
+
+1 024
+
+50 : 50
+
+110
+
+1
+
+50 : 50
+
+111
+
+CLKOUT = high-Z
+
+-
+
+PCF2131
+
+All information provided in this document is subject to legal disclaimers.
+
+000
+
+Product data sheet
+
+Note
+[2]
+
+Rev. 2.2 — 20 June 2025
+
+[1]
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+14 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+[1]
+[2]
+
+Duty cycle definition: % HIGH-level time: % LOW-level time.
+Default value.
+
+The duty cycle of the selected clock is not controlled, however, due to the nature of the clock generation all but
+the 32.768 kHz frequencies are 50 : 50.
+
+7.4 Register Aging_offset
+Table 19. Aging_offset - crystal aging offset register (address 30h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+Symbol
+
+T
+
+T
+
+T
+
+T
+
+AO[3:0]
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+1
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+Table 20. Aging_offset - crystal aging offset register (address 30h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7 to 4
+
+T
+
+0000
+
+Unused
+
+3 to 0
+
+AO[3:0]
+
+See Table 21
+
+Aging offset value
+
+7.4.1 Crystal aging correction
+The PCF2131 has an offset register Aging_offset to correct the crystal aging effects.
+
+1
+
+The accuracy of the frequency of a quartz crystal depends on its aging. The aging offset adds an adjustment,
+positive or negative, in the temperature compensation circuit which allows correcting the aging effect.
+The aging offset bits allow a frequency correction of typically 2 ppm per AO[3:0] value, from -14 ppm to +16
+ppm.
+Table 21. Frequency correction at 25 °C, typical
+AO[3:0]
+
+ppm
+
+Decimal
+
+Binary
+
+0
+
+0000
+
++16
+
+1
+
+0001
+
++14
+
+2
+
+0010
+
++12
+
+3
+
+0011
+
++10
+
+4
+
+0100
+
++8
+
+5
+
+0101
+
++6
+
+6
+
+0110
+
++4
+
+7
+
+0111
+
+8
+
+1000
+
+9
+
+1001
+
+Note
+
++2
+[1]
+
+0
+-2
+
+1 For further information, refer to the application note ref.[1].
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+15 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 21. Frequency correction at 25 °C, typical...continued
+AO[3:0]
+
+ppm
+
+Decimal
+
+Binary
+
+10
+
+1010
+
+-4
+
+11
+
+1011
+
+-6
+
+12
+
+1100
+
+-8
+
+13
+
+1101
+
+-10
+
+14
+
+1110
+
+-12
+
+15
+
+1111
+
+-14
+
+[1]
+
+Note
+
+Default value.
+
+7.5 Power management functions
+The PCF2131 has two power supplies:
+VDD - the main power supply
+VBAT - the battery backup supply
+Internally, PCF2131 operates with the internal operating voltage Voper(int) which is also available as VBBS on the
+battery backed output voltage pin, BBS. Depending on the condition of the main power supply and the selected
+power management function, Voper(int) is either on the potential of VDD or VBAT.
+Two power management functions are implemented:
+Battery switch-over function - monitors the main power supply VDD and switching to VBAT in case a power fail
+condition is detected (see Section 7.5.1).
+Battery low detection function - monitors the status of the battery, VBAT (see Section 7.5.2).
+The power management functions are controlled by the control bits PWRMNG[2:0] (see Table 22) in register
+Control_3 (see Table 10):
+Table 22. Power management control bit description
+PWRMNG[2:0]
+
+Note
+
+Function
+
+000
+
+Battery switch-over function is enabled in standard mode;
+Battery low detection function is enabled
+
+001,010
+
+Battery switch-over function is enabled in standard mode;
+Battery low detection function is disabled
+
+011
+
+Battery switch-over function is enabled in direct switching mode;
+Battery low detection function is enabled
+
+100,101
+
+Battery switch-over function is enabled in direct switching mode;
+Battery low detection function is disabled
+
+110,111
+
+[1]
+[2]
+
+[1] [2]
+
+Battery switch-over function is disabled, only one power supply (VDD);
+Battery low detection function is disabled
+
+Default value.
+When the battery switch-over function is disabled, the device works only with the power supply VDD. VBAT must be put to ground and the battery low
+detection function is disabled.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+16 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+7.5.1 Battery switch-over function
+PCF2131 has a backup battery switch-over circuit which monitors the main power supply VDD. When a power
+failure condition is detected, it automatically switches to the backup battery.
+One of two operation modes can be selected:
+Standard mode - the power failure condition happens when:
+VDD < VBAT AND VDD < Vth(sw)bat
+Vth(sw)bat is the battery switch threshold voltage. The typical value is 2.5 V. The battery switch-over in standard
+mode works only for VDD > 2.5 V. Applying back-up battery voltage to VBAT without applying VDD supply will not
+power on the device; only when VDD main power is supplied the device starts operating.
+Direct switching mode - the power failure condition happens when VDD < VBAT. Direct switching from VDD to
+VBAT without requiring VDD to drop below Vth(sw)bat.
+When a power failure condition occurs and the power supply switches to the battery, the following sequence
+occurs:
+1. The battery switch flag BF (register Control_3) is set to logic 1.
+2. An interrupt is generated if the control bit BIE (register Control_3) is enabled (see Section 7.13.6).
+3. If the control bit BTSE (register Control_3) is logic 1, the timestamp 4 registers store the time and date when
+the battery switch occurred (see Section 7.12.4).
+4. The battery switch flag BF is cleared by command; it must be cleared to clear the interrupt.
+The interface and CLKOUT output are disabled in battery backup operation:
+• Interface inputs are not recognized, preventing extraneous data being written to the device.
+• Interface outputs are high-impedance.
+2
+
+For further information about I C-bus communication and battery backup operation, see Section 7.15.3.
+
+7.5.1.1 Standard mode
+If VDD > VBAT OR VDD > Vth(sw)bat: Voper(int) is at VDD potential.
+If VDD < VBAT AND VDD < Vth(sw)bat: Voper(int) is at VBAT potential.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+17 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+backup battery operation
+VDD
+Voper(int)
+
+Voper(int)
+
+VBAT
+
+internal operating voltage (Voper(int))
+
+Vth(sw)bat
+(= 2.5 V)
+
+VDD (= 0 V)
+
+BF
+
+INT
+cleared via interface
+001aaj311
+
+Vth(sw)bat is the battery switch threshold voltage. The typical value is 2.5 V. In standard mode, the battery switch-over works
+only for VDD > 2.5 V.
+VDD may be lower than VBAT (for example VDD = 3 V, VBAT = 4.1 V).
+Figure 4. Battery switch-over behavior in standard mode with bit BIE set logic 1 (enabled)
+
+7.5.1.2 Direct switching mode
+If VDD > VBAT: Voper(int) is at VDD potential.
+If VDD < VBAT: Voper(int) is at VBAT potential.
+The direct switching mode is useful in systems where VDD is always higher than VBAT. This mode is not
+recommended if the VDD and VBAT values are similar (for example, VDD = 3.3 V, VBAT ≥ 3.0 V). In direct
+switching mode, the power consumption is reduced compared to the standard mode because the monitoring of
+VDD and Vth(sw)bat is not performed.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+18 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+backup battery operation
+VDD
+Voper(int)
+
+Voper(int)
+
+VBAT
+
+internal operating voltage (Voper(int))
+
+Vth(sw)bat
+(= 2.5 V)
+
+VDD (= 0 V)
+
+BF
+
+INT
+cleared via interface
+001aaj312
+
+Figure 5. Battery switch-over behavior in direct switching mode with bit BIE set logic 1 (enabled)
+
+7.5.1.3 Battery switch-over disabled: only one power supply (VDD)
+When the battery switch-over function is disabled:
+• The power supply is applied on the VDD pin
+• The VBAT pin must be connected to ground
+• Voper(int) is at VDD potential
+• The battery flag (BF) is always logic 0
+
+7.5.1.4 Battery switch-over architecture
+The architecture of the battery switch-over circuit is shown in Figure 6.
+comparators
+
+logic
+
+switches
+VDD
+
+Vth(sw)bat
+VDD
+
+Voper(int)
+
+LOGIC
+Vth(sw)bat
+VBAT
+
+VBAT
+001aag061
+
+Figure 6. Battery switch-over circuit, simplified block diagram
+
+Voper(int) is at VDD or VBAT potential.
+Remark: It has to be assured that there are decoupling capacitors on the pins VDD, VBAT, and BBS.
+
+7.5.2 Battery low detection function
+The PCF2131 has a battery low detection circuit which monitors the status of the battery VBAT.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+19 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+When VBAT drops below the threshold value Vth(bat)low (typical 2.5 V), the BLF flag (register Control_3) is set to
+indicate that the battery is low and that it must be replaced. Monitoring of the battery voltage also occurs during
+battery operation.
+An unreliable battery cannot prevent the supply voltage from dropping below Vlow (typical 1.2 V) and with that
+the data integrity gets lost. (For further information about Vlow see Section 7.6.)
+When VBAT drops below the threshold value Vth(bat)low, the following sequence occurs (see Figure 7):
+1. The battery low flag BLF is set to logic 1.
+2. An interrupt is generated if the control bit BLIE (register Control_3) is enabled (see Section 7.13.7).
+3. The flag BLF remains logic 1 until the battery is replaced. BLF cannot be cleared by command. It is
+automatically cleared by the battery low detection circuit when the battery is replaced or when the voltage
+rises again above the threshold value. This could happen if a super capacitor is used as a backup source
+and the main power is applied again.
+VDD = Voper(int)
+
+internal operating voltage (Voper(int))
+
+VBAT
+
+Vth(bat)low
+(= 2.5 V)
+VBAT
+
+BLF
+
+INT
+
+001aaj322
+
+Figure 7. Battery low detection behavior with bit BLIE set logic 1 (enabled)
+
+7.5.3 Battery backup supply
+The VBBS voltage on the output pin BBS is at the same potential as the internal operating voltage Voper(int),
+depending on the selected battery switch-over function mode:
+Table 23. Output pin BBS
+Battery switch-over function mode
+
+Conditions
+
+Potential of
+Voper(int) and VBBS
+
+Standard
+
+VDD > VBAT OR VDD > Vth(sw)bat
+
+VDD
+
+VDD < VBAT AND VDD < Vth(sw)bat
+
+VBAT
+
+VDD > VBAT
+
+VDD
+
+VDD < VBAT
+
+VBAT
+
+Disabled
+
+only VDD available,
+VBAT must be put to ground
+
+VDD
+
+PCF2131
+
+All information provided in this document is subject to legal disclaimers.
+
+© 2025 NXP B.V. All rights reserved.
+
+Direct switching
+
+Product data sheet
+
+Rev. 2.2 — 20 June 2025
+
+Document feedback
+20 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+The output pin BBS can be used as a supply for external devices with battery backup needs, such as SRAM
+(see ref.[1]).
+
+7.6 Oscillator stop detection function
+The PCF2131 has an on-chip oscillator detection circuit which indicates the status of the oscillation by
+monitoring the supply of oscillator: whenever the supply is out of the expected range, a reset occurs and the
+Oscillator Stop Flag (OSF, in register Seconds) is set logic 1.
+• Power-on:
+1. The oscillator is not running and the chip is in reset (OSF is logic 1).
+2. When the oscillator starts running and the supply is OK after power-on, the chip exits from reset.
+3. The flag OSF is still logic 1 and can be cleared (OSF set logic 0) by command.
+• Power supply failure:
+1. When the power supply of the chip drops below a certain value (Vlow), typically 1.2 V, the oscillator supply
+also fails and a reset occurs.
+2. When the power supply returns to normal operation, the oscillator supply is OK again, the chip exits from
+reset.
+3. The flag OSF is still logic 1 and can be cleared (OSF set logic 0) by command.
+4. When OSF flag is cleared, an OTP refresh should be performed (see Section 7.3.2).
+VDD
+Voper(int)
+
+VDD
+
+Voper(int)
+
+VBAT
+VBAT
+Vth(sw)bat
+(= 2.5 V)
+Vlow
+(= 1.2 V)
+
+VDD
+VDD
+
+battery discharge
+Voper(int)
+VBAT
+
+VSS
+
+VSS
+(1)
+
+(2)
+
+OSF
+001aaj409
+
+1. Theoretical state of the signals since there is no power.
+2. The Oscillator Stop Flag (OSF), set logic 1, indicates that the oscillation has stopped and a reset has occurred since
+the flag was last cleared (OSF set logic 0). In this case, the integrity of the clock information is not guaranteed. The
+OSF flag is cleared by command.
+Figure 8. Power failure event due to battery discharge: reset occurs
+
+7.7 Power-On Reset function
+The PCF2131 has a Power-On Reset (POR) function implemented.
+
+7.7.1 Power-On Reset (POR)
+The POR is active whenever the oscillator is stopped. The oscillator is considered to be stopped during the time
+between power-on and stable crystal resonance (see Figure 9). This time may be in the range of 200 ms to 2 s
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+21 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+depending on temperature and supply voltage. Whenever an internal reset occurs, the oscillator stop flag is set
+(OSF set logic 1).
+The OTP refresh (see Section 7.3.2) should ideally be executed as the first instruction after startup and also
+after a reset due to an oscillator stop.
+chip in reset
+
+chip not in reset
+chip fully operative
+
+CLKOUT
+available
+
+VDD
+
+oscillation
+internal
+reset
+
+OTPR
+
+t
+aaa-015298
+
+Figure 9. Dependency between POR and oscillator
+
+After POR, the following mode is entered:
+• 32.768 kHz CLKOUT active
+• 24-hour mode is selected
+• Battery switch-over function disabled, only one power supply (VDD)
+• Temperature compensation enabled
+• 100th second enabled
+• Time 00:00:00.00
+• Date 2001.01.01
+• Weekday Monday
+The register values after power-on are shown in Table 4.
+
+7.8 Software reset register
+Table 24. Reset - software reset control (address 05h) bit description
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+Symbol
+
+CPR
+
+0
+
+1
+
+0
+
+SR
+
+1
+
+0
+
+CTS
+
+Section
+
+Section 7.8.2
+
+Section 7.8.1
+
+Section 7.8.3
+
+To
+• Trigger a software reset (SR), 0010 1100 (2Ch) must be sent to register Reset (address 05h). A software reset
+also triggers CPR and CTS.
+• Clear prescaler (CPR), 1010 0100 (A4h) must be sent to register Reset (address 05h).
+• Clear timestamp (CTS), 0010 0101 (25h) must be sent to register Reset (address 05h).
+It is possible to combine CPR and CTS by sending 1010 0101 (A5h).
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+22 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Read of the SR_RESET register returns a fixed pattern of 00100100;
+Remark: Any other value sent to this register is ignored.
+
+7.8.1 SR: software reset
+A reset is automatically generated at power-on as Power-On Reset as described in Section 7.7. A reset can
+also be initiated with the software reset command.
+After software reset, the following mode is entered:
+• 32.768 kHz CLKOUT active
+• OTP not reloaded, OTPR unchanged
+• 24-hour mode is selected
+• Battery switch-over function disabled, only one power supply (VDD)
+• Temperature compensation enabled
+• 100th second enabled
+• Time 00:00:00.00
+• Date 2001.01.01
+• Weekday Monday
+slave address
+SDA
+
+s
+
+1
+
+0
+
+1
+
+0
+
+0
+
+address 05h
+
+R/W
+1
+
+1
+
+0
+
+A
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+software reset 2Ch
+0
+
+1
+
+A
+
+0
+
+0
+
+1
+
+0
+
+1
+
+1
+
+0
+
+0
+
+A P/S
+
+SCL
+
+internal
+reset signal
+aaa-042191
+
+Figure 10. Software reset command
+
+7.8.2 CPR: clear prescaler
+To set the time for RTC mode, the clear prescaler instruction is needed.
+Before sending this instruction, it is mandatory to first set stop by the STOP bit.
+See the STOP definition for an explanation on using this instruction.
+
+7.8.3 CTS: clear timestamp
+The timestamp registers (address 14h to 2Fh) can be set to all 0 with this instruction.
+
+7.9 Time and date function
+Most of these registers are coded in the Binary Coded Decimal (BCD) format.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+23 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+7.9.1 Register 100th Seconds
+Table 25. 100th Seconds - 100th seconds (address 06h) bit allocation
+Bit
+
+7
+
+6
+
+Symbol
+
+100TH SECONDS (0 to 99)
+
+Reset
+value
+
+0
+
+0
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 26. 100th Seconds - 100th seconds register (address 06h) bit description
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 4
+
+100TH SECONDS
+
+0 to 9
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+3 to 0
+
+Actual seconds coded in BCD format
+
+Table 27. 100th Seconds coded in BCD format
+Seconds
+value in
+decimal
+
+Upper-digit (ten’s place)
+
+Digit (unit place)
+
+Bit 7
+
+Bit 6
+
+Bit 5
+
+Bit 4
+
+Bit 3
+
+Bit 2
+
+Bit 1
+
+Bit 0
+
+00
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+01
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+02
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+0
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+09
+
+0
+
+0
+
+0
+
+0
+
+1
+
+0
+
+0
+
+1
+
+10
+
+0
+
+0
+
+0
+
+1
+
+0
+
+0
+
+0
+
+0
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+98
+
+1
+
+0
+
+0
+
+1
+
+1
+
+0
+
+0
+
+0
+
+99
+
+1
+
+0
+
+0
+
+1
+
+1
+
+0
+
+0
+
+1
+
+7.9.2 Register Seconds
+Table 28. Seconds - seconds and clock integrity register (address 07h) bit allocation
+Bit
+
+7
+
+6
+
+5
+
+Symbol
+
+OSF
+
+SECONDS (0 to 59)
+
+Reset
+value
+
+1
+
+0
+
+0
+
+4
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 29. Seconds - seconds and clock integrity register (address 07h) bit description
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7
+
+OSF
+
+0
+
+-
+
+Clock integrity is guaranteed
+
+1
+
+-
+
+Clock integrity is not guaranteed:
+The oscillator has stopped and chip reset has
+occurred since the flag was last cleared
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+24 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 29. Seconds - seconds and clock integrity register (address 07h) bit description...continued
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+6 to 4
+
+SECONDS
+
+0 to 5
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+3 to 0
+
+Actual seconds coded in BCD format
+
+Table 30. Seconds coded in BCD format
+Seconds
+value in
+decimal
+
+Upper-digit (ten’s place)
+
+Digit (unit place)
+
+Bit 6
+
+Bit 5
+
+Bit 4
+
+Bit 3
+
+Bit 2
+
+Bit 1
+
+Bit 0
+
+00
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+01
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+02
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+0
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+09
+
+0
+
+0
+
+0
+
+1
+
+0
+
+0
+
+1
+
+10
+
+0
+
+0
+
+1
+
+0
+
+0
+
+0
+
+0
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+:
+
+58
+
+1
+
+0
+
+1
+
+1
+
+0
+
+0
+
+0
+
+59
+
+1
+
+0
+
+1
+
+1
+
+0
+
+0
+
+1
+
+7.9.3 Register Minutes
+Table 31. Minutes - minutes register (address 08h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+Symbol
+
+T
+
+MINUTES (0 to 59)
+
+Reset
+value
+
+0
+
+0
+
+0
+
+4
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 32. Minutes - minutes register (address 08h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7
+
+T
+
+0
+
+-
+
+Unused
+
+6 to 4
+
+MINUTES
+
+0 to 5
+
+Ten’s place
+
+Actual minutes coded in BCD format
+
+0 to 9
+
+Unit place
+
+3 to 0
+
+7.9.4 Register Hours
+Table 33. Hours - hours register (address 09h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+Symbol
+
+T
+
+T
+
+AMPM
+
+HOURS (1 to 12) in 12-hour mode
+
+PCF2131
+
+Product data sheet
+
+3
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+2
+
+1
+
+0
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+25 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 33. Hours - hours register (address 09h) bit allocation...continued
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+HOURS (0 0to 23) in 24-hour mode
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 34. Hours - hours register (address 09h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 6
+
+T
+
+00
+
+-
+
+Unused
+
+0
+
+-
+
+Indicates AM
+
+1
+
+-
+
+Indicates PM
+
+0 to 1
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+Actual hours coded in BCD format when in 12-hour
+mode
+
+0 to 2
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+[1]
+
+12-hour mode
+5
+
+AMPM
+
+4
+
+HOURS
+
+3 to 0
+[1]
+
+24-hour mode
+5 to 4
+
+HOURS
+
+3 to 0
+[1]
+
+Actual hours coded in BCD format when in 24-hour
+mode
+
+Hour mode is set by the bit 12_24 in register Control_1 (see Table 6).
+
+7.9.5 Register Days
+Table 35. Days - days register (address 0Ah) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+Symbol
+
+T
+
+T
+
+DAYS (1 to 31)
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 36. Days - days register (address 0Ah) bit description
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 6
+
+T
+
+00
+
+-
+
+Unused
+
+0 to 3
+
+Ten’s place
+
+Actual day coded in BCD format
+
+0 to 9
+
+Unit place
+
+5 to 4
+
+DAYS
+
+3 to 0
+[1]
+
+[1]
+
+th
+
+If the year counter contains a value which is exactly divisible by 4, excluding the year 00, the RTC compensates for leap years by adding a 29 day to
+February. Note that the next time the year will roll over to 00 will be the year 2100, which is not going to be a leap year.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+26 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+7.9.6 Register Weekdays
+Table 37. Weekdays - weekdays register (address 0Bh) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+Symbol
+
+T
+
+T
+
+T
+
+T
+
+T
+
+WEEKDAYS (0 to 6)
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+Table 38. Weekdays - weekdays register (address 0Bh) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7 to 3
+
+T
+
+000
+
+Unused
+
+2 to 0
+
+WEEKDAYS
+
+0 to 6
+
+Actual weekday value, see Table 39
+
+Although the association of the weekdays counter to the actual weekday is arbitrary, the PCF2131 assumes that
+Sunday is 000 and Monday is 001 for the purpose of determining the increment for calendar weeks.
+Table 39. Weekday assignments
+Day
+
+[1]
+
+Bit
+2
+
+1
+
+0
+
+Sunday
+
+0
+
+0
+
+0
+
+Monday
+
+0
+
+0
+
+1
+
+Tuesday
+
+0
+
+1
+
+0
+
+Wednesday
+
+0
+
+1
+
+1
+
+Thursday
+
+1
+
+0
+
+0
+
+Friday
+
+1
+
+0
+
+1
+
+Saturday
+
+1
+
+1
+
+0
+
+[1]
+
+The definition may be reassigned by the user.
+
+7.9.7 Register Months
+Table 40. Months - months register (address 0Ch) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+Symbol
+
+T
+
+T
+
+T
+
+MONTHS (1 to 12)
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+PCF2131
+
+Product data sheet
+
+3
+0
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+2
+
+1
+
+0
+
+0
+
+0
+
+1
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+27 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 41. Months - months register (address 0Ch) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 5
+
+T
+
+000
+
+-
+
+Unused
+
+4
+
+MONTHS
+
+0 to 1
+
+Ten’s place
+
+Actual month coded in BCD format, see Table 42
+
+0 to 9
+
+Unit place
+
+3 to 0
+
+Table 42. Month assignments in BCD format
+Upper-digit (ten’s Digit (unit place)
+place)
+
+Month
+
+Bit 4
+
+Bit 3
+
+Bit 2
+
+Bit 1
+
+Bit 0
+
+January
+
+0
+
+0
+
+0
+
+0
+
+1
+
+February
+
+0
+
+0
+
+0
+
+1
+
+0
+
+March
+
+0
+
+0
+
+0
+
+1
+
+1
+
+April
+
+0
+
+0
+
+1
+
+0
+
+0
+
+May
+
+0
+
+0
+
+1
+
+0
+
+1
+
+June
+
+0
+
+0
+
+1
+
+1
+
+0
+
+July
+
+0
+
+0
+
+1
+
+1
+
+1
+
+August
+
+0
+
+1
+
+0
+
+0
+
+0
+
+September
+
+0
+
+1
+
+0
+
+0
+
+1
+
+October
+
+1
+
+0
+
+0
+
+0
+
+0
+
+November
+
+1
+
+0
+
+0
+
+0
+
+1
+
+December
+
+1
+
+0
+
+0
+
+1
+
+0
+
+7.9.8 Register Years
+Table 43. Years - years register (address 0Dh) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+Symbol
+
+YEARS (0 to 99)
+
+Reset
+value
+
+0
+
+0
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+Table 44. Years - years register (address 0Dh) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 4
+
+YEARS
+
+0 to 9
+
+Ten’s place
+
+3 to 0
+
+0 to 9
+
+Unit place
+
+PCF2131
+
+All information provided in this document is subject to legal disclaimers.
+
+Product data sheet
+
+Actual year coded in BCD format
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+28 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+7.9.9 Setting and reading the time
+Figure 11 shows the data flow and data dependencies starting from the 100 Hz/1 Hz clock tick.
+100 Hz tick
+100TH_SECOND
+1 Hz tick
+100TH
+
+SECONDS
+
+MINUTES
+
+12_24
+
+LEAP YEAR
+CALCULATION
+
+HOURS
+
+DAYS
+
+WEEKDAY
+
+MONTHS
+
+YEARS
+aaa-009580
+
+Figure 11. Data flow for the time function
+
+Write access requires setting the STOP bit. The flow for accurately setting the time in RTC mode is:
+• Start an I2C access at register control_1
+• Set the STOP bit
+• Set CPR (register SR_RESET, CPR is logic 1)
+• Address counter rolls over to address 06h
+• Set time (100th seconds, seconds to years)
+• End I2C access
+• Wait for an external time reference to indicate that time counting should start
+• Start an I2C access at register control_1
+• Clear STOP bit (time starts counting from now)
+• End I2C access
+The first increment of the time circuits is between 0 s and 122 ms after STOP is released. See description for
+STOP bit in Section 7.14.
+During read operations, the time counting circuits (memory locations 06h through 0Dh) are blocked. This
+prevents the following:
+• Faulty reading of the clock and calendar during a carry condition
+• Incrementing the time registers during the read cycle
+After this read access is completed, the time circuit is released again. Any pending request to increment the
+time counters that occurred during the read access is serviced.
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+29 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+As a consequence of this method, it is important to make a read access in one go. That is, reading seconds
+through to years should be made in one single access. Failing to comply with this method could result in the
+time becoming corrupted.
+As an example, a roll-over may occur between reads, thus giving the minutes from one moment and the hours
+from the next. Therefore, it is advised to read all time and date registers in one access.
+
+7.10 Alarm function
+When one or more of the alarm bit fields are loaded with a valid second, minute, hour, day, or weekday and
+its corresponding alarm enable bit (AE_x) is logic 0, then that information is compared with the actual second,
+minute, hour, day, and weekday (see Figure 12).
+example
+
+check now signal
+AE_S
+
+AE_S = 1
+
+SECOND ALARM
+=
+
+1
+0
+
+SECOND TIME
+AE_M
+MINUTE ALARM
+
+=
+
+MINUTE TIME
+AE_H
+HOUR ALARM
+=
+
+set alarm flag AF (1)
+
+HOUR TIME
+AE_D
+DAY ALARM
+=
+DAY TIME
+AE_W
+WEEKDAY ALARM
+=
+
+013aaa236
+
+WEEKDAY TIME
+
+1. Only when all enabled alarm settings are matched.
+Figure 12. Alarm function block diagram
+
+The generation of interrupts from the alarm function is described in Section 7.13.4.
+
+7.10.1 Register Second_alarm
+Table 45. Second_alarm - second alarm register (address 0Eh) bit allocation
+Bits labeled as X are undefined at power-on and unchanged by subsequent resets.
+Bit
+
+7
+
+6
+
+Symbol
+
+AE_S
+
+SECOND_ALARM (0 to 59)
+
+Reset
+value
+
+1
+
+0
+
+PCF2131
+
+Product data sheet
+
+5
+0
+
+4
+0
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+30 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 46. Second_alarm - second alarm register (address 0Eh) bit description
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7
+
+AE_S
+
+0
+
+-
+
+Second alarm is enabled
+
+1
+
+-
+
+Second alarm is disabled
+
+0 to 5
+
+Ten’s place
+
+Second alarm information coded in BCD format
+
+0 to 9
+
+Unit place
+
+6 to 4
+
+SECOND_ALARM
+
+3 to 0
+
+7.10.2 Register Minute_alarm
+Table 47. Minute_alarm - minute alarm register (address 0Fh) bit allocation
+Bits labeled as X are undefined at power-on and unchanged by subsequent resets.
+Bit
+
+7
+
+6
+
+5
+
+Symbol
+
+AE_M
+
+MINUTE_ALARM (0 to 59)
+
+Reset
+value
+
+1
+
+0
+
+0
+
+4
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 48. Minute_alarm - minute alarm register (address 0Fh) bit description
+Bits labeled as X are undefined at power-on and unchanged by subsequent resets.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7
+
+AE_M
+
+0
+
+-
+
+Minute alarm is enabled
+
+1
+
+-
+
+Minute alarm is disabled
+
+0 to 5
+
+Ten’s place
+
+Minute alarm information coded in BCD format
+
+0 to 9
+
+Unit place
+
+6 to 4
+
+MINUTE_ALARM
+
+3 to 0
+
+7.10.3 Register Hour_alarm
+Table 49. Hour_alarm - hour alarm register (address 10h) bit allocation
+Bits labeled as T are unused and return 0 when read. Bits labeled as X are undefined at power-on and unchanged by
+subsequent resets.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+Symbol
+
+AE_H
+
+T
+
+AMPM
+
+HOUR_ALARM (1 to 12) in 12-hour mode
+
+0
+
+HOUR_ALARM (0 to 23) in 24-hour mode
+Reset
+value
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 50. Hour_alarm - hour alarm register (address 10h) bit description
+Bit positions labeled as - are not implemented and return 0 when read. Bits labeled as X are undefined at power-on and
+unchanged by subsequent resets.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7
+
+AE_H
+
+0
+
+-
+
+Hour alarm is enabled
+
+1
+
+-
+
+Hour alarm is disabled
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+31 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 50. Hour_alarm - hour alarm register (address 10h) bit description...continued
+Bit positions labeled as - are not implemented and return 0 when read. Bits labeled as X are undefined at power-on and
+unchanged by subsequent resets.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+6
+
+T
+
+0
+
+-
+
+Unused
+
+0
+
+-
+
+Indicates AM
+
+1
+
+-
+
+Indicates PM
+
+0 to 1
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+Hour alarm information coded in BCD format when in
+12-hour mode
+
+0 to 2
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+[1]
+
+12-hour mode
+5
+
+AMPM
+
+4
+
+HOUR_ALARM
+
+3 to 0
+[1]
+
+24-hour mode
+5 to 4
+
+HOUR_ALARM
+
+3 to 0
+[1]
+
+Hour alarm information coded in BCD format when in
+24-hour mode
+
+Hour mode is set by the bit 12_24 in register Control_1.
+
+7.10.4 Register Day_alarm
+Table 51. Day_alarm - day alarm register (address 11h) bit allocation
+Bit positions labeled as - are not implemented and return 0 when read. Bits labeled as X are undefined at power-on and
+unchanged by subsequent resets.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+Symbol
+
+AE_D
+
+T
+
+DAY_ALARM (1 to 31)
+
+Reset
+value
+
+1
+
+0
+
+0
+
+0
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 52. Day_alarm - day alarm register (address 11h) bit description
+Bits labeled as T are unused and return 0 when read. Bits labeled as X are undefined at power-on and unchanged by
+subsequent resets.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7
+
+AE_D
+
+0
+
+-
+
+Day alarm is enabled
+
+1
+
+-
+
+Day alarm is disabled
+
+6
+
+T
+
+0
+
+-
+
+Unused
+
+5 to 4
+
+DAY_ALARM
+
+0 to 3
+
+Ten’s place
+
+Day alarm information coded in BCD format
+
+3 to 0
+
+0 to 9
+
+Unit place
+
+PCF2131
+
+All information provided in this document is subject to legal disclaimers.
+
+Product data sheet
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+32 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+7.10.5 Register Weekday_alarm
+Table 53. Weekday_alarm - weekday alarm register (address 12h) bit allocation
+Bits labeled as T are unused and return 0 when read. Bits labeled as X are undefined at power-on and unchanged by
+subsequent resets.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+Symbol
+
+AE_W
+
+T
+
+T
+
+T
+
+T
+
+WEEKDAY_ALARM (0 to 6)
+
+Reset
+value
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+0
+
+Table 54. Weekday_alarm - weekday alarm register (address 12h) bit description
+Bit positions labeled as - are not implemented and return 0 when read. Bits labeled as X are undefined at power-on and
+unchanged by subsequent resets.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7
+
+AE_W
+
+0
+
+Weekday alarm is enabled
+
+1
+
+Weekday alarm is disabled
+
+6 to 3
+
+T
+
+0
+
+Unused
+
+2 to 0
+
+WEEKDAY_ALARM
+
+0 to 6
+
+Weekday alarm information
+
+7.10.6 Alarm Flag (AF)
+When all enabled comparisons match for the first time, the AF (register Control_2) is set. AF remains set until
+cleared by command. Once AF is cleared, it is set again only when the time increments to match the alarm
+condition once more. For clearing the flags, see Section 7.11.5.
+Alarm registers which have their alarm enable bit AE_x at logic 1 are ignored.
+minutes counter
+
+44
+
+minute alarm
+
+45
+
+45
+
+46
+
+AF
+
+INT when AIE = 1
+001aaf903
+
+Example where only the minute alarm is used and no other interrupts are enabled.
+Figure 13. Alarm flag timing diagram
+
+7.11 Watchdog timer functions
+The PCF2131 has a watchdog timer function. The timer can be switched on and off by using the control bit
+WD_CD in the register Watchdg_tim_ctl.
+The watchdog timer has four selectable source clocks. It can, for example, be used to detect a micro-controller
+with interrupt and reset capability which is out of control (see Section 7.11.3).
+To control the timer function and timer output, the registers Control_2, Watchdg_tim_ctl, and Watchdg_tim_val
+are used.
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+33 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+7.11.1 Register Watchdg_tim_ctl
+Table 55. Watchdg_tim_ctl - watchdog timer control register (address 35h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+Symbol
+
+WD_CD
+
+T
+
+TI_TP
+
+T
+
+T
+
+T
+
+TF[1:0]
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+1
+
+Table 56. Watchdg_tim_ctl - watchdog timer control register (address 35h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7
+
+WD_CD
+
+0
+
+Watchdog timer interrupt disabled
+
+1
+
+Watchdog timer interrupt enabled;
+The interrupt pin INTA/B is activated when timed
+out
+
+6
+
+T
+
+0
+
+Unused
+
+5
+
+TI_TP
+
+0
+
+The interrupt pin INTA/B is configured to generate a
+permanent active signal when MSF is set
+
+1
+
+The interrupt pin INTA/B is configured to generate a
+pulsed signal when MSF flag is set (see Figure 15)
+
+000
+
+Unused
+
+4 to 2
+
+T
+
+1 to 0
+
+TF[1:0]
+
+Timer source clock for watchdog timer
+00
+
+64 Hz
+
+01
+
+4 Hz
+
+10
+
+1
+
+⁄4 Hz
+
+11
+
+1
+
+⁄64 Hz
+
+7.11.2 Register Watchdg_tim_val
+Table 57. Watchdg_tim_val - watchdog timer value register (address 36h) bit allocation
+Bit
+
+7
+
+6
+
+Symbol
+
+WATCHDG_TIM_VAL[7:0]
+
+Reset
+value
+
+0
+
+0
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 58. Watchdg_tim_val - watchdog timer value register (address 36h) bit description
+Bits labeled as X are undefined at power-on and unchanged by subsequent resets.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7 to 0
+
+WATCHDG_TIM_
+VAL[7:0]
+
+00 to FF
+
+Timer period in seconds:
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+34 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 58. Watchdg_tim_val - watchdog timer value register (address 36h) bit description
+Bits labeled as X are undefined at power-on and unchanged by subsequent resets.
+Bit
+
+Symbol
+
+Value
+
+Description
+Where n is the timer value (n > 1)
+Write Only
+
+Table 59. Programmable watchdog timer
+TF[1:0]
+
+Timer source clock
+frequency
+
+Units
+
+Minimum timer period
+(n = 2)
+
+Units
+
+Maximum timer period
+(n = 255)
+
+Units
+
+00
+
+64
+
+Hz
+
+15.625
+
+ms
+
+3.984
+
+s
+
+01
+
+4
+
+Hz
+
+250
+
+ms
+
+63.744
+
+s
+
+10
+
+1
+
+⁄4
+
+Hz
+
+4
+
+s
+
+1020
+
+s
+
+11
+
+1
+
+Hz
+
+64
+
+s
+
+16320
+
+s
+
+⁄64
+
+7.11.3 Watchdog timer function
+The watchdog timer interrupt function is enabled or disabled by the WD_CD bit of the register Watchdg_tim_ctl
+(see Table 56).
+The 2 bits TF[1:0] in register Watchdg_tim_ctl determine one of the four source clock frequencies for the
+1
+1
+watchdog timer: 64 Hz, 4 Hz, ⁄4 Hz or ⁄64 Hz (see Table 59).
+When the watchdog timer function is enabled, the 8-bit timer in register Watchdg_tim_val determines the
+watchdog timer period (see Table 59).
+The watchdog timer counts down from the software programmed 8-bit binary value n in register
+Watchdg_tim_val. When the counter reaches 1, the watchdog timer flag WDTF (register Control_2) is set logic 1
+and an interrupt is generated. The period accuracy corresponds to n +/- 0.5.
+The register Watchdg_tim_val is write only and not readable after set.
+The counter does not automatically reload.
+When WD_CD is logic 1/0 (watchdog timer interrupt enabled/disabled) and the Micro-controller Unit (MCU)
+loads a watchdog timer value n:
+• The flag WDTF is reset
+• INTA/B is cleared
+• The watchdog timer starts again
+Loading the counter with 0 or 1 will:
+• Reset the flag WDTF
+• Clear INTA/B
+• Stop the watchdog timer
+Remark: WDTF can be cleared by:
+• Loading a value in register Watchdg_tim_val
+• Writing a logic 0 to WDTF
+Writing a logic 1 to WDTF has no effect.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+35 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+MCU
+watchdog
+timer value
+
+n=1
+
+n
+
+WDTF
+
+INT
+001aag062
+
+Counter reached 1, WDTF is logic 1, and an interrupt is generated.
+Figure 14. WD_CD set logic 1: watchdog activates an interrupt when timed out
+
+• When the watchdog timer counter reaches 1, the watchdog timer flag WDTF is set logic 1.
+• When a minute or second interrupt occurs, the minute/second flag MSF is set logic 1 (see Section 7.13.1).
+
+7.11.4 Predefined timers: second and minute interrupts
+PCF2131 has two predefined timers which are used to generate an interrupt either once per second or once per
+minute (see Section 7.13.1). The pulse generator for the minute or second interrupt operates from an internal 64
+Hz clock. It is independent of the watchdog timer. Each of these timers can be enabled by the bits SI (Second
+Interrupt) and MI (Minute Interrupt) in register Control_1.
+
+7.11.5 Clearing flags
+The flags MSF and AF can be cleared by command. To prevent one flag being overwritten while clearing
+another, a logic AND is performed during the write access. A flag is cleared by writing logic 0 while a flag is not
+cleared by writing logic 1. Writing logic 1 results in the flag value remaining unchanged.
+Two examples are given for clearing the flags. Clearing a flag is made by a write command:
+• Bits labeled with - must be written with their previous values
+• Bits labeled with T have to be written with logic 0
+• WDTF is read only and has to be written with logic 0
+Repeatedly rewriting these bits has no influence on the functional behavior.
+Table 60. Flag location in register Control_2
+Register
+Control_2
+
+Bit
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+MSF
+
+WDTF
+
+T
+
+AF
+
+T
+
+-
+
+-
+
+T
+
+Table 61. Example values in register Control_2
+Register
+Control_2
+
+Bit
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+1
+
+0
+
+1
+
+1
+
+0
+
+0
+
+0
+
+0
+
+The following tables show what instruction must be sent to clear the appropriate flag.
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+36 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 62. Example to clear only AF (bit 4)
+Register
+
+Bit
+7
+
+Control_2
+[1]
+
+1
+
+6
+
+5
+
+0
+
+4
+
+1
+
+3
+
+2
+
+0
+
+0
+
+0
+
+4
+
+3
+
+2
+
+1
+[1]
+
+0
+
+0
+[1]
+
+0
+
+The bits labeled as - have to be rewritten with the previous values.
+
+Table 63. Example to clear only MSF (bit 7)
+Register
+
+Bit
+7
+
+Control_2
+[1]
+
+0
+
+6
+0
+
+5
+1
+
+1
+
+0
+
+0
+
+1
+[1]
+
+0
+
+0
+[1]
+
+0
+
+The bits labeled as - have to be rewritten with the previous values.
+
+7.12 Timestamp function
+The PCF2131 has four active LOW timestamp input pins TS1, TS2, TS3, and TS4, internally pulled with on-chip
+pull-up resistors to Voper(int). It also has a timestamp detection circuit which can detect the event when inputs on
+pin TS1/2/3/4 are driven to ground.
+The timestamp function is enabled by default after power-on and it can be switched off by setting the control bit
+TSOFF (register Timestp_ctl1/2/3/4).
+The time recorded in the time stamps, when in 100 Hz disable mode (1 Hz mode), is at least two 16 Hz clocks
+behind the timestamp event and no more than 3 clocks behind. If the exact time of the timestamp event is
+required then subtract 2 subseconds from the timestamp value and the result will have -0 subseconds to +1
+subseconds of uncertainty.
+A most common application of the timestamp function is described in ref.[1].
+See Section 7.13.5 for a description of interrupt generation from the timestamp function.
+
+7.12.1 Timestamp flag
+When the TS1/2/3/4 input pin is driven to ground, the following sequence occurs:
+1. The actual date and time are stored in the timestamp registers.
+2. The timestamp flag TSF1/2/3/4 is set.
+3. If the TSIE1/2/3/4 bit is active, and the corresponding interrupt mask is disabled, an interrupt on the INTA/B
+pin is generated.
+The TSF1/2/3/4 and TSF1/2/3/4_2 flags can be cleared by command; clearing the flag clears the interrupt.
+Once TSF1/2/3/4 is cleared, it will only be set again when TS1/2/3/4 pin is driven to ground once again.
+
+7.12.2 Timestamp mode
+The timestamp function has two different modes selected by the control bit TSM (timestamp mode) in register
+Timestp_ctl:
+• If TSM is logic 0 (default): in subsequent trigger events without clearing the timestamp flags, the last
+timestamp event is stored
+• If TSM is logic 1: in subsequent trigger events without clearing the timestamp flags, the first timestamp event
+is stored
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+37 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+The timestamp function also depends on the control bit BTSE in register Control_3, see Section 7.12.4.
+
+7.12.3 Timestamp registers
+This section covers the bit allocation and its description for various timestamp registers.
+
+7.12.3.1 Register Timestp_ctl1/2/3/4
+Table 64. Timestp_ctl1/2/3/4 - timestamp control register (address 14h/1Bh/22h/29h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+Symbol
+
+TSM
+
+TSOFF
+
+T
+
+SUBSEC_TIMESTP[4:0]
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+0
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+Table 65. Timestp_ctl1/2/3/4 - timestamp control register (address 14h/1Bh/22h/29h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7
+
+TSM
+
+0
+
+In subsequent events without clearing the timestamp
+flags, the last event is stored
+
+1
+
+In subsequent events without clearing the timestamp
+flags, the first event is stored
+
+0
+
+Timestamp function active
+
+1
+
+Timestamp function disabled
+
+-
+
+Unused
+
+6
+
+TSOFF
+
+5
+
+-
+
+4 to 0
+
+SUBSEC_TIMESTP[4:0]
+
+[1]
+
+1
+
+⁄16 second timestamp information coded in BCD
+[1] 1
+format when 100TH_S_DIS = ‘1’ , ⁄20 second
+timestamp information coded in BCD format when
+100TH_S_DIS = ‘0’;
+
+The time recorded in the time stamps, when in 100 Hz disable mode (1 Hz mode), will be at least two 16 Hz clocks behind the timestamp event and no
+more than 3 clocks behind. If the exact time of the timestamp event is required then subtract 2 subseconds from the timestamp value and the result will
+have -0 subseconds to +1 subseconds of uncertainty.
+
+7.12.3.2 Register Sec_timestp
+Table 66. Sec_timestp1/2/3/4 - second timestamp register (address 15h/1Ch/23h/2Ah) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+Symbol
+
+T
+
+SECOND_TIMESTP (0 to 59)
+
+Reset
+value
+
+0
+
+0
+
+PCF2131
+
+Product data sheet
+
+5
+0
+
+4
+0
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+38 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 67. Sec_timestp1/2/3/4 - second timestamp register (address 15h/1Ch/23h/2Ah) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7
+
+T
+
+0
+
+-
+
+Unused
+
+6 to 4
+
+SECOND_TIMESTP
+
+0 to 5
+
+ten’s place
+
+Second timestamp information coded in BCD format
+
+0 to 9
+
+unit place
+
+3 to 0
+
+7.12.3.3 Register Min_timestp
+Table 68. Min_timestp1/2/3/4 - minute timestamp register (address 16h/1Dh/24h/2Bh) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+Symbol
+
+T
+
+MINUTE_TIMESTP (0 to 59)
+
+Reset
+value
+
+0
+
+0
+
+0
+
+4
+0
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 69. Min_timestp1/2/3/4 - minute timestamp register (address 16h/1Dh/24h/2Bh) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7
+
+T
+
+0
+
+-
+
+Unused
+
+6 to 4
+
+MINUTE_TIMESTP
+
+0 to 5
+
+Ten’s place
+
+Minute timestamp information coded in BCD format
+
+0 to 9
+
+Unit place
+
+3 to 0
+
+7.12.3.4 Register Hour_timestp
+Table 70. Hour_timestp1/2/3/4 - hour timestamp register (address 17h/1Eh/25h/2Ch) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+1
+
+Symbol
+
+T
+
+T
+
+AMPM
+
+HOUR_TIMESTP (1 to 12) in 12-hour mode
+
+0
+
+HOUR_TIMESTP (0 to 23) in 24-hour mode
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 71. Hour_timestp1/2/3/4 - hour timestamp register (address 17h/1Eh/25h/2Ch) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 6
+
+-
+
+-
+
+-
+
+Unused
+
+0
+
+-
+
+Indicates AM
+
+1
+
+-
+
+Indicates PM
+
+[1]
+
+12-hour mode
+5
+
+AMPM
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+39 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 71. Hour_timestp1/2/3/4 - hour timestamp register (address 17h/1Eh/25h/2Ch) bit description...continued
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+4
+
+HOUR_TIMESTP
+
+0 to 1
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+0 to 2
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+3 to 0
+
+Hour timestamp information coded in BCD format
+when in 12-hour mode
+
+[1]
+
+24-hour mode
+5 to 4
+
+HOUR_TIMESTP
+
+3 to 0
+[1]
+
+Hour timestamp information coded in BCD format
+when in 24-hour mode
+
+Hour mode is set by the bit 12_24 in register Control_1.
+
+7.12.3.5 Register Day_timestp
+Table 72. Day_timestp1/2/3/4 - day timestamp register (address 18h/1Fh/26h/2Dh) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+Symbol
+
+T
+
+T
+
+DAY_TIMESTP (1 to 31)
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+Table 73. Day_timestp1/2/3/4 - day timestamp register (address 18h/1Fh/26h/2Dh) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 6
+
+T
+
+00
+
+-
+
+Unused
+
+5 to 4
+
+DAY_TIMESTP
+
+0 to 3
+
+Ten’s place
+
+Day timestamp information coded in BCD format
+
+0 to 9
+
+Unit place
+
+3 to 0
+
+7.12.3.6 Register Mon_timestp
+Table 74. Mon_timestp1/2/3/4 - month timestamp register (address 19h/20h/27h/2Eh) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+Symbol
+
+T
+
+T
+
+T
+
+MONTH_TIMESTP (1 to 12)
+
+Reset
+value
+
+0
+
+0
+
+0
+
+0
+
+0
+
+2
+0
+
+1
+
+0
+
+0
+
+0
+
+Table 75. Mon_timestp1/2/3/4 - month timestamp register (address 19h/20h/27h/2Eh) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 5
+
+T
+
+000
+
+-
+
+Unused
+
+4
+
+MONTH_TIMESTP
+
+0 to 1
+
+Ten’s place
+
+Month timestamp information coded in BCD format
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+40 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 75. Mon_timestp1/2/3/4 - month timestamp register (address 19h/20h/27h/2Eh) bit description...continued
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+3 to 0
+
+Value
+
+Place value Description
+
+0 to 9
+
+Unit place
+
+7.12.3.7 Register Year_timestp
+Table 76. Year_timestp1/2/3/4 - year timestamp register (address 1Ah/21h/28h/2Fh) bit allocation
+Bit
+
+7
+
+6
+
+Symbol
+
+YEAR_TIMESTP (0 to 99)
+
+Reset
+value
+
+0
+
+0
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+1
+
+Table 77. Year_timestp1/2/3/4 - year timestamp register (address 1Ah/21h/28h/2Fh) bit description
+Bit
+
+Symbol
+
+Value
+
+Place value Description
+
+7 to 4
+
+YEAR_TIMESTP
+
+0 to 9
+
+Ten’s place
+
+0 to 9
+
+Unit place
+
+3 to 0
+
+Year timestamp information coded in BCD format
+
+7.12.4 Dependency between Battery switch-over and timestamp
+The timestamp function depends on the control bit BTSE in register Control_3:
+Table 78. Battery switch-over and timestamp
+BTSE
+
+BF
+
+0
+
+-
+
+[1]
+
+0
+
+[2]
+
+Note
+
+The battery switch-over does not affect the timestamp
+registers
+If a battery switch-over event occurs:
+
+1
+
+1
+
+[1]
+[2]
+
+Description
+
+The timestamp 4 group registers store the time and date
+when the switch-over occurs;
+after this event occurred BF is set logic 1
+The timestamp 4 group registers are not modified;
+in this condition subsequent battery switch-over events
+or falling edges on pin TS4 are not registered
+
+Default value
+Default value.
+
+7.13 Interrupt output, INTA/INTB
+PCF2131 has two interrupt output pins INTA and INTB which are open-drain, active LOW (requiring a pull-up
+resistor if used). Interrupts may be sourced from different places:
+• Second or minute timer
+• Watchdog timer
+• Alarm
+• Timestamp1/2/3/4
+• Battery switch-over
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+41 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+• Battery low detection
+The control bit TI_TP (register Watchdg_tim_ctl) is used to configure whether the interrupts generated from
+the second/minute timer (flag MSF in register Control_2) are pulsed signals or a permanently active signal.
+All the other interrupt sources generate a permanently active interrupt signal which follows the status of the
+corresponding flags. When the interrupt sources are all disabled, INTA/B remains high-impedance.
+• The flags MSF, AF, TSFx, and BF can be cleared by command.
+• The flag WDTF is read only. How it can be cleared is explained in Section 7.11.5.
+• The flag BLF is read only. It is cleared automatically from the battery low detection circuit when the battery is
+replaced.
+SI
+SECONDS COUNTER
+
+MI
+
+MINUTES COUNTER
+
+MSF:
+MINUTE
+SECOND FLAG
+SET
+CLEAR
+
+to interface:
+read MSF
+PULSE
+GENERATOR 1
+TRIGGER
+CLEAR
+
+SIA/MIA
+SI/MI
+
+0
+
+SIB/MIB
+
+1
+
+INTA pin
+
+TI_TP
+
+from interface:
+clear MSF
+
+WATCHDOG
+COUNTER
+MCU loading
+watchdog counter
+set alarm
+flag, AF
+from interface:
+clear AF
+set timestamp
+flag, TSF1/2/3/4
+from interface:
+clear TSF
+set battery
+flag, BF
+from interface:
+clear BF
+set battery
+low flag, BLF
+
+INTB pin
+WD_CDA
+
+WDTF:
+WATCHDOG
+TIMER FLAG
+SET
+CLEAR
+
+to interface:
+read WD_CD
+
+WD_CD
+
+to interface:
+read AF
+
+AIE
+
+to interface:
+read TSF1/2/3/4_x
+
+TSIE1/2/3/4
+
+BF: BATTERY
+FLAG
+SET
+CLEAR
+
+to interface:
+read BF
+
+BIE
+
+BLF: BATTERY
+LOW FLAG
+SET
+CLEAR
+
+to interface:
+read BLF
+
+BLIE
+
+WD_CDB
+
+AIEA
+AF: ALARM
+FLAG
+SET
+CLEAR
+
+AIEB
+
+TSIE1/2/3/4A
+TSF1/2/3/4:
+TIMESTAMP FLAGS
+SET
+CLEAR
+
+TSIE1/2/3/4B
+
+BIEA
+BIEB
+
+BLIEA
+BLIEB
+
+from battery
+low detection
+circuit: clear BF
+
+aaa-041571
+
+When SI, MI, WD_CD, AIE, TSIE1/2/3/4, BIE, BLIE are all disabled, INTA/INTB remains high-impedance.
+Figure 15. Interrupt block diagram
+
+7.13.1 Minute and second interrupts
+Minute and second interrupts are generated by predefined timers. The timers can be enabled independently
+from one another by the bits MI and SI in register Control_1. However, a minute interrupt enabled on top of a
+second interrupt cannot be distinguishable since it occurs at the same time.
+The minute/second flag MSF (register Control_2) is set logic 1 when either the seconds or the minutes counter
+increments according to the enabled interrupt (see Table 79). The MSF flag can be cleared by command.
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+42 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 79. Effect of bits MI and SI on pin INTA/B and bit MSF
+MI
+
+SI
+
+Result in INTA/B
+
+Result on MSF
+
+0
+
+0
+
+No interrupt generated
+
+MSF never sets
+
+1
+
+0
+
+An interrupt once per minute
+
+MSF is set when minutes counter
+increments
+
+0
+
+1
+
+An interrupt once per second
+
+MSF is set when seconds counter
+increments
+
+1
+
+1
+
+An interrupt once per second
+
+MSF is set when seconds counter
+increments
+
+When MSF is set logic 1:
+• If TI_TP is logic 1, the interrupt is generated as a pulsed signal if not masked.
+• If TI_TP is logic 0, the interrupt is permanently active until MSF is cleared.
+seconds counter
+
+58
+
+59
+
+minutes counter
+
+59
+
+00
+
+11
+
+12
+
+00
+
+01
+
+INTA/B when SI enabled
+
+MSF when SI enabled
+
+INTA/B when only MI enabled
+
+MSF when only MI enabled
+
+aaa-041610
+
+In this example, bit TI_TP is logic 1 and the MSF flag is not cleared after an interrupt.
+Figure 16. INTA/B example for SI and MI when TI_TP is logic 1
+
+seconds counter
+
+minutes counter
+
+58
+
+59
+
+59
+
+00
+
+11
+
+12
+
+00
+
+01
+
+INTA/B when SI enable
+MSF when SI enable
+
+INTA/B when only MI enabled
+MSF when only MI enabled
+aaa-041572
+
+In this example, bit TI_TP is logic 0 and the MSF flag is cleared after an interrupt.
+Figure 17. INTA/B example for SI and MI when TI_TP is logic 0
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+43 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+The pulse generator for the minute/second interrupt operates from an internal 64 Hz clock and generates a
+1
+pulse of ⁄64 seconds in duration.
+
+7.13.2 INTA/B pulse shortening
+If the MSF flag (register Control_2) is cleared before the end of the INTA/B pulse, then the INTA/B pulse is
+shortened. This allows the source of a system interrupt to be cleared immediately when it is serviced, that is, the
+system does not have to wait for the completion of the pulse before continuing; see Figure 18. Instructions for
+clearing the bit MSF can be found in Section 7.11.5.
+seconds counter
+
+58
+
+59
+
+MSF
+
+INTA/B
+(1)
+
+SCL
+8th clock
+instruction
+
+CLEAR INSTRUCTION
+
+aaa-041573
+
+1. Indicates normal duration of INTA/B pulse.
+The timing shown for clearing bit MSF is also valid for the non-pulsed interrupt mode, that is, when TI_TP is logic 0, where
+the INTA/B pulse may be shortened by setting both bits MI and SI logic 0.
+Figure 18. Example of shortening the INTA/B pulse by clearing the MSF flag
+
+7.13.3 Watchdog timer interrupts
+The generation of interrupts from the watchdog timer is controlled using the WD_CD bit (register
+Watchdg_tim_ctl). The interrupt is generated as an active signal which follows the status of the watchdog timer
+flag WDTF (register Control_2) if not masked. No pulse generation is possible for watchdog timer interrupts.
+The interrupt is cleared when the flag WDTF is reset. Instructions for clearing it can be found in Section 7.11.5.
+
+7.13.4 Alarm interrupts
+Generation of interrupts from the alarm function is controlled by the bit AIE (register Control_2). If AIE is
+enabled, the INTA/B pin follows the status of bit AF (register Control_2) if not masked. Clearing AF immediately
+clears INTA/B. No pulse generation is possible for alarm interrupts.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+44 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+minute counter
+
+44
+
+minute alarm
+
+45
+
+45
+
+AF
+
+INTA/B
+
+SCL
+8th clock
+instruction
+
+CLEAR INSTRUCTION
+
+aaa-041574
+
+Example where only the minute alarm is used and no other interrupts are enabled.
+Figure 19. AF timing diagram
+
+7.13.5 Timestamp interrupts
+Interrupt generation from the timestamp function is controlled using the TSIE1-4 bit (register Control_5). If
+TSIE1-4 is enabled, the INTA/B pin follows the status of the flags TSF1/2/3/4, if not masked. Clearing the flags
+TSFx immediately clears INTA/B. No pulse generation is possible for timestamp interrupts.
+
+7.13.6 Battery switch-over interrupts
+Generation of interrupts from the battery switch-over is controlled by the BIE bit (register Control_3). If BIE is
+enabled, the INTA/B pin follows the status of bit BF in register Control_3 if not masked(see Table 78). Clearing
+BF immediately clears INTA/B. No pulse generation is possible for battery switch-over interrupts.
+
+7.13.7 Battery low detection interrupts
+Generation of interrupts from the battery low detection is controlled by the BLIE bit (register Control_3). If BLIE
+is enabled, the INTA/B pin follows the status of bit BLF (register Control_3) if not masked. The interrupt is
+cleared when the battery is replaced (BLF is logic 0) or when bit BLIE is disabled (BLIE is logic 0). BLF is read
+only and therefore cannot be cleared by command.
+
+7.13.8 Interrupt masks
+Table 80. INT_A/B_MASK1 - interrupt mask 1 register (address 31h/33h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+Symbol
+
+INT_A/B_MASK1
+
+Reset
+value
+
+-
+
+-
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+1
+
+1
+
+1
+
+1
+
+1
+
+1
+
+Table 81. INT_A/B_MASK1 - interrupt mask 1 register (address 31h/33h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7 to 6
+
+T
+
+00
+
+Unused
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+45 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 81. INT_A/B_MASK1 - interrupt mask 1 register (address 31h/33h) bit description...continued
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+5
+
+MIA/B
+
+1
+
+Minute interrupt mask
+
+4
+
+SIA/B
+
+1
+
+Second interrupt mask
+
+3
+
+WD_CDA/B
+
+1
+
+Watchdog interrupt mask
+
+2
+
+AIEA/B
+
+1
+
+Alarm interrupt mask
+
+1
+
+BIEA/B
+
+1
+
+Battery flag interrupt mask
+
+0
+
+BLIEA/B
+
+1
+
+Battery low flag interrupt mask
+
+Table 82. INT_A/B_MASK2 - interrupt mask 2 register (address 32h/34h) bit allocation
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+7
+
+6
+
+Symbol
+
+INT_A/B_MASK2
+
+Reset
+value
+
+T
+
+T
+
+5
+
+4
+
+3
+
+2
+
+1
+
+0
+
+T
+
+T
+
+1
+
+1
+
+1
+
+1
+
+Table 83. INT_A/B_MASK2 - interrupt mask 2 register (address 32h/34h) bit description
+Bits labeled as T are unused and return 0 when read.
+Bit
+
+Symbol
+
+Value
+
+Description
+
+7 to 4
+
+T
+
+0000
+
+Unused
+
+3
+
+TSIE1A/B
+
+1
+
+Timestamp 1 interrupt mask
+
+2
+
+TSIE2A/B
+
+1
+
+Time stamp 2 interrupt mask
+
+1
+
+TSIE3A/B
+
+1
+
+Time stamp 3 interrupt mask
+
+0
+
+TSIE4A/B
+
+1
+
+Time stamp 4 interrupt mask
+
+The registers at addresses 31h to 32h are used to configure interrupt source for INTA pin, and the registers at
+addresses 33h to 34h are for INTB pin.
+All of above interrupts could be masked from either INTA or INTB, with corresponding bit set to ‘1’, as shown in
+Figure 15.
+
+7.14 STOP bit function
+The STOP bit stops the time from counting. STOP must be set to unlock the time and date registers to set the
+time.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+46 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+OSCILLATOR STOP
+DETECTOR
+
+32768 Hz
+
+OSCILLATOR
+
+div 4
+
+8192 Hz
+
+setting the OS flag
+
+0
+
+PRESCALER
+
+1
+
+RESET
+
+100 Hz tick
+1 Hz tick
+CPR
+stop
+aaa-041575
+
+Figure 20. CPR and STOP bit functional diagram
+
+The stop signal blocks the 8.192 kHz clock from generating system clocks and freezes the time. In this state,
+the prescaler can be cleared with the CPR command in the Resets register.
+Remark: The CLKOUT output of clock frequencies is not affected.
+The time circuits can then be set and do not increment until the STOP bit is released. There is a slight chance
+that STOP is set during a carry over of multiple time registers, which may have been executed incomplete.
+Therefore, time must be set before clearing STOP to maintain time integrity.
+2
+
+The stop acts on the 8.192 kHz signal. Because the I C-bus or TS pin input is asynchronous to the crystal
+oscillator, the accuracy of restarting the time circuits is between zero and one 8.192 kHz cycle (see Figure 21).
+8192 Hz
+
+stop released
+0 µs to 122 µs
+
+aaa-004417
+
+Figure 21. STOP release timing
+
+The first increment of the time circuits is between 0 s and 122 µs after STOP is released.
+
+7.15 Interfaces
+2
+
+The PCF2131 has an I C-bus or SPI-bus interface using the same pins. The selection is done using the
+interface selection pin IFS (see Table 84).
+Table 84. Interface selection input pin IFS
+Pin
+
+Connection
+
+Bus interface
+
+Reference
+
+IFS
+
+VSS
+
+SPI-bus
+
+Section 7.15.1
+
+VDD
+
+2
+
+Section 7.15.2
+
+PCF2131
+
+Product data sheet
+
+I C-bus
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+47 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+VDD
+
+VDD
+
+SCL
+
+RPU
+
+SDI
+
+RPU
+
+SCL
+
+SDO
+
+SDA
+
+CE
+
+SDI
+
+SDI
+SDO
+SDA/CE
+IFS
+
+SDO
+
+BBS
+
+BBS
+
+SDA/CE
+IFS
+
+PCF2131
+
+PCF2131
+
+VSS
+
+VSS
+
+VSS
+
+VDD
+
+SCL
+
+VDD
+
+SCL
+
+VSS
+
+aaa-041887
+
+aaa-041886
+
+2
+
+To select the SPI-bus interface, pin IFS has to be connected To select the I C-bus interface, pin IFS has to be connected
+to pin VSS.
+to pin VDD.
+2
+a. SPI-bus interface selection
+b. I C-bus interface selection
+Figure 22. Interface selection
+
+7.15.1 SPI-bus interface
+Data transfer to and from the device is made by a 4-line SPI-bus (see Table 85). The data lines for input and
+output are split. The SPI-bus is initialized whenever the chip enable line pin SDA/CE is inactive.
+SDI
+SDO
+
+two-wire mode
+aaa-041578
+
+Figure 23. SDI, SDO configurations
+
+Table 85. Serial interface
+Symbol
+
+Function
+
+SDA/CE
+
+Chip enable input;
+active LOW
+
+SCL
+
+Serial clock input
+
+When SDA/CE is HIGH, input may float;
+Input may be higher than VDD
+
+SDI
+
+Serial data input
+
+When SDA/CE is HIGH, input may float;
+Input may be higher than VDD;
+Input data is sampled on the rising edge of SCL
+
+SDO
+
+Serial data output
+
+Push-pull output;
+Drives from VSS to Voper(int) (VBBS);
+Output data is changed on the falling edge of SCL
+
+PCF2131
+
+Product data sheet
+
+Note
+[1]
+
+Description
+When HIGH, the interface is reset;
+Input may be higher than VDD
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+48 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+[1]
+
+The chip enable must not be wired permanently LOW.
+
+7.15.1.1 Data transmission
+The chip enable signal is used to identify the transmitted data. Each data transfer is a whole byte, with the Most
+Significant Bit (MSB) sent first.
+The transmission is controlled by the active LOW chip enable signal SDA/CE. The first byte transmitted is the
+command byte. Subsequent bytes are either data to be written or data to be read (see Figure 24).
+SDI
+
+COMMAND
+
+SDO
+
+DATA
+
+DATA
+
+DATA
+
+DATA
+
+DATA
+
+DATA
+
+SDA/CE
+aaa-041579
+
+Figure 24. Data transfer overview
+
+The command byte defines the address of the first register to be accessed and the read/write mode. The
+address counter will auto increment after every access and will reset to zero after the last valid register is
+accessed. The R/W bit defines if the following bytes are read or write information.
+Table 86. Command byte definition
+Bit
+
+Symbol
+
+7
+
+R/W
+
+6 to 0
+
+Value
+
+Description
+Data read or write selection
+
+RA
+
+0
+
+Write data
+
+1
+
+Read data
+
+00h to 36h
+
+R/W
+b7
+0
+
+addr 07h
+b6
+0
+
+b5
+0
+
+b4
+0
+
+b3
+0
+
+b2
+1
+
+Register address
+
+seconds data 45BCD
+b1
+1
+
+b0
+1
+
+b7
+0
+
+b6
+1
+
+b5
+0
+
+b4
+0
+
+b3
+0
+
+b2
+1
+
+minutes data 10BCD
+b1
+0
+
+b0
+1
+
+b7
+0
+
+b6
+0
+
+b5
+0
+
+b4
+1
+
+b3
+0
+
+b2
+0
+
+b1
+0
+
+b0
+0
+
+SCL
+SDI
+SDA/CE
+address
+counter
+
+xx
+
+07
+
+08
+
+09
+aaa-041580
+
+In this example, the Seconds register is set to 45 seconds and the Minutes register to 10 minutes.
+Figure 25. SPI-bus write example
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+49 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+R/W
+b7
+1
+
+addr 0Ch
+b6
+0
+
+b5
+0
+
+b4
+0
+
+b3
+1
+
+b2
+1
+
+months data 11BCD
+b1
+0
+
+b0
+0
+
+b7
+0
+
+b6
+0
+
+b5
+0
+
+b4
+1
+
+b3
+0
+
+b2
+0
+
+years data 06BCD
+b1
+0
+
+b0
+1
+
+b7
+0
+
+b6
+0
+
+b5
+0
+
+b4
+0
+
+b3
+0
+
+b2
+1
+
+b1
+1
+
+b0
+0
+
+SCL
+SDI
+SDO
+SDA/CE
+address
+counter
+
+xx
+
+0C
+
+0D
+
+0E
+aaa-041581
+
+In this example, the registers Months and Years are read. The pins SDI and SDO are not connected. For this
+configuration, it is important that pin SDI is never left floating. It must always be driven either HIGH or LOW. If pin SDI is
+left open, high IDD currents may result.
+Figure 26. SPI-bus read example
+2
+
+7.15.2 I C-bus interface
+2
+
+The I C-bus is for bidirectional, two-line communication between different ICs or modules. The two lines are a
+Serial Data Line (SDA) and a Serial Clock Line (SCL). Both lines are connected to a positive supply by a pull-up
+resistor. Data transfer is initiated only when the bus is not busy.
+
+7.15.2.1 Bit transfer
+One data bit is transferred during each clock pulse. The data on the SDA line remains stable during the
+HIGH period of the clock pulse as changes in the data line at this time are interpreted as control signals (see
+Figure 27).
+SDA
+
+SCL
+data line
+stable;
+data valid
+
+change
+of data
+allowed
+
+mbc621
+
+Figure 27. Bit transfer
+
+7.15.2.2 START and STOP conditions
+Both data and clock lines remain HIGH when the bus is not busy. A HIGH-to-LOW transition of the data line,
+while the clock is HIGH, is defined as the START condition S. A LOW-to-HIGH transition of the data line while
+the clock is HIGH is defined as the STOP condition P (see Figure 28).
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+50 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+SDA
+
+SDA
+
+SCL
+
+S
+
+P
+
+START condition
+
+STOP condition
+
+SCL
+
+mbc 622
+
+Figure 28. Definition of START and STOP conditions
+
+7.15.2.3 System configuration
+A device generating a message is a transmitter; a device receiving a message is the receiver. The device that
+controls the message is the master; and the devices which are controlled by the master are the slaves.
+The PCF2131 can act as a slave transmitter and a slave receiver.
+SDA
+SCL
+MASTER
+TRANSMITTER
+RECEIVER
+
+SLAVE
+RECEIVER
+
+SLAVE
+TRANSMITTER
+RECEIVER
+
+MASTER
+TRANSMITTER
+
+MASTER
+TRANSMITTER
+RECEIVER
+mba605
+
+Figure 29. System configuration
+
+7.15.2.4 Acknowledge
+The number of data bytes transferred between the START and STOP conditions from transmitter to receiver is
+unlimited. Each byte of 8 bits is followed by an acknowledge cycle.
+• A slave receiver which is addressed must generate an acknowledge after the reception of each byte.
+• Also, a master receiver must generate an acknowledge after the reception of each byte that has been clocked
+out of the slave transmitter.
+• The device that acknowledges must pull-down the SDA line during the acknowledge clock pulse, so that the
+SDA line is stable LOW during the HIGH period of the acknowledge related clock pulse (set-up and hold times
+must be considered).
+• A master receiver must signal an end of data to the transmitter by not generating an acknowledge on the last
+byte that has been clocked out of the slave. In this event, the transmitter must leave the data line HIGH to
+enable the master to generate a STOP condition.
+2
+
+Acknowledgment on the I C-bus is illustrated in Figure 30.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+51 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+data output
+by transmitter
+not acknowledge
+data output
+by receiver
+acknowledge
+SCL from
+master
+
+1
+
+2
+
+8
+
+9
+
+S
+clock pulse for
+acknowledgement
+
+START
+condition
+
+mbc602
+
+2
+
+Figure 30. Acknowledgment on the I C-bus
+2
+
+7.15.2.5 I C-bus protocol
+2
+
+After a start condition, a valid hardware address has to be sent to a PCF2131 device. The appropriate I C-bus
+2
+slave address is 1010 011. The entire I C-bus slave address byte is shown in Table 87.
+2
+
+Table 87. I C slave address byte
+Slave address
+Bit
+
+7
+
+6
+
+5
+
+4
+
+3
+
+2
+
+0
+
+1
+
+MSB
+
+LSB
+
+1
+
+0
+
+1
+
+0
+
+0
+
+1
+
+1
+
+R/W
+
+The R/W bit defines the direction of the following single or multiple byte data transfer (read is logic 1, write is
+logic 0).
+For the format and the timing of the START condition (S), the STOP condition (P), and the acknowledge (A)
+2
+refer to the I C-bus specification ref.[3] and the characteristics table (Table 92). In the write mode, a data
+transfer is terminated by sending a STOP condition.
+acknowledge
+from PCF2131
+S
+
+1
+
+0
+
+1
+
+0
+
+0
+
+slave address
+
+1
+
+1
+
+0
+
+acknowledge
+from PCF2131
+
+acknowledge
+from PCF2131
+
+A
+
+A
+
+A
+
+write bit
+
+register address
+00h to 36h
+
+0 to n (data bytes
+plus ACK)
+
+P
+
+S
+
+STOP
+START
+aaa-041888
+
+Figure 31. Bus protocol, writing to registers
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+52 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+acknowledge
+from PCF2131
+S
+
+1
+
+0
+
+1
+
+0
+
+0
+
+1
+
+1
+
+slave address
+
+0
+
+acknowledge
+from PCF2131
+
+A
+
+A
+register address
+00h to 36h
+
+write bit
+acknowledge
+from PCF2131
+
+S
+
+1
+
+0
+
+1
+
+0
+
+0
+
+slave address
+
+1
+
+1
+
+1
+
+A
+
+set register
+address
+
+P
+STOP
+
+acknowledge
+from master
+
+no acknowledge
+
+A
+
+A
+
+DATA BYTE
+
+LAST DATA BYTE
+
+0 to n (data bytes
+plus ACK)
+
+read bit
+
+P
+
+read register
+data
+aaa-041889
+
+Figure 32. Bus protocol, reading from registers
+
+7.15.3 Bus communication and battery backup operation
+To save power during battery backup operation (see Section 7.5.1), the bus interfaces are inactive. Therefore,
+2
+the communication via I C- or SPI-bus should be terminated before the supply of the PCF2131 is switched from
+VDD to VBAT.
+With I2C interface, PCF2131 terminates transaction before switching from VDD to VBAT, with SPI interface,
+PCF2131 corrupts SPI write and read data when battery switchover occurs.
+2
+
+2
+
+Remark: If the I C-bus communication was terminated uncontrollably, the I C-bus has to be reinitialized by
+sending a STOP followed by a START after the device switched back from battery backup operation to VDD
+supply operation.
+
+7.16 Internal circuitry
+PCF2131
+IFS
+SCL
+
+VBAT
+
+SDI
+
+VDD
+
+SDO
+
+BBS
+
+SDA/CE
+CLKOUT
+
+INTA/B
+
+VSS
+
+TS1/2/3/4
+
+aaa-041890
+
+Figure 33. Device diode protection diagram of PCF2131
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+53 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+7.17 Safety notes
+CAUTION
+This device is sensitive to ElectroStatic Discharge (ESD). Observe precautions for handling
+electrostatic sensitive devices.
+Such precautions are described in the ANSI/ESD S20.20, IEC/ST 61340-5, JESD625-A or equivalent
+standards.
+
+8 Limiting values
+Table 88. Limiting values
+In accordance with the Absolute Maximum Rating System (IEC 60134).
+Symbol
+
+Parameter
+
+VDD
+
+Conditions
+
+Note Min
+
+Max
+
+Unit
+
+Supply voltage
+
+-0.5
+
++6.5
+
+V
+
+IDD
+
+Supply current
+
+-50
+
++50
+
+mA
+
+Vi
+
+Input voltage
+
+-0.5
+
++6.5
+
+V
+
+II
+
+Input current
+
+-10
+
++10
+
+mA
+
+VO
+
+Output voltage
+
+-0.5
+
++6.5
+
+V
+
+IO
+
+Output current
+
+-10
+
++10
+
+mA
+
+-10
+
++20
+
+mA
+
+-0.5
+
++6.5
+
+V
+
+At pin SDA/CE
+VBAT
+
+Battery supply voltage
+
+Ptot
+
+Total power dissipation
+
+-
+
+300
+
+mW
+
+HBM
+
+[1]
+
+-
+
+±2 000
+
+V
+
+CDM
+
+[2]
+
+-
+
+±500
+
+V
+
+Latch-up current
+
+[3]
+
+-
+
+1 00
+
+mA
+
+Tstg
+
+Storage temperature
+
+[4]
+
+-55
+
++85
+
+°C
+
+Tamb
+
+Ambient temperature
+
+-40
+
++85
+
+°C
+
+VESD
+Ilu
+
+[1]
+[2]
+[3]
+[4]
+
+Electrostatic discharge
+voltage
+
+Operating device
+
+Pass level; Human Body Model (HBM) according to AEC Q100-002.
+Pass level (750 V for corner pins); Charged-Device Model (CDM), according to AEC Q100-011.
+Pass level; latch-up testing according to AEC Q100-004 at maximum ambient temperature (Tamb(max)).
+According to the store and transport requirements (see ref.[4]) the devices have to be stored at a temperature of +8 °C to +45 °C and a humidity of 25 %
+to 75 %.
+
+Note: The PCF2131 part is not guaranteed (nor characterized) above the operating range as denoted in the
+data sheet. NXP recommends not to bias the PCF2131 device during reflow (for example, if using a 'coin' type
+battery in the assembly). If the customer so chooses to use this assembly method, there must be the allowance
+for a full \Q0 V' level power supply \Qreset' to re-enable the device. Without a proper POR, the device may
+remain in an indeterminate state.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+54 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+9 Static characteristics
+Table 89. Static characteristics
+VDD = 1.2 V to 5.5 V; VSS = 0 V; Tamb = -40 °C to +85 °C, unless otherwise specified.
+Symbol
+
+Parameter
+
+Conditions
+
+Note Min
+
+Typ
+
+Max
+
+Unit
+
+1.2
+
+-
+
+5.5
+
+V
+
+Supplies
+[1]
+
+VDD
+
+Supply voltage
+
+VBAT
+
+Battery supply voltage
+
+1.2
+
+-
+
+5.5
+
+V
+
+Vlow
+
+Low voltage
+
+-
+
+1.15
+
+-
+
+V
+
+-
+
+-
+
+800
+
+µA
+
+-
+
+-
+
+200
+
+µA
+
+IDD
+[2]
+Supply current
+
+Interface active; supplied by VDD
+SPI-bus (fSCL = 6.5 MHz)
+2
+
+I C-bus (fSCL = 400 kHz)
+Interface inactive (fSCL = 0 Hz)
+
+[3]
+
+; TCR[1:0] = 00 (see Table 16)
+
+PWRMNG[2:0] = 111 (see Table 22);
+COF[2:0] = 111 (see Table 18)
+TC_DIS = 1 (see Table 5); 100TH_S_DIS = 1 (see Table 5)
+VDD = 1.2 V
+
+-
+
+88
+
+400
+
+nA
+[4]
+
+VDD = 3.3 V
+
+-
+
+64
+
+350
+
+nA
+
+VDD = 5.5 V
+
+-
+
+71
+
+450
+
+nA
+
+PWRMNG[2:0] = 111 (see Table 22);
+COF[2:0] = 111 (see Table 18)
+TC_DIS = 0 (see Table 5); 100TH_S_DIS = 1 (see Table 5)
+VDD = 1.2 V
+
+-
+
+101
+
+500
+
+nA
+
+VDD = 3.3 V
+
+-
+
+70
+
+450
+
+nA
+
+VDD = 5.5 V
+
+-
+
+76
+
+550
+
+nA
+
+PWRMNG[2:0] = 111 (see Table 22);
+COF[2:0] = 000 (see Table 18)
+TC_DIS = 0 (see Table 5); 100TH_S_DIS = 0 (see Table 5);
+VDD = 1.2 V
+
+[5]
+
+-
+
+460
+
+770
+
+nA
+
+VDD = 3.3 V
+
+[5]
+
+-
+
+1035
+
+1365
+
+nA
+
+VDD = 5.5 V
+
+[5]
+
+-
+
+1670
+
+2135
+
+nA
+
+PWRMNG[2:0] = 000 (see Table 22);
+COF[2:0] = 111 (see Table 18)
+TC_DIS = 0 (see Table 5); 100TH_S_DIS = 0 (see Table 5)
+VDD = 1.8 V, VBAT = 1.5 V
+
+-
+
+118
+
+500
+
+nA
+
+VDD = 3.3 V, VBAT = 3.3 V
+
+-
+
+104
+
+500
+
+nA
+
+VDD = 5.5 V, VBAT = 3.3 V
+
+IDD
+PCF2131
+
+Product data sheet
+
+-
+
+107
+
+550
+
+nA
+
+VBAT = 1.2 V, IBAT
+
+[6]
+
+-
+
+104
+
+565
+
+nA
+
+VBAT = 3.3 V, IBAT:
+
+[6]
+
+-
+
+83
+
+450
+
+nA
+
+VBAT = 5.5 V, IBAT:
+
+[6]
+
+-
+
+91
+
+625
+
+nA
+
+PWRMNG[2:0] = 000 (see Table 22);
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+55 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 89. Static characteristics...continued
+VDD = 1.2 V to 5.5 V; VSS = 0 V; Tamb = -40 °C to +85 °C, unless otherwise specified.
+Symbol
+
+Parameter
+
+Supply current
+
+IL(bat)
+
+[2]
+
+Battery leakage current
+
+Conditions
+
+Note Min
+
+Typ
+
+Max
+
+Unit
+
+COF[2:0] = 000 (see Table 18)
+TC_DIS = 0 (see Table 5); 100TH_S_DIS = 0 (see Table 5)
+VDD = 1.8 V, VBAT = 1.5 V
+
+[5]
+
+-
+
+640
+
+945
+
+nA
+
+VDD = 3.3 V, VBAT = 3.3 V
+
+[5]
+
+-
+
+1060
+
+1410
+
+nA
+
+VDD = 5.5 V, VBAT = 3.3 V
+
+[5]
+
+-
+
+1705
+
+2190
+
+nA
+
+VBAT = 1.2 V, IBAT
+
+[6]
+
+-
+
+130
+
+390
+
+nA
+
+VBAT = 3.3 V, IBAT
+
+[6]
+
+-
+
+145
+
+390
+
+nA
+
+VBAT = 5.5 V, IBAT
+
+[6]
+
+-
+
+210
+
+500
+
+nA
+
+-
+
+0.1
+
+-
+
+nA
+
+VDD is active supply;
+VBAT = 3.0 V
+
+Power management
+Vth(sw)bat
+
+Battery switch threshold
+voltage
+
+2.3
+
+2.5
+
+V
+
+Vth(bat)low
+
+Low battery threshold
+voltage
+
+2.3
+
+2.5
+
+V
+
+VI
+
+Input voltage
+
+-0.5
+
+-
+
+VDD +
+0.5
+
+VIL
+
+LOW-level input voltage
+
+-
+
+-
+
+0.25VDD V
+
+-
+
+-
+
+0.3VDD
+
+V
+
+0.7VDD
+
+-
+
+-
+
+V
+
+-
+
+0
+
+-
+
+µA
+
+-1
+
+-
+
++1
+
+µA
+
+-
+
+-
+
+7
+
+pF
+
+-0.5
+
+-
+
+5.5
+
+V
+
+1.2
+
+-
+
+5.5
+
+V
+
+Inputs
+
+[7]
+
+Tamb = -40 °C to +85 °C;
+VDD > 2.0 V
+VIH
+
+HIGH-level input voltage
+
+ILI
+
+Input leakage current
+
+VI = VDD or VSS
+Post ESD event
+
+Ci
+
+[8]
+
+Input capacitance
+
+V
+
+Outputs
+VO
+
+Output voltage
+
+On pins INTA/B, referring to
+external pull-up
+On pin BBS
+
+[9]
+
+VOH
+
+HIGH output voltage
+
+On pin SDO, CLKOUT at 1 mA
+source current
+
+0.8VDD
+
+-
+
+VDD
+
+V
+
+VOL
+
+LOW output voltage
+
+On pins CLKOUT, INTA/B and
+SDO at 1 mA sink current
+
+VSS
+
+-
+
+0.2VDD
+
+V
+
+On pin SDA, VDD > 2.0 V,
+3 mA sink current
+
+-
+
+-
+
+0.4
+
+V
+
+On pin SDA, VDD < 2.0 V,
+2 mA sink current
+
+-
+
+-
+
+0.2VDD
+
+V
+
+IOL
+
+LOW-level output current
+
+PCF2131
+
+Product data sheet
+
+Output sink current;
+VOL = 0.4 V
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+56 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 89. Static characteristics...continued
+VDD = 1.2 V to 5.5 V; VSS = 0 V; Tamb = -40 °C to +85 °C, unless otherwise specified.
+Symbol
+
+Parameter
+
+Conditions
+
+Note Min
+
+Typ
+
+Max
+
+Unit
+
+3
+
+-
+
+-
+
+mA
+
+On all other outputs
+
+1.0
+
+-
+
+-
+
+mA
+
+[10]
+
+On pin SDA/CE
+IOH
+
+HIGH-level output current
+
+Output source current; on pin
+SDO, CLKOUT; VOH = 0.8 *
+VDD
+
+1.0
+
+-
+
+-
+
+mA
+
+ILO
+
+output leakage current
+
+VO = VDD or VSS
+
+-
+
+0
+
+-
+
+µA
+
+-1
+
+-
+
++1
+
+µA
+
+Post ESD event
+[1]
+[2]
+[3]
+[4]
+[5]
+[6]
+[7]
+[8]
+[9]
+[10]
+
+For reliable oscillator start-up and OTP refresh at power on: VDD needs to be above 1.8 V.
+MAX IDD and IBAT determined by characterization.
+1
+Timer source clock = ⁄60 Hz, level of pins SDA/CE, SDI, and SCL is VDD or VSS.
+Production tested IDDparameter.
+Any load in the application driven by CLKOUT adds to this value, for example, 10 pF, Vdd = 3v3 will add 32768 Hz * 10 pF * 3.3 V = 1.1 µA.
+When the device is supplied by the VBAT pin instead of the VDD pin, VDD = 0 V. The device can only start up from VDD.
+2
+The I C-bus and SPI-bus interfaces of PCF2131 are 5 V tolerant.
+Tested on a sample basis.
+Pin BBS is internally connected to either VDD or VBAT, see section Section 7.5.3.
+For further information, see Figure 34.
+
+9.1 Current consumption characteristics, typical
+IDD
+(mA)
+
+aaa-041586
+
+60
+50
+40
+30
+20
+10
+0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+VDD (V)
+
+6
+
+Typical value; VOL = 0.4 V.
+Figure 34. IOL on pin SDA/CE
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+57 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+aaa-041934
+
+1200
+Current
+(nA)
+1000
+800
+VDD = 1.8 V
+VDD = 3.3 V
+
+600
+400
+200
+0
+-40
+
+0
+
+40
+
+80
+
+120
+Temperature (C)
+
+160
+
+CLKOUT disabled; PWRMNG[2:0] = 111; TSOFF = 1; TS input floating.
+Figure 35. IDD as a function of temperature
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+58 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+aaa-042113
+
+2000
+IDD
+(nA)
+1600
+
+1200
+CLKOUT enabled at 32 kHz
+800
+
+400
+
+0
+
+CLKOUT off
+
+1
+
+2
+
+3
+
+4
+
+5
+
+VDD (V)
+
+6
+
+a. PWRMNG[2:0] = 111; TSOFF = 1; Tamb = 25 °C; TS input floating
+aaa-042114
+
+2000
+IDD
+(nA)
+1600
+
+1200
+CLKOUTenabled
+enabledat
+at32
+32kHz
+kHz
+CLKOUT
+800
+
+400
+
+0
+
+CLKOUT
+CLKOUToff
+off
+
+1
+
+2
+
+3
+
+4
+
+5
+
+VDD (V)
+
+6
+
+b. PWRMNG[2:0] = 000; TSOFF = 0; Tamb = 25 °C; TS input floating
+Figure 36. IDD as a function of VDD
+
+9.2 Frequency characteristics
+Table 90. Frequency characteristics
+VDD = 1.2 V to 5.5 V; VSS = 0 V; Tamb = +25 °C, unless otherwise specified.
+Symbol
+
+Parameter
+
+Conditions
+
+Min
+
+Typ
+
+Max
+
+Unit
+
+fo
+
+Output frequency
+
+On pin CLKOUT;
+VDD = 3.3 V;
+COF[2:0] = 000;
+AO[3:0] = 1000
+
+-
+
+32.768
+
+-
+
+kHz
+
+Δf/f
+
+Time accuracy
+
+VDD or VBAT = 3.3 V, Tamb =
+-40 °C to +85 °C
+±3
+
++8
+
+ppm
+
++4
+
+ppm
+
+PCF2131
+
+Product data sheet
+
+TC_DIS = 0
+
+[1] [2]
+
+-8
+
+TC_DIS = 1
+
+[1] [2]
+
+-200
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+59 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 90. Frequency characteristics...continued
+VDD = 1.2 V to 5.5 V; VSS = 0 V; Tamb = +25 °C, unless otherwise specified.
+Symbol
+
+Parameter
+
+Conditions
+
+Min
+
+TC_DIS = 1, Tamb = 25 °C
+Δfxtal/fxtal
+
+Relative crystal
+frequency variation
+
+[1] [2]
+
+-3
+
+[3]
+
+-3
+
+Typ
+
+Max
+
+Unit
+
++3
+
+ppm
+
+-
+
++3
+
+ppm
+
+Crystal aging
+PCF2131
+First year;
+VDD or VBAT = 3.3 V
+
+Δf/ΔV
+
+Frequency variation
+with the voltage
+
+On pin CLKOUT
+
+-
+
+±1
+
+-
+
+ppm/V
+
+Jitter
+
+Output clock peak-topeak jitter
+
+On pin CLKOUT
+
+-
+
+50
+
+-
+
+ns
+
+[1]
+[2]
+[3]
+
+±1 ppm corresponds to a time deviation of ±0.0864 seconds per day.
+Only valid if CLKOUT frequencies are not equal to 32.768 kHz or if CLKOUT is disabled.
+Not production tested. Effects of reflow soldering are included (see application note AN13203).
+
+aaa-061246
+
+40
+Frequency
+stability
+(ppm)
+0
+
+± 3 ppm
+(1)
+
+-40
+
+(2)
+
+-80
+
+-40
+
+-2 0
+
+0
+
+20
+
+40
+
+60
+
+80
+100
+Temperature (°C)
+
+1. Performance is achieved with temperature compensation.
+2. Typical uncalibrated oscillator performance.
+Figure 37. Temperature compensation comparison
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+60 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+10 Dynamic characteristics
+2
+
+This section explains about the SPI-bus timing characteristics and I C-bus timing characteristics.
+
+10.1 SPI-bus timing characteristics
+Table 91. SPI-bus characteristics
+VDD = 1.2 V to 5.5 V; VSS = 0 V; Tamb = -40 °C to +105 °C, unless otherwise specified. All timing values are valid within the
+operating supply voltage at ambient temperature and referenced to VIL and VIH with an input voltage swing of VSS to VDD
+(see Figure 38).
+Symbol
+
+Parameter
+
+Conditions
+
+Note
+
+VDD = 1.2 V to 3.3 V
+
+VDD = 3.3 V to
+5.5 V
+
+Min
+
+Max
+
+Min
+
+Max
+
+Unit
+
+Pin SCL
+fclk(SCL)
+
+SCL clock frequency
+
+-
+
+0.5
+
+-
+
+6.5
+
+MHz
+
+tclk(H)
+
+Clock HIGH time
+
+1000
+
+-
+
+70
+
+-
+
+ns
+
+tclk(L)
+
+Clock LOW time
+
+1000
+
+-
+
+70
+
+-
+
+ns
+
+tr
+
+Rise time
+
+For SCL signal
+
+-
+
+100
+
+-
+
+100
+
+ns
+
+tf
+
+Fall time
+
+For SCL signal
+
+-
+
+100
+
+-
+
+100
+
+ns
+
+Pin SDA/CE
+tsu(CE_N)
+
+CE_N set-up time
+
+300
+
+-
+
+30
+
+-
+
+ns
+
+th(CE_N)
+
+CE_N hold time
+
+325
+
+-
+
+25
+
+-
+
+ns
+
+trec(CE_N)
+
+CE_N recovery time
+
+1500
+
+-
+
+1500
+
+-
+
+ns
+
+tw(CE_N)
+
+CE_N pulse width
+
+-
+
+0.99
+
+-
+
+0.99
+
+s
+
+Pin SDI
+tsu
+
+Set-up time
+
+Set-up time for SDI
+data
+
+250
+
+-
+
+20
+
+-
+
+ns
+
+th
+
+Hold time
+
+Hold time for SDI data
+
+250
+
+-
+
+20
+
+-
+
+ns
+
+-
+
+550
+
+-
+
+55
+
+ns
+
+-
+
+150
+
+-
+
+25
+
+ns
+
+Pin SDO
+td(R)SDO
+tdis(SDO)
+[1]
+
+SDO read delay time CL = 50 pF
+SDO disable time
+
+[1]
+
+No load value; bus is held up by bus capacitance; use RC time constant with application values.
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+61 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+tw(CE_N)
+CE
+tsu(CE_N)
+
+tr
+
+tf
+
+tclk(SCL)
+
+th(CE_N)
+
+trec(CE_N)
+
+80%
+
+SCL
+20%
+
+tclk(H)
+
+WRITE
+
+tsu
+
+SDI
+
+tclk(L)
+
+th
+
+R/W
+
+SA2
+
+RA0
+
+b6
+
+b0
+
+b7
+
+b6
+
+b0
+
+high-Z
+
+SDO
+
+READ
+
+SDI
+
+b7
+
+tt(SDI-SDO)
+high-Z
+
+SDO
+
+td(R)SDO
+b7
+
+tdis(SDO)
+b6
+
+b0
+013aaa152
+
+Figure 38. SPI-bus timing
+2
+
+10.2 I C-bus timing characteristics
+2
+
+Table 92. I C-bus characteristics
+All timing characteristics are valid within the operating supply voltage and ambient temperature range and reference to 30 %
+and 70 % with an input voltage swing of VSS to VDD (see Figure 39).
+Symbol
+
+Parameter
+
+Standard mode
+
+Fast-mode (Fm)
+
+Unit
+
+Min
+
+Max
+
+Min
+
+Max
+
+10
+
+100
+
+10
+
+400
+
+kHz
+
+Pin SCL
+[1]
+
+fSCL
+
+SCL clock frequency
+
+tLOW
+
+LOW period of the SCL clock
+
+4.7
+
+-
+
+1.3
+
+-
+
+µs
+
+tHIGH
+
+HIGH period of the SCL clock
+
+4.0
+
+-
+
+0.6
+
+-
+
+µs
+
+250
+
+-
+
+100
+
+-
+
+ns
+
+0
+
+-
+
+0
+
+-
+
+ns
+
+Pin SDA/CE
+tSU;DAT
+tHD;DAT
+
+Data set-up time
+Data hold time
+
+[2] [2]
+
+Pins SCL and SDA/CE
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+62 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+2
+
+Table 92. I C-bus characteristics...continued
+All timing characteristics are valid within the operating supply voltage and ambient temperature range and reference to 30 %
+and 70 % with an input voltage swing of VSS to VDD (see Figure 39).
+Symbol
+
+Parameter
+
+Standard mode
+
+Fast-mode (Fm)
+
+Unit
+
+Min
+
+Max
+
+Min
+
+Max
+
+tBUF
+
+Bus free time between a STOP
+and START condition
+
+4.7
+
+-
+
+1.5
+
+-
+
+µs
+
+tSU;STO
+
+Set-up time for STOP condition
+
+4.0
+
+-
+
+0.6
+
+-
+
+µs
+
+tHD;STA
+
+Hold time (repeated) START
+condition
+
+4.0
+
+-
+
+0.6
+
+-
+
+µs
+
+tSU;STA
+
+Set-up time for a repeated
+START condition
+
+4.7
+
+-
+
+0.6
+
+-
+
+µs
+
+tr
+
+Rise time of both SDA and SCL
+signals
+
+[2] [3]
+
+-
+
+1 000
+
+20 + 0.1Cb
+
+300
+
+ns
+
+tf
+
+Fall time of both SDA and SCL
+signals
+
+[2] [3]
+
+-
+
+300
+
+20 + 0.1Cb
+
+300
+
+ns
+
+tVD;ACK
+
+Data valid acknowledge time
+
+[5]
+
+-
+
+3.45
+
+-
+
+0.9
+
+µs
+
+Data valid time
+
+[6]
+
+-
+
+3.45
+
+-
+
+0.9
+
+µs
+
+Pulse width of spikes that must
+be suppressed by the input filter
+
+[7]
+
+-
+
+50
+
+-
+
+50
+
+ns
+
+tVD;DAT
+tSP
+[1]
+[2]
+[3]
+[4]
+[5]
+[6]
+[7]
+
+[4]
+
+[4]
+
+The minimum SCL clock frequency is limited by the bus time-out feature which resets the serial bus interface if either the SDA or SCL is held LOW for a
+minimum of 25 ms. The bus time-out feature must be disabled for DC operation.
+A master device must internally provide a hold time of at least 300 ns for the SDA signal (refer to the VIL of the SCL signal) in order to bridge the
+undefined region of the falling edge of SCL.
+Cb is the total capacitance of one bus line in pF.
+The maximum tf for the SDA and SCL bus lines is 300 ns. The maximum fall time for the SDA output stage, tf is 250 ns. This allows series protection
+resistors to be connected between the SDA/CE pin, the SCL pin, and the SDA/SCL bus lines without exceeding the maximum tf.
+tVD;ACK is the time of the acknowledgment signal from SCL LOW to SDA (out) LOW.
+tVD;DAT is the minimum time for valid SDA (out) data following SCL LOW.
+Input filters on the SDA and SCL inputs suppress noise spikes of less than 50 ns.
+
+START
+CONDITION
+(S)
+
+PROTOCOL
+
+BIT 7
+MSB
+(A7)
+
+tSU;STA
+
+tLOW
+
+tBUF
+
+tr
+
+BIT 6
+(A6)
+
+tHIGH
+
+BIT 0
+LSB
+(R/W)
+
+ACKNOWLEDGE
+(A)
+
+STOP
+CONDITION
+(P)
+
+1 / fSCL
+
+SCL
+
+tf
+
+SDA
+
+tHD;STA
+
+tSU;DAT
+
+tHD;DAT
+
+tVD;DAT
+
+tSU;STO
+mbd820
+
+2
+
+Figure 39. I C-bus timing diagram; rise and fall times refer to 30 % and 70 %
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+63 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+11 Application information
+100 nF
+
+VDD
+
+SCL
+SDI
+Interface
+
+Rsup
+
+SDO
+
+I2C
+SPI
+
+VDD(in)
+
+100 nF
+
+VBAT
+
+SDA/CE
+VDD
+
+Csup
+
+BBS
+
+IFS
+
+1 to 100 nF
+
+BBS
+
+PCF2131
+TS1
+
+INTA
+
+TS2
+TS3
+TS4
+
+VSS
+
+RPU
+
+INTB
+RPU
+
+CLKOUT
+
+INTA
+VDD
+INTB
+VDD
+CLKOUT
+
+aaa-041891
+
+RPU: 10 kΩ is recommended.
+RSUP and CSUP: An appropriate RC filter needs to be added to guarantee the chip only sees <0.35 V/ms ramp down rate
+on supply, even if Vdd_in ramp rate is high.
+Figure 40. General application diagram
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+64 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+12 Package outline
+
+Figure 41. Package outline SOT1992-1 (HLSON16)
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+65 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+Figure 42. Package outline SOT1992-1 (HLSON16); detail G
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+66 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+Figure 43. Package outline SOT1992-1 (HLSON16); notes
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+67 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+13 Packing information
+13.1 Tape and reel information
+For tape and reel packing information, see ref.[2].
+
+14 Soldering
+For information about soldering, see ref.[1].
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+68 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+14.1 Footprint information
+
+Figure 44. Footprint information part 1 for reflow soldering of SOT1992-1 (HLSON16)
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+69 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+Figure 45. Footprint information part 2 for reflow soldering of SOT1992-1 (HLSON16)
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+70 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+Figure 46. Footprint information part 3 for reflow soldering of SOT1992-1 (HLSON16)
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+71 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+15 Appendix
+15.1 RTC selection
+Table 93. Selection of RTCs
+Type name
+
+Alarm, Timer,
+Watchdog
+
+Interrupt
+output
+
+Interface
+
+IDD
+typical (nA)
+
+Battery
+backup
+
+Timestamp,
+tamper input
+
+AEC-Q100
+compliant
+
+Special features
+
+Packages
+
+PCF8563
+
+X
+
+1
+
+I C
+
+2
+
+250
+
+-
+
+-
+
+-
+
+-
+
+SO8, TSSOP8,
+HVSON10
+
+PCF8564A
+
+X
+
+1
+
+I C
+
+2
+
+250
+
+-
+
+-
+
+-
+
+Integrated oscillator caps
+
+WLCSP
+
+PCA8565
+
+X
+
+1
+
+I C
+
+2
+
+600
+
+-
+
+-
+
+Segment B,
+grade 1
+
+High robustness,
+Tamb= -40 °C to 125 °C
+
+TSSOP8, HVSON10
+
+PCA8565A
+
+X
+
+1
+
+I C
+
+2
+
+600
+
+-
+
+-
+
+-
+
+Integrated oscillator caps,
+Tamb= -40 °C to 125 °C
+
+WLCSP
+
+PCF85063
+
+-
+
+1
+
+I C
+
+2
+
+220
+
+-
+
+-
+
+-
+
+Basic functions only, no alarm HXSON8
+
+PCF85063A
+
+X
+
+1
+
+I C
+
+2
+
+220
+
+-
+
+-
+
+-
+
+Tiny package
+
+SO8, DFN2626-10,
+TSSOP8
+
+PCF85063B
+
+X
+
+1
+
+SPI
+
+220
+
+-
+
+-
+
+-
+
+Tiny package
+
+DFN2626-10
+
+PCA85073A
+
+X
+
+1
+
+I C
+
+2
+
+220
+
+-
+
+-
+
+Segment B,
+grade 2
+
+Tiny package
+
+TSSOP8
+
+PCF85263A
+
+X
+
+2
+
+I C
+
+2
+
+230
+
+X
+
+1
+
+-
+
+Timestamp, battery backup,
+1
+stopwatch ⁄100 s
+
+SO8, TSSOP10,
+WLCSP12, TSSOP8,
+DFN2626-10
+
+PCF85363A
+
+X
+
+2
+
+I C
+
+2
+
+230
+
+X
+
+1
+
+-
+
+Timestamp, battery backup,
+1
+stopwatch ⁄100s, 64 Byte
+RAM
+
+TSSOP10, DFN2626-10,
+TSSOP8
+
+PCF8523
+
+X
+
+2
+
+I C
+
+2
+
+150
+
+X
+
+-
+
+-
+
+Lowest power 150 nA in
+operation, FM+ 1 MHz
+
+SO8, HVSON8,
+TSSOP14, WLCSP
+
+PCF2123
+
+X
+
+1
+
+SPI
+
+100
+
+-
+
+-
+
+-
+
+Lowest power 100 nA in
+operation
+
+TSSOP14, HVQFN16,
+WLCSP12
+
+PCA21125
+
+X
+
+1
+
+SPI
+
+820
+
+-
+
+-
+
+Segment B,
+grade 1
+
+High robustness,
+Tamb= -40 °C to 125 °C
+
+TSSOP14
+
+PCF2131
+
+X
+
+2
+
+I C and
+SPI
+
+2
+
+60
+
+X
+
+4
+
+-
+
+Temperature compensated,
+quartz built in, calibrated
+
+HLSON16 with wettable
+flanks
+
+PCA2131
+
+X
+
+2
+
+I C and
+SPI
+
+2
+
+106
+
+X
+
+4
+
+Segment B,
+grade 2
+
+Temperature compensated,
+quartz built in, calibrated
+Tamb= -40 °C to 105 °C
+
+HLSON16 with wettable
+flanks
+
+16 Acronyms
+Table 94. Acronyms
+Acronym
+
+Description
+
+AM
+
+Ante Meridiem
+
+BCD
+
+Binary Coded Decimal
+
+CDM
+
+Charged Device Model
+
+CMOS
+
+Complementary Metal-Oxide Semiconductor
+
+DC
+
+Direct Current
+
+GPS
+
+Global Positioning System
+
+HBM
+
+Human Body Model
+
+2
+
+I C
+
+Inter-Integrated Circuit
+
+IC
+
+Integrated Circuit
+
+LSB
+
+Least Significant Bit
+
+MCU
+
+Microcontroller Unit
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+72 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 94. Acronyms...continued
+Acronym
+
+Description
+
+MM
+
+Machine Model
+
+MSB
+
+Most Significant Bit
+
+PM
+
+Post Meridiem
+
+POR
+
+Power-On Reset
+
+PPM
+
+Parts Per Million
+
+RC
+
+Resistance-Capacitance
+
+RTC
+
+Real-Time Clock
+
+SCL
+
+Serial Clock Line
+
+SDA
+
+Serial Data Line
+
+SPI
+
+Serial Peripheral Interface
+
+SRAM
+
+Static Random Access Memory
+
+TCXO
+
+Temperature Compensated Xtal Oscillator
+
+Xtal
+
+Crystal
+
+AEC
+
+Automotive Electronics Council
+
+SDO
+
+Serial Data Output
+
+CE
+
+Chip Enable
+
+SR
+
+Software Reset
+
+CTS
+
+Clear Timestamp
+
+COF
+
+CLKOUT Frequency
+
+OTP
+
+One Time Programmable
+
+EPROM
+
+Erasable Programmable Read-Only Memory
+
+17 References
+[1]
+[2]
+[3]
+[4]
+
+AN13203 Application and soldering information for the PCF2131 and PCA2131 RTC
+SOT1992-1_518 HLSON16; Reel pack; SMD, 13", packing information
+2
+UM10204 I C-bus specification and user manual
+UM10569 Store and transport requirements
+
+18 Revision history
+Table 95. Revision history
+Document ID
+
+Release date
+
+Description
+
+PCF2131 v.2.2
+
+20 June 2025
+
+• Updated the following sections as per CIN# 202506018I:
+– Section 2 "Features and benefits"
+– Section 7.2.1
+– Table 8 "Control_2 - control and status register 2 (address
+01h) bit description"
+– Section 7.7 "Power-On Reset function "
+– Section 7.8.1 "SR: software reset"
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+73 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Table 95. Revision history...continued
+Document ID
+
+Release date
+
+Description
+– Section 7.14 "STOP bit function"
+– Section 10.2 "I2C-bus timing characteristics"
+– Section 16 "Acronyms"
+• Deleted the following sections:
+– Power-On Reset Override (PORO)
+– External clock test mode
+• Updated the following figure:
+– Figure 37 "Temperature compensation comparison"
+• Made some editorial changes
+
+PCF2131 v.2.1
+
+27 January 2025
+
+Updated per CIN 202411003I:
+• Table 3: Updated exposed pad recommendation
+
+PCF2131 v.2.0
+
+5 October 2023
+
+• Table 4: 05h - corrected values for bits 6 to 1
+• Table 25: Corrected duplicate header bit 6 to bit 7
+• Table 92: tVD;DAT unit corrected to μs
+• Table 93: PCF2127 and PCA/F2129 are NRND and removed
+from selection table; PCA2131 corrected to Grade 2 which is
+105 °C
+
+PCF2131 v.1.1
+
+15 October 2021
+
+Product data sheet
+
+PCF2131 v.1.0
+
+28 May 2021
+
+Product data sheet
+
+PCF2131
+
+Product data sheet
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+74 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+Legal information
+Data sheet status
+Document status
+
+[1][2]
+
+Product status
+
+[3]
+
+Definition
+
+Objective [short] data sheet
+
+Development
+
+This document contains data from the objective specification for product
+development.
+
+Preliminary [short] data sheet
+
+Qualification
+
+This document contains data from the preliminary specification.
+
+Product [short] data sheet
+
+Production
+
+This document contains the product specification.
+
+[1]
+[2]
+[3]
+
+Please consult the most recently issued document before initiating or completing a design.
+The term 'short data sheet' is explained in section "Definitions".
+The product status of device(s) described in this document may have changed since this document was published and may differ in case of multiple
+devices. The latest product status information is available on the Internet at URL https://www.nxp.com.
+
+Definitions
+Draft — A draft status on a document indicates that the content is still
+under internal review and subject to formal approval, which may result
+in modifications or additions. NXP Semiconductors does not give any
+representations or warranties as to the accuracy or completeness of
+information included in a draft version of a document and shall have no
+liability for the consequences of use of such information.
+Short data sheet — A short data sheet is an extract from a full data sheet
+with the same product type number(s) and title. A short data sheet is
+intended for quick reference only and should not be relied upon to contain
+detailed and full information. For detailed and full information see the
+relevant full data sheet, which is available on request via the local NXP
+Semiconductors sales office. In case of any inconsistency or conflict with the
+short data sheet, the full data sheet shall prevail.
+Product specification — The information and data provided in a Product
+data sheet shall define the specification of the product as agreed between
+NXP Semiconductors and its customer, unless NXP Semiconductors and
+customer have explicitly agreed otherwise in writing. In no event however,
+shall an agreement be valid in which the NXP Semiconductors product
+is deemed to offer functions and qualities beyond those described in the
+Product data sheet.
+
+Disclaimers
+Limited warranty and liability — Information in this document is believed
+to be accurate and reliable. However, NXP Semiconductors does not give
+any representations or warranties, expressed or implied, as to the accuracy
+or completeness of such information and shall have no liability for the
+consequences of use of such information. NXP Semiconductors takes no
+responsibility for the content in this document if provided by an information
+source outside of NXP Semiconductors.
+In no event shall NXP Semiconductors be liable for any indirect, incidental,
+punitive, special or consequential damages (including - without limitation lost profits, lost savings, business interruption, costs related to the removal
+or replacement of any products or rework charges) whether or not such
+damages are based on tort (including negligence), warranty, breach of
+contract or any other legal theory.
+Notwithstanding any damages that customer might incur for any reason
+whatsoever, NXP Semiconductors’ aggregate and cumulative liability
+towards customer for the products described herein shall be limited in
+accordance with the Terms and conditions of commercial sale of NXP
+Semiconductors.
+Right to make changes — NXP Semiconductors reserves the right to
+make changes to information published in this document, including without
+limitation specifications and product descriptions, at any time and without
+notice. This document supersedes and replaces all information supplied prior
+to the publication hereof.
+PCF2131
+
+Product data sheet
+
+Suitability for use — NXP Semiconductors products are not designed,
+authorized or warranted to be suitable for use in life support, life-critical or
+safety-critical systems or equipment, nor in applications where failure or
+malfunction of an NXP Semiconductors product can reasonably be expected
+to result in personal injury, death or severe property or environmental
+damage. NXP Semiconductors and its suppliers accept no liability for
+inclusion and/or use of NXP Semiconductors products in such equipment or
+applications and therefore such inclusion and/or use is at the customer’s own
+risk.
+Applications — Applications that are described herein for any of these
+products are for illustrative purposes only. NXP Semiconductors makes no
+representation or warranty that such applications will be suitable for the
+specified use without further testing or modification.
+Customers are responsible for the design and operation of their
+applications and products using NXP Semiconductors products, and NXP
+Semiconductors accepts no liability for any assistance with applications or
+customer product design. It is customer’s sole responsibility to determine
+whether the NXP Semiconductors product is suitable and fit for the
+customer’s applications and products planned, as well as for the planned
+application and use of customer’s third party customer(s). Customers should
+provide appropriate design and operating safeguards to minimize the risks
+associated with their applications and products.
+NXP Semiconductors does not accept any liability related to any default,
+damage, costs or problem which is based on any weakness or default
+in the customer’s applications or products, or the application or use by
+customer’s third party customer(s). Customer is responsible for doing all
+necessary testing for the customer’s applications and products using NXP
+Semiconductors products in order to avoid a default of the applications
+and the products or of the application or use by customer’s third party
+customer(s). NXP does not accept any liability in this respect.
+Limiting values — Stress above one or more limiting values (as defined in
+the Absolute Maximum Ratings System of IEC 60134) will cause permanent
+damage to the device. Limiting values are stress ratings only and (proper)
+operation of the device at these or any other conditions above those
+given in the Recommended operating conditions section (if present) or the
+Characteristics sections of this document is not warranted. Constant or
+repeated exposure to limiting values will permanently and irreversibly affect
+the quality and reliability of the device.
+Terms and conditions of commercial sale — NXP Semiconductors
+products are sold subject to the general terms and conditions of commercial
+sale, as published at https://www.nxp.com/profile/terms, unless otherwise
+agreed in a valid written individual agreement. In case an individual
+agreement is concluded only the terms and conditions of the respective
+agreement shall apply. NXP Semiconductors hereby expressly objects to
+applying the customer’s general terms and conditions with regard to the
+purchase of NXP Semiconductors products by customer.
+No offer to sell or license — Nothing in this document may be interpreted
+or construed as an offer to sell products that is open for acceptance or
+the grant, conveyance or implication of any license under any copyrights,
+patents or other industrial or intellectual property rights.
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+75 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Quick reference data — The Quick reference data is an extract of the
+product data given in the Limiting values and Characteristics sections of this
+document, and as such is not complete, exhaustive or legally binding.
+Export control — This document as well as the item(s) described herein
+may be subject to export control regulations. Export might require a prior
+authorization from competent authorities.
+Suitability for use in non-automotive qualified products — Unless
+this document expressly states that this specific NXP Semiconductors
+product is automotive qualified, the product is not suitable for automotive
+use. It is neither qualified nor tested in accordance with automotive testing
+or application requirements. NXP Semiconductors accepts no liability for
+inclusion and/or use of non-automotive qualified products in automotive
+equipment or applications.
+In the event that customer uses the product for design-in and use in
+automotive applications to automotive specifications and standards,
+customer (a) shall use the product without NXP Semiconductors’ warranty
+of the product for such automotive applications, use and specifications, and
+(b) whenever customer uses the product for automotive applications beyond
+NXP Semiconductors’ specifications such use shall be solely at customer’s
+own risk, and (c) customer fully indemnifies NXP Semiconductors for any
+liability, damages or failed product claims resulting from customer design and
+use of the product for automotive applications beyond NXP Semiconductors’
+standard warranty and NXP Semiconductors’ product specifications.
+Translations — A non-English (translated) version of a document, including
+the legal information in that document, is for reference only. The English
+version shall prevail in case of any discrepancy between the translated and
+English versions.
+
+PCF2131
+
+Product data sheet
+
+Security — Customer understands that all NXP products may be subject to
+unidentified vulnerabilities or may support established security standards or
+specifications with known limitations. Customer is responsible for the design
+and operation of its applications and products throughout their lifecycles
+to reduce the effect of these vulnerabilities on customer’s applications
+and products. Customer’s responsibility also extends to other open and/or
+proprietary technologies supported by NXP products for use in customer’s
+applications. NXP accepts no liability for any vulnerability. Customer should
+regularly check security updates from NXP and follow up appropriately.
+Customer shall select products with security features that best meet rules,
+regulations, and standards of the intended application and make the
+ultimate design decisions regarding its products and is solely responsible
+for compliance with all legal, regulatory, and security related requirements
+concerning its products, regardless of any information or support that may be
+provided by NXP.
+NXP has a Product Security Incident Response Team (PSIRT) (reachable
+at PSIRT@nxp.com) that manages the investigation, reporting, and solution
+release to security vulnerabilities of NXP products.
+NXP B.V. — NXP B.V. is not an operating company and it does not distribute
+or sell products.
+
+Trademarks
+Notice: All referenced brands, product names, service names, and
+trademarks are the property of their respective owners.
+NXP — wordmark and logo are trademarks of NXP B.V.
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+76 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+Tables
+Tab. 1.
+Tab. 2.
+Tab. 3.
+Tab. 4.
+Tab. 5.
+Tab. 6.
+Tab. 7.
+Tab. 8.
+Tab. 9.
+Tab. 10.
+Tab. 11.
+Tab. 12.
+Tab. 13.
+Tab. 14.
+Tab. 15.
+Tab. 16.
+Tab. 17.
+Tab. 18.
+Tab. 19.
+Tab. 20.
+Tab. 21.
+Tab. 22.
+Tab. 23.
+Tab. 24.
+Tab. 25.
+Tab. 26.
+Tab. 27.
+Tab. 28.
+Tab. 29.
+Tab. 30.
+Tab. 31.
+Tab. 32.
+Tab. 33.
+
+Ordering information ..........................................3
+Ordering options ................................................3
+Pin description ...................................................5
+Register overview ..............................................7
+Control_1 - control and status register 1
+(address 00h) bit allocation ...............................9
+Control_1 - control and status register 1
+(address 00h) bit description .............................9
+Control_2 - control and status register 2
+(address 01h) bit allocation ...............................9
+Control_2 - control and status register 2
+(address 01h) bit description ...........................10
+Control_3 - control and status register 3
+(address 02h) bit allocation ............................. 10
+Control_3 - control and status register 3
+(address 02h) bit description ...........................11
+Control_4 - control and status register 4
+(address 03h) bit allocation ............................. 11
+Control_4 - control and status register 4
+(address 03h) bit description ...........................11
+Control_5 - control and status register 5
+(address 04h) bit allocation ............................. 12
+Control_5 - control and status register 5
+(address 04h) bit description ...........................12
+CLKOUT_ctl - CLKOUT control register
+(address 13h) bit allocation ............................. 12
+CLKOUT_ctl - CLKOUT control register
+(address 13h) bit description ...........................13
+Temperature measurement period .................. 14
+CLKOUT frequency selection ..........................14
+Aging_offset - crystal aging offset register
+(address 30h) bit allocation ............................. 15
+Aging_offset - crystal aging offset register
+(address 30h) bit description ...........................15
+Frequency correction at 25 °C, typical ............ 15
+Power management control bit description ......16
+Output pin BBS ............................................... 20
+Reset - software reset control (address
+05h) bit description ..........................................22
+100th Seconds - 100th seconds (address
+06h) bit allocation ............................................24
+100th Seconds - 100th seconds register
+(address 06h) bit description ...........................24
+100th Seconds coded in BCD format .............. 24
+Seconds - seconds and clock integrity
+register (address 07h) bit allocation ................ 24
+Seconds - seconds and clock integrity
+register (address 07h) bit description .............. 24
+Seconds coded in BCD format ........................25
+Minutes - minutes register (address 08h) bit
+allocation ......................................................... 25
+Minutes - minutes register (address 08h) bit
+description ....................................................... 25
+Hours - hours register (address 09h) bit
+allocation ......................................................... 25
+
+PCF2131
+
+Product data sheet
+
+Tab. 34.
+Tab. 35.
+Tab. 36.
+Tab. 37.
+Tab. 38.
+Tab. 39.
+Tab. 40.
+Tab. 41.
+Tab. 42.
+Tab. 43.
+Tab. 44.
+Tab. 45.
+Tab. 46.
+Tab. 47.
+Tab. 48.
+Tab. 49.
+Tab. 50.
+Tab. 51.
+Tab. 52.
+Tab. 53.
+Tab. 54.
+Tab. 55.
+Tab. 56.
+Tab. 57.
+Tab. 58.
+Tab. 59.
+Tab. 60.
+Tab. 61.
+Tab. 62.
+Tab. 63.
+Tab. 64.
+
+Hours - hours register (address 09h) bit
+description ....................................................... 26
+Days - days register (address 0Ah) bit
+allocation ......................................................... 26
+Days - days register (address 0Ah) bit
+description ....................................................... 26
+Weekdays - weekdays register (address
+0Bh) bit allocation ........................................... 27
+Weekdays - weekdays register (address
+0Bh) bit description ......................................... 27
+Weekday assignments .................................... 27
+Months - months register (address 0Ch) bit
+allocation ......................................................... 27
+Months - months register (address 0Ch) bit
+description ....................................................... 28
+Month assignments in BCD format ..................28
+Years - years register (address 0Dh) bit
+allocation ......................................................... 28
+Years - years register (address 0Dh) bit
+description ....................................................... 28
+Second_alarm - second alarm register
+(address 0Eh) bit allocation .............................30
+Second_alarm - second alarm register
+(address 0Eh) bit description .......................... 31
+Minute_alarm - minute alarm register
+(address 0Fh) bit allocation .............................31
+Minute_alarm - minute alarm register
+(address 0Fh) bit description ...........................31
+Hour_alarm - hour alarm register (address
+10h) bit allocation ............................................31
+Hour_alarm - hour alarm register (address
+10h) bit description ..........................................31
+Day_alarm - day alarm register (address
+11h) bit allocation ............................................ 32
+Day_alarm - day alarm register (address
+11h) bit description .......................................... 32
+Weekday_alarm - weekday alarm register
+(address 12h) bit allocation ............................. 33
+Weekday_alarm - weekday alarm register
+(address 12h) bit description ...........................33
+Watchdg_tim_ctl - watchdog timer control
+register (address 35h) bit allocation ................ 34
+Watchdg_tim_ctl - watchdog timer control
+register (address 35h) bit description .............. 34
+Watchdg_tim_val - watchdog timer value
+register (address 36h) bit allocation ................ 34
+Watchdg_tim_val - watchdog timer value
+register (address 36h) bit description .............. 34
+Programmable watchdog timer ....................... 35
+Flag location in register Control_2 .................. 36
+Example values in register Control_2 ..............36
+Example to clear only AF (bit 4) ......................37
+Example to clear only MSF (bit 7) ................... 37
+Timestp_ctl1/2/3/4 - timestamp control
+register (address 14h/1Bh/22h/29h) bit
+allocation ......................................................... 38
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+77 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Tab. 65.
+Tab. 66.
+Tab. 67.
+Tab. 68.
+Tab. 69.
+Tab. 70.
+Tab. 71.
+Tab. 72.
+Tab. 73.
+Tab. 74.
+
+Timestp_ctl1/2/3/4 - timestamp control
+register (address 14h/1Bh/22h/29h) bit
+description ....................................................... 38
+Sec_timestp1/2/3/4 - second timestamp
+register (address 15h/1Ch/23h/2Ah) bit
+allocation ......................................................... 38
+Sec_timestp1/2/3/4 - second timestamp
+register (address 15h/1Ch/23h/2Ah) bit
+description ....................................................... 39
+Min_timestp1/2/3/4 - minute timestamp
+register (address 16h/1Dh/24h/2Bh) bit
+allocation ......................................................... 39
+Min_timestp1/2/3/4 - minute timestamp
+register (address 16h/1Dh/24h/2Bh) bit
+description ....................................................... 39
+Hour_timestp1/2/3/4 - hour timestamp
+register (address 17h/1Eh/25h/2Ch) bit
+allocation ......................................................... 39
+Hour_timestp1/2/3/4 - hour timestamp
+register (address 17h/1Eh/25h/2Ch) bit
+description ....................................................... 39
+Day_timestp1/2/3/4 - day timestamp
+register (address 18h/1Fh/26h/2Dh) bit
+allocation ......................................................... 40
+Day_timestp1/2/3/4 - day timestamp
+register (address 18h/1Fh/26h/2Dh) bit
+description ....................................................... 40
+Mon_timestp1/2/3/4 - month timestamp
+register (address 19h/20h/27h/2Eh) bit
+allocation ......................................................... 40
+
+Tab. 75.
+Tab. 76.
+Tab. 77.
+Tab. 78.
+Tab. 79.
+Tab. 80.
+Tab. 81.
+Tab. 82.
+Tab. 83.
+Tab. 84.
+Tab. 85.
+Tab. 86.
+Tab. 87.
+Tab. 88.
+Tab. 89.
+Tab. 90.
+Tab. 91.
+Tab. 92.
+Tab. 93.
+Tab. 94.
+Tab. 95.
+
+Mon_timestp1/2/3/4 - month timestamp
+register (address 19h/20h/27h/2Eh) bit
+description ....................................................... 40
+Year_timestp1/2/3/4 - year timestamp
+register (address 1Ah/21h/28h/2Fh) bit
+allocation ......................................................... 41
+Year_timestp1/2/3/4 - year timestamp
+register (address 1Ah/21h/28h/2Fh) bit
+description ....................................................... 41
+Battery switch-over and timestamp ................. 41
+Effect of bits MI and SI on pin INTA/B and
+bit MSF ............................................................43
+INT_A/B_MASK1 - interrupt mask 1
+register (address 31h/33h) bit allocation ......... 45
+INT_A/B_MASK1 - interrupt mask 1
+register (address 31h/33h) bit description ....... 45
+INT_A/B_MASK2 - interrupt mask 2
+register (address 32h/34h) bit allocation ......... 46
+INT_A/B_MASK2 - interrupt mask 2
+register (address 32h/34h) bit description ....... 46
+Interface selection input pin IFS ......................47
+Serial interface ................................................ 48
+Command byte definition ................................ 49
+I2C slave address byte ................................... 52
+Limiting values ................................................ 54
+Static characteristics ....................................... 55
+Frequency characteristics ............................... 59
+SPI-bus characteristics ....................................61
+I2C-bus characteristics ....................................62
+Selection of RTCs ........................................... 72
+Acronyms .........................................................72
+Revision history ...............................................73
+
+Figures
+Fig. 1.
+Fig. 2.
+Fig. 3.
+Fig. 4.
+Fig. 5.
+Fig. 6.
+Fig. 7.
+Fig. 8.
+Fig. 9.
+Fig. 10.
+Fig. 11.
+Fig. 12.
+Fig. 13.
+Fig. 14.
+Fig. 15.
+
+Block diagram of PCF2131 ............................... 4
+Pin configuration for PCF2131 (transparent
+top view) ............................................................5
+Handling address registers ............................... 6
+Battery switch-over behavior in standard
+mode with bit BIE set logic 1 (enabled) ........... 18
+Battery switch-over behavior in direct
+switching mode with bit BIE set logic 1
+(enabled) ......................................................... 19
+Battery switch-over circuit, simplified block
+diagram ............................................................19
+Battery low detection behavior with bit BLIE
+set logic 1 (enabled) ....................................... 20
+Power failure event due to battery
+discharge: reset occurs ................................... 21
+Dependency between POR and oscillator ....... 22
+Software reset command ................................ 23
+Data flow for the time function ........................ 29
+Alarm function block diagram ..........................30
+Alarm flag timing diagram ............................... 33
+WD_CD set logic 1: watchdog activates an
+interrupt when timed out ................................. 36
+Interrupt block diagram ................................... 42
+
+PCF2131
+
+Product data sheet
+
+Fig. 16.
+Fig. 17.
+Fig. 18.
+Fig. 19.
+Fig. 20.
+Fig. 21.
+Fig. 22.
+Fig. 23.
+Fig. 24.
+Fig. 25.
+Fig. 26.
+Fig. 27.
+Fig. 28.
+Fig. 29.
+Fig. 30.
+Fig. 31.
+Fig. 32.
+Fig. 33.
+Fig. 34.
+
+INTA/B example for SI and MI when TI_TP
+is logic 1 ..........................................................43
+INTA/B example for SI and MI when TI_TP
+is logic 0 ..........................................................43
+Example of shortening the INTA/B pulse by
+clearing the MSF flag ......................................44
+AF timing diagram ...........................................45
+CPR and STOP bit functional diagram ............ 47
+STOP release timing ....................................... 47
+Interface selection ........................................... 48
+SDI, SDO configurations ................................. 48
+Data transfer overview .................................... 49
+SPI-bus write example .................................... 49
+SPI-bus read example .....................................50
+Bit transfer .......................................................50
+Definition of START and STOP conditions ...... 51
+System configuration .......................................51
+Acknowledgment on the I2C-bus .................... 52
+Bus protocol, writing to registers ..................... 52
+Bus protocol, reading from registers ............... 53
+Device diode protection diagram of
+PCF2131 ......................................................... 53
+IOL on pin SDA/CE .........................................57
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+78 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+Fig. 35.
+Fig. 36.
+Fig. 37.
+Fig. 38.
+Fig. 39.
+Fig. 40.
+Fig. 41.
+Fig. 42.
+
+IDD as a function of temperature .................... 58
+IDD as a function of VDD ............................... 59
+Temperature compensation comparison ......... 60
+SPI-bus timing .................................................62
+I2C-bus timing diagram; rise and fall times
+refer to 30 % and 70 % .................................. 63
+General application diagram ........................... 64
+Package outline SOT1992-1 (HLSON16) ........65
+Package outline SOT1992-1 (HLSON16);
+detail G ............................................................66
+
+PCF2131
+
+Product data sheet
+
+Fig. 43.
+Fig. 44.
+Fig. 45.
+Fig. 46.
+
+Package outline SOT1992-1 (HLSON16);
+notes ................................................................67
+Footprint information part 1 for reflow
+soldering of SOT1992-1 (HLSON16) ...............69
+Footprint information part 2 for reflow
+soldering of SOT1992-1 (HLSON16) ...............70
+Footprint information part 3 for reflow
+soldering of SOT1992-1 (HLSON16) ...............71
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+79 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+
+Contents
+1
+2
+3
+4
+4.1
+5
+6
+6.1
+6.2
+7
+7.1
+7.2
+7.2.1
+7.2.2
+7.2.3
+7.2.4
+7.2.5
+7.3
+7.3.1
+7.3.1.1
+7.3.2
+7.3.3
+7.4
+7.4.1
+7.5
+7.5.1
+7.5.1.1
+7.5.1.2
+7.5.1.3
+7.5.1.4
+7.5.2
+7.5.3
+7.6
+7.7
+7.7.1
+7.8
+7.8.1
+7.8.2
+7.8.3
+7.9
+7.9.1
+7.9.2
+7.9.3
+7.9.4
+7.9.5
+7.9.6
+7.9.7
+7.9.8
+7.9.9
+7.10
+7.10.1
+7.10.2
+7.10.3
+7.10.4
+7.10.5
+
+General description ......................................... 2
+Features and benefits ..................................... 2
+Applications ..................................................... 3
+Ordering information .......................................3
+Ordering options ................................................ 3
+Block diagram ..................................................4
+Pinning information .........................................5
+Pinning ............................................................... 5
+Pin description ................................................... 5
+Functional description .................................... 6
+Register overview .............................................. 6
+Control registers ................................................ 8
+Register control_1 ............................................. 9
+Register control_2 ............................................. 9
+Register control_3 ............................................10
+Register control_4 ............................................11
+Register control_5 ............................................12
+Register CLKOUT_ctl ...................................... 12
+Temperature compensated RTC ......................13
+Temperature measurement ..............................13
+OTP refresh ..................................................... 14
+Clock output .....................................................14
+Register Aging_offset ...................................... 15
+Crystal aging correction ...................................15
+Power management functions ......................... 16
+Battery switch-over function .............................17
+Standard mode ................................................ 17
+Direct switching mode ..................................... 18
+Battery switch-over disabled: only one
+power supply (VDD) ........................................ 19
+Battery switch-over architecture ...................... 19
+Battery low detection function ..........................19
+Battery backup supply ..................................... 20
+Oscillator stop detection function .....................21
+Power-On Reset function ................................ 21
+Power-On Reset (POR) ...................................21
+Software reset register .................................... 22
+SR: software reset ...........................................23
+CPR: clear prescaler ....................................... 23
+CTS: clear timestamp ...................................... 23
+Time and date function .................................... 23
+Register 100th Seconds .................................. 24
+Register Seconds ............................................ 24
+Register Minutes ..............................................25
+Register Hours .................................................25
+Register Days .................................................. 26
+Register Weekdays ..........................................27
+Register Months .............................................. 27
+Register Years ................................................. 28
+Setting and reading the time ........................... 29
+Alarm function ..................................................30
+Register Second_alarm ................................... 30
+Register Minute_alarm .....................................31
+Register Hour_alarm ........................................31
+Register Day_alarm ......................................... 32
+Register Weekday_alarm .................................33
+
+PCF2131
+
+Product data sheet
+
+7.10.6
+7.11
+7.11.1
+7.11.2
+7.11.3
+7.11.4
+7.11.5
+7.12
+7.12.1
+7.12.2
+7.12.3
+7.12.3.1
+7.12.3.2
+7.12.3.3
+7.12.3.4
+7.12.3.5
+7.12.3.6
+7.12.3.7
+7.12.4
+7.13
+7.13.1
+7.13.2
+7.13.3
+7.13.4
+7.13.5
+7.13.6
+7.13.7
+7.13.8
+7.14
+7.15
+7.15.1
+7.15.1.1
+7.15.2
+7.15.2.1
+7.15.2.2
+7.15.2.3
+7.15.2.4
+7.15.2.5
+7.15.3
+7.16
+7.17
+8
+9
+9.1
+9.2
+10
+10.1
+10.2
+11
+12
+13
+13.1
+14
+
+Alarm Flag (AF) ............................................... 33
+Watchdog timer functions ................................ 33
+Register Watchdg_tim_ctl ................................ 34
+Register Watchdg_tim_val ............................... 34
+Watchdog timer function .................................. 35
+Predefined timers: second and minute
+interrupts .......................................................... 36
+Clearing flags ...................................................36
+Timestamp function ......................................... 37
+Timestamp flag ................................................ 37
+Timestamp mode ............................................. 37
+Timestamp registers ........................................ 38
+Register Timestp_ctl1/2/3/4 ............................. 38
+Register Sec_timestp .......................................38
+Register Min_timestp ....................................... 39
+Register Hour_timestp ..................................... 39
+Register Day_timestp ...................................... 40
+Register Mon_timestp ......................................40
+Register Year_timestp ......................................41
+Dependency between Battery switch-over
+and timestamp ................................................. 41
+Interrupt output, INTA/INTB ............................. 41
+Minute and second interrupts .......................... 42
+INTA/B pulse shortening .................................. 44
+Watchdog timer interrupts ................................44
+Alarm interrupts ............................................... 44
+Timestamp interrupts ....................................... 45
+Battery switch-over interrupts .......................... 45
+Battery low detection interrupts ....................... 45
+Interrupt masks ................................................ 45
+STOP bit function ............................................ 46
+Interfaces ......................................................... 47
+SPI-bus interface ............................................. 48
+Data transmission ............................................ 49
+I2C-bus interface ............................................. 50
+Bit transfer ....................................................... 50
+START and STOP conditions .......................... 50
+System configuration ....................................... 51
+Acknowledge ....................................................51
+I2C-bus protocol .............................................. 52
+Bus communication and battery backup
+operation .......................................................... 53
+Internal circuitry ............................................... 53
+Safety notes .....................................................54
+Limiting values ...............................................54
+Static characteristics .....................................55
+Current consumption characteristics, typical ....57
+Frequency characteristics ................................ 59
+Dynamic characteristics ............................... 61
+SPI-bus timing characteristics ......................... 61
+I2C-bus timing characteristics ..........................62
+Application information ................................ 64
+Package outline ............................................. 65
+Packing information ...................................... 68
+Tape and reel information ................................68
+Soldering ........................................................ 68
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 2.2 — 20 June 2025
+
+© 2025 NXP B.V. All rights reserved.
+
+Document feedback
+80 / 81
+
+PCF2131
+
+NXP Semiconductors
+
+Nano-Power Highly Accurate RTC with Integrated Quartz Crystal
+14.1
+15
+15.1
+16
+17
+18
+
+Footprint information ........................................69
+Appendix .........................................................72
+RTC selection .................................................. 72
+Acronyms ....................................................... 72
+References ......................................................73
+Revision history .............................................73
+Legal information ...........................................75
+
+Please be aware that important notices concerning this document and the product(s)
+described herein, have been included in section 'Legal information'.
+
+© 2025 NXP B.V.
+For more information, please visit: https://www.nxp.com
+
+All rights reserved.
+Document feedback
+Date of release: 20 June 2025
+Document identifier: PCF2131
+
+
