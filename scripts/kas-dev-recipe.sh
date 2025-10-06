@@ -103,7 +103,7 @@ modify_recipe() {
     
     kas-container --ssh-agent --ssh-dir ${HOME}/.ssh \
         --runtime-args "-v ${HOME}/yocto:/var/cache" \
-        shell kas/lmp-dynamicdevices.yml \
+        shell kas/lmp-dynamicdevices-dev.yml \
         -c "devtool modify $RECIPE_NAME"
     
     echo "✅ Devtool workspace created for $RECIPE_NAME"
@@ -125,13 +125,13 @@ add_recipe() {
         echo "📥 Using source: $SOURCE_PATH"
         kas-container --ssh-agent --ssh-dir ${HOME}/.ssh \
             --runtime-args "-v ${HOME}/yocto:/var/cache" \
-            shell kas/lmp-dynamicdevices.yml \
+            shell kas/lmp-dynamicdevices-dev.yml \
             -c "devtool add $RECIPE_NAME $SOURCE_PATH"
     else
         # Interactive mode - let devtool prompt for source
         kas-container --ssh-agent --ssh-dir ${HOME}/.ssh \
             --runtime-args "-v ${HOME}/yocto:/var/cache" \
-            shell kas/lmp-dynamicdevices.yml \
+            shell kas/lmp-dynamicdevices-dev.yml \
             -c "devtool add $RECIPE_NAME"
     fi
     
@@ -151,7 +151,7 @@ build_recipe() {
     
     kas-container --ssh-agent --ssh-dir ${HOME}/.ssh \
         --runtime-args "-v ${HOME}/yocto:/var/cache" \
-        shell kas/lmp-dynamicdevices.yml \
+        shell kas/lmp-dynamicdevices-dev.yml \
         -c "bitbake $RECIPE_NAME"
     
     echo "✅ Recipe $RECIPE_NAME built successfully"
@@ -175,7 +175,7 @@ deploy_recipe() {
     
     kas-container --ssh-agent --ssh-dir ${HOME}/.ssh \
         --runtime-args "-v ${HOME}/yocto:/var/cache" \
-        shell kas/lmp-dynamicdevices.yml \
+        shell kas/lmp-dynamicdevices-dev.yml \
         -c "devtool deploy-target $RECIPE_NAME root@$TARGET_IP"
     
     echo "✅ Recipe $RECIPE_NAME deployed successfully"
@@ -214,7 +214,7 @@ recipe_shell() {
     
     kas-container --ssh-agent --ssh-dir ${HOME}/.ssh \
         --runtime-args "-v ${HOME}/yocto:/var/cache" \
-        shell kas/lmp-dynamicdevices.yml \
+        shell kas/lmp-dynamicdevices-dev.yml \
         -c "bitbake $RECIPE_NAME -c devshell"
 }
 
@@ -230,7 +230,7 @@ clean_recipe() {
     
     kas-container --ssh-agent --ssh-dir ${HOME}/.ssh \
         --runtime-args "-v ${HOME}/yocto:/var/cache" \
-        shell kas/lmp-dynamicdevices.yml \
+        shell kas/lmp-dynamicdevices-dev.yml \
         -c "bitbake $RECIPE_NAME -c cleanall"
     
     echo "✅ Recipe $RECIPE_NAME cleaned"
@@ -248,7 +248,7 @@ finish_recipe() {
     
     kas-container --ssh-agent --ssh-dir ${HOME}/.ssh \
         --runtime-args "-v ${HOME}/yocto:/var/cache" \
-        shell kas/lmp-dynamicdevices.yml \
+        shell kas/lmp-dynamicdevices-dev.yml \
         -c "devtool finish $RECIPE_NAME meta-dynamicdevices-bsp"
     
     echo "✅ Changes for $RECIPE_NAME committed to meta-dynamicdevices-bsp layer"

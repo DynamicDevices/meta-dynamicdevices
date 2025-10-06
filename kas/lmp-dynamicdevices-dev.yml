@@ -1,0 +1,58 @@
+#
+# Development-focused kas configuration without signing requirements
+# Use this for local development, devtool, and rapid iteration
+#
+# Usage: kas-container shell kas/lmp-dynamicdevices-dev.yml
+#
+
+header:
+  version: 14
+  includes:
+    - base.yml
+    - bsp.yml
+    - dynamicdevices.yml
+
+distro: lmp-dynamicdevices
+target: lmp-factory-image
+machine: imx93-jaguar-eink
+
+local_conf_header:
+  meta-dynamicdevices: |
+     ACCEPT_FSL_EULA = "1"
+     
+     # Local development build - disable SE050/OP-TEE for smaller bootloader
+     LOCAL_DEVELOPMENT_BUILD = "1"
+     
+     # NXP WiFi Firmware Configuration (for imx93-jaguar-eink)
+     NXP_WIFI_SECURE_FIRMWARE = "0"
+     
+     # Boot Profiling Configuration
+     ENABLE_BOOT_PROFILING ??= "${@os.getenv('ENABLE_BOOT_PROFILING', '0')}"
+     
+     # DISABLE SIGNING FOR LOCAL DEVELOPMENT
+     # This prevents the need for factory keys during local development
+     UBOOT_SIGN_ENABLE = "0"
+     TF_A_SIGN_ENABLE = "0"
+     OPTEE_TA_SIGN_ENABLE = "0"
+     
+     # Disable module signing for development
+     MODSIGN = "0"
+     
+     # Use dummy signing keys to satisfy recipes that check for key existence
+     # These point to a file we know exists (bitbake.lock) but signing is disabled
+     SIGNING_UBOOT_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+     SIGNING_UBOOT_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+     SIGNING_UBOOT_SPL_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+     SIGNING_UBOOT_SPL_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+     SIGNING_UEFI_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+     SIGNING_UEFI_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+     SIGNING_MODSIGN_PRIVKEY = "${TOPDIR}/bitbake.lock"
+     SIGNING_MODSIGN_X509 = "${TOPDIR}/bitbake.lock"
+     
+     # Development optimizations
+     # Skip unnecessary tasks for faster development builds
+     INHERIT:remove = "sign_rpm"
+     
+     # Enable devtool-friendly settings
+     SSTATE_MIRRORS = ""
+     BB_HASHSERVE = ""
