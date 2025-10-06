@@ -49,6 +49,12 @@ Implement two-tier development workflow:
   - [ ] Out-of-tree kernel module development
   - [ ] Rapid module rebuild and deployment
   - [ ] Module testing automation
+- [ ] **Task 2.4**: Standardize IP address and port configuration
+  - [ ] Ensure all scripts support -t/--target for IP addresses
+  - [ ] Ensure all scripts support -p/--port for debug ports
+  - [ ] Ensure all scripts support -d/--device for serial devices
+  - [ ] Add environment variable support (TARGET_IP, DEBUG_PORT, SERIAL_DEVICE)
+  - [ ] Create configuration file support for default values
 
 #### Phase 3: Boot-Level Development Workflow 🔄 IN PROGRESS  
 - [ ] **Task 3.1**: Test and refine `kas-dev-boot.sh`
@@ -120,6 +126,11 @@ Implement two-tier development workflow:
 - All development uses kas-based workflows (no direct bitbake)
 - Clear separation between runtime and boot-level development
 - Extensive use of existing serial console tools in `scripts/serial_console/`
+- **CRITICAL**: All development tools must support IP address and port configuration for target boards
+  - Target IP address configuration for SSH deployment
+  - Debug port configuration for remote debugging (GDB, etc.)
+  - Serial port configuration for boot-level development
+  - Consistent parameter naming across all scripts (-t/--target, -p/--port, -d/--device)
 
 ---
 
