@@ -33,6 +33,7 @@ Implement two-tier development workflow:
 - [x] Create `kas-dev-recipe.sh` - Recipe development workflow  
 - [x] Create `kas-dev-boot.sh` - Boot-level development workflow
 - [x] Ensure all scripts use kas-container consistently
+- [x] **BREAKTHROUGH**: Solve factory keys blocker with development kas configuration
 
 #### Phase 2: Runtime Development Workflow 🔄 IN PROGRESS
 - [ ] **Task 2.1**: Test and refine `kas-dev-kernel.sh`
@@ -55,12 +56,13 @@ Implement two-tier development workflow:
   - [ ] Ensure all scripts support -d/--device for serial devices
   - [ ] Add environment variable support (TARGET_IP, DEBUG_PORT, SERIAL_DEVICE)
   - [ ] Create configuration file support for default values
-- [ ] **Task 2.5**: Resolve factory keys issue for devtool workflow
-  - [ ] **BLOCKER**: Local devtool requires factory keys but expects them in kas container
-  - [ ] **Problem**: Keys exist in conf/factory-keys/ but kas looks in /build/conf/factory-keys/
-  - [ ] **Options**: 1) Mount keys into container, 2) Use base kas config without signing, 3) Use existing deployed apps
-  - [ ] **Workaround**: Test workflow with already-deployed applications on target boards
-  - [ ] **SSH Issue**: Target board SSH access restricted ("This account is currently not available")
+- [x] **Task 2.5**: ✅ **SOLVED** - Resolve factory keys issue for devtool workflow
+  - [x] **SOLUTION**: Created `kas/lmp-dynamicdevices-dev.yml` with signing explicitly disabled
+  - [x] **KEY INSIGHT**: Local development doesn't need factory keys - was LmP layer expectation
+  - [x] **ELEGANT FIX**: Set `UBOOT_SIGN_ENABLE="0"`, `MODSIGN="0"`, point `SIGNING_*_KEY` to `${TOPDIR}/bitbake.lock`
+  - [x] **CLEANUP**: Removed `conf/factory-keys/` directory and `generate-dummy-keys.sh` script
+  - [x] **RESULT**: `devtool modify eink-power-cli` and `devtool build` work perfectly
+  - [x] **PRODUCTION**: Original kas config still handles Foundries.io signing properly
 
 #### Phase 3: Boot-Level Development Workflow 🔄 IN PROGRESS  
 - [ ] **Task 3.1**: Test and refine `kas-dev-boot.sh`
