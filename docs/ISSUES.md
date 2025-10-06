@@ -55,6 +55,12 @@ Implement two-tier development workflow:
   - [ ] Ensure all scripts support -d/--device for serial devices
   - [ ] Add environment variable support (TARGET_IP, DEBUG_PORT, SERIAL_DEVICE)
   - [ ] Create configuration file support for default values
+- [ ] **Task 2.5**: Resolve factory keys issue for devtool workflow
+  - [ ] **BLOCKER**: Local devtool requires factory keys but expects them in kas container
+  - [ ] **Problem**: Keys exist in conf/factory-keys/ but kas looks in /build/conf/factory-keys/
+  - [ ] **Options**: 1) Mount keys into container, 2) Use base kas config without signing, 3) Use existing deployed apps
+  - [ ] **Workaround**: Test workflow with already-deployed applications on target boards
+  - [ ] **SSH Issue**: Target board SSH access restricted ("This account is currently not available")
 
 #### Phase 3: Boot-Level Development Workflow 🔄 IN PROGRESS  
 - [ ] **Task 3.1**: Test and refine `kas-dev-boot.sh`
