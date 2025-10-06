@@ -113,12 +113,12 @@ api_call() {
     # Make authenticated API call with proper headers
     if [ -n "$data" ]; then
         # POST/PUT request with JSON data
-        curl -s -X "$method" -H "Authorization: Bearer $TOKEN" \
+        curl -s -L -X "$method" -H "Authorization: Bearer $TOKEN" \
              -H "Content-Type: application/json" \
              -d "$data" "$API_BASE/$endpoint"
     else
-        # GET request (most common)
-        curl -s -H "Authorization: Bearer $TOKEN" "$API_BASE/$endpoint"
+        # GET request (most common) - Follow redirects for log access
+        curl -s -L -H "Authorization: Bearer $TOKEN" "$API_BASE/$endpoint"
     fi
 }
 
