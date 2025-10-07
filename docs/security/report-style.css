@@ -156,7 +156,7 @@ hr {
     margin: 25px 0;
 }
 
-/* Page breaks and flow control */
+/* Page breaks - simplified and working */
 .page-break {
     page-break-before: always;
 }
@@ -165,126 +165,23 @@ hr {
     page-break-inside: avoid;
 }
 
-/* Strategic page breaks for major sections */
-h1 {
-    page-break-before: always;
-}
-
-h1:first-of-type {
-    page-break-before: auto; /* Don't break before the first heading */
-}
-
-h2 {
-    page-break-before: avoid;
-    page-break-after: avoid;
-    break-after: avoid-page;
-}
-
-h3, h4 {
-    page-break-after: avoid;
-    break-after: avoid-page;
-}
-
-/* Keep related content together */
-h2 + h3,
-h3 + h4,
-h4 + p,
-h3 + p,
-h2 + p {
-    page-break-before: avoid;
-}
-
-/* Table and list handling */
-table {
-    page-break-before: avoid;
-    page-break-inside: avoid;
-    break-inside: avoid;
-}
-
-ul, ol {
-    page-break-before: avoid;
-    page-break-inside: avoid;
-    break-inside: avoid;
-}
-
-/* Keep list items with their headers */
-h3 + ul,
-h4 + ul,
-h3 + ol,
-h4 + ol {
-    page-break-before: avoid;
-}
-
-/* Avoid orphans and widows */
-p {
-    orphans: 3;
-    widows: 3;
-    page-break-inside: avoid;
-}
-
-/* Code blocks */
-pre {
-    page-break-before: avoid;
-    page-break-inside: avoid;
-    break-inside: avoid;
-}
-
-/* Status sections */
-.status-section {
-    page-break-inside: avoid;
-    break-inside: avoid;
-}
-
-/* Print optimizations */
+/* Print optimizations - minimal and safe */
 @media print {
     body {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
     
-    /* Enhanced page break control */
-    h1 {
-        page-break-before: always;
+    h1, h2, h3, h4, h5, h6 {
         page-break-after: avoid;
     }
     
-    h1:first-of-type {
-        page-break-before: auto;
-    }
-    
-    h2, h3, h4, h5, h6 {
-        page-break-after: avoid;
+    table, figure, img, pre {
         page-break-inside: avoid;
-        break-after: avoid-page;
-        break-inside: avoid;
-    }
-    
-    table, figure, img, pre, blockquote {
-        page-break-inside: avoid;
-        break-inside: avoid;
     }
     
     ul, ol {
         page-break-before: avoid;
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-    
-    li {
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-    
-    /* Avoid breaking after these elements */
-    h2 + *,
-    h3 + *,
-    h4 + * {
-        page-break-before: avoid;
-    }
-    
-    /* Force breaks before major sections */
-    h2:not(:first-of-type) {
-        page-break-before: always;
     }
 }
 
