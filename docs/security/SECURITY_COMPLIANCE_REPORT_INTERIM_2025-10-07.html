@@ -63,15 +63,17 @@ page-break-after: avoid;
 ul, ol {
 margin: 12px 0;
 padding-left: 20px;
+display: block;
 }
 li {
 margin: 6px 0;
 line-height: 1.5;
-page-break-inside: avoid;
+display: list-item;
 }
 
 ul li {
 list-style-type: disc;
+list-style-position: outside;
 }
 ul li::marker {
 color: #3182ce;
