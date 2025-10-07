@@ -153,9 +153,67 @@ margin: 25px 0;
 .page-break {
 page-break-before: always;
 }
-
 .avoid-break {
 page-break-inside: avoid;
+}
+
+h1 {
+page-break-before: always;
+}
+h1:first-of-type {
+page-break-before: auto; 
+}
+h2 {
+page-break-before: avoid;
+page-break-after: avoid;
+break-after: avoid-page;
+}
+h3, h4 {
+page-break-after: avoid;
+break-after: avoid-page;
+}
+
+h2 + h3,
+h3 + h4,
+h4 + p,
+h3 + p,
+h2 + p {
+page-break-before: avoid;
+}
+
+table {
+page-break-before: avoid;
+page-break-inside: avoid;
+break-inside: avoid;
+}
+ul, ol {
+page-break-before: avoid;
+page-break-inside: avoid;
+break-inside: avoid;
+}
+
+h3 + ul,
+h4 + ul,
+h3 + ol,
+h4 + ol {
+page-break-before: avoid;
+}
+
+p {
+orphans: 3;
+widows: 3;
+page-break-inside: avoid;
+}
+
+pre {
+page-break-before: avoid;
+page-break-inside: avoid;
+break-inside: avoid;
+}
+
+.status-section {
+page-break-inside: avoid;
+break-inside: avoid;
 }
 
 @media print {
@@ -163,14 +221,42 @@ body {
 -webkit-print-color-adjust: exact;
 print-color-adjust: exact;
 }
-h1, h2, h3, h4, h5, h6 {
+
+h1 {
+page-break-before: always;
 page-break-after: avoid;
 }
-table, figure, img {
+h1:first-of-type {
+page-break-before: auto;
+}
+h2, h3, h4, h5, h6 {
+page-break-after: avoid;
 page-break-inside: avoid;
+break-after: avoid-page;
+break-inside: avoid;
+}
+table, figure, img, pre, blockquote {
+page-break-inside: avoid;
+break-inside: avoid;
 }
 ul, ol {
 page-break-before: avoid;
+page-break-inside: avoid;
+break-inside: avoid;
+}
+li {
+page-break-inside: avoid;
+break-inside: avoid;
+}
+
+h2 + *,
+h3 + *,
+h4 + * {
+page-break-before: avoid;
+}
+
+h2:not(:first-of-type) {
+page-break-before: always;
 }
 }
 </style>
@@ -254,6 +340,9 @@ page-break-before: avoid;
 </tbody>
 </table>
 <hr />
+<div class="page-break">
+
+</div>
 <h2 id="complete-security-architecture">2. Complete Security Architecture</h2>
 <h3 id="defense-in-depth-implementation-comprehensive">3.1 Defense-in-Depth Implementation ✅ COMPREHENSIVE</h3>
 <p><strong>Layer 1: Hardware Security</strong> • ✅ EdgeLock Enclave (ELE) - Hardware security module • ✅ Secure boot chain: ROM → AHAB → U-Boot → TF-A → OP-TEE → Linux • ✅ MCUboot with RSA-2048 signatures for microcontroller • ✅ Hardware random number generator (CAAM)</p>
@@ -264,7 +353,10 @@ page-break-before: avoid;
 <p><strong>Layer 6: Access Control</strong> • ✅ SSH root login completely disabled • ✅ Password authentication disabled (keys only) • ✅ User access restricted to <code>fio</code> user • ✅ Security banner and enhanced logging</p>
 <p><strong>Layer 7: Container Security</strong> • ✅ Docker with proper isolation • ✅ Resource limits and controls • ✅ Network namespace separation • ✅ Container image security</p>
 <hr />
-<h2 id="compliance-assessment---final">4. Compliance Assessment - FINAL</h2>
+<div class="page-break">
+
+</div>
+<h2 id="compliance-assessment---interim">3. Compliance Assessment - INTERIM</h2>
 <h3 id="regulatory-compliance-achieved">4.1 Regulatory Compliance ✅ ACHIEVED</h3>
 <h4 id="eu-cyber-resilience-act-cra---article-13">EU Cyber Resilience Act (CRA) - Article 13</h4>
 <p>• ✅ <strong>Supply Chain Security</strong>: Comprehensive SBOM and vulnerability management • ✅ <strong>Security by Design</strong>: Default secure configurations implemented • ✅ <strong>Vulnerability Management</strong>: Automated scanning and update mechanisms • ✅ <strong>Incident Response</strong>: Documented procedures and monitoring • ✅ <strong>Data Protection</strong>: Multi-layer encryption and access controls</p>
@@ -388,7 +480,10 @@ page-break-before: avoid;
 </tbody>
 </table>
 <hr />
-<h2 id="risk-assessment---final">5. Risk Assessment - FINAL</h2>
+<div class="page-break">
+
+</div>
+<h2 id="risk-assessment---interim">4. Risk Assessment - INTERIM</h2>
 <h3 id="current-risk-profile-minimal">5.1 Current Risk Profile ✅ MINIMAL</h3>
 <p><strong>Risk Reduction Summary</strong>: • <strong>Critical Risks</strong>: ✅ <strong>ELIMINATED</strong> (SSH root access, unencrypted data) • <strong>High Risks</strong>: ✅ <strong>MITIGATED</strong> (Kernel exploits, network intrusion) • <strong>Medium Risks</strong>: ✅ <strong>CONTROLLED</strong> (Information disclosure, privilege escalation) • <strong>Low Risks</strong>: ✅ <strong>ACCEPTABLE</strong> (Physical access, insider threats)</p>
 <h3 id="residual-risk-analysis">5.2 Residual Risk Analysis</h3>
@@ -444,7 +539,10 @@ page-break-before: avoid;
 <p><strong>Before Security Hardening</strong>: • 🔴 <strong>High Risk</strong>: SSH root access, unencrypted data, kernel info disclosure • 🟡 <strong>Medium Risk</strong>: Network access, container escape, privilege escalation</p>
 <p><strong>After Security Hardening</strong>: • ✅ <strong>Minimal Risk</strong>: All critical and high risks eliminated or mitigated • 🟢 <strong>Low Risk</strong>: Remaining risks acceptable for production deployment</p>
 <hr />
-<h2 id="operational-security">6. Operational Security</h2>
+<div class="page-break">
+
+</div>
+<h2 id="operational-security">5. Operational Security</h2>
 <h3 id="security-monitoring-comprehensive">6.1 Security Monitoring ✅ COMPREHENSIVE</h3>
 <p><strong>Automated Monitoring</strong>: • ✅ Failed authentication attempts (SSH logs) • ✅ Privilege escalation events (sudo logs) • ✅ Container lifecycle events (Docker logs) • ✅ Network connection anomalies (iptables logs) • ✅ System integrity violations (kernel logs)</p>
 <p><strong>Log Aggregation</strong>: • ✅ Centralized logging via syslog • ✅ Log rotation and retention policies • ✅ Security event correlation • ✅ Alert generation for critical events</p>
