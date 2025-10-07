@@ -1,0 +1,215 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test & Quality Assurance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: rustfmt, clippy
+        override: true
+        
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+      
+    - name: Run clippy
+      run: cargo clippy --all-targets --all-features -- -D warnings
+      
+    - name: Run tests
+      run: cargo test --verbose
+      
+    - name: Generate documentation
+      run: cargo doc --no-deps --document-private-items
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+      
+    - name: Run security audit
+      run: cargo audit
+
+  build:
+    name: Build Multi-Platform
+    runs-on: ubuntu-latest
+    needs: [test, security-audit]
+    
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: ${{ matrix.target }}
+        
+    - name: Install cross-compilation tools
+      if: matrix.target == 'aarch64-unknown-linux-gnu'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu
+        
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Build release binary
+      run: |
+        if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+          export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
+          export CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
+        fi
+        cargo build --release --target ${{ matrix.target }}
+        
+    - name: Generate checksums
+      run: |
+        cd target/${{ matrix.target }}/release
+        sha256sum security-compliance-cli > security-compliance-cli.sha256
+        md5sum security-compliance-cli > security-compliance-cli.md5
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-compliance-cli-${{ matrix.target }}
+        path: |
+          target/${{ matrix.target }}/release/security-compliance-cli
+          target/${{ matrix.target }}/release/security-compliance-cli.sha256
+          target/${{ matrix.target }}/release/security-compliance-cli.md5
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      
+    - name: Prepare release assets
+      run: |
+        mkdir release-assets
+        
+        # x86_64 Linux
+        cp security-compliance-cli-x86_64-unknown-linux-gnu/security-compliance-cli \
+           release-assets/security-compliance-cli-linux-x64
+        cp security-compliance-cli-x86_64-unknown-linux-gnu/security-compliance-cli.sha256 \
+           release-assets/security-compliance-cli-linux-x64.sha256
+        cp security-compliance-cli-x86_64-unknown-linux-gnu/security-compliance-cli.md5 \
+           release-assets/security-compliance-cli-linux-x64.md5
+           
+        # ARM64 Linux
+        cp security-compliance-cli-aarch64-unknown-linux-gnu/security-compliance-cli \
+           release-assets/security-compliance-cli-linux-arm64
+        cp security-compliance-cli-aarch64-unknown-linux-gnu/security-compliance-cli.sha256 \
+           release-assets/security-compliance-cli-linux-arm64.sha256
+        cp security-compliance-cli-aarch64-unknown-linux-gnu/security-compliance-cli.md5 \
+           release-assets/security-compliance-cli-linux-arm64.md5
+        
+        # Make binaries executable
+        chmod +x release-assets/security-compliance-cli-*
+        
+        # List release assets
+        ls -la release-assets/
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release ${{ github.ref_name }}
+        body: |
+          ## Security Compliance CLI ${{ github.ref_name }}
+          
+          ### 🔒 Security Compliance Testing Tool
+          
+          Comprehensive security compliance testing for Dynamic Devices embedded systems.
+          
+          ### 📦 Downloads
+          
+          | Platform | Binary | Checksum |
+          |----------|--------|----------|
+          | **Linux x64** | [security-compliance-cli-linux-x64](https://github.com/DynamicDevices/security-compliance-cli/releases/download/${{ github.ref_name }}/security-compliance-cli-linux-x64) | [SHA256](https://github.com/DynamicDevices/security-compliance-cli/releases/download/${{ github.ref_name }}/security-compliance-cli-linux-x64.sha256) |
+          | **Linux ARM64** | [security-compliance-cli-linux-arm64](https://github.com/DynamicDevices/security-compliance-cli/releases/download/${{ github.ref_name }}/security-compliance-cli-linux-arm64) | [SHA256](https://github.com/DynamicDevices/security-compliance-cli/releases/download/${{ github.ref_name }}/security-compliance-cli-linux-arm64.sha256) |
+          
+          ### 🚀 Quick Start
+          
+          ```bash
+          # Download and install (Linux x64)
+          curl -L -o security-compliance-cli https://github.com/DynamicDevices/security-compliance-cli/releases/download/${{ github.ref_name }}/security-compliance-cli-linux-x64
+          chmod +x security-compliance-cli
+          
+          # Run security tests
+          ./security-compliance-cli test --host 192.168.0.36 --user fio --password fio
+          ```
+          
+          ### ✅ Features
+          
+          - Boot security verification (AHAB, secure boot chain)
+          - Runtime security testing (LUKS encryption, firewall)
+          - Hardware security validation (EdgeLock Enclave)
+          - Network security assessment
+          - EU CRA & UK CE RED compliance checking
+          - Multiple output formats (human, JSON, JUnit, Markdown)
+          
+          ### 📋 Build Information
+          
+          - **Commit**: ${{ github.sha }}
+          - **Build Date**: ${{ github.run_id }}
+          - **Rust Version**: 1.75+
+        files: release-assets/*
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

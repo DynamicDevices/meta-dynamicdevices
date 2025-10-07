@@ -161,12 +161,18 @@ pandoc \
     --highlight-style=pygments \
     --standalone
 
-# Add our custom CSS directly to the HTML file for professional styling
+# Add our custom CSS directly to the HTML file for professional styling with improved page breaks
 sed -i '/<\/head>/i \
 <style>\
 @page {\
     margin: 15mm 12mm 15mm 12mm;\
     size: A4;\
+}\
+@media print {\
+    .page-break { page-break-before: always; }\
+    .no-break { page-break-inside: avoid; }\
+    h1 { page-break-before: always; }\
+    h2 { page-break-before: auto; page-break-after: avoid; }\
 }\
 body {\
     font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;\
@@ -185,6 +191,11 @@ h1 {\
     margin-bottom: 12pt;\
     border-bottom: 3px solid #1f4e79;\
     padding-bottom: 8pt;\
+    page-break-before: always;\
+    page-break-after: avoid;\
+}\
+h1:first-of-type {\
+    page-break-before: auto;\
 }\
 h2 {\
     color: #2e5c8a;\
@@ -194,6 +205,9 @@ h2 {\
     margin-bottom: 10pt;\
     border-left: 4px solid #2e5c8a;\
     padding-left: 12pt;\
+    page-break-before: auto;\
+    page-break-after: avoid;\
+    page-break-inside: avoid;\
 }\
 h3 {\
     color: #4472c4;\
@@ -201,6 +215,8 @@ h3 {\
     font-weight: 600;\
     margin-top: 14pt;\
     margin-bottom: 8pt;\
+    page-break-after: avoid;\
+    page-break-inside: avoid;\
 }\
 h4 {\
     color: #5b9bd5;\
@@ -208,11 +224,15 @@ h4 {\
     font-weight: 600;\
     margin-top: 12pt;\
     margin-bottom: 6pt;\
+    page-break-after: avoid;\
+    page-break-inside: avoid;\
 }\
 p {\
     margin: 6pt 0;\
     text-align: justify;\
     text-justify: inter-word;\
+    orphans: 3;\
+    widows: 3;\
 }\
 blockquote {\
     background-color: #f8f9fa;\
@@ -220,6 +240,9 @@ blockquote {\
     margin: 12pt 0;\
     padding: 12pt 16pt;\
     font-style: italic;\
+    page-break-inside: avoid;\
+    orphans: 2;\
+    widows: 2;\
 }\
 table {\
     width: 100%;\
@@ -227,6 +250,15 @@ table {\
     margin: 12pt 0;\
     font-size: 10pt;\
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);\
+    page-break-inside: avoid;\
+    page-break-before: auto;\
+    page-break-after: auto;\
+}\
+thead {\
+    display: table-header-group;\
+}\
+tbody {\
+    display: table-row-group;\
 }\
 th {\
     background: linear-gradient(135deg, #1f4e79 0%, #2e5c8a 100%);\
@@ -241,6 +273,9 @@ td {\
     border-bottom: 1px solid #e1e5e9;\
     vertical-align: top;\
 }\
+tr {\
+    page-break-inside: avoid;\
+}\
 tr:nth-child(even) td {\
     background-color: #f8f9fa;\
 }\
@@ -250,10 +285,12 @@ tr:hover td {\
 ul, ol {\
     margin: 6pt 0;\
     padding-left: 24pt;\
+    page-break-inside: avoid;\
 }\
 li {\
     margin: 3pt 0;\
     line-height: 1.3;\
+    page-break-inside: avoid;\
 }\
 strong {\
     color: #1f4e79;\
@@ -274,18 +311,35 @@ hr {\
     height: 2px;\
     background: linear-gradient(90deg, #1f4e79 0%, #4472c4 100%);\
     margin: 20pt 0;\
+    page-break-before: auto;\
+    page-break-after: auto;\
+}\
+/* Specific page break classes */\
+.section-break {\
+    page-break-before: always;\
+}\
+.keep-together {\
+    page-break-inside: avoid;\
+}\
+.allow-break {\
+    page-break-inside: auto;\
 }\
 </style>' "${TEMP_HTML}"
 
-# Convert HTML to PDF with wkhtmltopdf using professional margins
+# Convert HTML to PDF with wkhtmltopdf using explicit page settings for proper pagination
 wkhtmltopdf \
     --page-size A4 \
+    --orientation Portrait \
     --margin-top 15mm \
     --margin-bottom 15mm \
     --margin-left 12mm \
     --margin-right 12mm \
-    --header-spacing 3 \
-    --footer-spacing 3 \
+    --minimum-font-size 8 \
+    --encoding UTF-8 \
+    --dpi 300 \
+    --image-quality 94 \
+    --javascript-delay 1000 \
+    --no-stop-slow-scripts \
     "${TEMP_HTML}" \
     "${OUTPUT_FILE}"
 

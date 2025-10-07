@@ -1,0 +1,49 @@
+[package]
+name = "security-compliance-cli"
+version = "0.1.0"
+edition = "2021"
+authors = ["Alex J Lennon <ajlennon@dynamicdevices.co.uk>"]
+description = "Security compliance testing CLI for Dynamic Devices embedded systems"
+homepage = "https://github.com/DynamicDevices/security-compliance-cli"
+repository = "https://github.com/DynamicDevices/security-compliance-cli"
+license = "Proprietary"
+keywords = ["security", "compliance", "embedded", "testing", "imx93"]
+categories = ["command-line-utilities", "development-tools::testing"]
+
+[dependencies]
+clap = { version = "4.4", features = ["derive", "color"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+colored = "2.0"
+indicatif = "0.17"
+regex = "1.10"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+ssh2 = "0.9"
+tempfile = "3.8"
+async-trait = "0.1"
+toml = "0.8"
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockall = "0.12"
+tempfile = "3.8"
+
+[[bin]]
+name = "security-compliance-cli"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true
