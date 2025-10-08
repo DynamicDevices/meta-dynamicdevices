@@ -1,0 +1,7812 @@
+AN13917
+
+i.MX 93 Power Consumption Measurement
+Rev. 3 — 29 February 2024
+
+Application note
+
+Document information
+Information
+
+Content
+
+Keywords
+
+AN13917, i.MX 93, MCIMX93-EVK, power consumption, i.MX 93 power domains
+
+Abstract
+
+This application note describes how to measure the current drain of the i.MX 93 application
+processor on an NXP i.MX 93 EVK board, through different use cases.
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+
+1 Introduction
+This application note is intended to help system designers to create power-optimized systems. It describes
+how to measure the current drain of the i.MX 93 application processor on an NXP i.MX 93 EVK board through
+different use cases.
+Note:
+Some use case binaries can be found in AN13917SW.
+Users can choose the appropriate power supply domains for the i.MX 93 processor and become familiar with
+the expected processor power consumption in various scenarios.
+Note: The reported results are not guaranteed because the data presented in this application note is based on
+empirical measurements performed on a small sample size.
+
+2 Acronyms
+Table 1 lists the acronyms used in this document.
+Table 1. Acronyms
+Acronym
+
+Meaning
+
+CA55
+
+Arm Cortex-A55 processor
+
+CM33
+
+Arm Cortex-M33 processor
+
+ADC
+
+Analog-to-digital converter
+
+AHB
+
+Arm AMBA high-performance bus
+
+APLL
+
+Auxiliary phase-locked loop clock generator
+
+Arm
+
+Advanced RISC machine processor architecture
+
+AXI
+
+Arm Advanced eXtensible Interface
+
+BSP
+
+Board support package
+
+BBNSM
+
+Battery-backed non-secure module
+
+BBSM
+
+Battery-backed security module
+
+CCM
+
+Clock controller module
+
+DAC
+
+Digital-to-analog converter
+
+DDR
+
+Dual data rate DRAM
+
+DMA
+
+i.MX 93 direct memory access controller
+
+DRAM
+
+Dynamic random-access memory
+
+EVK
+
+Evaluation kit
+
+FIRC
+
+FAST internal reference clock
+
+GND
+
+Ground
+
+GPIO
+
+General-purpose input/output
+
+High-Z
+
+High-impedance
+
+I/Os
+
+Inputs/Outputs
+
+IOMUX
+
+Chip-level I/O multiplexing
+
+IOMUXC
+
+i.MX 93 input/output multiplexing controller
+
+AN13917
+
+All information provided in this document is subject to legal disclaimers.
+
+Application note
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+2 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 1. Acronyms...continued
+Acronym
+
+Meaning
+
+LDO
+
+Low drop-out regulator
+
+LPAV
+
+Low-power audio/video domain
+
+LPDDR4
+
+Low-power DDR4 SDRAM with 1.1 V I/O supply
+
+LPDDR4x
+
+Low-power DDR4 SDRAM with 0.6 V I/O supply
+
+LPTMR
+
+i.MX 93 low-power timer
+
+LVD
+
+Low-voltage detector
+
+MIPI-CSI
+
+MIPI - Camera serial interface controller
+
+MIPI-DSI
+
+MIPI - Display serial interface controller
+
+MU
+
+i.MX 93 messaging unit
+
+ND
+
+Nominal drive
+
+OD
+
+Overdrive
+
+OTP
+
+One-time programmable
+
+PCB
+
+Printed-circuit board
+
+PLL
+
+Phase-locked loop clock generator
+
+PMC
+
+Power management controller
+
+PMIC
+
+Power management-integrated circuit
+
+RAM
+
+Random access memory
+
+ROM
+
+Read-only memory
+
+RTC
+
+Real-time clock
+
+SDK
+
+Software development kit
+
+SIM
+
+i.MX 93 system integration module
+
+SIRC
+
+Slow internal reference clock
+
+SoC
+
+System on chip
+
+SPLL
+
+System phase-locked loop clock generator
+
+SRAM
+
+On-chip static random access memory
+
+TCM
+
+Cortex-M33 tightly coupled memory
+
+UART
+
+Universal asynchronous receiver/transmitter
+
+USB
+
+Universal serial bus
+
+USB 2.0
+
+USB version 2.0 peripheral
+
+USB OTG
+
+USB on-the-go
+
+VFS
+
+Voltage and frequency scaling
+
+WFI
+
+Wait for interrupt
+
+WUU
+
+Wake-up unit
+
+AN13917
+
+All information provided in this document is subject to legal disclaimers.
+
+Application note
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+3 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+
+3 i.MX 93 power architecture
+The power architecture of the chip is established with the presumption that the most affordable systems are built
+for the scenario in which the PMIC is used to supply all the power rails to the processor.
+Figure 1 shows the power architecture diagram for the entire SoC.
+Note: Figure 1 shows only the power supplies and does not show the capacitors that can be required for
+internal LDO regulators.
+The values in Figure 1 are for reference purpose only. For actual values, refer i.MX 93 EVK Applications
+Processors Data Sheet.
+From an architectural standpoint, most SoC digital and analog logic can be power gated in Low-power mode
+through an external PMIC supply or an internal power switch.
+Cortex A55 Platform
+CPU #0
+L1 Cache
+L2 Cache
+
+CPU #1
+L1 Cache
+L2 Cache
+
+L3 Controller & SCU
+L3 Cache Memory
+VDD_ARM_PLL_0P8
+
+ARM PLL
+
+VDD_ARM_PLL_1P8
+
+0.65 V
+0.80 V
+0.85 V
+0.90 V
+
+VDD
+_ SOC
+AONMIX, ANAMIX,
+HSIOMIX, CCMSRCGPCMIX
+
+SoC Top-level
+MEDIAMIX
+LCDIF, IS I, MIPI Ctl, PXP
+
+DDRMIX
+DRAM Controller
+
+MLMIX
+ML IP
+
+NICMIX
+NIC_CENTRAL, GIC-600
+
+WAKEUPMIX
+WAKEUPMIX logic
+
+3.3/1.8 V
+
+NVCC_SD
+
+SD Card GPIO PAD
+
+NVCC_XXX
+
+3.3 V
+
+3.3 V GPIO PAD
+
+NVCC_XXX
+
+1.8 V
+Filter
+
+0.8 V
+Analog
+
+1.8 V GPIO PAD
+VDDA_1P8_EFUSE
+
+VDD_ANA_0P8
+VDD_ANAx_1P8
+
+VDDD_0P8_PLL
+VDDA_1P8_PLL
+VDDA_0P8_TSENSE
+VDDA_1P8_TSENSE
+VDDA_1P8_XTAL
+VDDA_1P8_ADC
+
+VDD_DDR_PLL_0P8
+VDD2_DDR
+VDDQ_DDR
+
+1.1 V
+DRAM IO
+
+VDD_DDR_PLL_1P8
+
+VDD_LVDS_1P8
+
+Optional 0.6 V
+DRAM IO
+(LPDDR4X only)
+
+ADC
+DRAM PLL
+DRAM PHY
+
+USB PHYs
+
+VDD_USB_0P8
+
+1.8 V BBSM
+
+XTAL
+
+MIPI PHYs
+
+VDD_USB_1P8
+VDD_USB_3P3
+
+Optional
+Regulator
+
+PLLs
+Temperature Sensor
+
+LVDS PHY
+
+VDD_MIPI_1P8
+VDD_MIPI_0P8
+
+Optional
+Battery
+
+eFuse
+
+0.8 V LDO
+Regulator
+
+VDD_BBSM_0P8
+
+NVCC_BBSM_1P8
+
+BBSM_LP Logic
+BBSM IO
+
+Figure 1. i.MX 93 power architecture
+
+Table 2 summarizes the operating condition for all the external power rails.
+Note: Table 2 does not include I/O for capacitors required to support internal LDO regulators. The values in this
+table are for reference purpose only. For actual values, refer i.MX 93 EVK Applications Processors Data Sheet.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+4 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 2. External power supply
+Vmin
+(V)
+
+Vtyp
+(V)
+
+Vmax
+(V)
+
+Description
+
+0.85
+
+0.90
+
+0.95
+
+Power supply for SoC, Overdrive mode
+
+0.80
+
+0.85
+
+0.90
+
+Power supply for SoC, Nominal drive mode
+
+0.76
+
+0.80
+
+0.84
+
+Power supply for SoC, Low-drive mode
+
+0.61
+
+0.65
+
+0.70
+
+Power supply for SoC, Suspend mode
+
+VDD_ANAx_0P8
+VDD_MIPI_0P8
+VDD_USB_0P8
+
+0.76
+
+0.80
+
+0.84
+
+Digital supply for PLLs, temperature sensor, LVCMOS
+I/O, MIPI, and USB PHYs
+
+VDD_ANAx_1P8
+VDD_LVDS_1P8
+VDD_MIPI_1P8
+VDD_USB_1P8
+VDD_ANAVDET_1P8
+
+1.71
+
+1.80
+
+1.89
+
+1.8 V supply for PLLs, eFuse, temperature sensor,
+LVCMOS voltage detect reference, ADC, 24 MHz
+XTAL, LVDS, MIPI, and USB PHYs
+
+VDD_USB_3P3
+
+3.07
+
+3.30
+
+3.45
+
+3.3 V supply for USB PHY
+(Vmax consistent with Vmax supported by NVCC GPIO
+supplies)
+
+VDD2_DDR
+VDDQ_DDR (for
+LPDDR4)
+
+1.06
+
+1.10
+
+1.14
+
+Voltage tolerances as per LPDDR4 PHY
+
+VDD2_DDR
+VDDQ_DDR (for
+LPDDR4X)
+
+0.57
+
+0.60
+
+0.67
+
+Voltage tolerances as per LPDDR4X PHY
+
+NVCC_BBSM_1P8
+
+1.62
+
+1.80
+
+1.98
+
+I/O supply for GPIO in BBSM bank
+
+NVCC_AON
+NVCC_SD2
+NVCC_GPIO
+NVCC_WAKEUP
+
+1.62
+
+1.80
+
+1.98
+
+Power supply for GPIO when it is in 1.8 V mode
+
+3.00
+
+3.30
+
+3.47
+
+Power supply for GPIO when it is in 3.3 V mode
+
+Power rail
+
+VDD_SOC
+
+4 i.MX 93 power overview
+This section describes the power domains and modes for the i.MX 93 processor.
+
+4.1 i.MX 93 power domains overview
+To optimize the power consumption in Low-power modes, i.MX 93 has multiple power domains. As a result,
+most SoC digital and analog logics are power gated with an internal power switch or an external supply from
+PMIC in Low-power mode.
+Note: The values in Table 3 are for reference purpose only. For actual values, refer i.MX 93 EVK Applications
+Processors Data Sheet.
+Table 3. SoC power domains
+Domain
+
+Power supply
+
+Type
+
+Physical domains
+
+CPU
+
+VDD_SOC
+
+Digital
+
+Cortex-A55 core
+
+PDCPU0
+
+VDD_SOC with switch
+
+Digital
+
+Cortex-A55 core
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+5 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 3. SoC power domains...continued
+Domain
+
+Power supply
+
+Type
+
+Physical domains
+
+PDCPU1
+
+VDD_SOC with switch
+
+Digital
+
+Cortex-A55 core
+
+PDPLAT
+
+VDD_SOC with switch
+
+Digital
+
+Cortex-A55 core
+
+PDL3
+
+VDD_SOC with switch
+
+Digital
+
+Cortex-A55 core
+
+ML
+
+VDD_SOC with switch
+
+Digital
+
+MLMIX
+
+SOC
+
+VDD_SOC
+
+Digital
+
+CCMSRCGPCMIX, AONMIX, ANAMIX (digital
+portion), and SoC top level
+
+MEDIA_LOGIC
+
+VDD_SOC with switch
+
+Digital
+
+MEDIAMIX (excluding the always-on LDB/LVDS
+logic and PHYs)
+
+Wake-up
+
+VDD_SOC with switch
+
+Digital
+
+WAKEUPMIX
+
+DRAM_LOGIC
+
+VDD_SOC with switch
+
+Digital
+
+DDRC (controller/PLL-related logic, but not
+PHY-related logic)
+
+NIC
+
+VDD_SOC with switch
+
+Digital
+
+NICMIX
+
+BBSM_LOGIC
+
+VDD_BBSM_1P8
+
+Digital
+
+BBSMMIX
+
+ANALOG_0P8
+
+VDDA_0P8
+
+Analog
+
+ANAMIX (analog 0.8 portion)
+
+ANALOG_1P8
+
+VDDA_1P8
+
+Analog
+
+ANAMIX (analog 1.8 portion)
+
+LVDS_PHY_1P8
+
+VDD_LVDS_1P8
+
+Analog
+
+LVDS PHY (MEDIAMIX)
+
+MIPI_PHY_0P8
+
+VDD_MIPI_0P8
+
+Digital
+
+MIPI PHY (MEDIAMIX)
+
+MIPI_PHY_1P8
+
+VDD_MIPI_1P8
+
+Analog
+
+MIPI PHY (MEDIAMIX)
+
+USB_PHY_3P3
+
+VDD_USB_3P3
+
+Analog
+
+USB PHY (HSIOMIX)
+
+USB_PHY_1P8
+
+VDD_USB_1P8
+
+Analog
+
+USB PHY (HSIOMIX)
+
+USB_PHY_0P8
+
+VDD_USB_0P8
+
+Digital
+
+USB PHY (HSIOMIX)
+
+DRAM_IO
+
+VDDQ_DDR
+
+I/O
+
+DDRMIX
+
+ANALOG_DRAM
+
+VDDA_DRAM
+
+Analog
+
+DDRMIX
+
+NVCC_<XXX>
+
+NVCC_<XXX>
+
+I/O
+
+1.8 V/3.3 V GPIO
+
+BBSM_IO
+
+NVCC_BBSM
+
+I/O
+
+BBSM I/O Pads
+
+Note:
+• For the recommended operating conditions of each supply rail, and a detailed description of the groups of pins
+powered by each I/O voltage supply, refer i.MX 93 EVK Applications Processors Data Sheet.
+• For more details regarding the i.MX 93 power architecture, refer to the i.MX 93 Applications Processors
+Reference Manual (document IMX93RM).
+
+4.2 i.MX 93 power mode overview
+The i.MX 93 supports the following power modes:
+• Run mode: In this mode, the Cortex-A55 CPU is active and running. Some portions can be shut off for power
+saving.
+• Low-power run mode: This mode is defined as a Low-power run mode with all external power rails on. In
+this mode, all unnecessary power domains (MIX) can be off. The AONMIX and internal modules, such as
+OSC24M/PLL, are an exception in this mode. The Cortex CPU in AONMIX handles all the computing and
+data processing. Cortex-A55 is powered down and DRAM can be in self-refresh/retention mode.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+6 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+• Idle mode: This mode is defined as one that a CPU can enter automatically when no threads are engaged,
+and no high-speed devices are in use. CPU can be put into a power-gated state, but with L3 data retained,
+DRAM, and bus clocks are reduced. Most of the internal logic is clock-gated; yet is still powered. In this
+mode, all the external power from PMIC remains the same, and most IPs remain in their state. Therefore, the
+interrupt response in this mode is quick compared to the Run mode.
+• Suspend mode: This mode is defined as the most power-saving mode since it shuts off all the clocks and all
+the unnecessary power supplies. In this mode, the Cortex-A55 CPU is fully power gated, all internal digital
+logic, and the analog circuits that can be powered down are off, and all PHYs are power gated. VDD_SOC
+(and related digital supply) voltage is reduced to the "Suspend mode" voltage. Compared to Idle, this mode
+takes a longer time to exit, but it also uses far less energy.
+• BBSM mode: This mode is also called RTC mode. In this mode, to keep RTC and BBSM logic alive, only the
+power for the BBSM domain remains on.
+• Off mode: In this mode, all power rails are off.
+
+4.2.1 Low-power modes
+Table 4 defines the state of each module in the Idle mode, Suspend mode, and BBSM mode.
+Note: The values in Table 4 are for reference purpose only. For actual values, refer i.MX 93 EVK Applications
+Processors Data Sheet.
+Table 4. Low-power mode definition
+Parameters
+
+Idle
+
+Suspend
+
+BBSM
+
+CCM LPM mode
+
+WAIT
+
+STOP
+
+N/A
+
+Cortex A55 CPU0
+
+OFF
+
+OFF
+
+OFF
+
+Cortex A55 CPU1
+
+OFF
+
+OFF
+
+OFF
+
+Shared L3 cache
+
+ON
+
+OFF
+
+OFF
+
+DISPLAY
+
+OFF
+
+OFF
+
+OFF
+
+DRAM controller and PHY
+
+ON
+
+OFF
+
+OFF
+
+WAKEUPMIX
+
+ON
+
+OFF
+
+OFF
+
+MLMIX
+
+ON as needed
+
+OFF
+
+OFF
+
+NICMIX
+
+ON
+
+OFF
+
+OFF
+
+ARM_PLL
+
+OFF
+
+OFF
+
+OFF
+
+DRAM_PLL
+
+OFF
+
+OFF
+
+OFF
+
+SYSTEM_PLL1
+
+ON
+
+OFF
+
+OFF
+
+XTAL
+
+ON
+
+OFF
+
+OFF
+
+RTC
+
+ON
+
+ON
+[1]
+
+External DRAM device
+
+Self-refresh
+
+USB PHY
+
+In the low-power state
+
+OFF
+
+OFF
+
+DRAM clock
+
+266 MHz
+
+OFF
+
+OFF
+
+AXI clock
+
+133 MHz
+
+OFF
+
+OFF
+
+Module clocks
+
+ON as needed
+
+OFF
+
+OFF
+
+EdgeLock Secure Enclave
+
+ON
+
+ON
+
+OFF
+
+GPIO wake-up
+
+Yes
+
+Yes
+
+OFF
+
+AN13917
+
+Application note
+
+Self-refresh
+
+ON
+[2]
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+OFF
+
+© 2024 NXP B.V. All rights reserved.
+
+7 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 4. Low-power mode definition...continued
+Parameters
+
+Idle
+
+Suspend
+
+BBSM
+
+RTC wake-up
+
+Yes
+
+Yes
+
+Yes
+
+USB remote wake-up
+
+Yes
+
+[3]
+
+No
+
+No
+
+Other wake-up source
+
+Yes
+
+No
+
+No
+
+[1]
+[2]
+[3]
+
+When there is no DRAM access, the system automatically enters self-refresh.
+SW switches to Self-refresh mode before switching to Low-power mode.
+Remote wake-up can be supported if the USB PHY power is on in this mode.
+
+5 i.MX 93 processor power measurement
+This document provides details of several use cases run by NXP on the NXP MCIMX93-EVK board to measure
+i.MX 93 power. These use cases are described under Section 6.
+
+5.1 Hardware and software requirements
+Table 5 provides details of the hardware and software used during the power measurement.
+Table 5. Hardware and software used
+Category
+
+Description
+
+Hardware
+
+NXP MCIMX93-EVK, 51943 A1 + 51961 B2
+Linux kernel version: L6.1.55
+
+Software
+
+Yocto rootfs
+BCU tool is available at bcu version: 1.1.72
+
+Boot mode
+
+eMMC
+
+Note: For the Software used, the measurements are performed using the onboard measurement circuitry and
+BCU software tool. These measurements are taken at room temperature without thermal forcing equipment.
+
+5.2 Build the i.MX Yocto Project
+To build the i.MX Yocto Project, perform the steps as follows:
+1. To download and build the i.MX Yocto Project community BSP recipe layers, run the following commands:
+Note: For more information on the i.MX Yocto Project, refer i.MX Yocto Project User's Guide.
+repo init -u https://github.com/nxp-imx/imx-manifest -b imx-linux-mickledore -m
+imx-6.1.55-2.2.0.xml
+repo sync
+DISTRO=fsl-imx-xwayland MACHINE=imx93-11x11-lpddr4x-evk source imx-setup-release.sh -b
+build-imx93-11x11-lpddr4x-evk
+
+2. For some audio or video cases, gstreamer1.0-libav is necessary. Put the following commands at the
+end of the build-imx93-11x11-lpddr4x-evk/conf/local.conf file:
+LICENSE_FLAGS_ACCEPTED += "commercial"
+IMAGE_INSTALL:append = "gstreamer1.0-libav"
+PACKAGECONFIG:append_pn-gstreamer1.0-libav = "x264"
+
+3. To build, run the following command:
+bitbake imx-image-full
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+8 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+The build image can be found in build-imx93-11x11-lpddr4x-evk/tmp/deploy/image.
+
+5.3 Power consumption measurement
+To measure the i.MX 93 power consumption, the steps are as follows:
+1. Connect a micro-USB cable between the host PC and the J1401 USB port on the MCIMX93-EVK board.
+2. To start the monitor in the BCU path, run the following command:
+bcu monitor -board=imx93evk11b1
+
+3. Run the related use cases. These use cases are described under Section 6.
+4. To reset the value, press "3" once the use case starts.
+5. To switch measurement precision: mA/auto/uA, press "4". This step is optional.
+6. Wait for 1 minute and record the data in the BCU.
+The measurements are taken mainly for the power supply domains shown in Table 6. This table also provides a
+mapping between the power rails in BCU software, and the power supply domains in the i.MX 93 processor. For
+more information, download BCU.pdf.
+Table 6. Measured power supply domains
+Power groups
+
+GROUP_SOC_FULL
+
+Power supply domains
+
+Description
+
+nvcc_1p8
+
+Power supply for NVCC_WAKEUP rail
+
+nvcc_3p3
+
+Power supply for NVCC_AON and NVCC_GPIO rails
+
+nvcc_bbsm_1p8
+
+I/O supply for GPIO in BBSM bank
+
+nvcc_sd2
+
+Power supply for GPIO in NVCC_SD2 rail
+
+vdd2_ddr
+
+Power supply for DRAM PHY
+
+vdd_ana_0p8
+
+Power supply for PLLs, temperature sensor, LVCMOS I/O,
+MIPI, and USB PHYs
+
+vdd_ana_1p8
+
+1.8 V power supply for PLLs, eFuse, temperature sensor,
+LVCMOS voltage detect reference, ADC, 24 MHz XTAL,
+LVDS, MIPI, and USB PHYs
+
+vdd_soc
+
+Power supply for VDD_SOC
+
+vdd_usb_3p3
+
+Power supply for USB PHYs
+
+vddq_ddr
+
+Power supply for DRAM PHY
+
+6 Use cases and measurement results
+The main use cases and subcases that form the benchmarks for the i.MX 93 internal power measurements on
+the EVK platform are described in the following sections.
+Note:
+• Before running a use case, <configuration_script>.sh must be run to configure the environment, see
+Section 8.
+• For all use cases except TBD cases, the platform is booted from eMMC with the default DTB configuration
+(imx93-11x11-evk.dtb) in the U-Boot stage.
+• The current sample resistors on the power path create a drop in the voltage on each power rail.
+Table 7 summarizes the power measurement results of various use cases performed on the MCIMX93ULP-EVK
+board.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+9 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 7. i.MX 93-EVK power summary report
+Use cases category
+
+Core benchmark use cases
+
+Memory use cases
+
+Audio/video playback use cases
+
+Graphic use case
+Machine learning use cases
+
+Storage use cases
+
+Use cases
+
+Total power (sum of average powers
+in GROUP_SOC_FULL) (mW)
+
+Dhrystone
+
+805.9
+
+CoreMark
+
+691.9
+
+memset
+
+908.0
+
+memcpy
+
+913.9
+
+Stream
+
+1222.8
+
+Audio playback (gplay)
+
+458.6
+
+Audio low-bus playback (gplay)
+
+255.4
+
+Video playback local (gplay)
+
+636.4
+
+Video playback streaming (gplay)
+
+664.6
+
+PXP
+
+544.0
+
+eIQ benchmark
+
+725.5
+
+Machine vision
+
+780.5
+
+DD_WRITE_eMMC
+
+420.4
+
+DD_READ_eMMC
+
+644.9
+
+DD_WRITE_SD
+
+527.6
+
+DD_READ_SD
+
+518.2
+
+System Idle with display in OD mode
+with DDRC auto clock gating
+
+482.5
+
+System Idle with display in ND mode
+
+382.0
+
+System Idle with display in LD mode
+(DDR to half speed)
+
+315.2
+
+System Idle with display in LD mode
+(DDR to lowest speed with SWFFC)
+
+275.3
+
+System Idle without display in OD mode 345.6
+with DDRC auto clock gating
+Low-power mode use cases
+
+System Idle without display in ND mode 288.1
+with DDRC auto clock gating
+System Idle without display in LD mode 227.2
+with DDRC auto clock gating (DDR to
+half speed)
+System Idle without display in LD mode 199.9
+with DDRC auto clock gating (DDR to
+lowest speed with SWFFC)
+
+Stress test use cases
+
+AN13917
+
+Application note
+
+System in DSM
+
+7.6
+
+Battery
+
+0.1
+
+2 x A55 Dhrystone + PXP + M33 Core
+Mark + NPU
+
+1230.5
+
+2 x A55 Stream + PXP + M33 Core
+Mark + NPU
+
+1264.1
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+10 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 7. i.MX 93-EVK power summary report...continued
+Use cases category
+
+Use cases
+
+Total power (sum of average powers
+in GROUP_SOC_FULL) (mW)
+
+Linux Suspend + M33 CoreMark (TCM) 128.2
+Product use cases
+
+Linux Suspend + M33 in WFI
+
+122.4
+
+Linux Suspend + M33 FlexCAN
+Transaction
+
+132.3
+
+Smart doorbell
+
+772.1
+
+6.1 Core benchmark use cases
+The following use cases scenarios have been tested with Cortex A55 cores:
+• Dhrystone
+• CoreMark
+
+6.1.1 Dhrystone
+Dhrystone is a synthetic benchmark used to measure the integer computational performance of processors and
+compilers. The small size of the Dhrystone benchmark enables it to fit into the L1 cache and minimizes access
+to the L2 cache and DDR.
+In this use case, the two Cortex-A55 cores perform the Dhrystone test. Because Dhrystone is a single thread
+benchmark, two instances have been started. All Cortex-A55 cores run the test in a loop at a frequency of 1.7
+GHz.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The display is OFF.
+4. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of Dhrystone, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh, see Section 8.
+3. Run dhrystone_loop.sh:
+while [ "1" == "1" ]; do
+taskset -c 0 ./dhry2 &
+taskset -c 1 ./dhry2
+done
+
+4. Measure the power and record the results.
+Table 8 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 8. Measurement results for i.MX 93-11x11-EVK_B_Dhrystone_loop (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.6
+
+1.1
+
+lpd4x_vdd2
+
+1.1
+
+5.1
+
+5.6
+
+Rail label
+
+GROUP_DRAM
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+6.72
+
+Zone 0 die
+temperature
+(°C)
+40.35
+
+© 2024 NXP B.V. All rights reserved.
+
+11 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 8. Measurement results for i.MX 93-11x11-EVK_B_Dhrystone_loop (average value)...continued
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.3
+
+0.6
+
+nvcc_3p3
+
+3.3
+
+3.6
+
+12
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+17.3
+
+18.9
+
+0.79
+
+16.5
+
+13
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.4
+
+vdd_soc
+
+0.89
+
+821.2
+
+731.4
+
+vdd_usb_3p3
+
+3.3
+
+0.03
+
+0.1
+
+vddq_ddr
+
+0.6
+
+6.8
+
+4.1
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+805.87
+
+6.1.2 CoreMark
+CoreMark is a modern, sophisticated benchmark that lets you accurately measure the processor performance
+and is intended to replace the older Dhrystone benchmark. Arm recommends using CoreMark over Dhrystone.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The display is OFF.
+4. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of CoreMark, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh, see Section 8.
+3. Run coremark_loop.sh:
+while true; do
+./coremark > /dev/null 2>&1
+done
+
+Note: For the best performance, compile as follows:
+make XCFLAGS="-DMULTITHREAD=2 -DUSE_PTHREAD -pthread"
+
+4. Measure the power and record the results.
+Table 9 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 9. Measurement results for i.MX 93-11x11-EVK_B_CoreMark_loop (average value)
+Rail label
+
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+Zone 0 die
+temperature
+(°C)
+
+GROUP_DRAM lpd4x_vdd1
+
+1.8
+
+0.44
+
+0.8
+
+38
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+5.91
+
+© 2024 NXP B.V. All rights reserved.
+
+12 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 9. Measurement results for i.MX 93-11x11-EVK_B_CoreMark_loop (average value)...continued
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd2
+
+1.1
+
+4.7
+
+5.2
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.56
+
+1
+
+nvcc_3p3
+
+3.3
+
+4.1
+
+13.4
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+17.5
+
+19.2
+
+0.79
+
+16.5
+
+13
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.4
+
+vdd_soc
+
+0.89
+
+689.8
+
+615.5
+
+vdd_usb_3p3
+
+3.3
+
+0.03
+
+0.1
+
+vddq_ddr
+
+0.6
+
+6.7
+
+4
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+691.85
+
+6.2 Memory use cases
+The following memory-centric use case scenarios have been tested:
+• memset
+• memcpy
+• Stream
+The memset and memcpy are part of a perf-bench, which is a general framework for benchmark suites.
+
+6.2.1 memset
+The memset use case is for evaluating the performance of a simple memory set in various ways.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The size for the memory buffers is set to 1024 MB.
+4. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of the memset, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh, see Section 8.
+3. Run memset_loop.sh:
+while true; do
+buff_size=`cat /proc/meminfo | grep CmaFree | awk '{print$2}'`
+perf bench -f simple mem memset -l 20000 -s ${buff_size}KB
+done
+
+4. Measure the power and record the results.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+13 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 10 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 10. Measurement results for i.MX 93-11x11-EVK_B_memset_loop (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+3.4
+
+6
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+60.2
+
+65.8
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.28
+
+0.5
+
+nvcc_3p3
+
+3.3
+
+3.7
+
+12.3
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+44.4
+
+48.5
+
+0.79
+
+16.6
+
+13.1
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.4
+
+vdd_soc
+
+0.89
+
+863.2
+
+768.6
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.59
+
+66.2
+
+39.2
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+71.77
+
+41
+907.97
+
+6.2.2 memcpy
+The memcpy use case is for evaluating the performance of a simple memory copy in various ways.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The size for the memory buffers is set to 1024 MB.
+4. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of memcpy, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh, see Section 8.
+3. Run memcpy_loop.sh:
+while true; do
+buff_size=`cat /proc/meminfo | grep CmaFree | awk '{print$2}'`
+perf bench -f simple mem memcpy -l 20000 -s ${buff_size}KB
+done
+
+4. Measure the power and record the results.
+Table 11 shows the measurement results when this use case is applied to the i.MX 93 processor.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+14 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 11. Measurement results for i.MX 93-11x11-EVK_B_memcpy_loop (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+3.7
+
+6.7
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+73.8
+
+80.4
+
+lpd4x_vddq
+
+0.6
+
+4.8
+
+2.8
+
+nvcc_1p8
+
+1.8
+
+0.17
+
+0.3
+
+nvcc_3p3
+
+3.3
+
+3.7
+
+12.3
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+41.1
+
+45
+
+0.79
+
+16.6
+
+13.1
+
+vdd_ana_1p8
+
+1.79
+
+12.4
+
+22.3
+
+vdd_soc
+
+0.89
+
+905.7
+
+805.8
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+19.7
+
+11.7
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+89.93
+
+41
+913.93
+
+6.2.3 Stream
+The stream benchmark is a simple synthetic benchmark program that measures the sustainable memory
+bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. All phases, such as Copy, Scale, Add, and Triad, are included.
+4. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of the stream, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh, see Section 8.
+3. Run streamcpy_loop.sh:
+while [ "1" == "1" ]; do
+taskset -c 0 stream -M 200M -N 1000 &
+taskset -c 1 stream -M 200M -N 1000
+done
+
+4. Measure the power and record the results.
+Table 12 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 12. Measurement results for i.MX 93-11x11-EVK_B_stream_loop (average value)
+Rail label
+
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+Zone 0 die
+temperature
+(°C)
+
+GROUP_DRAM lpd4x_vdd1
+
+1.79
+
+4.9
+
+8.8
+
+45
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+109.65
+
+© 2024 NXP B.V. All rights reserved.
+
+15 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 12. Measurement results for i.MX 93-11x11-EVK_B_stream_loop (average value)...continued
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd2
+
+1.09
+
+87.1
+
+94.9
+
+lpd4x_vddq
+
+0.6
+
+10
+
+6
+
+nvcc_1p8
+
+1.8
+
+0.11
+
+0.2
+
+nvcc_3p3
+
+3.3
+
+3.8
+
+12.5
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+50.7
+
+55.5
+
+0.79
+
+16.8
+
+13.2
+
+vdd_ana_1p8
+
+1.79
+
+12.4
+
+22.3
+
+vdd_soc
+
+0.89
+
+1241.6
+
+1100.4
+
+vdd_usb_3p3
+
+3.3
+
+0.03
+
+0.1
+
+vddq_ddr
+
+0.6
+
+25.6
+
+15.2
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+1222.81
+
+6.3 Audio/video playback use cases
+The following audio use case scenarios have been tested:
+• Audio playback (gplay)
+• Audio low-bus playback (gplay)
+• Video playback local (gplay)
+• Video playback streaming (gplay)
+
+6.3.1 Audio playback (gplay)
+For this use case, the audio file is an MP3 file with a 128 kbit/s bit rate and a 44 kHz sample rate. CA55 handles
+2
+audio decoding, I S, and audio codec.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of the audio playback, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh, see Section 8.
+3. Run gplay_audio.sh:
+gplay-1.0 Mpeg1L3_44kHz_128kbps_s_Ed_Rush_Sabotage_mplayer.mp3
+
+Note: Prepare your own MP3 file. To obtain similar results in this document, ensure that the audio bit rate is
+about 128 kbit/s.
+4. Measure the power and record the results.
+Note:
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+16 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+If there is no sound, use the following command to query and set the sound card:
+pacmd list-sinks
+pacmd set-default-sink $index #Select the item index with the wm8962 keyword
+
+Table 13 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 13. Measurement results for i.MX 93-11x11-EVK_B_gplay_audio-default (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+1
+
+1.8
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+8.9
+
+9.7
+
+lpd4x_vddq
+
+0.6
+
+0.5
+
+0.3
+
+nvcc_1p8
+
+1.8
+
+0.17
+
+0.3
+
+nvcc_3p3
+
+3.3
+
+6.2
+
+20.4
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+17.8
+
+19.5
+
+0.79
+
+20.2
+
+15.9
+
+vdd_ana_1p8
+
+1.79
+
+13.7
+
+24.5
+
+vdd_soc
+
+0.89
+
+414.1
+
+370.5
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+6.8
+
+4.1
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+11.76
+
+34
+458.63
+
+6.3.2 Audio low-bus playback (gplay)
+For this use case, the audio file is a WAV file with a 24 bit and a 32 kHz sample rate. CA55 handles audio
+2
+decoding, I S, and audio codec.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to 1.4 GHz.
+2. The DDR data rate is set to 625 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of the audio low-bus playback, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk-ld.dtb.
+2. Run DDRC_625MTS_setup.sh (625 MT/s data rate), see Section 8.
+3. Run gplay_audio.sh:
+gplay-1.0 Mpeg1L3_44kHz_128kbps_s_Ed_Rush_Sabotage_mplayer.mp3
+
+Note: Prepare your own MP3 file. To obtain similar results in this document, ensure that the audio bit rate is
+about 128 kbit/s.
+4. Measure the power and record the results.
+Table 14 shows the measurement results when this use case is applied to the i.MX 93 processor.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+17 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 14. Measurement results for i.MX 93-11x11-EVK_B_audio_low_power_50 MHz (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+1.3
+
+2.4
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+7.7
+
+8.4
+
+lpd4x_vddq
+
+0.6
+
+2.5
+
+1.5
+
+nvcc_1p8
+
+1.8
+
+0.22
+
+0.4
+
+nvcc_3p3
+
+3.3
+
+6.2
+
+20.6
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+4.7
+
+5.1
+
+0.79
+
+20.2
+
+15.9
+
+vdd_ana_1p8
+
+1.79
+
+9.9
+
+17.7
+
+vdd_soc
+
+0.8
+
+235.1
+
+187.6
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+7.9
+
+4.7
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+12.25
+
+30
+255.39
+
+6.3.3 Video playback local (gplay)
+For this use case, the i.MX 93 EVK board is connected to an HDMI display through the MIPI-to-HDMI converter
+card (IMX-MIPI-HDMI).
+The video file used for playback is an MP4 file format compressed using the H.264 480 p resolution at
+24 frames per second (fps). The audio encoding is AACL with a 44.1 kHz sample rate in a two-channel
+configuration.
+Note: In this SoC, there is no hardware decoder, so a software decoder is used.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of video playback local, the steps are as follows:
+1. Connect the HDMI display to the board through the MIPI-to-HDMI converter card (IMX-MIPI-HDMI).
+2. Boot the Linux image with imx93-11x11-evk.dtb.
+3. To put the system into Idle mode, run setup_video.sh. See Section 8.
+4. Run gplay_videoplayback.sh:
+gplay-1.0 ./480p24.mp4
+
+Note: Prepare your own MP4 file. To obtain similar results, ensure that this file is 480 p with a 24-frame
+rate, bit rate of about 1200 kbit/s, and encoded in H.264 format.
+5. Measure the power and record the results.
+Table 15 shows the measurement results when this use case is applied to the i.MX 93 processor.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+18 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 15. Measurement results for i.MX 93-11x11-EVK_B_ gplay_videoplayback (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+2.9
+
+5.2
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+44.3
+
+48.3
+
+lpd4x_vddq
+
+0.6
+
+5.7
+
+3.4
+
+nvcc_1p8
+
+1.79
+
+0
+
+0.7
+
+nvcc_3p3
+
+3.3
+
+6.3
+
+20.9
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+25.4
+
+27.8
+
+0.78
+
+34.4
+
+26.8
+
+vdd_ana_1p8
+
+1.78
+
+23
+
+41
+
+vdd_soc
+
+0.89
+
+569.7
+
+508.7
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+11.8
+
+7
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+56.85
+
+37
+636.4
+
+6.3.4 Video playback streaming (gplay)
+For this use case, the i.MX 93 EVK board is connected to an HDMI display through the MIPI-to-HDMI converter
+card (IMX-MIPI-HDMI).
+The video file used for playback is streamed through HTTP. An MP4 file format compressed using the
+H.264 480 p resolution at 24 fps. The audio encoding is AACL with a 44.1 kHz sample rate in a two-channel
+configuration.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of video playback streaming, the steps are as follows:
+1. Connect your PC and board to the same local network.
+2. Prepare the video file, named 480p24.mp4 on the PC.
+3. On the server PC, perform the following steps:
+a. For Windows, download the Node.js from https://nodejs.org/en and install it.
+b. To install http-server, use the following command:
+npm install http-server -g
+
+c. Enter a target folder that contains the target video in the terminal.
+d. To obtain the <ip_server> similar to <ip address:port>, use "http-server -c-1".
+4. On the board, perform the following steps:
+a. Boot the Linux image with imx93-11x11-evk.dtb.
+b. Connect the HDMI display to the board through the MIPI-to-HDMI converter card (IMX-MIPI-HDMI).
+c. Run setup_video_stream.sh on the board. See Section 8.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+19 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+d. Run the following command on the board:
+gplay-1.0 http://<ip_server>/480p24.mp4
+
+e. Measure the power for the board and record the results.
+Table 16 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 16. Measurement results for i.MX 93-11x11-EVK_B_ gplay_video_stream (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+2.9
+
+5.1
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+44.4
+
+48.4
+
+lpd4x_vddq
+
+0.6
+
+5.6
+
+3.3
+
+nvcc_1p8
+
+1.79
+
+6.5
+
+11.6
+
+nvcc_3p3
+
+3.3
+
+5.9
+
+19.3
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+24.9
+
+27.3
+
+0.78
+
+34.7
+
+27.1
+
+vdd_ana_1p8
+
+1.78
+
+23
+
+41
+
+vdd_soc
+
+0.89
+
+591.2
+
+527.8
+
+vdd_usb_3p3
+
+3.3
+
+0.03
+
+0.1
+
+vddq_ddr
+
+0.6
+
+11.9
+
+7.1
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+56.81
+
+38
+664.63
+
+6.4 Graphic use case
+For this use case, the PXP is used to perform 2D operation.
+When the use case is running, the state of the system is as follows:
+• The CPU frequency is set to the maximum value of 1.7 GHz.
+• The DDR data rate is set to 3733 MT/s.
+• The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of the graphic, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup_video.sh.
+3. Run PXP_test.sh, see Section 8.
+4. Measure the power and record the results.
+Table 17 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 17. Measurement results for i.MX 93-11x11-EVK_B_PXP (average value)
+Rail label
+
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+Zone 0 die
+temperature
+(°C)
+
+GROUP_DRAM lpd4x_vdd1
+
+1.79
+
+2.9
+
+5.2
+
+36
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+55.25
+
+© 2024 NXP B.V. All rights reserved.
+
+20 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 17. Measurement results for i.MX 93-11x11-EVK_B_PXP (average value)...continued
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd2
+
+1.09
+
+43.2
+
+47.1
+
+lpd4x_vddq
+
+0.6
+
+4.9
+
+2.9
+
+nvcc_1p8
+
+1.79
+
+0.56
+
+1
+
+nvcc_3p3
+
+3.3
+
+4.1
+
+13.4
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+26
+
+28.5
+
+0.78
+
+29.7
+
+23.2
+
+vdd_ana_1p8
+
+1.78
+
+21.8
+
+38.9
+
+vdd_soc
+
+0.89
+
+478.3
+
+427.7
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+13
+
+7.7
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+543.98
+
+6.5 Machine learning use cases
+The tested use case scenarios for machine learning are as follows:
+• eIQ benchmark
+• Machine vision
+
+6.5.1 eIQ benchmark
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is running the NPU software driver.
+To measure the power consumption of the eIQ benchmark, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh, see Section 8.
+3. To generate the mobilenet_v1_1.0_224_quant_vela.tflite model file under the path /usr/bin/
+tensorflow-lite-2.12.1/examples, run the following command:
+vela mobilenet_v1_1.0_224_quant.tflite
+
+4. Copy the mobilenet_v1_1.0_224_quant_vela.tflite to /usr/bin/tensorflow-lite-2.12.1/
+examples from the output.
+5. Copy ML_vela.sh to /usr/bin/tensorflow-lite-2.12.1/examples in rootfs and run the
+following command:
+/usr/bin/tensorflow-lite-2.12.1/examples/ML_vela.sh 1
+
+6. Measure the power and record the results.
+Table 18 shows the measurement results when this use case applies to the i.MX 93 processor.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+21 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 18. Measurement results for i.MX 93-11x11-EVK_B_eIQ (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+2.1
+
+3.7
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+24.8
+
+27.2
+
+lpd4x_vddq
+
+0.6
+
+2.9
+
+1.7
+
+nvcc_1p8
+
+1.79
+
+0.44
+
+0.8
+
+nvcc_3p3
+
+3.3
+
+4.1
+
+13.6
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+21.9
+
+23.9
+
+0.78
+
+16.5
+
+13.1
+
+vdd_ana_1p8
+
+1.78
+
+12.5
+
+22.4
+
+vdd_soc
+
+0.89
+
+772.5
+
+688.4
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+1.8
+
+9.4
+
+5.6
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+32.61
+
+38
+771.2
+
+6.5.2 Machine vision
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is running the NPU software driver.
+To measure the power consumption of the machine vision, the steps are as follows:
+1. Download the ap1302 firmware from ONSemiconductor, and rename it as ap1302.fw.
+2. Copy ap1302.fw to the target board under the path /lib/firmware/imx/camera/.
+3. Connect AP1302 MIPI camera with J801 on i.MX 93 EVK.
+4. Connect the display to the board through the HDMI interface.
+5. Boot the Linux image with imx93-11x11-evk.dtb.
+6. Download the trained neural network ssd_mobilenet_v2_coco_quant_postprocess.tffile and coco_labels.txt
+to the path /usr/bin/tensorflow-lite-2.12.1/examples. To generate the vela file, run the
+following command:
+vela ssd_mobilenet_v2_coco_quant_postprocess.tflite
+
+7. Run setup_video_stream.sh.
+8. Copy MV_vela.sh, model file named mobilenet_v1_1.0_224_quant_vela.tflite, and label file
+named coco_labels.txt to /usr/bin/tensorflow-lite-2.12.1/examples in rootfs and run
+the following command:
+/usr/bin/tensorflow-lite-2.12.1/examples/MV_vela.sh
+
+9. Measure the power and record the results.
+Table 19 shows the measurement results when this use case applies to the i.MX 93 processor.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+22 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 19. Measurement results for i.MX 93-11x11-EVK_B_machine vision (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+4.1
+
+7.4
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+66.1
+
+72
+
+lpd4x_vddq
+
+0.6
+
+8.2
+
+4.9
+
+nvcc_1p8
+
+1.79
+
+0.17
+
+0.3
+
+nvcc_3p3
+
+3.3
+
+3.5
+
+11.5
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+30.5
+
+33.4
+
+0.78
+
+35
+
+27.3
+
+vdd_ana_1p8
+
+1.78
+
+24.6
+
+43.9
+
+vdd_soc
+
+0.89
+
+730.6
+
+651.4
+
+vdd_usb_3p3
+
+3.3
+
+0.03
+
+0.1
+
+vddq_ddr
+
+0.6
+
+15.5
+
+9.3
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+84.29
+
+40
+780.47
+
+6.6 Storage use cases
+The tested use case scenarios for storage are as follows:
+• DD_WRITE_eMMC
+• DD_READ_eMMC
+• DD_WRITE_SD
+• DD_READ_SD
+
+6.6.1 DD_WRITE_eMMC
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+4. The maximum amount of data the kernel reads ahead for a single file is set to 512 kB.
+To measure the power consumption of DD_WRITE_eMMC, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh.
+3. Copy dd_write.sh on the eMMC partition and run.
+4. Measure the power and record the results.
+Table 20 shows the measurement results when this use case applies to the i.MX 93 processor.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+23 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 20. Measurement results for i.MX 93-11x11-EVK_B_DD_WRITE_eMMC (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+0.67
+
+1.2
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+6.8
+
+7.4
+
+lpd4x_vddq
+
+0.6
+
+0.17
+
+0.1
+
+nvcc_1p8
+
+1.79
+
+7.4
+
+13.3
+
+nvcc_3p3
+
+3.3
+
+4
+
+13.4
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+17.9
+
+19.6
+
+0.79
+
+16.4
+
+12.9
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.4
+
+vdd_soc
+
+0.9
+
+370.1
+
+331.2
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+7
+
+4.2
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+8.62
+
+34
+420.43
+
+6.6.2 DD_READ_eMMC
+The state of the system, when the use case is running, is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+4. The maximum amount of data the kernel reads ahead for a single file is set to 512 kB.
+To measure the power consumption of DD_READ_eMMC, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh.
+3. Make sure the file dd_obs_testfile exists and rename it to dd_ibs_testfile.
+4. Copy dd_read_bs4096.sh on the eMMC partition and run.
+5. Measure the power and record the results.
+Table 21 shows the measurement results when this use case applies to the i.MX 93 processor.
+Table 21. Measurement results for i.MX 93-11x11-EVK_B_DD_READ_eMMC (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+2.5
+
+4.4
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+30.4
+
+33.3
+
+lpd4x_vddq
+
+0.6
+
+3.3
+
+2
+
+1.79
+
+7.7
+
+13.7
+
+3.3
+
+4
+
+13.1
+
+Rail label
+
+GROUP_SOC_ nvcc_1p8
+FULL
+nvcc_3p3
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+Zone 0 die
+temperature
+(°C)
+
+39.63
+37
+644.85
+
+© 2024 NXP B.V. All rights reserved.
+
+24 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 21. Measurement results for i.MX 93-11x11-EVK_B_DD_READ_eMMC (average value)...continued
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+vdd2_ddr
+
+1.09
+
+23.6
+
+25.9
+
+vdd_ana_0p8
+
+0.79
+
+16.7
+
+13.1
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.3
+
+vdd_soc
+
+0.89
+
+612.1
+
+546.3
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+11.7
+
+7
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+6.6.3 DD_WRITE_SD
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+4. The maximum amount of data the kernel reads ahead for a single file is set to 512 kB.
+To measure the power consumption of DD_WRITE_SD, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh.
+3. Copy dd_write.sh on the SD partition and run.
+4. Measure the power and record the results.
+Table 22 shows the measurement results when this use case applies to the i.MX 93 processor.
+Table 22. Measurement results for i.MX 93-11x11-EVK_B_DD_WRITE_SD10 (average value)
+Rail label
+
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+GROUP_DRAM lpd4x_vdd1
+
+1.8
+
+1.1
+
+2
+
+lpd4x_vdd2
+
+1.1
+
+10.1
+
+11
+
+lpd4x_vddq
+
+0.6
+
+0.33
+
+0.2
+
+1.8
+
+0.28
+
+0.5
+
+3.3
+
+0.76
+
+2.5
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+1.79
+
+14.7
+
+26.3
+
+vdd2_ddr
+
+1.1
+
+18.3
+
+20
+
+vdd_ana_0p8
+
+0.79
+
+16.6
+
+13.1
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.5
+
+GROUP_SOC_ nvcc_1p8
+FULL
+nvcc_3p3
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+Zone 0 die
+temperature
+(°C)
+
+13.22
+
+35
+527.58
+
+© 2024 NXP B.V. All rights reserved.
+
+25 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 22. Measurement results for i.MX 93-11x11-EVK_B_DD_WRITE_SD10 (average value)...continued
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+vdd_soc
+
+0.89
+
+490
+
+438
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+7.4
+
+4.4
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+6.6.4 DD_READ_SD
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+4. The maximum amount of data the kernel reads ahead for a single file is set to 512 kB.
+To measure the power consumption of DD_READ_SD, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh.
+3. Make sure the file dd_obs_testfile exists and rename it to dd_ibs_testfile.
+4. Copy dd_read.sh on the SD partition and run.
+5. Measure the power and record the results.
+Table 23 shows the measurement results when this use case applies to the i.MX 93 processor.
+Table 23. Measurement results for i.MX 93-11x11-EVK_B_DD_READ_SD10 (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+1.3
+
+2.4
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+14.1
+
+15.5
+
+lpd4x_vddq
+
+0.6
+
+1.1
+
+0.7
+
+nvcc_1p8
+
+1.8
+
+0.22
+
+0.4
+
+nvcc_3p3
+
+3.3
+
+0.76
+
+2.5
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+1.79
+
+15.5
+
+27.8
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+19
+
+20.8
+
+0.79
+
+16.6
+
+13.1
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.4
+
+vdd_soc
+
+0.89
+
+476.1
+
+425.8
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+8.3
+
+5
+
+Rail label
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+Zone 0 die
+temperature
+(°C)
+
+18.51
+
+35
+518.22
+
+© 2024 NXP B.V. All rights reserved.
+
+26 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+
+6.7 Low-power mode use cases
+The following Low-power mode use case scenarios have been tested:
+• System Idle with display in OD mode with DDRC auto clock gating
+• System Idle with display in ND mode
+• System Idle with display in LD mode (DDR to half speed)
+• System Idle with display in LD mode (DDR to lowest speed with SWFFC)
+• System Idle with display in OD mode without DDRC auto clock gating
+• System Idle with display in ND mode without DDRC auto clock gating
+• System Idle with display in LD mode without DDRC auto clock gating (DDR to half speed)
+• System Idle with display in LD mode without DDRC auto clock gating (DDR to lowest speed with SWFFC)
+• System in DSM
+• Battery
+
+6.7.1 System Idle with display in OD mode with DDRC auto clock gating
+The state of the system, when the use case is running, is as follows:
+1. The CPU default frequency is set to 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption for the system Idle with display in OD mode with DDRC auto clock gating,
+the steps are as follows:
+1. Connect the HDMI display to the board through the MIPI-to-HDMI converter card (IMX-MIPI-HDMI).
+2. Boot the Linux image with imx93-11x11-evk.dtb.
+3. Run setup_video.sh.
+4. The default mode is the OD mode.
+5. Measure the power and record the results.
+Table 24 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 24. Measurement results for i.MX 93-11x11-EVK_B_System_idle_w_display_on_OD_mode_DDRC_auto_
+clock_gating (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+1.6
+
+2.9
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+20.8
+
+22.8
+
+lpd4x_vddq
+
+0.6
+
+4.6
+
+2.8
+
+nvcc_1p8
+
+1.79
+
+2.23
+
+0.4
+
+nvcc_3p3
+
+3.3
+
+3.7
+
+12.3
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+GROUP_SOC_
+nvcc_sd2
+FULL
+
+3.3
+
+0.9
+
+3.1
+
+vdd2_ddr
+
+1.1
+
+18.7
+
+20.4
+
+vdd_ana_0p8
+
+0.78
+
+30.6
+
+23.9
+
+vdd_ana_1p8
+
+1.79
+
+21.9
+
+39.1
+
+Rail label
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+Zone 0 die
+temperature
+(°C)
+
+28.42
+
+30
+482.51
+
+© 2024 NXP B.V. All rights reserved.
+
+27 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 24. Measurement results for i.MX 93-11x11-EVK_B_System_idle_w_display_on_OD_mode_DDRC_auto_
+clock_gating (average value)...continued
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+vdd_soc
+
+0.9
+
+423
+
+378.6
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+7.3
+
+4.4
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+6.7.2 System Idle with display in ND mode
+When the use case is running, the state of the system is as follows:
+1. The CPU default frequency is set to 1.4 GHz.
+2. The DDR data rate is set to 2800 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption for the system Idle with display on ND mode with DDRC auto clock gating,
+the steps are as follows:
+1. Connect the HDMI display to the board through the MIPI-to-HDMI converter card (IMX-MIPI-HDMI).
+2. Boot the Linux image with imx93-11x11-evk.dtb.
+3. Run setup_video.sh.
+4. To put the system into the ND mode, run the following command:
+echo 1 > /sys/devices/platform/imx93-lpm/mode
+
+5. Measure the power and record the results.
+Table 25 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 25. Measurement results for i.MX 93-11x11-EVK_B_System_idle_w_display_on_ND_mode_DDRC_auto_
+clock_gating (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+1.3
+
+2.4
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+19.3
+
+21.1
+
+lpd4x_vddq
+
+0.6
+
+10.1
+
+6
+
+nvcc_1p8
+
+1.79
+
+0.17
+
+0.3
+
+nvcc_3p3
+
+3.3
+
+4
+
+13.2
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+1.1
+
+11.6
+
+12.7
+
+vdd_ana_0p8
+
+0.78
+
+31.3
+
+24.5
+
+vdd_ana_1p8
+
+1.78
+
+22.1
+
+39.5
+
+vdd_soc
+
+0.85
+
+334.7
+
+283.1
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+Rail label
+
+GROUP_SOC_
+vdd2_ddr
+FULL
+
+AN13917
+
+Application note
+
+Zone 0 die
+temperature
+(°C)
+
+29.5
+
+31
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+381.95
+
+© 2024 NXP B.V. All rights reserved.
+
+28 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 25. Measurement results for i.MX 93-11x11-EVK_B_System_idle_w_display_on_ND_mode_DDRC_auto_
+clock_gating (average value)...continued
+Rail label
+
+vddq_ddr
+
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+0.6
+
+8.8
+
+5.3
+
+Zone 0 die
+temperature
+(°C)
+
+6.7.3 System Idle with display in LD mode (DDR to half speed)
+When the use case is running, the state of the system is as follows:
+1. The CPU default frequency is set to 0.9 GHz.
+2. The DDR frequency is set to 1866 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption for the system Idle with display on LD mode with DDRC auto clock gating,
+DDR to half speed, the steps are as follows:
+1. Connect the HDMI display to the board through the MIPI-to-HDMI converter card (IMX-MIPI-HDMI).
+2. Boot the Linux image with imx93-11x11-evk-ld.dtb.
+3. Run setup_video.sh.
+4. To put the system into the LD mode (DDR to half speed), run the following command:
+echo 2 > /sys/devices/platform/imx93-lpm/mode
+
+5. Measure the power and record the results.
+Table 26 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 26. Measurement results for i.MX 93-11x11-EVK_B_System_idle_w_display_on_LD_mode_half_speed_DDR
+(average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+1.5
+
+2.8
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+19.1
+
+20.9
+
+lpd4x_vddq
+
+0.6
+
+10.2
+
+6.1
+
+nvcc_1p8
+
+1.79
+
+0.5
+
+0.9
+
+nvcc_3p3
+
+3.3
+
+4
+
+13.2
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+11.6
+
+12.7
+
+0.78
+
+30.7
+
+24
+
+vdd_ana_1p8
+
+1.78
+
+21.8
+
+38.9
+
+vdd_soc
+
+0.8
+
+272
+
+217
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+8.6
+
+5.1
+
+Rail label
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+Zone 0 die
+temperature
+(°C)
+
+29.73
+
+31
+315.18
+
+© 2024 NXP B.V. All rights reserved.
+
+29 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+
+6.7.4 System Idle with display in LD mode (DDR to lowest speed with SWFFC)
+When the use case is running, the state of the system is as follows:
+1. The CPU default frequency is set to 0.9 GHz.
+2. The DDR frequency is set to 625 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption for the system Idle with display on LD mode (DDR to lowest speed with
+SWFFC), the steps are as follows:
+1. Connect the HDMI display to the board through the MIPI-to-HDMI converter card (IMX-MIPI-HDMI).
+2. Boot the Linux image with imx93-11x11-evk-ld.dtb.
+3. Run setup_video.sh.
+4. To put the system into the LD mode, DDR to the lowest speed with SWFFC, run the following command:
+echo 3 > /sys/devices/platform/imx93-lpm/mode
+
+5. Measure the power and record the result.
+Table 27 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 27. Measurement results for i.MX 93-11x11-EVK_B_System_idle_w_display_on_LD_mode_lowest_speed_
+DDR_SWFFC (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+1.9
+
+3.4
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+20.3
+
+22.2
+
+lpd4x_vddq
+
+0.59
+
+27.9
+
+16.5
+
+nvcc_1p8
+
+1.79
+
+0.30
+
+0.5
+
+nvcc_3p3
+
+3.3
+
+3.7
+
+12.3
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+9.7
+
+10.6
+
+0.78
+
+30.7
+
+24
+
+vdd_ana_1p8
+
+1.79
+
+18.1
+
+32.3
+
+vdd_soc
+
+0.8
+
+232.6
+
+185.6
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+10.8
+
+6.4
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+42.17
+
+30
+275.26
+
+6.7.5 System Idle without display in OD mode with DDRC auto clock gating
+When the use case is running, the state of the system is as follows:
+1. The CPU default frequency is set to 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+30 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+To measure the power consumption of a system Idle without display on OD mode with DDRC auto clock gating,
+the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh.
+3. The default mode is the OD mode.
+4. To enable auto_clk_gating, run the following command:
+echo 256 > /sys/devices/platform/imx93-lpm/auto_clk_gating
+
+Where 256 implies the duration for DDR Idle to enter self; the unit is the clock cycle.
+5. Measure the power and record the results.
+Table 28 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 28. Measurement results for i.MX 93-11x11-EVK_B_System_idle_w/o_display_on_OD_mode_DDRC_auto_
+clock_gating (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.5
+
+0.9
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+5.1
+
+5.5
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0
+
+0.2
+
+nvcc_3p3
+
+3.3
+
+3.7
+
+12.4
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+17.3
+
+18.9
+
+0.79
+
+16.3
+
+12.9
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.5
+
+vdd_soc
+
+0.9
+
+302.6
+
+271.2
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+6.7
+
+4
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+6.42
+
+29
+345.56
+
+6.7.6 System Idle without display in ND mode with DDRC auto clock gating
+When the use case is running, the state of the system is as follows:
+1. The CPU default frequency is set to 1.4 GHz.
+2. The DDR data rate is set to 2880 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of a system Idle without display on ND mode with DDRC auto clock gating,
+the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Run setup.sh.
+3. To put the system into the ND mode with DDRC auto clock gating, run the following command:
+echo 1 > /sys/devices/platform/imx93-lpm/mode
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+31 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+4. To enable auto_clk_gating, run the following command:
+echo 256 > /sys/devices/platform/imx93-lpm/auto_clk_gating
+
+Where 256 implies the duration for DDR Idle to enter self; the unit is the clock cycle.
+5. Measure the power and record the results.
+Table 29 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 29. Measurement results for i.MX 93-11x11-EVK_B_system_idle_w/o_display_on_ND_mode_DDRC_auto_
+clock_gating (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.39
+
+0.7
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+4.5
+
+5
+
+lpd4x_vddq
+
+0.6
+
+0.17
+
+0.1
+
+nvcc_1p8
+
+1.8
+
+0
+
+0.3
+
+nvcc_3p3
+
+3.3
+
+3.8
+
+12.5
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+8.7
+
+9.6
+
+0.79
+
+17
+
+13.4
+
+vdd_ana_1p8
+
+1.79
+
+12.7
+
+22.8
+
+vdd_soc
+
+0.85
+
+261.8
+
+221.6
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+7.5
+
+4.5
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+5.72
+
+29
+288.11
+
+6.7.7 System Idle without display in LD mode with DDRC auto clock gating (DDR to half
+speed)
+When the use case is running, the state of the system is as follows:
+1. The CPU default frequency is set to 0.9 GHz.
+2. The DDR data rate is set to 1866 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption for the system Idle without display on LD mode with DDRC auto clock
+gating (DDR to half speed), the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk-ld.dtb.
+2. Run setup.sh.
+3. To put the system into the LD mode (DDR to half speed), run the following command:
+echo 2 > /sys/devices/platform/imx93-lpm/mode
+
+4. To enable auto_clk_gating, run the following command:
+echo 256 > /sys/devices/platform/imx93-lpm/auto_clk_gating
+
+Where 256 implies the duration for DDR Idle to enter self; the unit is the clock cycle.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+32 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+5. Measure the power and record the results.
+Table 30 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 30. Measurement results for i.MX 93-11x11-EVK_B_system_idle_w/o_display_on_LD_mode_DDRC_auto_
+clock_gating_half_speed_DDR (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.44
+
+0.8
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+4.2
+
+4.6
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.17
+
+0.3
+
+nvcc_3p3
+
+3.3
+
+3.9
+
+12.9
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+8.9
+
+9.8
+
+0.79
+
+16.3
+
+12.9
+
+vdd_ana_1p8
+
+1.79
+
+12.5
+
+22.3
+
+vdd_soc
+
+0.8
+
+201.7
+
+161.1
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+7.5
+
+4.5
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+5.42
+
+29
+227.21
+
+6.7.8 System Idle without display in LD mode with DDRC auto clock gating (DDR to lowest
+speed with SWFFC)
+When the use case is running, the state of the system is as follows:
+1. The CPU default frequency is set to 0.9 GHz.
+2. The DDR data rate is set to 625 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption for the system Idle without display on LD mode with DDRC auto clock
+gating (DDR to lowest speed with SWFFC), the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk-ld.dtb.
+2. Run setup.sh.
+3. To put the system into the LD mode, DDR to the lowest speed with SWFFC, run the following command:
+echo 3 > /sys/devices/platform/imx93-lpm/mode
+
+4. To enable auto_clk_gating, run the following command:
+echo 256 > /sys/devices/platform/imx93-lpm/auto_clk_gating
+
+Where 256 implies the duration for DDR Idle to enter self; the unit is the clock cycle.
+5. Measure the power and record the results.
+Table 31 shows the measurement results when this use case is applied to the i.MX 93 processor.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+33 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 31. Measurement results for i.MX 93-11x11-EVK_B_system_idle_w/o_display_on_LD_mode_DDRC_auto_
+clock_gating_lowest_speed_DDR_SWFCC (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.44
+
+0.8
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+3.9
+
+4.3
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.22
+
+0.4
+
+nvcc_3p3
+
+3.3
+
+4
+
+13.1
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+3.5
+
+3.8
+
+0.79
+
+16.3
+
+12.9
+
+vdd_ana_1p8
+
+1.79
+
+8.8
+
+15.7
+
+vdd_soc
+
+0.8
+
+183.6
+
+146.6
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+6.7
+
+4
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+5.12
+
+28
+199.88
+
+6.7.9 System in DSM
+The use case is based on the Suspend mode, which implies the following:
+• CA55 cluster is OFF
+• MEDIAMIX is OFF
+• NICMIX is OFF
+• WAKEUPMIX is ON
+• PLL is OFF
+• 24 M OSC is OFF
+• PMIC is in STBY mode
+When the use case is running, the state of the system is as follows:
+1. The DDR is in the Retention mode.
+2. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of the system in the DSM, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk-DSM.dtb.
+2. To put the system into the Suspend (Deep sleep) mode, run the following command:
+echo mem > /sys/power/state
+
+3. Measure the power and record the results.
+Table 32 shows the measurement results when this use case is applied to the i.MX 93 processor.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+34 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 32. Measurement results for i.MX 93-11x11-EVK_B_DSM (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.39
+
+0.7
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+0.9
+
+1.0
+
+lpd4x_vddq
+
+0
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.5
+
+0.9
+
+nvcc_3p3
+
+3.3
+
+0.33
+
+1.1
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.24
+
+0.8
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+0.18
+
+0.2
+
+0.8
+
+0.75
+
+0.6
+
+vdd_ana_1p8
+
+1.8
+
+0.78
+
+1.4
+
+vdd_soc
+
+0.65
+
+3.5
+
+2.3
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0
+
+0
+
+0
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+1.77
+
+7.56
+
+Die temperature
+cannot be
+measured
+as the CA55
+core has been
+suspended.
+
+6.7.10 Battery
+BBSM mode of the i.MX 93 processor is a Low-power mode where only the power for the BBSM domain
+remains on.
+When the use case is running, the state of the system is as follows:
+1. All power supplies except NVCC_BBSM_1P8 are off externally.
+2. The secure real-time clock (SRTC) is maintained and is running.
+3. Tamper logic is retained.
+4. SNVS is at 1.8 V DGO (VBAT input: 3 V).
+5. All clocks and PLLS in CA55 and LPAV are turned off.
+To configure and run the use case, the steps are as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb in CA55.
+2. Press the ON/OFF key for 3 seconds.
+3. Measure the power and record the results.
+Table 33 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 33. Measurement results for i.MX 93-11x11-EVK_B_Battery (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (µW)
+
+Zone 0 die
+temperature
+(°C)
+
+lpd4x_vdd1
+
+0
+
+0
+
+0
+
+lpd4x_vdd2
+
+0
+
+0
+
+0
+
+lpd4x_vddq
+
+0
+
+0
+
+0
+
+Die temperature
+cannot be
+measured
+as the CA55
+core has been
+suspended.
+
+Rail label
+
+GROUP_DRAM
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+-0.075
+
+© 2024 NXP B.V. All rights reserved.
+
+35 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 33. Measurement results for i.MX 93-11x11-EVK_B_Battery (average value)...continued
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (µW)
+
+nvcc_1p8
+
+0
+
+0
+
+0
+
+nvcc_3p3
+
+0
+
+0
+
+0
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.06
+
+0.1
+
+nvcc_sd2
+
+Rail label
+
+0
+
+0
+
+0
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+0
+
+0
+
+0
+
+0
+
+0
+
+0
+
+vdd_ana_1p8
+
+0
+
+0
+
+0
+
+vdd_soc
+
+0
+
+0
+
+0
+
+vdd_usb_3p3
+
+0
+
+0
+
+0
+
+vddq_ddr
+
+0
+
+0
+
+0
+
+Zone 0 die
+temperature
+(°C)
+
+97.978
+
+6.8 Stress test use cases
+The following stress use case scenarios have been tested:
+• 2 x CA55 Dhrystone + PXP + CM33 CoreMark + NPU
+• 2 x CA55 Stream + PXP + CM33 CoreMark + NPU
+
+6.8.1 2 x CA55 Dhrystone + PXP + CM33 CoreMark + NPU
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The LCDIF and PXP are used for GUI rendering and display.
+4. The CA55 is used for the Dhrystone.
+5. The CM33 is used for CoreMark and NPU.
+To measure the power consumption of the 2 x CA55 Dhrystone + PXP + CM33 CoreMark + NPU, the steps are
+as follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Backup /lib/firmware/ethosu_firmware. Copy ethosu_apps_rpmsg_coremark.out to /lib/
+firmware and rename it to ethosu_firmware. For the other NPU-related cases, use the default one.
+3. Copy the model named mobilenet_v1_1.0_224_quant_vela.tflite to /usr/bin/tensorflowlite-2.12.1/examples. The TensorFlow version in ML_vela.sh must be the same.
+4. Run setup_video.sh.
+5. Run the dhrystone_loop.sh, PXP_test.sh, and ML_vela.sh simultaneously.
+6. Measure the power and record the results.
+Table 34 shows the measurement results when this use case is applied to the i.MX 93 processor.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+36 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 34. Measurement results for i.MX 93-11x11-EVK_B_2xCA55_Dhrystone_PXP_CM33_CoreMark_NPU (average
+value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+4
+
+7.3
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+76.7
+
+83.4
+
+lpd4x_vddq
+
+0.59
+
+13.6
+
+8.1
+
+nvcc_1p8
+
+1.79
+
+0.45
+
+0.8
+
+nvcc_3p3
+
+3.3
+
+3.7
+
+12.1
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+33
+
+36.2
+
+0.78
+
+33.8
+
+26.4
+
+vdd_ana_1p8
+
+1.78
+
+22.9
+
+40.8
+
+vdd_soc
+
+0.89
+
+1243.2
+
+1101.3
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+15.9
+
+9.5
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+98.7
+
+48
+1230.48
+
+6.8.2 2 x CA55 Stream + PXP + CM33 CoreMark + NPU
+The state of the system, when the use case is running, is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The LCDIF and PXP are used for GUI rendering and display.
+4. The CA55 is used for the Stream.
+5. The CM33 is used for CoreMark and NPU.
+To measure the power consumption of the 2 x CA55 Stream + PXP + CM33 CoreMark + NPU, the steps are as
+follows:
+1. Boot the Linux image with imx93-11x11-evk.dtb.
+2. Backup /lib/firmware/ethosu_firmware. Copy ethosu_apps_rpmsg_coremark.out to /lib/
+firmware and rename it to ethosu_firmware. For the other NPU-related cases, use the default one.
+3. Copy the model named mobilenet_v1_1.0_224_quant_vela.tflite to /usr/bin/tensorflowlite-2.12.1/examples. The TensorFlow version in ML_vela.sh must be the same.
+4. Run setup_video.sh.
+5. Run the streamcpy_loop.sh, PXP_test.sh, and ML_vela.sh simultaneously.
+6. Measure the power and record the results.
+Table 35 shows the measurement results when this use case is applied to the i.MX 93 processor.
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+37 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+Table 35. Measurement results for i.MX 93-11x11-EVK_B_2xCA55_Stream_PXP_CM33_CoreMark_NPU (average
+value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+7.1
+
+12.6
+
+GROUP_DRAM lpd4x_vdd2
+
+1.08
+
+122.5
+
+132.9
+
+lpd4x_vddq
+
+0.59
+
+21.6
+
+12.7
+
+nvcc_1p8
+
+1.79
+
+0.22
+
+0.4
+
+nvcc_3p3
+
+3.3
+
+3.8
+
+12.6
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+47.6
+
+52
+
+0.78
+
+34
+
+26.5
+
+vdd_ana_1p8
+
+1.78
+
+22.8
+
+40.7
+
+vdd_soc
+
+0.89
+
+1256.9
+
+1113.1
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+25.7
+
+15.3
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+158.25
+
+48
+1264.123
+
+6.9 Product use cases
+The following product use case scenarios have been tested:
+• Linux Suspend + CM33 Coremark (TCM)
+• Linux Suspend + CM33 in WFI
+• Linux Suspend + CM33 FlexCAN transaction
+• Smart doorbell
+
+6.9.1 Linux Suspend + CM33 CoreMark (TCM)
+When the use case is running, the state of the system is as follows:
+1. The Linux OS is configured to be in Suspend mode.
+2. The DDR is in Self-refresh mode.
+3. The CM33 is running CoreMark.
+To measure the power consumption of Linux Suspend + CM33 CoreMark (TCM), the steps are as follows:
+1. Copy power_mode_switch_flexcan_coremark.bin to bootpartition on SD card.
+2. Boot the Linux image with imx93-11x11-evk.dtb.
+3. Stop in U-Boot.
+4. Run:
+setenv mmcargs $mmcargs clk_ignore_unused
+fatload mmc 1:1 0x80000000
+power_mode_switch_flexcan_coremark.binpower_mode_switch_coremark.bin;cp.b 0x80000000
+0x201e0000 0x10000;bootaux 0x1ffe0000 0
+
+5. To boot to kernel, run boot.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+38 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+6. To put the system into suspend, run the following command:
+echo mem > /sys/power/state
+
+7. Switch to the CM33 console and input the letter "Z" to run CoreMark.
+8. Measure the power and record the results.
+Table 36 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 36. Measurement results for i.MX 93-11x11-EVK_B_DSM_CM33_CoreMark_(TCM) (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.5
+
+0.9
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+0.9
+
+1
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.33
+
+0.6
+
+nvcc_3p3
+
+3.3
+
+3.7
+
+12.4
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+0.18
+
+0.2
+
+0.79
+
+12.8
+
+10.2
+
+vdd_ana_1p8
+
+1.79
+
+3.3
+
+5.9
+
+vdd_soc
+
+0.9
+
+106.3
+
+95.5
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+0
+
+0
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+1.89
+
+Die temperature
+cannot be
+measured
+as the CA55
+core has been
+suspended.
+
+128.16
+
+6.9.2 Linux Suspend + CM33 in wait for interrupt
+When the use case is running, the state of the system is as follows:
+1. The Linux OS is configured to be in Suspend mode.
+2. The DDR is in Self-refresh mode.
+3. The CM33 is in Wait for interrupt (WFI) mode.
+To measure the power consumption of Linux Suspend + CM33 in WFI, the steps are as follows:
+1. Copy power_mode_switch_flexcan_coremark.bin to bootpartition on SD card.
+2. Boot the Linux image with imx93-11x11-evk.dtb.
+3. Stop in U-Boot.
+4. Run:
+setenv mmcargs $mmcargs clk_ignore_unused
+fatload mmc 0:1 0x80000000 power_mode_switch_flexcan_coremark.bin
+cp.b 0x80000000 0x201e0000 0x10000;bootaux 0x1ffe0000 0
+
+5. To boot to kernel, run boot.
+6. To put the system into suspend, run the following command:
+echo mem > /sys/power/state
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+39 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+7. Switch to the CM33 console and input the letter "B" to enter WFI mode.
+8. Measure the power and record the results.
+Table 37 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 37. Measurement results for i.MX 93-11x11-EVK_B_DSM_CM33_WFI (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.44
+
+0.8
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+1
+
+1.1
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.28
+
+0.5
+
+nvcc_3p3
+
+3.3
+
+3.7
+
+12.2
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+Rail label
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+0.09
+
+0.1
+
+0.79
+
+12.8
+
+10.2
+
+vdd_ana_1p8
+
+1.79
+
+6.14
+
+11.01
+
+vdd_soc
+
+0.9
+
+100.3
+
+90.1
+
+vdd_usb_3p3
+
+3.3
+
+0.06
+
+0.2
+
+vddq_ddr
+
+0.6
+
+0
+
+0
+
+Zone 0 die
+temperature
+(°C)
+
+1.84
+
+Die temperature
+cannot be
+measured
+as the CA55
+core has been
+suspended.
+
+122.41
+
+6.9.3 Linux Suspend + CM33 FlexCAN transaction
+When the use case is running, the state of the system is as follows:
+1. The Linux OS is configured to be in Suspend mode.
+2. The DDR is in Self-refresh mode.
+3. The CM33 is in sending/receiving CAN frames.
+To measure the power consumption of Linux Suspend + CM33 in WFI, the steps are as follows:
+1. Prepare two i.MX 93 EVK boards, namely boards A and B.
+2. Connect the CAN connector of the two boards together.
+3. On both the boards, perform the following steps:
+a. Copy power_mode_switch_flexcan_coremark.bin to boot device.
+b. Boot the Linux image.
+c. Stop in U-Boot.
+d. Run:
+setenv mmcargs $mmcargs clk_ignore_unused
+fatload mmc 1:1 ${loadaddr} power_mode_switch_flexcan_coremark.bin;cp.b ${loadaddr}
+0x201e0000 0x10000;bootaux 0x1ffe0000 0
+fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr_r} ${fdtfile};
+fdt addr ${fdt_addr_r};
+fdt rm /soc/bus@44000000/can@443a0000;
+run mmcargs;
+fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image};
+run boot_os
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+40 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+e. Switch to the CM33 console and input the letter "Y" to enter CAN test mode.
+4. On board B in the CM33 console, input the letter "B" to start receiving the CAN message from board A.
+5. On board A, perform the following steps:
+a. In the CM33 console, input the letter "A" to start transmitting and receiving the CAN message. Both the
+CM33 consoles start to print the log.
+b. To suspend the CA55 cores, run the following command:
+echo mem > /sys/power/state
+
+c. Measure the power numbers from board A only.
+Table 38 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 38. Measurement results for i.MX 93-11x11-EVK_B_DSM_M33_FlexCAN (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.8
+
+0.5
+
+0.9
+
+GROUP_DRAM lpd4x_vdd2
+
+1.1
+
+1
+
+1.1
+
+lpd4x_vddq
+
+0.6
+
+0
+
+0
+
+nvcc_1p8
+
+1.8
+
+0.39
+
+0.7
+
+nvcc_3p3
+
+3.3
+
+3.8
+
+12.7
+
+nvcc_bbsm_
+1p8
+
+1.79
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.3
+
+0.9
+
+3.1
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.1
+
+0.27
+
+0.3
+
+0.79
+
+12.9
+
+10.2
+
+vdd_ana_1p8
+
+1.79
+
+3.3
+
+6
+
+vdd_soc
+
+0.9
+
+110.4
+
+99.1
+
+vdd_usb_3p3
+
+3.3
+
+0.03
+
+0.1
+
+vddq_ddr
+
+0.6
+
+0
+
+0
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+2.07
+
+132.32
+
+Die temperature
+cannot be
+measured
+as the CA55
+core has been
+suspended.
+
+6.9.4 Smart doorbell
+For this use case, a doorbell is simulated with a camera. The video stream collected on the doorbell can be sent
+to other devices through the network. The AP1302 MIPI camera is used to record the video. The video is 480
+p, encoded in H.264 format, and then the RTP protocol transfers the video. On the host PC, video playback
+software VLC helps to open the session description protocol (SDP) file. By opening the file, the stream video
+can be viewed.
+When the use case is running, the state of the system is as follows:
+1. The CPU frequency is set to the maximum value of 1.7 GHz.
+2. The DDR data rate is set to 3733 MT/s.
+3. The CM33 is in reset hold, waiting for the reset signal release.
+To measure the power consumption of the smart doorbell, the steps are as follows:
+1. Download the ap1302 firmware from ONSemiconductor, and rename it as ap1302.fw.
+2. Copy ap1302.fw to the target board under the path /lib/firmware/imx/camera/.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+41 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+3. Connect AP1302 MIPI camera with J801 on i.MX 93 EVK.
+4. Boot the Linux image with imx93-11x11-evk.dtb.
+5. Run setup_video_stream.sh.
+6. To record the video and transfer the video through the RTP protocol, run the following command:
+gst-launch-1.0 v4l2src device=/dev/video0 ! \
+video/x-raw,width=640,height=480,framerate=30/1 ! \
+x264enc tune=zerolatency bitrate=500 speed-preset=superfast
+rtph264pay config-interval=10 pt=96 ! \
+udpsink host=[HOST PC IP] port=50000
+
+! \
+
+Open the SDP file with VLC on the host PC. The content in the SDP file includes the following:
+v=0
+m=video 5000 RTP/AVP 96
+c=IN IP4 [BOARD IP]
+a=rtpmap:96 H264/90000
+
+Table 39 shows the measurement results when this use case is applied to the i.MX 93 processor.
+Table 39. Measurement results for i.MX 93-11x11-EVK_B_smart_doorbell (average value)
+Average
+voltage (V)
+
+Average
+current (mA)
+
+Average power Sum of
+(mW)
+average
+powers (mW)
+
+lpd4x_vdd1
+
+1.79
+
+3
+
+5.4
+
+GROUP_DRAM lpd4x_vdd2
+
+1.09
+
+40.4
+
+44.1
+
+lpd4x_vddq
+
+0.6
+
+8.1
+
+4.8
+
+nvcc_1p8
+
+1.79
+
+6.5
+
+11.6
+
+nvcc_3p3
+
+3.28
+
+3.2
+
+10.4
+
+nvcc_bbsm_
+1p8
+
+1.81
+
+0.11
+
+0.2
+
+nvcc_sd2
+
+3.28
+
+0.9
+
+3
+
+GROUP_SOC_ vdd2_ddr
+FULL
+vdd_ana_0p8
+
+1.09
+
+22.7
+
+24.9
+
+0.78
+
+33
+
+25.7
+
+vdd_ana_1p8
+
+1.78
+
+23
+
+41.1
+
+vdd_soc
+
+0.89
+
+729.6
+
+648.7
+
+vdd_usb_3p3
+
+3.28
+
+0.03
+
+0.1
+
+vddq_ddr
+
+0.6
+
+10.6
+
+6.4
+
+Rail label
+
+Zone 0 die
+temperature
+(°C)
+
+54.3
+
+40
+772.06
+
+7 Reducing power consumption
+The overall system power consumption depends on the software optimization and the system hardware
+implementation. The following list of suggestions can help reduce system power consumption. Some of these
+suggestions are already implemented in the Linux BSP and/or SDK. The system of each individual user can
+undergo further optimizations.
+Note: Further power optimizations are planned in future software releases. To obtain the latest software
+releases, refer i.MX Software and Development Tools.
+• Apply clock gating by configuring registers in the CCM, whenever clocks or modules are not used.
+• For Run modes, use the slowest frequency that can still meet the application requirements.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+42 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+• Minimize the number of operating PLLs. Enabled PLLs can consume a few milliamps of current.
+• Applying voltage and frequency scaling (VFS) for the Arm cores and scaling the frequencies of the AXI,
+AHB, and IPG bus clocks can significantly reduce power consumption. However, the operation frequency
+reduction causes longer access times to the DDR, which increases the power consumption of the DDR I/O
+and memories. Consider this trade-off for each mode to quantify the overall effect on system power.
+• Put the SoC into Low-power modes whenever possible, as long as it can still support the application
+requirements. Consider the following example:
+– Put the system into Suspend mode when it can enter deep sleep.
+– Put the system into Low-power run mode by only using the CM33 core.
+– Power off the CA55 cores and other domains for low-load use cases.
+• For each operating mode, use the lowest voltage (with the power supply tolerance) that can still meet the
+requirements of voltage specifications in the data sheet.
+• DDR interface optimization:
+– Use careful board routing of the DDR memories, maintaining PCB trace lengths as short as possible.
+– Use the proper output driver impedance for DDR interface pins that provides good impedance matching.
+To save current through DDR I/O pins, select the lowest possible drive strength that provides the required
+performance.
+– Use of LPDDR4/LPDDR4x memory offerings in the latest process technology can significantly reduce the
+power consumption of the DDR devices and the DDR I/O.
+The following sections provide more details for system optimization. These sections are not exhaustive lists of
+features that can provide power reductions, but they are the easiest and most common ones.
+• Run fast and idle
+• Clock gating
+• DDRC auto clock gating
+• PLL reduction
+• Core VFS and system bus scaling
+• Lower DDR frequencies
+• DDR interface optimization
+• Power gating of PHYs
+• Distribution of workloads
+• Use OCRAM to minimize DDR access
+• Thermal management to reduce leakage
+• Nominal drive mode
+
+7.1 Run fast and idle
+NXP testing and various research have shown that for most customer use cases, the best power/energy
+management protocol is to run the cores at maximum speeds for the workload and then drop to the lowest
+power mode as soon as possible. This strategy cannot provide optimal energy savings for the use cases where
+constant data is being processed, for example, low-latency audio playback. However, this strategy does work
+for other standard workloads. Consider this trade-off for each application to quantify the overall effect on the
+system power/energy consumption.
+Users must place the i.MX 93 into the Low-power mode as far as possible.
+
+7.2 Clock gating
+The CCM inside the i.MX 93 provides a programmable method to disable the clock sources for modules when
+the modules are not used. To reduce energy waste, always configure the CCM registers. Driving any inactive
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+43 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+signal, whether on the SoC or the PCB, is simply charging and discharging the line and the load capacitance of
+this signal. The NXP BSP-released software implements clock gating by default.
+
+7.3 DDRC auto clock gating
+When the bus is idle after the number of cycles configured in the ssi_idle_strap field in the DDR
+BLK_CTRL module, the DDRC does auto clock gating to save power. This feature can be used to balance DDR
+subsystem performance and power significantly. The number of idle cycles before clock gating can be adjusted
+dynamically based on the actual use case to fine-tune the power saving.
+In the i.MX 93, auto_clk_gating is used to enable the DDRC auto clock gating. Therefore, power is saved when
+there is no access to the DDR after the programmed idle count expires. "Write 0" disables the auto clock gating
+and the "write non-zero" value sets the ssi_idle_strip to this non-zero value and enable the auto clock
+gating. A value < 256 has some significant side effort for DDR performance, so a value >=256 is suggested
+when the user wants to enable it. When the auto clock gating is enabled, a high-resolution display like 1080
+P 60 fps can flicker at lower DDR frequency. It is recommended not to adjust the auto_clk_gating when the
+display/NPU is running.
+
+7.4 PLL reduction
+Each PLL block consumes significant energy when active. Each application has unique requirements, but, if
+possible, reduce the number of operating PLLs. The CCM within the i.MX 93 provides Root Clock mux and
+programmable control to each PLL either by direct control mode or CPU Low-power mode. As a result, the
+Root Clocks source is allowed to modify to limit the PLL source and reduce the number of active PLLs when
+operating. Ensure that the application considers the PLL relock time when transitioning back to full operation.
+
+7.5 Core VFS and system bus scaling
+Applying VFS for the Arm cores and scaling (not dynamic) the frequencies of the NOC, AXI, AHB, and IPG
+system bus clocks can significantly reduce the power consumption of the VDD_SOC domains. However, the
+operation of system frequency reduction causes longer access times to the DDR, which can increase the
+energy consumption for specific use cases. Consider this trade-off for each mode to quantify the overall effect
+on the system power consumption.
+
+7.6 Lower DDR frequencies
+As explained previously, the DDR I/O bus frequency also contributes to the DDR I/O current. Software
+interfaces allow for the use of the HWFFC/SWFFC technology of DDRC, which allows for the significant
+reduction of power consumption by lowering the DDR frequency.
+
+7.7 DDR interface optimization
+To optimize the DDR interface, the suggestions are as follows:
+• Employ careful board routing of the DDR memories, maintaining the PCB trace lengths as short as possible.
+Longer trace lengths and more vias create more PCB capacitance for the signal, resulting in more energy
+wastage along the signal path.
+• Keep the on-die termination (ODT) value as low as possible. The termination used greatly influences the
+power consumption of the DDR interface pins. To ensure the ODT variance does not reduce the bus signal
+integrity, simulate the DDR interface.
+• Use an appropriate output driver impedance for the DDR interface pins that provide good impedance
+matching. Select the lowest possible drive strength that provides the required performance to reduce the
+current flowing through the DDR I/O pins. Remember that simulation must be done to ensure signal integrity.
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+44 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+• The use of the DDR memory offerings in the latest process technology can significantly reduce the power
+consumption of the DDR devices and the DDR I/O.
+• Sizing DDR memory is important. If you select 4 GB memory when only 2 GB is used, you are wasting the
+refresh current for the unused 2 GB of DDR.
+• Sizing of ECC DDR regions is important as they use more energy for this feature.
+
+7.8 Power gating of PHYs
+The PHYs of unused modules often get overlooked when searching for power savings. Many PHYs contain
+local PLLs or clocking circuits and voltage references, which consume power even when not in use. As a result,
+high-speed PHYs like Ethernet, MIPI, and USB get affected.
+
+7.9 Distribution of workloads
+The concept of distributed workloads is to review the system requirements and determine which SoC block
+is best suited for each task. By spreading the workload, the system can return to the "Idle" state sooner. This
+process applies to multicore distributions and functions that suit the CM33 core or ML engine. System designers
+must ensure that the design uses the optimal cores for the specific workloads or tasks, on the i.MX 93 for
+maximum efficiency. While often easier said than done, it does provide significant power savings if the system
+can return to the low-power state faster (run fast and idle).
+
+7.10 Use OCRAM to minimize DDR access
+To achieve significant power savings, load highly accessed code into the On-Chip RAM (OCRAM). As a result,
+both the i.MX 93 and the DDR memory current consumption reduces. Another advantage of using the OCRAM
+is a performance increase since DDR memory access time delays this code.
+
+7.11 Thermal management to reduce leakage
+Thermal management is also a key element of power reduction. As temperature increases, so does the SoC
+gate leakage current for each gate within the device. Millions of high-gate leakages add up when looking for the
+lowest power consumption. As explained earlier, with any power savings, the temperature of the SoC reduces,
+and the lifetime reliability of the device improves.
+As each system is unique, the system designer must ensure that the operating temperature of the SoC is as low
+as possible to reduce the leakage current loss. If this temperature cannot be achieved from software controls,
+the designer must include a heat sink or other thermal management methods to remove the heat from the SoC.
+
+7.12 Nominal drive mode
+The NXP-supplied Linux BSP GA release configures the system to run in Overdrive mode (ODM) by default.
+This Overdrive mode and associated performance are not necessary for some user applications. Users can
+transition to Nominal or Low-drive mode as defined in the i.MX 93 data sheet instead.
+
+8 Important commands
+Before running a use case, the <configuration_script>.sh script must be run to configure the
+environment. Details for these scripts are as follows:
+• setup.sh: The CPU frequency is set to the maximum value of 1.7 GHz to achieve the best performance.
+Disable the Ethernet, stop the Weston service, and blank the display. Set 512 kB as the maximum amount of
+data the kernel reads ahead for a single file.
+#!/bin/bash
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+45 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+systemctl stop weston.service
+echo 1 > /sys/class/graphics/fb0/blank
+partitions=`lsblk |awk '$1 !~/-/{print $1}' |grep 'blk\|sd'`
+for partition in $partitions; do
+echo 512 > /sys/block/$partition/queue/read_ahead_kb
+done
+eth_int=`ifconfig -a | grep 'eth[0-9]'|awk {'print substr($1, 0, 4)'}`
+for eth in $eth_int; do
+ifconfig $eth down
+done
+
+• setup_video.sh: The CPU frequency is set to the maximum value of 1.7 GHz to achieve the best
+performance. Disable the Ethernet and awake the display. Set 512 kB as the maximum amount of data the
+kernel reads ahead for a single file.
+#!/bin/bash
+partitions=`lsblk |awk '$1 !~/-/{print $1}' |grep 'blk\|sd'`
+for partition in $partitions; do
+echo 512 > /sys/block/$partition/queue/read_ahead_kb
+done
+eth_int=`ifconfig -a | grep 'eth[0-9]'|awk {'print substr($1, 0, 4)'}`
+for eth in $eth_int; do
+ifconfig $eth down
+done
+echo 1 > /sys/class/graphics/fb0/blank
+echo 0 > /sys/class/graphics/fb0/blank
+
+• setup_video_stream.sh: The CPU frequency is set to the maximum value of 1.7 GHz to achieve the best
+performance. To play the video online, open the Ethernet and awake the display. Set 512 kB as the maximum
+amount of data the kernel reads ahead for a single file.
+#!/bin/bash
+partitions=`lsblk |awk '$1 !~/-/{print $1}' |grep 'blk\|sd'`
+for partition in $partitions; do
+echo 512 > /sys/block/$partition/queue/read_ahead_kb
+done
+eth_int=`ifconfig -a | grep 'eth[0-9]'|awk {'print substr($1, 0, 4)'}`
+for eth in $eth_int;do
+ifconfig $eth up
+done
+echo 1 > /sys/class/graphics/fb0/blank
+echo 0 > /sys/class/graphics/fb0/blank
+
+• DDRC_625MTS_setup.sh: After running the shell scripts below, the DDR frequency switches to Low-bus
+mode 312.5 MHz (data rate is 625 MT/s). The CPU frequency is set to the minimum value of 1400 MHz. DDR
+VFS aims at saving power. Disable the Ethernet, stop the Weston service, and blank the display.
+#!/bin/bash
+systemctl stop weston.service
+if [ -f /sys/class/graphics/fb0/blank ]; then
+echo 1 > /sys/class/graphics/fb0/blank
+fi
+eth_int=`ifconfig -a | grep 'eth[0-9]'|awk {'print substr($1, 0, 4)'}`
+for eth in $eth_int; do
+ifconfig $eth down
+done
+echo 3 > /sys/devices/platform/imx93-lpm/mode
+
+• dd_read.sh: This script is used to run the dd read command on the memory device.
+#!/bin/bash
+# Since we're dealing with dd, abort if any errors occur
+set -e
+TEST_FILE=${1:-dd_ibs_testfile}
+if [ $EUID -ne 0 ]; then
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+46 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+echo "NOTE: Kernel cache will not be cleared between tests without sudo. This will
+likely cause inaccurate results." 1>&2 ;fi
+count=$COUNT conv=fsync > /dev/null 2>&1
+# Header
+PRINTF_FORMAT="%8s : %s\n"
+printf "$PRINTF_FORMAT" 'block size' 'transfer rate'
+while true
+BLOCK_SIZE=4096
+do
+# Clear kernel cache to ensure more accurate test
+[ $EUID -eq 0 ] && [ -e /proc/sys/vm/drop_caches ] && echo 3 > /proc/sys/vm/drop_caches
+# Read test file out to /dev/null with specified block size
+DD_RESULT=$(dd if=$TEST_FILE of=/dev/null bs=$BLOCK_SIZE 2>&1 1>/dev/null)
+# Extract transfer rate
+TRANSFER_RATE=$(echo $DD_RESULT | \grep --only-matching -E '[0-9.]+ ([MGk]?B|bytes)/
+s(ec)?')
+printf "$PRINTF_FORMAT" "$BLOCK_SIZE" "$TRANSFER_RATE"
+done
+
+• dd_write.sh: This script is used to run the dd write command on the memory device.
+#!/bin/bash
+# Since we're dealing with dd, abort if any errors occur
+set -e
+TEST_FILE=${1:-dd_obs_testfile}
+TEST_FILE_EXISTS=0
+if [ -e "$TEST_FILE" ]; then TEST_FILE_EXISTS=1; fi
+TEST_FILE_SIZE=1024000000
+if [ $EUID -ne 0 ]; then
+echo "NOTE: Kernel cache will not be cleared between tests without sudo. This will
+likely cause inaccurate results." 1>&2
+fi
+# Header
+PRINTF_FORMAT="%8s: %s\n"
+printf "$PRINTF_FORMAT" 'block size' 'transfer rate'
+while true
+BLOCK_SIZE=4096
+do
+# Calculate number of segments required to copy
+COUNT=$(($TEST_FILE_SIZE / $BLOCK_SIZE))
+if [ $COUNT -le 0 ]; then
+echo "Block size of $BLOCK_SIZE estimated to require $COUNT blocks, aborting further
+tests."
+break
+fi
+# Clear kernel cache to ensure more accurate test
+[ $EUID -eq 0 ] && [ -e /proc/sys/vm/drop_caches ] && echo 3 > /proc/sys/vm/drop_caches
+# Create a test file with the specified block size
+DD_RESULT=$(dd if=/dev/zero of=$TEST_FILE bs=$BLOCK_SIZE count=$COUNT conv=fsync 2>&1
+1>/dev/null)
+# Extract the transfer rate from dd's STDERR output
+TRANSFER_RATE=$(echo $DD_RESULT | \grep --only-matching -E '[0-9.]+ ([MGk]?B|bytes)/
+s(ec)?')
+# Output the result
+printf "$PRINTF_FORMAT" "$BLOCK_SIZE" "$TRANSFER_RATE"
+done
+
+• dhrystone_loop.sh: The script starts the Dhrystone example:
+while true; do
+taskset -c 0 ./dhry2 &
+taskset -c 1 ./dhry2
+done
+
+• ML_vela.sh: The script starts the machine learning example:
+#!/bin/bash
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+47 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+echo 4 > /proc/sys/kernel/printk
+cd /usr/bin/tensorflow-lite-2.12.1/examples
+while true; do
+/usr/bin/tensorflow-lite-2.12.1/examples/benchmark_model \
+--graph=./output/mobilenet_v1_1.0_224_quant_vela.tflite \
+--num_runs=22000 --external_delegate_path=/usr/lib/libethosu_delegate.so
+done
+
+• MV_vela.sh: The script starts the machine vision example:
+gst-launch-1.0 -v v4l2src device=/dev/video0 ! video/xraw,width=640,height=480,framerate=30/1 ! tee name=t t. ! queue
+max-size-buffers=2 leaky=2 ! imxvideoconvert_pxp ! video/xraw,width=300,height=300,format=BGRA ! videoconvert ! video/xraw,format=RGB ! tensor_converter ! tensor_filter framework=tensorflowlite model=./output/ssd_mobilenet_v2_coco_quant_postprocess_vela.tflite
+custom=Delegate:External,ExtDelegateLib:libethosu_delegate.so ! tensor_decoder
+mode=bounding_boxes option1=tf-ssd option2=coco_labels.txt option3=0:1:2:3,50
+option4=640:480 option5=300:300 ! videoconvert ! mix. t. ! queue max-sizebuffers=2 leaky=2 ! imxcompositor_pxp name=mix sink_0::zorder=2 sink_1::zorder=1
+sink_0::alpha=0.5 latency=14000000 min-upstream-latency=14000000 ! waylandsink
+
+• PXP_test.sh: The script starts the PXP example:
+gst-launch-1.0 -v imxcompositor_pxp \
+name=comp sink_0::xpos=0 sink_0::ypos=0 \
+sink_0::width=1280 sink_0::height=800 ! \
+waylandsink videotestsrc ! comp.sink_0
+
+• streamcpy_loop.sh: The script starts the stream example:
+while true; do
+taskset -c 0 stream -M 200M -N 1000 &
+taskset -c 1 stream -M 200M -N 1000
+done
+
+9 Note about the source code in the document
+Example code shown in this document has the following copyright and BSD-3-Clause license:
+Copyright 2024 NXP Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
+following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+following disclaimer in the documentation and/or other materials must be provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
+promote products derived from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+48 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+
+10 Revision history
+Table 40 summarizes revisions to this document.
+Table 40. Revision history
+Document ID
+
+Release date
+
+Description
+
+AN13917 v.3.0
+
+29 February 2024
+
+• Updated the Q3 power consumption data
+• Updated tables refering to measurement results for i.MX 9311x11-EVK for all use cases
+• Added Battery and DDRC auto clock gating
+• Updated Video playback streaming (gplay)
+
+AN13917 v.2.0
+
+14 September 2023
+
+• Updated the Q2 power consumption data
+• Added the SoC temperature data for all use cases
+• Updated tables, which include measurement results for i.MX 9311x11-EVK
+
+AN13917 v.1.0
+
+24 April 2023
+
+Initial public release
+
+AN13917
+
+Application note
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+49 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+
+Legal information
+Definitions
+Draft — A draft status on a document indicates that the content is still
+under internal review and subject to formal approval, which may result
+in modifications or additions. NXP Semiconductors does not give any
+representations or warranties as to the accuracy or completeness of
+information included in a draft version of a document and shall have no
+liability for the consequences of use of such information.
+
+Export control — This document as well as the item(s) described herein
+may be subject to export control regulations. Export might require a prior
+authorization from competent authorities.
+
+Disclaimers
+Limited warranty and liability — Information in this document is believed
+to be accurate and reliable. However, NXP Semiconductors does not give
+any representations or warranties, expressed or implied, as to the accuracy
+or completeness of such information and shall have no liability for the
+consequences of use of such information. NXP Semiconductors takes no
+responsibility for the content in this document if provided by an information
+source outside of NXP Semiconductors.
+In no event shall NXP Semiconductors be liable for any indirect, incidental,
+punitive, special or consequential damages (including - without limitation lost profits, lost savings, business interruption, costs related to the removal
+or replacement of any products or rework charges) whether or not such
+damages are based on tort (including negligence), warranty, breach of
+contract or any other legal theory.
+Notwithstanding any damages that customer might incur for any reason
+whatsoever, NXP Semiconductors’ aggregate and cumulative liability
+towards customer for the products described herein shall be limited in
+accordance with the Terms and conditions of commercial sale of NXP
+Semiconductors.
+Right to make changes — NXP Semiconductors reserves the right to
+make changes to information published in this document, including without
+limitation specifications and product descriptions, at any time and without
+notice. This document supersedes and replaces all information supplied prior
+to the publication hereof.
+Suitability for use — NXP Semiconductors products are not designed,
+authorized or warranted to be suitable for use in life support, life-critical or
+safety-critical systems or equipment, nor in applications where failure or
+malfunction of an NXP Semiconductors product can reasonably be expected
+to result in personal injury, death or severe property or environmental
+damage. NXP Semiconductors and its suppliers accept no liability for
+inclusion and/or use of NXP Semiconductors products in such equipment or
+applications and therefore such inclusion and/or use is at the customer’s own
+risk.
+Applications — Applications that are described herein for any of these
+products are for illustrative purposes only. NXP Semiconductors makes no
+representation or warranty that such applications will be suitable for the
+specified use without further testing or modification.
+Customers are responsible for the design and operation of their
+applications and products using NXP Semiconductors products, and NXP
+Semiconductors accepts no liability for any assistance with applications or
+customer product design. It is customer’s sole responsibility to determine
+whether the NXP Semiconductors product is suitable and fit for the
+customer’s applications and products planned, as well as for the planned
+application and use of customer’s third party customer(s). Customers should
+provide appropriate design and operating safeguards to minimize the risks
+associated with their applications and products.
+NXP Semiconductors does not accept any liability related to any default,
+damage, costs or problem which is based on any weakness or default
+in the customer’s applications or products, or the application or use by
+customer’s third party customer(s). Customer is responsible for doing all
+necessary testing for the customer’s applications and products using NXP
+Semiconductors products in order to avoid a default of the applications
+and the products or of the application or use by customer’s third party
+customer(s). NXP does not accept any liability in this respect.
+
+AN13917
+
+Application note
+
+Terms and conditions of commercial sale — NXP Semiconductors
+products are sold subject to the general terms and conditions of commercial
+sale, as published at https://www.nxp.com/profile/terms, unless otherwise
+agreed in a valid written individual agreement. In case an individual
+agreement is concluded only the terms and conditions of the respective
+agreement shall apply. NXP Semiconductors hereby expressly objects to
+applying the customer’s general terms and conditions with regard to the
+purchase of NXP Semiconductors products by customer.
+
+Suitability for use in non-automotive qualified products — Unless
+this document expressly states that this specific NXP Semiconductors
+product is automotive qualified, the product is not suitable for automotive
+use. It is neither qualified nor tested in accordance with automotive testing
+or application requirements. NXP Semiconductors accepts no liability for
+inclusion and/or use of non-automotive qualified products in automotive
+equipment or applications.
+In the event that customer uses the product for design-in and use in
+automotive applications to automotive specifications and standards,
+customer (a) shall use the product without NXP Semiconductors’ warranty
+of the product for such automotive applications, use and specifications, and
+(b) whenever customer uses the product for automotive applications beyond
+NXP Semiconductors’ specifications such use shall be solely at customer’s
+own risk, and (c) customer fully indemnifies NXP Semiconductors for any
+liability, damages or failed product claims resulting from customer design and
+use of the product for automotive applications beyond NXP Semiconductors’
+standard warranty and NXP Semiconductors’ product specifications.
+Translations — A non-English (translated) version of a document, including
+the legal information in that document, is for reference only. The English
+version shall prevail in case of any discrepancy between the translated and
+English versions.
+Security — Customer understands that all NXP products may be subject to
+unidentified vulnerabilities or may support established security standards or
+specifications with known limitations. Customer is responsible for the design
+and operation of its applications and products throughout their lifecycles
+to reduce the effect of these vulnerabilities on customer’s applications
+and products. Customer’s responsibility also extends to other open and/or
+proprietary technologies supported by NXP products for use in customer’s
+applications. NXP accepts no liability for any vulnerability. Customer should
+regularly check security updates from NXP and follow up appropriately.
+Customer shall select products with security features that best meet rules,
+regulations, and standards of the intended application and make the
+ultimate design decisions regarding its products and is solely responsible
+for compliance with all legal, regulatory, and security related requirements
+concerning its products, regardless of any information or support that may be
+provided by NXP.
+NXP has a Product Security Incident Response Team (PSIRT) (reachable
+at PSIRT@nxp.com) that manages the investigation, reporting, and solution
+release to security vulnerabilities of NXP products.
+NXP B.V. — NXP B.V. is not an operating company and it does not distribute
+or sell products.
+
+Trademarks
+Notice: All referenced brands, product names, service names, and
+trademarks are the property of their respective owners.
+NXP — wordmark and logo are trademarks of NXP B.V.
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+50 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+AMBA, Arm, Arm7, Arm7TDMI, Arm9, Arm11, Artisan, big.LITTLE,
+Cordio, CoreLink, CoreSight, Cortex, DesignStart, DynamIQ, Jazelle,
+Keil, Mali, Mbed, Mbed Enabled, NEON, POP, RealView, SecurCore,
+Socrates, Thumb, TrustZone, ULINK, ULINK2, ULINK-ME, ULINKPLUS, ULINKpro, μVision, Versatile — are trademarks and/or registered
+trademarks of Arm Limited (or its subsidiaries or affiliates) in the US and/or
+elsewhere. The related technology may be protected by any or all of patents,
+copyrights, designs and trade secrets. All rights reserved.
+
+AN13917
+
+Application note
+
+EdgeLock — is a trademark of NXP B.V.
+eIQ — is a trademark of NXP B.V.
+i.MX — is a trademark of NXP B.V.
+TensorFlow, the TensorFlow logo and any related marks — are
+trademarks of Google Inc.
+
+All information provided in this document is subject to legal disclaimers.
+
+Rev. 3 — 29 February 2024
+
+© 2024 NXP B.V. All rights reserved.
+
+51 / 52
+
+AN13917
+
+NXP Semiconductors
+
+i.MX 93 Power Consumption Measurement
+
+Contents
+1
+2
+3
+4
+4.1
+4.2
+4.2.1
+5
+5.1
+5.2
+5.3
+6
+6.1
+6.1.1
+6.1.2
+6.2
+6.2.1
+6.2.2
+6.2.3
+6.3
+6.3.1
+6.3.2
+6.3.3
+6.3.4
+6.4
+6.5
+6.5.1
+6.5.2
+6.6
+6.6.1
+6.6.2
+6.6.3
+6.6.4
+6.7
+6.7.1
+6.7.2
+6.7.3
+6.7.4
+6.7.5
+6.7.6
+6.7.7
+6.7.8
+6.7.9
+6.7.10
+
+Introduction ...................................................... 2
+Acronyms ......................................................... 2
+i.MX 93 power architecture ............................. 4
+i.MX 93 power overview .................................. 5
+i.MX 93 power domains overview ......................5
+i.MX 93 power mode overview .......................... 6
+Low-power modes ............................................. 7
+i.MX 93 processor power measurement ........ 8
+Hardware and software requirements ................8
+Build the i.MX Yocto Project .............................. 8
+Power consumption measurement .................... 9
+Use cases and measurement results .............9
+Core benchmark use cases .............................11
+Dhrystone .........................................................11
+CoreMark ......................................................... 12
+Memory use cases .......................................... 13
+memset ............................................................ 13
+memcpy ........................................................... 14
+Stream ............................................................. 15
+Audio/video playback use cases ......................16
+Audio playback (gplay) .................................... 16
+Audio low-bus playback (gplay) ....................... 17
+Video playback local (gplay) ............................18
+Video playback streaming (gplay) ....................19
+Graphic use case ............................................ 20
+Machine learning use cases ............................ 21
+eIQ benchmark ................................................ 21
+Machine vision .................................................22
+Storage use cases ...........................................23
+DD_WRITE_eMMC ..........................................23
+DD_READ_eMMC ........................................... 24
+DD_WRITE_SD ............................................... 25
+DD_READ_SD .................................................26
+Low-power mode use cases ............................27
+System Idle with display in OD mode with
+DDRC auto clock gating .................................. 27
+System Idle with display in ND mode .............. 28
+System Idle with display in LD mode (DDR
+to half speed) .................................................. 29
+System Idle with display in LD mode (DDR
+to lowest speed with SWFFC) ......................... 30
+System Idle without display in OD mode
+with DDRC auto clock gating ...........................30
+System Idle without display in ND mode
+with DDRC auto clock gating ...........................31
+System Idle without display in LD mode
+with DDRC auto clock gating (DDR to half
+speed) .............................................................. 32
+System Idle without display in LD mode
+with DDRC auto clock gating (DDR to
+lowest speed with SWFFC) ............................. 33
+System in DSM ................................................34
+Battery ..............................................................35
+
+6.8
+6.8.1
+6.8.2
+6.9
+6.9.1
+6.9.2
+6.9.3
+6.9.4
+7
+7.1
+7.2
+7.3
+7.4
+7.5
+7.6
+7.7
+7.8
+7.9
+7.10
+7.11
+7.12
+8
+9
+10
+
+Stress test use cases ...................................... 36
+2 x CA55 Dhrystone + PXP + CM33
+CoreMark + NPU ............................................. 36
+2 x CA55 Stream + PXP + CM33 CoreMark
++ NPU ..............................................................37
+Product use cases ...........................................38
+Linux Suspend + CM33 CoreMark (TCM) ........38
+Linux Suspend + CM33 in wait for interrupt ..... 39
+Linux Suspend + CM33 FlexCAN
+transaction ....................................................... 40
+Smart doorbell ................................................. 41
+Reducing power consumption ..................... 42
+Run fast and idle ............................................. 43
+Clock gating .....................................................43
+DDRC auto clock gating .................................. 44
+PLL reduction .................................................. 44
+Core VFS and system bus scaling .................. 44
+Lower DDR frequencies .................................. 44
+DDR interface optimization .............................. 44
+Power gating of PHYs ..................................... 45
+Distribution of workloads ................................. 45
+Use OCRAM to minimize DDR access ............ 45
+Thermal management to reduce leakage ........ 45
+Nominal drive mode ........................................ 45
+Important commands .................................... 45
+Note about the source code in the
+document ........................................................48
+Revision history .............................................49
+Legal information ...........................................50
+
+Please be aware that important notices concerning this document and the product(s)
+described herein, have been included in section 'Legal information'.
+
+© 2024 NXP B.V.
+
+All rights reserved.
+
+For more information, please visit: https://www.nxp.com
+Date of release: 29 February 2024
+Document identifier: AN13917
+
+
