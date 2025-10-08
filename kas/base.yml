@@ -4,7 +4,7 @@ header:
 repos:
   bitbake:
     url: https://github.com/lmp-mirrors/bitbake
-    commit: 696c2c1ef095f8b11c7d2eff36fae50f58c62e5e
+    commit: 139f61fe9eec221745184a14b3618d2dfa650b91
     path: build/layers/bitbake
     layers:
       .: disabled
@@ -19,7 +19,7 @@ repos:
   meta-lmp:
     url: https://github.com/foundriesio/meta-lmp
     path: build/layers/meta-lmp
-    commit: 4dffdff79b4df49c683c9a7faea406595cb7e9ca
+    commit: d176612d7fc811bb8f511fcaa06dc617513c0eb5
     layers:
       meta-lmp-base:
       meta-lmp-bsp:
@@ -31,7 +31,7 @@ repos:
 
   meta-openembedded:
     url: https://github.com/lmp-mirrors/meta-openembedded
-    commit: e92d0173a80ea7592c866618ef5293203c50544c
+    commit: c29a18fa39ede952f3f6108ec007c1906e2d9a0d
     path: build/layers/meta-openembedded
     layers:
       meta-oe:
@@ -53,12 +53,12 @@ repos:
 
   meta-updater:
     url: https://github.com/lmp-mirrors/meta-updater
-    commit: d57b19f885fe11916c91569e20288581eff512aa
+    commit: b275153c9c8ea09e27d41db9f2faba3ebf92d2c2
     path: build/layers/meta-updater
 
   meta-virtualization:
     url: https://github.com/lmp-mirrors/meta-virtualization
-    commit: 9e040ee8dd6025558ea60ac9db60c41bfeddf221
+    commit: 02f72c96bf9acd0bd3ae0463f482bce8feabe749
     path: build/layers/meta-virtualisation
 
   meta-tensorflow:
@@ -68,7 +68,7 @@ repos:
 
   openembedded-core:
     url: https://github.com/lmp-mirrors/openembedded-core
-    commit: 87cadf62ba0d6b0fc3dc0151a5d320919b7eb1ab
+    commit: 7a59dc5ee6edd9596e87c2fbcd1f2594c06b3d1b
     path: build/layers/openembedded-core
     layers:
       meta:
