@@ -7,6 +7,7 @@ Yocto layers for Dynamic Devices Edge boards on Linux microPlatform (LmP).
 **Key Tech**: i.MX8MM/i.MX93, NXP IW612, TAS2563 audio, USB audio gadget
 
 ## Recent Updates
+- **E-Ink Power CLI**: Added eink-power-cli utility for MCXC143VFM power management control
 - **USB Audio Gadget**: Added USB Audio Class support for imx8mm-jaguar-sentai (debugging only, disabled by default)
 - **Programming Scripts**: Support `--mfgfolder` for custom boot firmware
 - **TAS2563 Audio**: Multiple driver options - TAS2562 (current), TAS2781 mainline
@@ -167,6 +168,28 @@ sudo setup-usb-audio-gadget status
 - **User Guides**: `wiki/` (testing, development, setup guides)
 - **Board Programming**: `wiki/Board-Programming-with-Foundries-Builds.md`
 - **Contributing**: `CONTRIBUTING.md`
+
+## E-Ink Power Management ✅ INTEGRATED
+
+### Power CLI Utility
+- **Tool**: `eink-power-cli` (Rust-based) for MCXC143VFM microcontroller control
+- **Install**: Automatically included in imx93-jaguar-eink builds
+- **Binaries**: `/usr/bin/eink-power-cli`, `/usr/bin/eink-pmu` (symlink)
+- **Config**: `/etc/eink-power-cli.toml` (optional)
+- **Repository**: `github.com/DynamicDevices/eink-power-cli`
+
+### Usage
+```bash
+# Power management commands
+eink-power-cli --help
+eink-pmu status        # Check power status
+eink-pmu battery       # Battery monitoring
+```
+
+### Integration
+- **Machine Feature**: `el133uf1` enabled in imx93-jaguar-eink.conf
+- **Auto-Install**: `MACHINE_EXTRA_RDEPENDS` includes eink-power-cli
+- **Serial**: Communicates via `/dev/ttyLP2` (LPUART7) to MCXC143VFM
 
 ## Context Management Guidelines
 - **Keep Updated**: Context files must reflect current project state
