@@ -12,6 +12,10 @@ IMAGE_INSTALL:append = " \
     iotop \
     htop \
     sysstat \
+"
+
+# i.MX93-specific power analysis tools
+IMAGE_INSTALL:append:imx93-jaguar-eink = " \
     power-analysis-suite \
 "
 
