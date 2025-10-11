@@ -1,0 +1,2073 @@
+XM125 I2C Distance Detector
+User Guide
+
+XM125 I2 C Distance Detector
+
+XM125 I2 C Distance Detector
+User Guide
+Author: Acconeer AB
+Version:a121-v1.11.0
+Acconeer AB August 6, 2025
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 1 of 28
+
+XM125 I2 C Distance Detector
+
+Contents
+1 Acconeer SDK Documentation Overview
+
+4
+
+2 I2 C Distance Detector Application
+2.1 I2 C Address Configuration . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.2 I2C Speed . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.3 Usage . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.3.1 Read Detector Status . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.3.2 Writing a command . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.3.3 Setup and Measure . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.4 Advanced Usage . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.4.1 Apply Configuration and Calibration separately . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.4.2 Re-calibration . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.4.3 Measure on Wake Up Mode . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.4.4 Debug UART logs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.4.5 Reset Module . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+5
+5
+5
+5
+5
+5
+5
+6
+6
+6
+6
+6
+7
+
+3 Register Protocol
+3.1 I2 C Slave Address . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.2 Protocol Byte Order . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.2.1 I2 C Write Register(s) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.2.2 I2 C Read Register(s) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.3 Register Protocol - Low Power Mode . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.3.1 I2 C Communication with Low Power Mode . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+8
+8
+8
+8
+8
+10
+10
+
+4 File Structure
+
+12
+
+5 Embedded Host Example
+5.1 Register Read/Write functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5.2 Detector setup functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+12
+12
+14
+
+6 Registers
+6.1 Register Map . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2 Register Descriptions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.1 Version . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.2 Protocol Status . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.3 Measure Counter . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.4 Detector Status . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.5 Distance Result . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.6 Peak0 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.7 Peak1 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.8 Peak2 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.9 Peak3 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.10 Peak4 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.11 Peak5 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.12 Peak6 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.13 Peak7 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.14 Peak8 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.15 Peak9 Distance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.16 Peak0 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.17 Peak1 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.18 Peak2 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.19 Peak3 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.20 Peak4 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.21 Peak5 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.22 Peak6 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.23 Peak7 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.24 Peak8 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.25 Peak9 Strength . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.26 Start . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+17
+17
+17
+17
+18
+18
+18
+19
+20
+20
+20
+20
+20
+20
+21
+21
+21
+21
+21
+21
+22
+22
+22
+22
+22
+22
+22
+23
+23
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 2 of 28
+
+XM125 I2 C Distance Detector
+
+6.2.27
+6.2.28
+6.2.29
+6.2.30
+6.2.31
+6.2.32
+6.2.33
+6.2.34
+6.2.35
+6.2.36
+6.2.37
+6.2.38
+6.2.39
+6.2.40
+6.2.41
+
+End . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Max Step Length . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Close Range Leakage Cancellation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Signal Quality . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Max Profile . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Threshold Method . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Peak Sorting . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Num Frames Recorded Threshold . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Fixed Amplitude Threshold Value . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Threshold Sensitivity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Reflector Shape . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Fixed Strength Threshold Value . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Measure On Wakeup . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Command . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Application Id . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+7 Disclaimer
+
+© 2025 by Acconeer AB - All rights reserved
+
+23
+23
+23
+23
+24
+24
+24
+25
+25
+25
+25
+25
+26
+26
+26
+28
+
+Page 3 of 28
+
+XM125 I2 C Distance Detector
+
+1
+
+Acconeer SDK Documentation Overview
+
+To better understand what SDK document to use, a summary of the documents are shown in the table below.
+Table 1: SDK document overview.
+Name
+
+Description
+RSS API documentation (html)
+
+rss api
+
+The complete C API documentation.
+
+A121 Assembly Test
+A121 Breathing
+Reference Application
+A121 Distance Detector
+A121 SW Integration
+A121 Presence Detector
+A121 Smart Presence
+Reference Application
+A121 Sparse IQ Service
+A121 Tank Level
+Reference Application
+A121 Touchless Button
+Reference Application
+A121 Parking
+Reference Application
+A121 STM32CubeIDE
+A121 Raspberry Pi Software
+A121 Ripple
+A121 ESP32 User Guide
+XM125 Software
+XM126 Software
+I2C Distance Detector
+I2C Presence Detector
+I2C Breathing Reference Application
+
+A121 Radar Data and Control
+
+README
+
+User guides (PDF)
+Describes the Acconeer assembly
+test functionality.
+Describes the functionality of the
+Breathing Reference Application.
+Describes usage and algorithms
+of the Distance Detector.
+Describes how to implement each
+integration function needed to use
+the Acconeer sensor.
+Describes usage and algorithms
+of the Presence Detector.
+Describes the functionality of the
+Smart Presence Reference Application.
+Describes usage of the Sparse IQ
+Service.
+Describes the functionality of the
+Tank Level Reference Application.
+Describes the functionality of the
+Touchless Button Reference Application.
+Describes the functionality of the
+Parking Reference Application.
+Describes the flow of taking an
+Acconeer SDK and integrate into
+STM32CubeIDE.
+Describes how to develop for
+Raspberry Pi.
+Describes how to develop for
+Ripple.
+Describes how to develop with
+A121 and ESP32 targets.
+Describes how to develop for
+XM125.
+Describes how to develop for
+XM126.
+Describes the functionality of the
+I2C Distance Detector Application.
+Describes the functionality of the
+I2C Presence Detector Application.
+Describes the functionality of the
+I2C Breathing Reference Application.
+A121 Radar Data and Control (PDF)
+Describes different aspects of the
+Acconeer offer, for example radar
+principles and how to configure
+Readme (txt)
+Various target specific information
+and links
+
+© 2025 by Acconeer AB - All rights reserved
+
+When to use
+- RSS application implementation
+- Understanding RSS API functions
+- Bring-up of HW/SW
+- Production test implementation
+- Working with the Breathing
+Reference Application
+- Working with the Distance Detector
+- SW implementation of
+custom HW integration
+- Working with the Presence Detector
+- Working with the Smart Presence
+Reference Application
+- Working with the Sparse IQ Service
+- Working with the Tank Level
+Reference Application
+- Working with the Touchless Button
+Reference Application
+- Working with the Parking
+Reference Application
+- Using STM32CubeIDE
+- Working with Raspberry Pi
+- Working with Ripple
+on Raspberry Pi
+- Working with ESP32 targets
+- Working with XM125
+- Working with XM126
+- Working with the
+I2C Distance Detector Application
+- Working with the
+I2C Presence Detector Application
+- Working with the
+I2C Breathing Reference Application
+- To understand the Acconeer sensor
+- Use case evaluation
+
+- After SDK download
+
+Page 4 of 28
+
+XM125 I2 C Distance Detector
+
+I2 C Distance Detector Application
+
+2
+
+The I2 C Distance Detector is an application that implements the Acconeer Distance Detector with a register based I2 C
+interface.
+The functionality of the distance detector is described in A121 Distance Detector User Guide.pdf or in Acconeer
+Docs.
+Note: Some of the registers like start and end have a different unit in the I2 C Distance Detector, millimeters instead of
+meters, to make it easier to handle the register values as integers.
+I2 C Address Configuration
+
+2.1
+
+The device has a configurable I2 C address. The address is selected depending on the state of the I2C ADDR pin according
+to the following table:
+Connected to GND
+Not Connected
+Connected to VIN
+2.2
+
+0x51
+0x52
+0x53
+
+I2C Speed
+
+The device supports I2C speed up to 100kbps in Standard Mode and up to 400kbps in Fast Mode.
+2.3
+
+Usage
+
+The module must be ready before the host starts I2 C communication.
+The module will enter ready state by following this procedure.
+• Set WAKE UP pin of the module HIGH.
+• Wait for module to be ready, this is indicated by the MCU INT pin being HIGH.
+• Start I2 C communication.
+The module will enter a low power state by following this procedure.
+• Wait for module to be ready, this is indicated by the MCU INT pin being HIGH.
+• Set the WAKE UP pin of the module LOW.
+• Wait for ready signal, the MCU INT pin, to become LOW.
+2.3.1
+
+Read Detector Status
+
+The status of the module can be acquired by reading the Detector Status register, The most important bits are the Busy
+and Error bits.
+The Busy bit must not be set when a new command is written. If any of the Error bits are set the module will not accept
+any commands except the RESET MODULE command.
+2.3.2
+
+Writing a command
+
+A command is written to the Command register. When a command is written the Busy bit in the Detector Status register
+is set and it will be cleared automatically when the command has finished.
+2.3.3
+
+Setup and Measure
+
+Before the module can perform distance measurements it must be configured and calibrated. The following steps is an
+example of how this can be achieved.
+Note: The configuration parameters can not be changed after a APPLY CONFIG AND CALIBRATE or a
+APPLY CONFIGURATION command. If reconfiguration is needed the module must be restarted by writing
+RESET MODULE to the Command register.
+• Power on module
+• Read Detector Status register and verify that neither Busy nor Error bits are set.
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 5 of 28
+
+XM125 I2 C Distance Detector
+
+• Write configuration to configuration registers, for example Start register and End register.
+• Write APPLY CONFIG AND CALIBRATE to Command register.
+• Poll Detector Status until Busy bit is cleared.
+• Verify that no Error bits are set in the Detector Status register.
+• Write MEASURE DISTANCE to Command register.
+• Poll Detector Status until Busy bit is cleared.
+• Verify that no Error bits are set in the Detector Status register.
+• Read Detector Result register
+– If MEASURE DISTANCE ERROR is set the measurement failed.
+– If CALIBRATION NEEDED is set the sensor needs to be re-calibrated with the RECALIBRATE
+command.
+– The number of peak distances detected can be read in the NUM DISTANCES field.
+• Read PeakX Distance and PeakX Strength registers depending on how many distances that were detected.
+• The module is ready for a new MEASURE DISTANCE command.
+2.4
+
+Advanced Usage
+
+2.4.1
+
+Apply Configuration and Calibration separately
+
+Some use-cases requires control over when the system is calibrated, therefore the Apply Configuration and Calibrate
+can be performed as individual steps.
+• Power on module
+• Read Detector Status register and verify that neither Busy nor Error bits are set.
+• Write configuration to configuration registers, for example Start register and End register.
+• Write APPLY CONFIGURATION to Command register
+• Poll Detector Status until Busy bit is cleared.
+• Verify that no Error bits are set in the Detector Status register.
+• Write CALIBRATE to Command register
+• Poll Detector Status until Busy bit is cleared.
+• Verify that no Error bits are set in the Detector Status register.
+• The module is ready for a MEASURE DISTANCE command.
+2.4.2
+
+Re-calibration
+
+Re-calibration must be done as soon as the CALIBRATION NEEDED bit is set in the Detector Result register.
+Re-calibration is performed by writing RECALIBRATE to the Command register.
+2.4.3
+
+Measure on Wake Up Mode
+
+Measure on Wake Up mode can be enabled by writing a non-zero value to the Measure On Wakeup register. When
+Measure on Wake Up is enabled, the module will perform a distance measurement every time it is woken by the
+WAKE UP pin. The measurement will be ready when the MCU INT pin becomes HIGH.
+2.4.4
+
+Debug UART logs
+
+UART logging can be enabled on the DEBUG UART by writing ENABLE UART LOGS to the Command
+register.
+The detector configuration can be logged on the UART by writing LOG CONFIGURATION to the Command
+register.
+UART logging can be disabled by writing DISABLE UART LOGS to the Command register.
+© 2025 by Acconeer AB - All rights reserved
+
+Page 6 of 28
+
+XM125 I2 C Distance Detector
+
+2.4.5
+
+Reset Module
+
+The module can be restarted by writing RESET MODULE to the Command register.
+After the restart the detector must be configured again.
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 7 of 28
+
+XM125 I2 C Distance Detector
+
+3
+
+Register Protocol
+
+3.1
+
+I2 C Slave Address
+
+The default slave address is 0x52.
+3.2
+
+Protocol Byte Order
+
+Both register address, 16-bit, and register data, 32-bit, are sent in big endian byte order.
+3.2.1
+
+I2 C Write Register(s)
+
+A write register operation consists of an I2 C write of two address bytes and four data bytes for each register to write.
+Several registers can be written in the same I2 C transaction, the register address will be incremented by one for each four
+data bytes.
+Example 1: Writing six bytes will write one register, two address bytes and four data bytes.
+Example 2: Writing 18 bytes will write four registers, two address bytes and 16 data bytes.
+Example operation, write 0x11223344 to address 0x0025.
+Description
+I2 C Start Condition
+Slave Address + Write
+Address to slave [15:8]
+Address to slave [7:0]
+Data to slave [31:24]
+Data to slave [23:16]
+Data to slave [15:8]
+Data to slave [7:0]
+I2 C Stop Condition
+
+Data
+0x52 + W
+0x00
+0x25
+0x11
+0x22
+0x33
+0x44
+
+Example Waveform: Write register with address 0x0100, the data sent from the master to the slave is 0x00000001
+3.2.2
+
+I2 C Read Register(s)
+
+A read register operation consists of an I2 C write of two address bytes followed by an I2 C read of four data bytes for each
+register to read. Several registers can be read in the same I2 C transaction, the register address will be incremented by one
+for each four data bytes.
+Example 1: Writing two bytes and reading four bytes will read one register.
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 8 of 28
+
+XM125 I2 C Distance Detector
+
+Example 2: Writing two bytes and reading 16 bytes will read four registers.
+Example operation, read 0x12345678 from address 0x0003.
+Description
+I2 C Start Condition
+Slave Address + Write
+Address to slave [15:8]
+Address to slave [7:0]
+I2 C Stop Condition
+I2 C Start Condition
+Slave Address + Read
+Data from slave [31:24]
+Data from slave [23:16]
+Data from slave [15:8]
+Data from slave [7:0]
+I2 C Stop Condition
+
+Data
+0x52 + W
+0x00
+0x03
+
+0x52 + R
+0x12
+0x34
+0x56
+0x78
+
+Example Waveform: Read register with address 0, the data sent from the slave to the master is 0x00010001
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 9 of 28
+
+XM125 I2 C Distance Detector
+
+3.3
+3.3.1
+
+Register Protocol - Low Power Mode
+I2 C Communication with Low Power Mode
+
+Low power example
+
+Low Power Example: Wake up, Setup Distance Detector, Power down, Wait 1s, Wake up, Measure distance, Power
+down
+
+Low Power Example: Magnification of Wake up, Setup Distance Detector, Power down
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 10 of 28
+
+XM125 I2 C Distance Detector
+
+Low Power Example: Magnification of Wake up, Measure distance, Power down
+Low power example with ’Measure on wake up’
+
+Measure on Wake Up Example: Magnification of Wake up, Measure on wake up, Power down
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 11 of 28
+
+XM125 I2 C Distance Detector
+
+4
+
+File Structure
+
+The I2 C Distance Detector application consists of the following files.
+Src
+applications
+i2c
+acc reg protocol.c
+distance reg protocol access.c
+distance reg protocol.c
+i2c application system stm32.c
+i2c distance detector.c
+Inc
+acc reg protocol.h
+distance reg protocol.h
+i2c application system.h
+i2c distance detector.h
+• acc reg protocol.c A generic protocol handler implementation.
+• distance reg protocol.c The specific register protocol setup for the I2 C Distance Detector.
+• distance reg protocol access.c The register read and write access functions for the I2 C Distance Detector.
+• i2c application system stm32.c System functions, such as I2 C handling, GPIO control and low power state
+• i2c distance detector.c The I2 C Distance Detector application.
+5
+
+Embedded Host Example
+
+This is an example implementation of the host read and write register functions using the STM32 SDK.
+5.1
+
+Register Read/Write functions
+
+# include < inttypes .h >
+# include < stdbool .h >
+# include < stdint .h >
+# include "distance_reg_protocol . h "
+// Use 1000 ms timeout
+# define I2C_TIMEOUT_MS 1000
+// The STM32 uses the i2c address shifted one position
+// to the left (0 x52 becomes 0 xa4 )
+# define I2C_ADDR 0 xa4
+// The register address length is two bytes
+# define RE G_ AD DR ES S_ LE NG TH 2
+// The register data length is four bytes
+# define REG_DATA_LENGTH 4
+
+/* *
+* @brief Read register value over I2C
+*
+* @param [ in ] reg_addr The register address to read
+* @param [ out ] reg_data The read register data
+* @returns true if successful
+*/
+bool read_register ( uint16_t reg_addr , uint32_t * reg_data )
+{
+© 2025 by Acconeer AB - All rights reserved
+
+Page 12 of 28
+
+XM125 I2 C Distance Detector
+
+HAL_ Status TypeDe f status = HAL_OK ;
+uint8_t transmit_data [ RE G_ AD DRE SS _L EN GT H ];
+transmit_data [0] = ( reg_addr >> 8) & 0 xff ;
+transmit_data [1] = ( reg_addr >> 0) & 0 xff ;
+status = H A L _ I 2 C _ M a s t e r _ T r a n s m i t (& STM32_I2C_HANDLE , I2C_ADDR ,
+transmit_data , REG_ADDRESS_LENGTH ,
+I2C_TIMEOUT_MS ) ;
+if ( status != HAL_OK )
+{
+return false ;
+}
+uint8_t receive_data [ REG_DATA_LENGTH ];
+status = H A L _ I 2 C _ M a s t e r _ R e c e i v e (& STM32_I2C_HANDLE , I2C_ADDR ,
+receive_data , REG_DATA_LENGTH ,
+I2C_TIMEOUT_MS ) ;
+if ( status != HAL_OK )
+{
+return false ;
+}
+
+// Convert bytes to uint32_t
+uint32_t val = receive_data [0];
+val = val << 8;
+val |= receive_data [1];
+val = val << 8;
+val |= receive_data [2];
+val = val << 8;
+val |= receive_data [3];
+* reg_data = val ;
+return true ;
+}
+
+/* *
+* @brief Write register value over I2C
+*
+* @param [ in ] reg_addr The register address to write
+* @param [ in ] reg_data The register data to write
+* @returns true if successful
+*/
+bool write_register ( uint16_t reg_addr , uint32_t reg_data )
+{
+HAL_ Status TypeDe f status = HAL_OK ;
+uint8_t transmit_data [ RE G_ AD DRE SS _L EN GT H + REG_DATA_LENGTH ];
+// Convert uint16_t address to bytes
+transmit_data [0] = ( reg_addr >> 8) & 0 xff ;
+transmit_data [1] = ( reg_addr >> 0) & 0 xff ;
+// Convert uint32_t reg_data to bytes
+transmit_data [2] = ( reg_data >> 24) & 0 xff ;
+transmit_data [3] = ( reg_data >> 16) & 0 xff ;
+transmit_data [4] = ( reg_data >> 8) & 0 xff ;
+transmit_data [5] = ( reg_data >> 0) & 0 xff ;
+© 2025 by Acconeer AB - All rights reserved
+
+Page 13 of 28
+
+XM125 I2 C Distance Detector
+
+status = H A L _ I 2 C _ M a s t e r _ T r a n s m i t (& STM32_I2C_HANDLE , I2C_ADDR ,
+transmit_data ,
+RE G_ AD DR ES S_ LE NG TH + REG_DATA_LENGTH ,
+I2C_TIMEOUT_MS ) ;
+if ( status != HAL_OK )
+{
+return false ;
+}
+return true ;
+}
+5.2
+
+Detector setup functions
+
+# include " d i s t a n c e _ r e g _ p r o t o c o l . h "
+/* *
+* @brief Test if configuration of detector is OK
+*
+* @returns true if successful
+*/
+bool configuration_ok ( void )
+{
+uint32_t status = 0
+if (! read_register ( DIS TA NC E_ RE G_ DE TE CT OR _ST AT US _A DD RE SS , & status ) )
+{
+// ERROR
+return false ;
+}
+uint32_t config_ok_mask =
+DISTANCE_REG_DETECTOR_STATUS_FIELD_RSS_REGISTER_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_CONFIG_CREATE_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_SENSOR_CREATE_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_DETECTOR_CREATE_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_DETECTOR_BUFFER_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_SENSOR_BUFFER_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_CALIBRATION_BUFFER_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_CONFIG_APPLY_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_SENSOR_CALIBRATE_OK_MASK |
+DISTANCE_REG_DETECTOR_STATUS_FIELD_DETECTOR_CALIBRATE_OK_MASK ;
+if ( status != config_ok_mask )
+{
+// ERROR
+return false ;
+}
+return true ;
+}
+
+/* *
+* @brief Wait for detector not busy
+*
+* @returns true if successful
+*/
+bool wait_not_busy ( void )
+{
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 14 of 28
+
+XM125 I2 C Distance Detector
+
+uint32_t status = 0
+do
+{
+if (! read_register ( DIS TA NC E_ RE G_ DE TE CT OR_ ST AT US _A DD RE SS , & status ) )
+{
+// ERROR
+return false ;
+}
+} while (( status & D I S T A N C E _ R E G _ D E T E C T O R _ S T A T U S _ F I E L D _ B U S Y _ M A S K ) != 0) ;
+return true ;
+}
+
+bool e x a m p l e _ s e t u p _ a n d _ m e a s u r e ( void )
+{
+// Set start at 1000 mm
+if (! write_register ( DISTANCE_REG_START_ADDRESS , 1000) )
+{
+// ERROR
+return false ;
+}
+// Set end at 5000 mm
+if (! write_register ( DISTANCE_REG_END_ADDRESS , 5000) )
+{
+// ERROR
+return false ;
+}
+// Apply configuration
+if (! write_register (
+DISTANCE_REG_COMMAND_ADDRESS ,
+DISTANCE_REG_COMMAND_ENUM_APPLY_CONFIG_AND_CALIBRATE ))
+{
+// ERROR
+return false ;
+}
+// Wait for the configuration and calibration to be done
+if (! wait_not_busy () )
+{
+// ERROR
+return false ;
+}
+// Test if configration of detector was OK
+if (! configuration_ok () )
+{
+// ERROR
+return false ;
+}
+// Measure
+if (! write_register ( DISTANCE_REG_COMMAND_ADDRESS ,
+DISTANCE_REG_COMMAND_ENUM_MEASURE_DISTANCE ))
+{
+// ERROR
+return false ;
+}
+// Wait for measure distance to be done
+© 2025 by Acconeer AB - All rights reserved
+
+Page 15 of 28
+
+XM125 I2 C Distance Detector
+
+if (! wait_not_busy () )
+{
+// ERROR
+return false ;
+}
+// Read detector result
+uint32_t result ;
+if (! read_register ( DIS TA NC E_ RE G_ DI ST AN CE _RE SU LT _A DD RE SS , & result ) )
+{
+// ERROR
+return false ;
+}
+// Did we detect a peak ?
+uint32_t num_distances =
+( result & D I S T A N C E _ R E G _ D I S T A N C E _ R E S U L T _ F I E L D _ N U M _ D I S T A N C E S _ M A S K ) >>
+DISTANCE_REG_DISTANCE_RESULT_FIELD_NUM_DISTANCES_POS ;
+// Print peak if found
+if ( num_distances > 0)
+{
+uint32_t peak_distance_mm ;
+if ( read_register ( D IST ANC E_R EG_ PEA K0_ DIS TAN CE_A DDR ESS , &
+peak_distance_mm ) )
+{
+printf ( " Peak distance : % " PRIu32 " mm \ n " , peak_distance_mm ) ;
+}
+else
+{
+// ERROR
+return false ;
+}
+}
+else
+{
+printf ( " No peak detected \ n " ) ;
+}
+return true ;
+}
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 16 of 28
+
+XM125 I2 C Distance Detector
+
+6
+
+Registers
+
+6.1
+
+Register Map
+
+Address
+0x0000
+0x0001
+0x0002
+0x0003
+0x0010
+0x0011
+0x0012
+0x0013
+0x0014
+0x0015
+0x0016
+0x0017
+0x0018
+0x0019
+0x001a
+0x001b
+0x001c
+0x001d
+0x001e
+0x001f
+0x0020
+0x0021
+0x0022
+0x0023
+0x0024
+0x0040
+0x0041
+0x0042
+0x0043
+0x0044
+0x0045
+0x0046
+0x0047
+0x0048
+0x0049
+0x004a
+0x004b
+0x004c
+0x0080
+0x0100
+0xffff
+6.2
+6.2.1
+
+Register Name
+Version
+Protocol Status
+Measure Counter
+Detector Status
+Distance Result
+Peak0 Distance
+Peak1 Distance
+Peak2 Distance
+Peak3 Distance
+Peak4 Distance
+Peak5 Distance
+Peak6 Distance
+Peak7 Distance
+Peak8 Distance
+Peak9 Distance
+Peak0 Strength
+Peak1 Strength
+Peak2 Strength
+Peak3 Strength
+Peak4 Strength
+Peak5 Strength
+Peak6 Strength
+Peak7 Strength
+Peak8 Strength
+Peak9 Strength
+Start
+End
+Max Step Length
+Close Range Leakage Cancellation
+Signal Quality
+Max Profile
+Threshold Method
+Peak Sorting
+Num Frames Recorded Threshold
+Fixed Amplitude Threshold Value
+Threshold Sensitivity
+Reflector Shape
+Fixed Strength Threshold Value
+Measure On Wakeup
+Command
+Application Id
+
+Type
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read Only
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Read / Write
+Write Only
+Read Only
+
+Register Descriptions
+Version
+
+Address
+Access
+Register Type
+Description
+
+Bitfield
+MAJOR
+
+Pos
+16
+
+0x0000
+Read Only
+field
+Get the RSS version.
+
+Width
+16
+
+Mask
+0xffff0000
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 17 of 28
+
+XM125 I2 C Distance Detector
+
+MINOR
+PATCH
+
+8
+0
+
+8
+8
+
+0x0000ff00
+0x000000ff
+
+MAJOR - Major version number
+MINOR - Minor version number
+PATCH - Patch version number
+6.2.2
+
+Protocol Status
+
+Address
+Access
+Register Type
+Description
+
+0x0001
+Read Only
+field
+Get protocol error flags.
+
+Bitfield
+PROTOCOL STATE ERROR
+PACKET LENGTH ERROR
+ADDRESS ERROR
+WRITE FAILED
+WRITE TO READ ONLY
+
+Pos
+0
+1
+2
+3
+4
+
+Width
+1
+1
+1
+1
+1
+
+Mask
+0x00000001
+0x00000002
+0x00000004
+0x00000008
+0x00000010
+
+PROTOCOL STATE ERROR - Protocol state error
+PACKET LENGTH ERROR - Packet length error
+ADDRESS ERROR - Register address error
+WRITE FAILED - Write register failed
+WRITE TO READ ONLY - Write to read only register
+6.2.3
+
+Measure Counter
+
+Address
+Access
+Register Type
+Description
+6.2.4
+
+0x0002
+Read Only
+uint
+Get the measure counter, the number of measurements performed since restart.
+
+Detector Status
+
+Address
+Access
+Register Type
+Description
+
+0x0003
+Read Only
+field
+Get detector status flags.
+
+Bitfield
+RSS REGISTER OK
+CONFIG CREATE OK
+SENSOR CREATE OK
+DETECTOR CREATE OK
+DETECTOR BUFFER OK
+SENSOR BUFFER OK
+CALIBRATION BUFFER OK
+CONFIG APPLY OK
+SENSOR CALIBRATE OK
+
+Pos
+0
+1
+2
+3
+4
+5
+6
+7
+8
+
+© 2025 by Acconeer AB - All rights reserved
+
+Width
+1
+1
+1
+1
+1
+1
+1
+1
+1
+
+Mask
+0x00000001
+0x00000002
+0x00000004
+0x00000008
+0x00000010
+0x00000020
+0x00000040
+0x00000080
+0x00000100
+
+Page 18 of 28
+
+XM125 I2 C Distance Detector
+
+DETECTOR CALIBRATE OK
+RSS REGISTER ERROR
+CONFIG CREATE ERROR
+SENSOR CREATE ERROR
+DETECTOR CREATE ERROR
+DETECTOR BUFFER ERROR
+SENSOR BUFFER ERROR
+CALIBRATION BUFFER ERROR
+CONFIG APPLY ERROR
+SENSOR CALIBRATE ERROR
+DETECTOR CALIBRATE ERROR
+DETECTOR ERROR
+BUSY
+
+9
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+28
+31
+
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+
+0x00000200
+0x00010000
+0x00020000
+0x00040000
+0x00080000
+0x00100000
+0x00200000
+0x00400000
+0x00800000
+0x01000000
+0x02000000
+0x10000000
+0x80000000
+
+RSS REGISTER OK - RSS register OK
+CONFIG CREATE OK - Configuration create OK
+SENSOR CREATE OK - Sensor create OK
+DETECTOR CREATE OK - Detector create OK
+DETECTOR BUFFER OK - Detector get buffer size OK
+SENSOR BUFFER OK - Memory allocation of sensor buffer OK
+CALIBRATION BUFFER OK - Memory allocation of calibration buffer OK
+CONFIG APPLY OK - Detector configuration apply OK
+SENSOR CALIBRATE OK - Sensor calibrate OK
+DETECTOR CALIBRATE OK - Detector calibrate OK
+RSS REGISTER ERROR - RSS register error
+CONFIG CREATE ERROR - Configuration create error
+SENSOR CREATE ERROR - Sensor create error
+DETECTOR CREATE ERROR - Detector create error
+DETECTOR BUFFER ERROR - Detector get buffer size error
+SENSOR BUFFER ERROR - Memory allocation of sensor buffer error
+CALIBRATION BUFFER ERROR - Memory allocation of calibration buffer error
+CONFIG APPLY ERROR - Detector configuration apply error
+SENSOR CALIBRATE ERROR - Sensor calibrate error
+DETECTOR CALIBRATE ERROR - Detector calibrate error
+DETECTOR ERROR - Detector error occured, restart necessary
+BUSY - Detector busy
+6.2.5
+
+Distance Result
+
+Address
+Access
+Register Type
+Description
+
+Bitfield
+NUM DISTANCES
+NEAR START EDGE
+
+0x0010
+Read Only
+field
+The result from the distance detector.
+
+Pos
+0
+8
+
+© 2025 by Acconeer AB - All rights reserved
+
+Width
+4
+1
+
+Mask
+0x0000000f
+0x00000100
+Page 19 of 28
+
+XM125 I2 C Distance Detector
+
+CALIBRATION NEEDED
+MEASURE DISTANCE ERROR
+TEMPERATURE
+
+9
+10
+16
+
+1
+1
+16
+
+0x00000200
+0x00000400
+0xffff0000
+
+NUM DISTANCES - The number of detected distances
+NEAR START EDGE - Indicating that there might be an object near the start point of the measured range
+CALIBRATION NEEDED - Indication of sensor calibration needed. The sensor calibration needs to be redone
+MEASURE DISTANCE ERROR - The measure command failed
+TEMPERATURE - Temperature in sensor during measurement (in degree Celsius). Note that it has poor absolute
+accuracy and should only be used for relative temperature measurements.
+6.2.6
+
+Peak0 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.7
+
+Peak1 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.8
+
+0x0014
+Read Only
+uint
+mm
+The distance to peak 3. Note: This value is a factor 1000 larger than the RSS value.
+
+Peak4 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.11
+
+0x0013
+Read Only
+uint
+mm
+The distance to peak 2. Note: This value is a factor 1000 larger than the RSS value.
+
+Peak3 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.10
+
+0x0012
+Read Only
+uint
+mm
+The distance to peak 1. Note: This value is a factor 1000 larger than the RSS value.
+
+Peak2 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.9
+
+0x0011
+Read Only
+uint
+mm
+The distance to peak 0. Note: This value is a factor 1000 larger than the RSS value.
+
+0x0015
+Read Only
+uint
+mm
+The distance to peak 4. Note: This value is a factor 1000 larger than the RSS value.
+
+Peak5 Distance
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 20 of 28
+
+XM125 I2 C Distance Detector
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.12
+
+Peak6 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.13
+
+0x001a
+Read Only
+uint
+mm
+The distance to peak 9. Note: This value is a factor 1000 larger than the RSS value.
+
+Peak0 Strength
+
+Address
+Access
+Register Type
+Description
+
+6.2.17
+
+0x0019
+Read Only
+uint
+mm
+The distance to peak 8. Note: This value is a factor 1000 larger than the RSS value.
+
+Peak9 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.16
+
+0x0018
+Read Only
+uint
+mm
+The distance to peak 7. Note: This value is a factor 1000 larger than the RSS value.
+
+Peak8 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.15
+
+0x0017
+Read Only
+uint
+mm
+The distance to peak 6. Note: This value is a factor 1000 larger than the RSS value.
+
+Peak7 Distance
+
+Address
+Access
+Register Type
+Unit
+Description
+6.2.14
+
+0x0016
+Read Only
+uint
+mm
+The distance to peak 5. Note: This value is a factor 1000 larger than the RSS value.
+
+0x001b
+Read Only
+int
+The reflective strength of peak 0. Note: This value is a factor 1000 larger than the
+RSS value.
+
+Peak1 Strength
+
+Address
+Access
+Register Type
+Description
+
+0x001c
+Read Only
+int
+The reflective strength of peak 1. Note: This value is a factor 1000 larger than the
+RSS value.
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 21 of 28
+
+XM125 I2 C Distance Detector
+
+6.2.18
+
+Peak2 Strength
+
+Address
+Access
+Register Type
+Description
+
+6.2.19
+
+Peak3 Strength
+
+Address
+Access
+Register Type
+Description
+
+6.2.20
+
+0x0021
+Read Only
+int
+The reflective strength of peak 6. Note: This value is a factor 1000 larger than the
+RSS value.
+
+Peak7 Strength
+
+Address
+Access
+Register Type
+Description
+
+6.2.24
+
+0x0020
+Read Only
+int
+The reflective strength of peak 5. Note: This value is a factor 1000 larger than the
+RSS value.
+
+Peak6 Strength
+
+Address
+Access
+Register Type
+Description
+
+6.2.23
+
+0x001f
+Read Only
+int
+The reflective strength of peak 4. Note: This value is a factor 1000 larger than the
+RSS value.
+
+Peak5 Strength
+
+Address
+Access
+Register Type
+Description
+
+6.2.22
+
+0x001e
+Read Only
+int
+The reflective strength of peak 3. Note: This value is a factor 1000 larger than the
+RSS value.
+
+Peak4 Strength
+
+Address
+Access
+Register Type
+Description
+
+6.2.21
+
+0x001d
+Read Only
+int
+The reflective strength of peak 2. Note: This value is a factor 1000 larger than the
+RSS value.
+
+0x0022
+Read Only
+int
+The reflective strength of peak 7. Note: This value is a factor 1000 larger than the
+RSS value.
+
+Peak8 Strength
+
+Address
+Access
+Register Type
+Description
+
+0x0023
+Read Only
+int
+The reflective strength of peak 8. Note: This value is a factor 1000 larger than the
+RSS value.
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 22 of 28
+
+XM125 I2 C Distance Detector
+
+6.2.25
+
+Peak9 Strength
+
+Address
+Access
+Register Type
+Description
+
+6.2.26
+
+Start
+
+Address
+Access
+Register Type
+Unit
+Description
+Default Value
+6.2.27
+
+Default Value
+
+Default Value
+
+0x0042
+Read / Write
+uint
+Used to limit step length. If set to 0 (default), the step length is calculated based on
+profile.
+0
+
+Close Range Leakage Cancellation
+
+Address
+Access
+Register Type
+Description
+Default Value
+6.2.30
+
+0x0041
+Read / Write
+uint
+mm
+The end of measured interval in millimeters. Note: This value is a factor 1000 larger
+than the RSS value.
+3000
+
+Max Step Length
+
+Address
+Access
+Register Type
+Description
+
+6.2.29
+
+0x0040
+Read / Write
+uint
+mm
+The start of measured interval in millimeters. Note: This value is a factor 1000 larger
+than the RSS value.
+250
+
+End
+
+Address
+Access
+Register Type
+Unit
+Description
+
+6.2.28
+
+0x0024
+Read Only
+int
+The reflective strength of peak 9. Note: This value is a factor 1000 larger than the
+RSS value.
+
+0x0043
+Read / Write
+bool
+Enable the close range leakage cancellation logic.
+True
+
+Signal Quality
+
+Address
+Access
+Register Type
+Description
+Default Value
+
+0x0044
+Read / Write
+int
+High signal quality results in a better SNR (because of higher HWAAS) and higher
+power consumption. Note:This value is a factor 1000 larger than the RSS value.
+15000
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 23 of 28
+
+XM125 I2 C Distance Detector
+
+6.2.31
+
+Max Profile
+
+Address
+Access
+Register Type
+Description
+Default Value
+
+Enum
+PROFILE1
+PROFILE2
+PROFILE3
+PROFILE4
+PROFILE5
+
+0x0045
+Read / Write
+enum
+Max profile.
+PROFILE5
+
+Value
+1
+2
+3
+4
+5
+
+PROFILE1 - Profile 1
+PROFILE2 - Profile 2
+PROFILE3 - Profile 3
+PROFILE4 - Profile 4
+PROFILE5 - Profile 5
+6.2.32
+
+Threshold Method
+
+Address
+Access
+Register Type
+Description
+Default Value
+
+0x0046
+Read / Write
+enum
+Threshold method.
+CFAR
+
+Enum
+FIXED AMPLITUDE
+RECORDED
+CFAR
+FIXED STRENGTH
+
+Value
+1
+2
+3
+4
+
+FIXED AMPLITUDE - Fixed amplitude threshold
+RECORDED - Recorded threshold
+CFAR - CFAR threshold
+FIXED STRENGTH - Fixed strength threshold
+6.2.33
+
+Peak Sorting
+
+Address
+Access
+Register Type
+Description
+Default Value
+
+Enum
+CLOSEST
+STRONGEST
+
+0x0047
+Read / Write
+enum
+Peak sorting method.
+STRONGEST
+
+Value
+1
+2
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 24 of 28
+
+XM125 I2 C Distance Detector
+
+CLOSEST - Sort peaks by range, closest first
+STRONGEST - Sort peaks by amplitude, strongest first
+6.2.34
+
+Num Frames Recorded Threshold
+
+Address
+Access
+Register Type
+Description
+Default Value
+6.2.35
+
+Fixed Amplitude Threshold Value
+
+Address
+Access
+Register Type
+Description
+Default Value
+6.2.36
+
+0x0049
+Read / Write
+uint
+Fixed amplitude threshold value Note: This value is a factor 1000 larger than the RSS
+value.
+100000
+
+Threshold Sensitivity
+
+Address
+Access
+Register Type
+Description
+Default Value
+6.2.37
+
+0x0048
+Read / Write
+uint
+The number frames to use for recorded threshold.
+100
+
+0x004a
+Read / Write
+uint
+Threshold sensitivity (0 <= sensitivity <= 1000) Note: This value is a factor 1000
+larger than the RSS value.
+500
+
+Reflector Shape
+
+Address
+Access
+Register Type
+Description
+Default Value
+
+Enum
+GENERIC
+PLANAR
+
+0x004b
+Read / Write
+enum
+Reflector shape.
+GENERIC
+
+Value
+1
+2
+
+GENERIC - Generic reflector shape
+PLANAR - Planar reflector shape
+6.2.38
+
+Fixed Strength Threshold Value
+
+Address
+Access
+Register Type
+Description
+Default Value
+
+0x004c
+Read / Write
+int
+Fixed strength threshold value Note: This value is a factor 1000 larger than the RSS
+value.
+0
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 25 of 28
+
+XM125 I2 C Distance Detector
+
+6.2.39
+
+Measure On Wakeup
+
+Address
+Access
+Register Type
+Description
+Default Value
+6.2.40
+
+0x0080
+Read / Write
+bool
+Perform measure on wake up.
+False
+
+Command
+
+Address
+Access
+Register Type
+Description
+
+0x0100
+Write Only
+enum
+Execute command.
+
+Enum
+APPLY CONFIG AND CALIBRATE
+MEASURE DISTANCE
+APPLY CONFIGURATION
+CALIBRATE
+RECALIBRATE
+ENABLE UART LOGS
+DISABLE UART LOGS
+LOG CONFIGURATION
+RESET MODULE
+
+Value
+1
+2
+3
+4
+5
+32
+33
+34
+1381192737
+
+APPLY CONFIG AND CALIBRATE - Apply configuration, calibrate sensor and detector
+MEASURE DISTANCE - Measure distance
+APPLY CONFIGURATION - Apply the configuration
+CALIBRATE - Calibrate sensor and detector
+RECALIBRATE - Re-calibrate sensor and detector
+ENABLE UART LOGS - DEBUG: Enable UART Logs
+DISABLE UART LOGS - DEBUG: Disable UART Logs
+LOG CONFIGURATION - DEBUG: Print detector configuration to UART
+RESET MODULE - Reset module, needed to make a new configuration
+6.2.41
+
+Application Id
+
+Address
+Access
+Register Type
+Description
+
+0xffff
+Read Only
+enum
+The application id register.
+
+Enum
+DISTANCE DETECTOR
+PRESENCE DETECTOR
+REF APP BREATHING
+
+Value
+1
+2
+3
+
+DISTANCE DETECTOR - Distance Detector Application
+PRESENCE DETECTOR - Presence Detector Application
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 26 of 28
+
+XM125 I2 C Distance Detector
+
+REF APP BREATHING - Breathing Reference Application
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 27 of 28
+
+XM125 I2 C Distance Detector
+
+7
+
+Disclaimer
+
+The information herein is believed to be correct as of the date issued. Acconeer AB (“Acconeer”) will not be responsible
+for damages of any nature resulting from the use or reliance upon the information contained herein. Acconeer makes no
+warranties, expressed or implied, of merchantability or fitness for a particular purpose or course of performance or usage
+of trade. Therefore, it is the user’s responsibility to thoroughly test the product in their particular application to
+determine its performance, efficacy and safety. Users should obtain the latest relevant information before placing orders.
+Unless Acconeer has explicitly designated an individual Acconeer product as meeting the requirement of a particular
+industry standard, Acconeer is not responsible for any failure to meet such industry standard requirements.
+Unless explicitly stated herein this document Acconeer has not performed any regulatory conformity test. It is the user’s
+responsibility to assure that necessary regulatory conditions are met and approvals have been obtained when using the
+product. Regardless of whether the product has passed any conformity test, this document does not constitute any
+regulatory approval of the user’s product or application using Acconeer’s product.
+Nothing contained herein is to be considered as permission or a recommendation to infringe any patent or any other
+intellectual property right. No license, express or implied, to any intellectual property right is granted by Acconeer
+herein.
+Acconeer reserves the right to at any time correct, change, amend, enhance, modify, and improve this document and/or
+Acconeer products without notice.
+This document supersedes and replaces all information supplied prior to the publication hereof.
+
+© 2025 by Acconeer AB - All rights reserved
+
+Page 28 of 28
+
+

@@ -1,0 +1,1138 @@
+Entry+ Module XM125
+Datasheet v1.2
+
+Page 1 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+Abstract
+The Entry+ Module XM125 is an integration ready Land Grid Array (LGA) module for compact
+commercial products that measures 18.6x15 mm. Optimized for use cases such as smart people
+presence detection, motion detection, parking space occupancy detection, and level measurement for
+example in tanks or waste containers.
+The XM125 is built around the Arm® 32-bit Cortex®-M4 MCU from STMicroelectronics
+(STM32L431CBY6) and can be used as a stand-alone module where customer can embed their
+application on top of the Acconeer RSS (Radar System Software). It can also be used with an external
+host controller where communication to the module is executed via a register command protocol.
+
+15 mm
+
+118.6 mm
+Figure 1.1. XM125 top view (left) and bottom view (right).
+
+Page 2 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+Table of Content
+1
+
+Revision History ...............................................................................................................4
+
+2
+
+Functional description ......................................................................................................5
+
+3
+
+4
+
+5
+
+2.1
+
+Overview ............................................................................................................................... 5
+
+2.2
+
+Product features ................................................................................................................... 6
+
+2.3
+
+Block diagram....................................................................................................................... 7
+
+2.4
+
+Module board Land Grid Array description....................................................................... 8
+
+2.5
+
+Software options ................................................................................................................ 10
+
+Interfaces ....................................................................................................................... 11
+3.1
+
+Module supply input........................................................................................................... 11
+
+3.2
+
+System functions................................................................................................................ 11
+
+3.3
+
+Serial interfaces ................................................................................................................. 11
+
+3.4
+
+I/O interfaces ...................................................................................................................... 11
+
+Electrical specifications .................................................................................................. 12
+4.1
+
+Absolute maximum ratings ............................................................................................... 12
+
+4.2
+
+Recommended operating conditions............................................................................... 12
+
+4.3
+
+Power consumption summary .......................................................................................... 13
+
+Reference design description......................................................................................... 14
+5.1
+
+6
+
+7
+
+Schematics & BOM ........................................................................................................... 14
+
+Mechanical specifications and footprint.......................................................................... 17
+6.1
+
+Moisture Sensitivity Level and Recommended Reflow Profile .................................... 18
+
+6.2
+
+RoHS and REACH Statement.......................................................................................... 18
+
+Regulatory Approval ...................................................................................................... 19
+7.1
+
+ETSI ..................................................................................................................................... 19
+
+7.2
+
+FCC ..................................................................................................................................... 19
+
+8
+
+Reference documents .................................................................................................... 20
+
+9
+
+Abbreviations ................................................................................................................. 21
+
+Disclaimer ............................................................................................................................. 22
+
+Page 3 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+1
+
+Revision History
+
+Revision
+
+Comment
+
+v1.0
+
+Released version
+
+v1.1
+
+Ch. 7.2 updated with A121 modular approval granted by FCC.
+
+v1.2
+
+Ch. 2.1, 2.3, 4.2 updated. Power supply clarifications.
+
+This document applies to the following product:
+Product name
+XM125
+
+Page 4 of 22
+
+Part number
+XM125
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+2
+
+Functional description
+
+2.1 Overview
+The Entry+ Module XM125 comes with the A121 60 GHz PCR sensor and a 32-bit ARM® Cortex®
+M4 MCU, see Figure 2.1.
+The XM125 module is optimized for high precision people presence detection with capability to
+recognize movement within configurable zones, motion detection, parking space occupancy detection
+and level measurement for example in tanks or waste containers with configurable update frequency.
+The module has been optimized for easy integration with LGA solder pads support and a small form
+factor of 18.6x15mm.
+The module is delivered with a bootloader which enables the customer to download the Acconeer
+Radar System Software (RSS) software as well as the SDK (Software Development Kit) for standalone usage where the customer can embed their own application on top of RSS software. The RSS
+software provides the API to set A121 sensor configuration and to retrieve supported radar services
+and detector data. The RSS enables interfacing through an external host using a register command
+protocol over UART and I2C.
+Figure 2.1. The XM125 module.
+
+Page 5 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+2.2 Product features
+The module has the following features:
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+
+A121 60 GHz Pulsed Coherent Radar (PCR) with integrated baseband, RF front-end and
+Antenna in Package (AiP)
+32-bit ARM® Cortex® M4 MCU (STM32L431CBY6), 80 MHz clk speed, 128kB Flash, 64
+kB RAM
+Small 18.6x15 mm form factor, optimized for maximum antenna gain
+1.8 V analog and digital power supply
+1.8 V or 3.3 V IO interface power supply
+Operating temperature -40° to 85°C
+External I/F support over UART, I2C, GPIO, reset
+SWD/JTAG for SW flash and debug
+Can be integrated behind plastic or glass radomes without any need for a physical aperture.
+See Hardware and physical integration guideline [6] for more information.
+Land Grid Array (LGA) solder pads
+Available in hermetically sealed reels for automated assembly
+PCB test points for SWD programming
+
+Page 6 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+2.3 Block diagram
+
+XM125
+1V8
+
+A121
+
+BOOT0
+NRST
+ENABLE
+
+Land Grid Array
+
+CPU
+(32-bit, 80MHz
+Cortex M4)
+
+STM32L431CBY6
+
+INTERRUPT
+
+Flash
+(128kB)
+RAM
+(64kB)
+24MHz XTAL
+
+Figure 2.2. XM125 block diagram.
+
+The XM125 block diagram shows the A121 60 GHz PCR radar connected to the M4 microcontroller.
+The module provides Land Grid Array pads where the MCU external I/F are accessible including the
+1.8 V analog and digital power supply and VIN power supply at 1.8 V OR 3.3 V.
+
+Page 7 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+2.4 Module board Land Grid Array description
+Figure 2.3 shows the XM125 module front and back side pin markings. Table 1 shows the module
+pinout.
+
+Pin 1
+silkscreen
+marking
+
+15
+
+28
+
+14
+
+1
+
+Figure 2.3. XM125 front and back side.
+
+Table 1. XM125 LGA pinout.
+
+Pin Number
+
+Signal
+
+Comment
+
+1
+
+VIN
+
+1.8 V or 3.3 V input A121 IO and MCU voltage
+
+2
+
+Ground
+
+3
+
+1V8
+
+4
+
+Ground
+
+5
+
+UART_TX
+
+6
+
+UART_RX
+
+7
+
+Ground
+
+8
+
+UART_CTS
+
+9
+
+UART_RTS
+
+10
+
+Ground
+
+11
+
+SWD_IO
+
+12
+
+SWD_CLK
+
+13
+
+Ground
+
+14
+
+NRESET
+
+15
+
+WAKE_UP
+
+16
+
+Ground
+
+17
+
+I2C_SCL
+
+Leave Not Connected if unused.
+
+18
+
+I2C_SDA
+
+Leave Not Connected if unused.
+
+19
+
+Ground
+
+Page 8 of 22
+
+1.8 V input A121 analog and digital voltage
+
+Connect to UART_RX on host side. Leave Not
+Connected if unused.
+Connect to UART_TX on host side. Leave Not
+Connected if unused.
+Connect to UART_RTS on host side. Leave Not
+Connected if unused.
+Connect to UART_CTS on host side. Leave Not
+Connected if unused.
+Leave Not Connected if unused.
+Leave Not Connected if unused.
+
+Reset. Leave Not Connected if unused.
+Could be used by host to wake up XM125 MCU.
+Leave Not Connected if unused.
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+20
+
+I2C_ADDRESS
+
+For configuration of I2C address. Leave Not
+Connected if unused.
+
+21
+
+DEBUG_UART_RX
+
+Connect to UART_TX on host side. Leave Not
+Connected if unused.
+
+22
+
+Ground
+
+23
+
+DEBUG_UART_TX
+
+Connect to UART_RX on host side. Leave Not
+Connected if unused.
+
+24
+
+MISC_GPIO0
+
+Leave Not Connected if unused.
+
+25
+
+MISC_GPIO1
+
+Leave Not Connected if unused.
+
+26
+
+MISC_GPIO2_BOOT0
+
+Pulling BOOT0 high during boot of module will start
+the embedded boot loader. Leave Not Connected
+if unused.
+
+27
+
+Ground
+
+28
+
+MCU_INT
+
+Page 9 of 22
+
+Could be used to send interrupt from MCU to host.
+Leave Not Connected if unused.
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+2.5 Software options
+The XM125 module operates as an independent system. The application is customized to a specific
+use case by the customer and runs on the embedded MCU. The customer application is accessing the
+RSS API.
+As a stand-alone module the Acconeer SDK provides RSS, hardware abstraction layer, device drivers
+and build system. It is also possible for the customer to develop their own application and run both the
+RSS and application on the embedded MCU.
+For further software information, see XM125 Entry+ Module Evaluation Kit User guide, ref [2].
+
+Page 10 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+3
+
+Interfaces
+
+3.1 Module supply input
+The Entry+ Module XM125 support a 1.8 V external single power supply or 1.8 V and 3.3 V IO
+interface power supply, see Table 3 on recommended operating conditions. The power supply ripple
+specification of A121 VDIG must be fulfilled for the “1.8V” voltage to XM125. Refer to A121
+datasheet, chapter 6.5 for details, ref [1]. Note that supply voltage conditions (e.g. slew rate) need to
+be taken into consideration according to STM M4 microcontroller datasheet, ref [5].
+
+3.2 System functions
+The Entry+ Module XM125 support system power states, see XM125 Module Software User guide,
+Ref [3] for further information.
+Module RESET is supported by activating NRESET pin (Pin 14, active low).
+
+3.3 Serial interfaces
+The Entry+ Module XM125 GPIO pins can be configured to support up to two UARTs, the
+communication UART and a debug UART. The main UART has support for flow control. The
+XM125 supports I2C compatible 2-wire master/slave external serial interface, see Table 1. See also
+STM M4 microcontroller datasheet, ref [5] for further information.
+The XM125 has JTAG/SWD interface for debugging and flashing.
+
+3.4 I/O interfaces
+The Entry+ Module XM125 supports three General Purpose IOs (GPIOs), MISC_GPIO0,
+MISC_GPIO1 and MISC_GPIO2_BOOT0. The GPIO pins are configurable for different functions,
+only the debug and RESET pins are fixed to specific GPIOs, see Table 1. See also STM M4
+microcontroller datasheet, ref [5] for further information.
+The XM125 has a wake-up pin (WAKE_UP) which can be used to wake up the module.
+
+Page 11 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+4
+
+Electrical specifications
+
+4.1 Absolute maximum ratings
+Table 2 shows the absolute maximum ratings over operating temperature range, unless otherwise
+noted.
+Table 2. Absolute maximum ratings.
+
+Parameter
+
+Description
+
+Min.
+
+Max.
+
+Unit
+
+1.8 V
+
+Power supply
+
+0
+
+2
+
+V
+
+VIN
+
+Power supply
+
+-0.3
+
+3.63
+
+V
+
+I/O
+
+Voltage on I/O pins
+
+-0.3
+
+3.63
+
+V
+
+TSTG
+
+High temperature storage
+
+125
+
+°C
+
+Stresses beyond those listed in Table 2 may cause permanent damage to the device. These are stress
+ratings only and functional operation of the device at these conditions or at any other conditions
+beyond those indicated under Recommended Operating Conditions is not implied. Exposure to
+absolute-maximum-rated conditions for extended periods of time may affect device reliability.
+
+4.2 Recommended operating conditions
+Table 3. Recommended operating conditions.
+
+Parameter
+
+Min.
+
+Typ.
+
+Max.
+
+Unit
+
+Analog and digital supply voltage
+
+1.71
+
+1.8
+
+1.89
+
+V
+
+Operating power supply voltage VIN (1.8V)
+
+1.711)
+
+1.8
+
+1.89
+
+V
+
+Operating power supply voltage VIN (3.3V)
+
+2.97
+
+3.3
+
+3.45
+
+V
+
+I/O operating range
+
+0
+
+VIN+0.3
+
+V
+
+Operating temperature
+
+-40
+
+85
+
+ºC
+
+1) If MISC_GPIO1 is configured as DAC then minimum value of VIN is 1.8V. Refer to STM M4
+microcontroller datasheet, ref [5].
+
+Page 12 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+4.3 Power consumption summary
+Table 4 gives the power consumption and the idle current at TA = 25ºC, 1.8 V supply.
+Table 4. Power consumption and idle current.
+
+Parameter
+
+Min.
+
+Typ.
+
+Max.
+
+Unit
+
+Measurement range: 0.25 m(1), 0.1 Hz update rate
+Measurement range: 0.25 m(1), 1.0 Hz update rate
+
+0.06
+0.51
+
+mW
+mW
+
+Measurement range: 0.25 m(1), 10.0 Hz update rate
+
+4.98
+
+mW
+
+Measurement range: 2.75 m, 0.1 Hz update rate
+
+0.04
+
+mW
+
+Measurement range: 2.75 m, 1.0 Hz update rate
+
+0.33
+
+mW
+
+Measurement range: 2.75 m, 10.0 Hz update rate
+
+3.12
+
+mW
+
+Idle current, hibernate
+
+17.7
+
+µA
+
+Idle current, off
+
+6.90
+
+µA
+
+Configuration with Distance detector, profile 5 used.
+STM M4 microcontroller is in sleep mode (Stop Mode 1) with full RAM retention and wake-up on RTC enabled.
+(1)Measurement based on close range (0.05-0.3m).
+
+Table 4.1 gives the current profile for measurement range 2.75m.
+Figure 5.1. Current profile, measurement range 2.75m.
+
+Page 13 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+5
+
+Reference design description
+
+5.1 Schematics & BOM
+The following pages include the module schematics and bill of materials.
+
+Page 14 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+Page 15 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module X125
+Datasheet, v1.2
+
+Bill of Material
+Table 5. Bill of material (BOM).
+
+Component Ref.
+
+Specification
+
+QTY
+
+Value
+
+C1, C2, C3, C4,
+C12
+
+Capacitor 1 uF, metric 0603
+
+5
+
+1 µF
+
+C5, C6
+
+Capacitor 8 pF, metric 0603
+
+2
+
+8 pF
+
+C7
+
+Capacitor 4.7uF, metric 1005
+
+1
+
+4.7 µF
+
+C8, C9, C10, C11
+
+Capacitor 100nF, metric 0603
+
+4
+
+100 nF
+
+R1
+
+Resistor 100 kOhm, metric 0603
+
+1
+
+100 kOhm
+
+U1
+
+MCU STM32L431CBY6
+32-bit WLCSP49
+
+1
+
+ST Microelectronics:
+STM32L431CBY6
+
+U2
+
+Radar Sensor 60 GHz A121
+
+1
+
+Acconeer AB: A121
+
+X1
+
+Crystal 24MHz 9 pF 4-Pin SMD
+
+1
+
+Page 16 of 22
+
+2023-10-04
+
+24 MHz
+
+Comment
+
+ECS-240-8-36-RWN
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+6
+
+Mechanical specifications and footprint
+
+XM125 mechanical dimensions are given in Figure 6.1 (top view) and Figure 6.2 (bottom view).
+Figure 6.3 shows the XM125 recommended footprint.
+
+1.0mm
+
+Figure 6.1. XM125 top view.
+
+18.60 mm
+
+15.00 mm
+
+1.30 mm
+1.27 mm
+
+0.90 mm
+Figure 6.2. XM125 bottom view.
+
+Page 17 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+Figure 6.3. XM125 recommended footprint
+
+6.1 Moisture Sensitivity Level and Recommended Reflow Profile
+The XM125 module is moisture sensitive and need to be handled within proper Moisture Sensitive
+Level 3 (MSL3) guidelines to avoid damage from moisture absorption and exposure to solder reflow
+temperatures that can result in yield and reliability degradation.
+Refer to IPC/JEDEC J-STD-033D for details regarding Handling, Packing, Shipping and Use of
+Moisture, Reflow, and Process Sensitive Devices.
+XM125 is baked and dry-packed before shipment from Acconeer AB according to MSL3.
+Maximum number of reflow passes recommended for XM125 is one (1).
+It is recommended to use a reflow profile compatible with the IPC/JEDEC J-STD-020E classification
+profile.
+
+6.2 RoHS and REACH Statement
+The XM125 meet the requirements of Directive 2011/65/EC of the European Parliament and of the
+Council on the Restriction of Hazardous Substances (RoHS) and the requirements of the REACH
+regulation (EC 1907/2006) on Registration, Evaluation, Authorization and Restriction of Chemicals.
+
+Page 18 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+7
+
+Regulatory Approval
+
+To be noted is that some regulatory specifications also specify usage of the module, so users of the
+module must check regulatory requirements for their own use case and determine if the regulatory
+approvals described below are sufficient.
+
+7.1 ETSI
+Hereby, Acconeer declares that the XM125 module is compliant with the European commission radio
+equipment directive 2014/53/EU article 3.2.
+
+7.2 FCC
+The XM125 is compliant with 47 CFR part 15 unintentional emitter Class B. The A121 sensor has
+modular approval granted by FCC, see A121 datasheet ref. [1].
+
+Page 19 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+8
+
+Reference documents
+
+[1]
+
+A121 Pulsed Coherent Radar (PCR) Datasheet:
+https://developer.acconeer.com/
+
+[2]
+
+Entry+ Module XM125 Evaluation Kit, User guide
+https://developer.acconeer.com/
+
+[3]
+
+XM125 Module Software User guide
+https://developer.acconeer.com/
+
+[4]
+
+XE125 Evaluation board, Product brief
+https://developer.acconeer.com/
+
+[5]
+
+MCU STM32L431CBY6 Datasheet:
+STM Semiconductor
+
+[6]
+
+Hardware and physical integration guideline
+https://developer.acconeer.com/
+
+Page 20 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+9
+
+Abbreviations
+
+AiP
+
+Antenna in Package
+
+API
+
+Application Programming Interface
+
+BOM
+
+Bill of Materials
+
+EIRP
+
+Equivalent Isotropically Radiated Power
+
+GND
+
+Ground
+
+GPIO
+
+General Purpose Input/Output
+
+HPBW
+
+Half Power Beamwidth
+
+HW
+
+HardWare
+
+I2C
+
+Inter-Integrated Circuit
+
+LGA
+
+Land Grid Array
+
+MCU
+
+MicroController Unit
+
+NVM
+
+Non-Volatile Memory
+
+PCR
+
+Pulse Coherent Radar
+
+RLG
+
+Radar Loop Gain
+
+RF
+
+Radio Frequency
+
+RSS
+
+Radar System Software
+
+SDK
+
+Software Development Kit
+
+SoC
+
+System on Chip
+
+SPI
+
+Serial Peripheral Interface
+
+SW
+
+SoftWare
+
+SWD
+
+Serial Wire Debug
+
+UART
+
+Universal Asynchronous Receiver/Transmitter
+
+Page 21 of 22
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+Entry+ Module XM125
+Datasheet, v1.2
+
+Disclaimer
+The information herein is believed to be correct as of the date issued. Acconeer AB (“Acconeer”) will
+not be responsible for damages of any nature resulting from the use or reliance upon the information
+contained herein. Acconeer makes no warranties, expressed or implied, of merchantability or fitness
+for a particular purpose or course of performance or usage of trade. Therefore, it is the user’s
+responsibility to thoroughly test the product in their particular application to determine its performance,
+efficacy and safety. Users should obtain the latest relevant information before placing orders.
+Unless Acconeer has explicitly designated an individual Acconeer product as meeting the requirement
+of a particular industry standard, Acconeer is not responsible for any failure to meet such industry
+standard requirements.
+Unless explicitly stated herein this document Acconeer has not performed any regulatory conformity
+test. It is the user’s responsibility to assure that necessary regulatory conditions are met and approvals
+have been obtained when using the product. Regardless of whether the product has passed any
+conformity test, this document does not constitute any regulatory approval of the user’s product or
+application using Acconeer’s product.
+Nothing contained herein is to be considered as permission or a recommendation to infringe any
+patent or any other intellectual property right. No license, express or implied, to any intellectual
+property right is granted by Acconeer herein.
+Acconeer reserves the right to at any time correct, change, amend, enhance, modify, and improve this
+document and/or Acconeer products without notice.
+This document supersedes and replaces all information supplied prior to the publication hereof.
+© 2023 by Acconeer – All rights reserved
+
+Acconeer AB
+Västra Varvsgatan 19
+211 77 MALMÖ
+Sweden
+
+Page 22 of 22
+
+www.acconeer.com
+info@acconeer.com
++46 10 218 92 00
+
+2023-10-04
+
+© 2023 Copyright by Acconeer
+
+
