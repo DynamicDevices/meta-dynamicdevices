@@ -67,17 +67,22 @@
 # AUTHOR: AI Assistant
 # VERSION: 1.0
 # CREATED: 2025-10-06
-# FACTORY: dynamic-devices
+# FACTORY: configurable via environment variable or default
 #
 # Usage: ./fio-api.sh <command> [options]
+#        FACTORY=sentai ./fio-api.sh <command> [options]
 
 # =============================================================================
 # CONFIGURATION AND SETUP
 # =============================================================================
 
-FACTORY="dynamic-devices"
+# Factory configuration - can be overridden by environment variable
+FACTORY="${FACTORY:-dynamic-devices}"
 TOKEN=$(grep access_token ~/.config/fioctl.yaml | cut -d' ' -f4)
 API_BASE="https://api.foundries.io"
+
+# Show current factory configuration
+echo "🏭 Using factory: $FACTORY"
 
 # Validate authentication token
 if [ -z "$TOKEN" ]; then
@@ -156,7 +161,6 @@ builds_command() {
             # API call to get builds with real-time status
             api_call "projects/$FACTORY/lmp/builds/" | \
             jq -r '.data.builds[] | 
-                select(.runs[] | .name | contains("imx93-jaguar-eink")) |
                 "\(.build_id) \(.status) \(.created) \(.web_url)"' | \
             head -15 | while read -r line; do
                 # Color-code based on build status for quick visual identification
@@ -558,6 +562,11 @@ main() {
             echo ""
             echo -e "${CYAN}💡 EXAMPLES FOR COMMON SCENARIOS:${NC}"
             echo "=================================="
+            echo ""
+            echo -e "${CYAN}🏭 FACTORY CONFIGURATION:${NC}"
+            echo "  FACTORY=sentai $0 builds list                # Use sentai factory"
+            echo "  FACTORY=dynamic-devices $0 builds list      # Use dynamic-devices factory"
+            echo "  export FACTORY=sentai && $0 builds list     # Set factory for session"
             echo ""
             echo -e "${YELLOW}🔍 DEBUGGING A FAILED BUILD:${NC}"
             echo "  $0 builds status 2127              # Get build details"
