@@ -96,3 +96,7 @@ yocto-layer-validation/build/
 yocto-layer-validation/tmp/
 yocto-layer-validation/downloads/
 yocto-layer-validation/sstate-cache/
+# Schematic PDFs - keep local only, do not commit to repository
+*.pdf
+docs/schematics/
+202500r1.pdf
