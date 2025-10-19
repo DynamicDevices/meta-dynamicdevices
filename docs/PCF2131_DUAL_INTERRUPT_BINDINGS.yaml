@@ -1,0 +1,168 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/rtc/nxp,pcf2131-dual-interrupt.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: NXP PCF2131 RTC with Dual Interrupt Support
+
+maintainers:
+  - Dynamic Devices <support@dynamicdevices.co.uk>
+
+description: |
+  The PCF2131 is an ultra-low power RTC with dual interrupt outputs (INTA# and INTB#)
+  that can be independently configured to route different interrupt sources.
+  
+  This binding extends the standard nxp,pcf2127 binding to support the PCF2131's
+  dual interrupt capability and configurable interrupt routing.
+
+allOf:
+  - $ref: rtc.yaml#
+
+properties:
+  compatible:
+    enum:
+      - nxp,pcf2131
+
+  reg:
+    maxItems: 1
+
+  interrupts:
+    minItems: 1
+    maxItems: 2
+    description: |
+      Interrupt specifications for INTA# and optionally INTB#.
+      - Single interrupt: INTA# only (traditional mode)
+      - Dual interrupts: INTA# and INTB# (enhanced mode)
+
+  interrupt-names:
+    minItems: 1
+    maxItems: 2
+    items:
+      enum:
+        - inta
+        - intb
+    description: |
+      Names for the interrupt inputs:
+      - "inta": INTA# interrupt (pin 3)
+      - "intb": INTB# interrupt (pin 4)
+
+  nxp,inta-mask:
+    $ref: /schemas/types.yaml#/definitions/uint32-array
+    minItems: 2
+    maxItems: 2
+    description: |
+      Two-element array specifying which interrupt sources are routed to INTA#.
+      Format: [mask1, mask2] where each element is an 8-bit mask.
+      
+      mask1 bits (INT_A_MASK1 register 0x31):
+        bit 0: BLIEA  - Battery low interrupt enable A
+        bit 1: BIEA   - Battery interrupt enable A  
+        bit 2: AIEA   - Alarm interrupt enable A
+        bit 3: WD_CDA - Watchdog countdown A
+        bit 4: SIA    - Second interrupt enable A
+        bit 5: MIA    - Minute interrupt enable A
+        bits 6-7: Reserved
+      
+      mask2 bits (INT_A_MASK2 register 0x32):
+        bit 0: TSIE4A - Timestamp 4 interrupt enable A
+        bit 1: TSIE3A - Timestamp 3 interrupt enable A
+        bit 2: TSIE2A - Timestamp 2 interrupt enable A
+        bit 3: TSIE1A - Timestamp 1 interrupt enable A
+        bits 4-7: Reserved
+      
+      Default: [0x07, 0x00] (alarms + battery interrupts on INTA#)
+
+  nxp,intb-mask:
+    $ref: /schemas/types.yaml#/definitions/uint32-array
+    minItems: 2
+    maxItems: 2
+    description: |
+      Two-element array specifying which interrupt sources are routed to INTB#.
+      Format: [mask1, mask2] with same bit definitions as nxp,inta-mask.
+      
+      mask1 bits (INT_B_MASK1 register 0x33):
+        Same bit definitions as INT_A_MASK1 but for INTB# routing
+      
+      mask2 bits (INT_B_MASK2 register 0x34):
+        Same bit definitions as INT_A_MASK2 but for INTB# routing
+      
+      Default: [0x00, 0x00] (no interrupts on INTB#)
+
+  wakeup-source:
+    type: boolean
+    description: |
+      Enable the RTC as a wakeup source. When dual interrupts are configured,
+      both INTA# and INTB# can serve as wakeup sources.
+
+required:
+  - compatible
+  - reg
+
+additionalProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/interrupt-controller/irq.h>
+    #include <dt-bindings/gpio/gpio.h>
+    
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        
+        /* Single interrupt mode (INTA# only) */
+        rtc@53 {
+            compatible = "nxp,pcf2131";
+            reg = <0x53>;
+            interrupt-parent = <&gpio4>;
+            interrupts = <22 IRQ_TYPE_LEVEL_LOW>;
+            interrupt-names = "inta";
+            nxp,inta-mask = <0x07 0x00>;  /* Alarms + battery on INTA# */
+            wakeup-source;
+        };
+    };
+
+  - |
+    #include <dt-bindings/interrupt-controller/irq.h>
+    #include <dt-bindings/gpio/gpio.h>
+    
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        
+        /* Dual interrupt mode (INTA# and INTB#) */
+        rtc@53 {
+            compatible = "nxp,pcf2131";
+            reg = <0x53>;
+            interrupt-parent = <&gpio4>;
+            interrupts = <22 IRQ_TYPE_LEVEL_LOW>, <23 IRQ_TYPE_LEVEL_LOW>;
+            interrupt-names = "inta", "intb";
+            nxp,inta-mask = <0x04 0x00>;  /* Alarms only on INTA# */
+            nxp,intb-mask = <0x03 0x0F>;  /* Battery + timestamps on INTB# */
+            wakeup-source;
+        };
+    };
+
+  - |
+    #include <dt-bindings/interrupt-controller/irq.h>
+    #include <dt-bindings/gpio/gpio.h>
+    
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        
+        /* PMIC integration example */
+        rtc@53 {
+            compatible = "nxp,pcf2131";
+            reg = <0x53>;
+            interrupt-parent = <&gpio4>;
+            interrupts = <22 IRQ_TYPE_LEVEL_LOW>, <23 IRQ_TYPE_LEVEL_LOW>;
+            interrupt-names = "inta", "intb";
+            /* INTA#: CPU gets alarms + battery low for system wake */
+            nxp,inta-mask = <0x05 0x00>;  /* AIEA + BLIEA */
+            /* INTB#: PMIC gets battery status + timestamps for power mgmt */
+            nxp,intb-mask = <0x02 0x0F>;  /* BIEA + all timestamps */
+            wakeup-source;
+        };
+    };
+...
