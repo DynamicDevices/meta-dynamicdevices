@@ -14,10 +14,21 @@ description: |
   that can be independently configured to route different interrupt sources.
   
   This binding extends the standard nxp,pcf2127 binding to support the PCF2131's
-  dual interrupt capability and configurable interrupt routing.
+  dual interrupt capability, configurable interrupt routing, and power optimization
+  features for 5+ year battery life.
+  
+  Runtime SYSFS Interface:
+    /sys/class/rtc/rtc0/intb_mask        - Read/write INTB interrupt mask
+    /sys/class/rtc/rtc0/minute_interrupt - Enable/disable minute periodic interrupts
+    /sys/class/rtc/rtc0/second_interrupt - Enable/disable second periodic interrupts (future)
+  
+  Power Consumption:
+    - Standard mode: ~770nA (3-4 year battery life)
+    - Ultra-low power: ~400nA (5+ year battery life)
+    - Trade-off: Reduced accuracy (±2.2 hours drift over 5 years vs ±8 minutes)
 
 allOf:
-  - $ref: rtc.yaml#
+  - $ref: /schemas/rtc/nxp,pcf2127.yaml#
 
 properties:
   compatible:
@@ -32,8 +43,11 @@ properties:
     maxItems: 2
     description: |
       Interrupt specifications for INTA# and optionally INTB#.
-      - Single interrupt: INTA# only (traditional mode)
-      - Dual interrupts: INTA# and INTB# (enhanced mode)
+      - Single interrupt: INTA# only (traditional mode, compatible with upstream)
+      - Dual interrupts: INTA# and INTB# (PCF2131 enhanced mode)
+      
+      Note: This extends the upstream nxp,pcf2127.yaml which only supports
+      single interrupt. PCF2131 adds dual interrupt capability.
 
   interrupt-names:
     minItems: 1
@@ -94,6 +108,39 @@ properties:
     description: |
       Enable the RTC as a wakeup source. When dual interrupts are configured,
       both INTA# and INTB# can serve as wakeup sources.
+
+  nxp,ultra-low-power:
+    type: boolean
+    description: |
+      Enable ultra-low power mode for 5+ year battery life.
+      When enabled, disables temperature compensation (TC_DIS) and 
+      1/100 seconds counter (100TH_S_DIS) to reduce power consumption
+      from ~770nA to ~400nA. This comes with reduced accuracy:
+      - With TC: ±3ppm accuracy, ±8 minutes drift over 5 years
+      - Without TC: ±20-50ppm accuracy, ±0.9-2.2 hours drift over 5 years
+      Default: enabled (optimized for battery life)
+
+  nxp,temperature-compensation-disable:
+    type: boolean
+    description: |
+      Disable temperature compensation (TC_DIS bit in Control_1 register).
+      Reduces power consumption by ~370nA but decreases accuracy.
+      This property is automatically set when nxp,ultra-low-power is enabled.
+
+  nxp,hundredth-seconds-disable:
+    type: boolean
+    description: |
+      Disable 1/100 seconds counter (100TH_S_DIS bit in Control_1 register).
+      Reduces power consumption by ~70nA and removes sub-second precision.
+      This property is automatically set when nxp,ultra-low-power is enabled.
+
+  nxp,periodic-interrupts-disable:
+    type: boolean
+    description: |
+      Disable minute and second periodic interrupts by default to prevent
+      interrupt storms. Periodic interrupts can still be enabled at runtime
+      via SYSFS interface (/sys/class/rtc/rtc0/minute_interrupt).
+      Default: enabled (periodic interrupts disabled for stability)
 
 required:
   - compatible
@@ -162,6 +209,30 @@ examples:
             nxp,inta-mask = <0x05 0x00>;  /* AIEA + BLIEA */
             /* INTB#: PMIC gets battery status + timestamps for power mgmt */
             nxp,intb-mask = <0x02 0x0F>;  /* BIEA + all timestamps */
+            wakeup-source;
+        };
+
+  - |
+    #include <dt-bindings/interrupt-controller/irq.h>
+    #include <dt-bindings/gpio/gpio.h>
+    
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        
+        /* Ultra-low power configuration for 5+ year battery life */
+        rtc@53 {
+            compatible = "nxp,pcf2131";
+            reg = <0x53>;
+            interrupt-parent = <&gpio4>;
+            interrupts = <22 IRQ_TYPE_LEVEL_LOW>, <23 IRQ_TYPE_LEVEL_LOW>;
+            interrupt-names = "inta", "intb";
+            /* Standard interrupt routing */
+            nxp,inta-mask = <0x07 0x00>;  /* Alarms + battery on INTA# (i.MX93) */
+            nxp,intb-mask = <0x04 0x0F>;  /* Alarms + timestamps on INTB# (PMU) */
+            /* Power optimization for 5+ year battery life */
+            nxp,ultra-low-power;           /* Enable ~400nA power mode */
+            nxp,periodic-interrupts-disable; /* Prevent interrupt storms */
             wakeup-source;
         };
     };
