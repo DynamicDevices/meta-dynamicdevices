@@ -36,3 +36,6 @@ SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-sentai = "zb_app.service"
 SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-sentai = "enable"
 
 RDEPENDS:${PN}:imx8mm-jaguar-sentai += " bash"
+
+# Include /usr/bin in the package files for Zigbee applications
+FILES:${PN}:append:imx8mm-jaguar-sentai = " ${bindir}/*"
