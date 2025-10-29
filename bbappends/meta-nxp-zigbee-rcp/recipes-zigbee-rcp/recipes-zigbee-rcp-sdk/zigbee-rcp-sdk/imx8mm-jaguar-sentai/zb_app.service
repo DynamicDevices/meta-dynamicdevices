@@ -1,0 +1,52 @@
+[Unit]
+Description=ZBOSS 019.240 Application Service
+Documentation=man:zb_app.sh(8)
+After=zb_mux.service network.target
+Wants=zb_mux.service
+Requires=zb_mux.service
+ConditionPathExists=/usr/sbin/zb_app.sh
+ConditionPathExists=/tmp/ttyZigbee
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/zb_app.sh
+ExecStop=/bin/kill -TERM $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+PIDFile=/var/run/zb_app.pid
+TimeoutStartSec=120
+TimeoutStopSec=30
+StandardOutput=journal
+StandardError=journal
+Environment="ZBOSS_VERSION=019.240"
+EnvironmentFile=-/etc/default/zb_app.env
+
+# Enhanced restart policy for ZBOSS 019.240
+Restart=on-failure
+RestartSec=15
+StartLimitInterval=600
+StartLimitBurst=3
+
+# Wait for SPINEL interface to be ready
+ExecStartPre=/bin/bash -c 'for i in {1..30}; do [ -e /tmp/ttyZigbee ] && break; sleep 1; done'
+
+# Resource limits
+LimitNOFILE=1024
+LimitNPROC=256
+MemoryMax=512M
+CPUQuota=75%
+
+# Security enhancements
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/local/zboss /tmp /var/run
+PrivateTmp=yes
+PrivateDevices=yes
+
+# Network access for Zigbee gateway functionality
+PrivateNetwork=no
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
+Alias=zb_app.service
