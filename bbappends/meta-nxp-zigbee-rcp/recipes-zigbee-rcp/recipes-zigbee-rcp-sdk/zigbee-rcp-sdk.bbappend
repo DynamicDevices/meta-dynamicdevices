@@ -6,6 +6,7 @@ SRC_URI:append:imx8mm-jaguar-sentai = " \
   file://zb_mux.sh \
   file://zb_config.service \
   file://zb_app.env \
+  file://zb_mux.env \
 "
 
 do_install:append:imx8mm-jaguar-sentai() {
@@ -17,6 +18,7 @@ do_install:append:imx8mm-jaguar-sentai() {
     
     install -d ${D}/etc/default
     install -m 0644 ${S}/zb_app.env ${D}/etc/default
+    install -m 0644 ${S}/zb_mux.env ${D}/etc/default
     install -m 0644 ${S}/scripts/ota-client.cfg ${D}/etc/default
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/zb_config.service ${D}${systemd_unitdir}/system/zb_config.service
