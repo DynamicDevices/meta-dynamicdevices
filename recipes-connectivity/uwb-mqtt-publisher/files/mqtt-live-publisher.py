@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Copyright (c) SynchronicIT B.V. 2022. All rights reserved.                           09/08/2022
