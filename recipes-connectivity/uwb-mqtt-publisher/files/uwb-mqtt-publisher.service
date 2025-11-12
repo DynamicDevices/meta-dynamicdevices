@@ -10,7 +10,7 @@ Type=simple
 User=root
 Group=root
 EnvironmentFile=-/etc/default/uwb-mqtt-publisher
-ExecStart=/usr/bin/uwb-mqtt-publisher ${UART_PORT} ${NODE_LIST} \
+ExecStart=/usr/bin/uwb-mqtt-publisher ${UART_PORT} \
     --mqtt-broker ${MQTT_BROKER} \
     --mqtt-port ${MQTT_PORT} \
     --mqtt-topic ${MQTT_TOPIC} \
