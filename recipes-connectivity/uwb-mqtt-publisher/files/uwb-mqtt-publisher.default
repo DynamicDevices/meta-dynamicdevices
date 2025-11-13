@@ -10,7 +10,7 @@ NODE_LIST="[]"
 # MQTT broker configuration
 MQTT_BROKER="mqtt.dynamicdevices.co.uk"
 MQTT_PORT="8883"
-MQTT_TOPIC="uwb/positions"
+MQTT_TOPIC="DotnetMQTT/Test/in"
 
 # Rate limiting (seconds between publishes)
 MQTT_RATE_LIMIT="10.0"

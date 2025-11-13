@@ -38,7 +38,7 @@ class UwbNetworkConverter:
         """
         self.anchor_config_path = anchor_config_path
         self.anchor_map = {}  # Maps anchor ID to [lat, lon, alt]
-        self.instance_id_base = 1000  # Fallback base if node ID is not valid hex
+        self.dev_eui_to_uwb_id_map = {}  # Maps dev_eui (hex string) to UWB ID (hex string)
         
         if anchor_config_path and os.path.exists(anchor_config_path):
             self._load_anchor_config()
@@ -68,6 +68,13 @@ class UwbNetworkConverter:
                 self.anchor_map[anchor_id] = [lat, lon, alt]
             
             print(f"[INFO] Loaded {len(self.anchor_map)} anchor points from config")
+            
+            # Load dev_eui to UWB ID mapping if present
+            if 'dev_eui_to_uwb_id' in config:
+                self.dev_eui_to_uwb_id_map = config['dev_eui_to_uwb_id']
+                # Normalize keys to uppercase
+                self.dev_eui_to_uwb_id_map = {k.upper(): v.upper() for k, v in self.dev_eui_to_uwb_id_map.items()}
+                print(f"[INFO] Loaded {len(self.dev_eui_to_uwb_id_map)} dev_eui to UWB ID mappings")
         
         except json.JSONDecodeError as e:
             print(f"[ERROR] Failed to parse anchor config JSON: {e}")
@@ -105,14 +112,6 @@ class UwbNetworkConverter:
             is_anchor = uwb_id in self.anchor_map
             anchor_position = self.anchor_map.get(uwb_id, [0.0, 0.0, 0.0])
             
-            # Convert hex node ID to decimal for instance ID
-            # Node IDs are hex strings like "B5A4" -> convert to decimal (46500)
-            try:
-                instance_id = int(uwb_id, 16)
-            except (ValueError, TypeError):
-                # Fallback if node ID is not valid hex
-                instance_id = self.instance_id_base + idx
-            
             uwb = {
                 "id": uwb_id,
                 "triageStatus": 0,  # unknown/not triaged
@@ -121,10 +120,7 @@ class UwbNetworkConverter:
                 "positionKnown": is_anchor,
                 "lastPositionUpdateTime": timestamp,
                 "edges": [],
-                "positionAccuracy": 0.0,
-                "go": {
-                    "instanceID": instance_id
-                }
+                "positionAccuracy": 0.0
             }
             uwbs.append(uwb)
         

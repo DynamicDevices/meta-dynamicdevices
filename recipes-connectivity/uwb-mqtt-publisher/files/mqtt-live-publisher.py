@@ -57,6 +57,25 @@ except Exception as e:
     UwbNetworkConverter = None
     print(f"[WARNING] Failed to load UWB network converter: {e}")
 
+# LoRa Tag Cache import
+# This module subscribes to TTN MQTT and caches LoRa tag data
+try:
+    # Import from same directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    cache_path = os.path.join(script_dir, 'lora_tag_cache.py')
+    if os.path.exists(cache_path):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("lora_tag_cache", cache_path)
+        lora_tag_cache = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(lora_tag_cache)
+        LoraTagDataCache = lora_tag_cache.LoraTagDataCache
+    else:
+        LoraTagDataCache = None
+        print("[WARNING] lora_tag_cache.py not found - LoRa tag data caching will be unavailable")
+except Exception as e:
+    LoraTagDataCache = None
+    print(f"[WARNING] Failed to load LoRa tag cache: {e}")
+
 parser = argparse.ArgumentParser(description='Sketch flash loader with MQTT publishing')
 parser.add_argument("uart", help="uart port to use", type=str, default="/dev/ttyUSB0", nargs='?')
 parser.add_argument("nodes", help="node lists",type=str, default="[]", nargs='?')
@@ -69,6 +88,12 @@ parser.add_argument("--verbose", help="Enable verbose logging", action="store_tr
 parser.add_argument("--quiet", help="Enable quiet mode (minimal logging)", action="store_true")
 parser.add_argument("--cga-format", help="Publish in CGA network format instead of simple edge list", action="store_true")
 parser.add_argument("--anchor-config", help="Path to JSON config file with anchor point coordinates", type=str, default=None)
+parser.add_argument("--lora-broker", help="LoRa MQTT broker hostname (for tag data)", type=str, default="eu1.cloud.thethings.network")
+parser.add_argument("--lora-port", help="LoRa MQTT broker port", type=int, default=8883)
+parser.add_argument("--lora-username", help="LoRa MQTT username", type=str, default=None)
+parser.add_argument("--lora-password", help="LoRa MQTT password", type=str, default=None)
+parser.add_argument("--lora-topic", help="LoRa MQTT topic pattern to subscribe to", type=str, default="#")
+parser.add_argument("--enable-lora-cache", help="Enable LoRa tag data caching", action="store_true")
 
 args = parser.parse_args()
 
@@ -83,6 +108,29 @@ if args.cga_format:
         print("[ERROR] --cga-format requires uwb_network_converter.py module")
         sys.exit(1)
     uwb_converter = UwbNetworkConverter(anchor_config_path=args.anchor_config)
+
+# LoRa Tag Data Cache instance
+lora_cache = None
+if args.enable_lora_cache:
+    if LoraTagDataCache is None:
+        print("[WARNING] --enable-lora-cache requires lora_tag_cache.py module - LoRa caching disabled")
+    else:
+        # Get dev_eui mapping from converter if available
+        dev_eui_map = {}
+        if uwb_converter and hasattr(uwb_converter, 'dev_eui_to_uwb_id_map'):
+            dev_eui_map = uwb_converter.dev_eui_to_uwb_id_map
+        
+        lora_cache = LoraTagDataCache(
+            broker=args.lora_broker,
+            port=args.lora_port,
+            username=args.lora_username,
+            password=args.lora_password,
+            topic_pattern=args.lora_topic,
+            dev_eui_to_uwb_id_map=dev_eui_map,
+            verbose=args.verbose
+        )
+        lora_cache.start()
+        log_info("LoRa tag data cache enabled and started")
 
 # Error tracking globals
 parsing_error_count = 0
@@ -524,6 +572,10 @@ if args.cga_format:
         log_start("Anchor config: None (no anchor points configured)")
 else:
     log_start("Output format: Simple edge list")
+if args.enable_lora_cache:
+    log_start(f"LoRa tag cache: ENABLED (broker: {args.lora_broker}:{args.lora_port})")
+else:
+    log_start("LoRa tag cache: DISABLED")
 if args.quiet:
     log_start("Quiet mode enabled - minimal logging")
 elif args.verbose:
@@ -687,6 +739,9 @@ try:
 except KeyboardInterrupt:
     log_start("\nShutting down...")
     log_verbose("Keyboard interrupt received, cleaning up...")
+    if lora_cache:
+        log_verbose("Stopping LoRa tag cache...")
+        lora_cache.stop()
     if mqtt_client:
         log_verbose("Stopping MQTT client loop...")
         mqtt_client.loop_stop()
