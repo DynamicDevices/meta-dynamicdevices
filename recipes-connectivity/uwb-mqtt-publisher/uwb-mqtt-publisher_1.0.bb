@@ -37,6 +37,7 @@ do_install() {
     install -d ${D}${sysconfdir}
     install -m 0644 ${S}/config/uwb_anchors.json ${D}${sysconfdir}/uwb_anchors.json
     install -m 0644 ${S}/config/uwb_anchors_hw_lab.json ${D}${sysconfdir}/uwb_anchors_hw_lab.json
+    install -m 0644 ${S}/config/dev_eui_to_uwb_mappings.json ${D}${sysconfdir}/dev_eui_to_uwb_mappings.json
 
     # Install systemd service file (from local files directory or git repository)
     install -d ${D}${systemd_system_unitdir}
@@ -70,6 +71,7 @@ FILES:${PN} += "${bindir}/uwb-mqtt-publisher \
                 ${bindir}/lora_tag_cache.py \
                 ${sysconfdir}/uwb_anchors.json \
                 ${sysconfdir}/uwb_anchors_hw_lab.json \
+                ${sysconfdir}/dev_eui_to_uwb_mappings.json \
                 ${systemd_system_unitdir}/uwb-mqtt-publisher.service \
                 ${sysconfdir}/uwb-mqtt-publisher/ \
                 ${sysconfdir}/default/uwb-mqtt-publisher"
