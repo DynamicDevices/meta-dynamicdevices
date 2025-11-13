@@ -28,6 +28,7 @@ import math
 import json
 import ssl
 import sys
+import os
 
 # MQTT imports
 try:
@@ -35,6 +36,26 @@ try:
 except ImportError as e:
     print("Error: paho-mqtt library not found. Install with: pip install paho-mqtt")
     sys.exit(1)
+
+# UWB Network Converter import
+# This module converts edge list format to CGA network format
+# See uwb_network_converter.py for implementation details (Jen's review)
+try:
+    # Import from same directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    converter_path = os.path.join(script_dir, 'uwb_network_converter.py')
+    if os.path.exists(converter_path):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("uwb_network_converter", converter_path)
+        uwb_network_converter = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(uwb_network_converter)
+        UwbNetworkConverter = uwb_network_converter.UwbNetworkConverter
+    else:
+        UwbNetworkConverter = None
+        print("[WARNING] uwb_network_converter.py not found - CGA format will be unavailable")
+except Exception as e:
+    UwbNetworkConverter = None
+    print(f"[WARNING] Failed to load UWB network converter: {e}")
 
 parser = argparse.ArgumentParser(description='Sketch flash loader with MQTT publishing')
 parser.add_argument("uart", help="uart port to use", type=str, default="/dev/ttyUSB0", nargs='?')
@@ -46,12 +67,22 @@ parser.add_argument("--mqtt-rate-limit", help="Minimum seconds between MQTT publ
 parser.add_argument("--disable-mqtt", help="Disable MQTT publishing", action="store_true")
 parser.add_argument("--verbose", help="Enable verbose logging", action="store_true")
 parser.add_argument("--quiet", help="Enable quiet mode (minimal logging)", action="store_true")
+parser.add_argument("--cga-format", help="Publish in CGA network format instead of simple edge list", action="store_true")
+parser.add_argument("--anchor-config", help="Path to JSON config file with anchor point coordinates", type=str, default=None)
 
 args = parser.parse_args()
 
 # MQTT globals
 mqtt_client = None
 last_publish_time = 0
+
+# UWB Network Converter instance (for CGA format)
+uwb_converter = None
+if args.cga_format:
+    if UwbNetworkConverter is None:
+        print("[ERROR] --cga-format requires uwb_network_converter.py module")
+        sys.exit(1)
+    uwb_converter = UwbNetworkConverter(anchor_config_path=args.anchor_config)
 
 # Error tracking globals
 parsing_error_count = 0
@@ -237,7 +268,6 @@ def publish_to_mqtt(data):
         rate_limit = current_rate_limit
     
     if time_since_last < rate_limit:
-        log_info(f"MQTT publish rate limited - waiting {rate_limit - time_since_last:.1f}s more")
         return
         
     if not mqtt_client.is_connected():
@@ -403,6 +433,9 @@ def parse_final(assignments, final_payload, mode=0):
 def print_list(results):
     if len(results) == 0:
         return
+    
+    # Get current timestamp for CGA format
+    current_timestamp = time.time()
         
     # Format data for both display and MQTT publishing
     formatted_data = []
@@ -424,8 +457,19 @@ def print_list(results):
     # Only show parsed data in verbose mode
     log_verbose(f"Parsed data: {row}")
     
-    # Publish to MQTT
-    publish_to_mqtt(formatted_data)
+    # Convert to CGA format if requested
+    if args.cga_format and uwb_converter is not None:
+        try:
+            network_data = uwb_converter.convert_edges_to_network(formatted_data, timestamp=current_timestamp)
+            log_verbose("Converted to CGA network format")
+            publish_to_mqtt(network_data)
+        except Exception as e:
+            log_error(f"Failed to convert to CGA format: {e}")
+            log_info("Falling back to simple edge list format")
+            publish_to_mqtt(formatted_data)
+    else:
+        # Publish in simple edge list format (default)
+        publish_to_mqtt(formatted_data)
 
 def print_matrix(assignments, results):
     if not args.verbose:
@@ -472,6 +516,14 @@ log_start(f"MQTT broker: {args.mqtt_broker}:{args.mqtt_port}")
 log_start(f"MQTT topic: {args.mqtt_topic}")
 log_start(f"MQTT command topic: {args.mqtt_topic}/cmd")
 log_start(f"Initial rate limit: {args.mqtt_rate_limit}s")
+if args.cga_format:
+    log_start("CGA network format: ENABLED")
+    if args.anchor_config:
+        log_start(f"Anchor config: {args.anchor_config}")
+    else:
+        log_start("Anchor config: None (no anchor points configured)")
+else:
+    log_start("Output format: Simple edge list")
 if args.quiet:
     log_start("Quiet mode enabled - minimal logging")
 elif args.verbose:
