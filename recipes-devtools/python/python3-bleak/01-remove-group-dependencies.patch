@@ -1,0 +1,25 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index 7e25ef9..649ab9a 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -31,20 +31,6 @@ pyobjc-framework-libdispatch = { version = "^9.0.1", markers = "platform_system=
+ bleak-winrt = { version = "^1.2.0", markers = "platform_system=='Windows'" }
+ dbus-fast = { version = "^1.83.0", markers = "platform_system == 'Linux'" }
+ 
+-[tool.poetry.group.docs.dependencies]
+-Sphinx = { version = "^5.1.1", python = ">=3.8" }
+-sphinx-rtd-theme = "^1.0.0"
+-
+-[tool.poetry.group.lint.dependencies]
+-black = "^22.1.0"
+-flake8 = { version = "^5.0.0", python = ">=3.8" }
+-
+-[tool.poetry.group.test.dependencies]
+-asynctest = { version = "^0.13.0",  python = "<3.8" }
+-pytest = "^7.0.0"
+-pytest-asyncio = "^0.19.0"
+-pytest-cov = "^3.0.0 "
+-
+ [build-system]
+ requires = ["poetry-core"]
+ build-backend = "poetry.core.masonry.api"
