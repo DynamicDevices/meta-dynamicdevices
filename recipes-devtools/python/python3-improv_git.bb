@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=1803fa9c2c3ce8cb06b4861d75310742"
 
 # Extend file search path to include machine-specific directories
 # Yocto will automatically look in ${MACHINE}/ before recipe directory
-FILESEXTRAPATHS_prepend := "${THISDIR}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}:"
 
 SRC_URI = "git://github.com/Mimoja/pyImprov.git;protocol=https;branch=main \
            file://improv.service \
