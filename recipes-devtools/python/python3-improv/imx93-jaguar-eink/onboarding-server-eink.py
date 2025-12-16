@@ -135,7 +135,8 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
 
     try:
       # Create WiFi connection with improved settings for boot-time reliability:
-      # - autoconnect-priority 5 (lower than default GrosnyIoT priority 10, but still prioritized)
+      # - autoconnect-priority 20 (highest priority - ensures wifi-connect.service selects this connection)
+      #   Higher than GrosnyIoT (10) so Improv-configured networks are preferred
       # - auth-retries 3 (retry authentication 3 times)
       # - dhcp-timeout 60 (60 seconds for DHCP, longer than default 45)
       nmcli.connection.add('wifi', {
@@ -143,7 +144,7 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
           'wifi-sec.key-mgmt': 'wpa-psk',
           'wifi-sec.psk': passwd.decode('utf-8'),
           'connection.autoconnect': 'yes',
-          'connection.autoconnect-priority': '5',
+          'connection.autoconnect-priority': '20',
           'connection.auth-retries': '3',
           'ipv4.dhcp-timeout': '60'
       }, f"{INTERFACE}", f"{CON_NAME}", True)
