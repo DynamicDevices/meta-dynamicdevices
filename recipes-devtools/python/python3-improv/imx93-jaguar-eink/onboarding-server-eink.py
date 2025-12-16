@@ -134,7 +134,19 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       print(f'No connection {CON_NAME} to remove')
 
     try:
-      nmcli.connection.add('wifi', { 'ssid':ssid.decode('utf-8'), 'wifi-sec.key-mgmt':'wpa-psk', 'wifi-sec.psk':passwd.decode('utf-8') }, f"{INTERFACE}", f"{CON_NAME}", True)
+      # Create WiFi connection with improved settings for boot-time reliability:
+      # - autoconnect-priority 5 (lower than default GrosnyIoT priority 10, but still prioritized)
+      # - auth-retries 3 (retry authentication 3 times)
+      # - dhcp-timeout 60 (60 seconds for DHCP, longer than default 45)
+      nmcli.connection.add('wifi', {
+          'ssid': ssid.decode('utf-8'),
+          'wifi-sec.key-mgmt': 'wpa-psk',
+          'wifi-sec.psk': passwd.decode('utf-8'),
+          'connection.autoconnect': 'yes',
+          'connection.autoconnect-priority': '5',
+          'connection.auth-retries': '3',
+          'ipv4.dhcp-timeout': '60'
+      }, f"{INTERFACE}", f"{CON_NAME}", True)
     except:
       print(f'Could not add new connection {CON_NAME}')
       return None
