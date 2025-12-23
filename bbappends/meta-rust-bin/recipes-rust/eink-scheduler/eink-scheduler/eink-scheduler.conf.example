@@ -1,0 +1,96 @@
+# E-ink Display Scheduler Configuration
+# Copy this file to /etc/eink-scheduler/eink-scheduler.conf and customize
+
+# Device Configuration
+# DEVICE_ID=your-device-uuid-here  # If not set, system hostname will be used
+
+# Development API Configuration  
+API_BASE_URL=https://api.dev.e-tabelone.com
+API_PATH_TEMPLATE=/node/v0/device/{DEVICE_ID}/config
+TELEMETRY_PATH_TEMPLATE=/node/v0/device/{DEVICE_ID}/telemetry
+AUTH_TOKEN=your-bearer-token-here
+
+# Production API Configuration (commented out - uncomment for production use)
+# API_BASE_URL=https://api.e-tabelone.com
+# API_PATH_TEMPLATE=/node/v0/device/{DEVICE_ID}/config
+# TELEMETRY_PATH_TEMPLATE=/node/v0/device/{DEVICE_ID}/telemetry
+# AUTH_TOKEN=your-bearer-token-here
+
+# Telemetry Configuration
+ENABLE_TELEMETRY=true
+
+# Local Configuration
+CACHE_DIR=/var/cache/eink-scheduler
+ENABLE_CLEAN_MODE=false
+POLL_INTERVAL=300
+
+# Display Detection Configuration
+AUTO_DETECT_DISPLAY=true
+DISPLAY_COMMAND_T2000=t2000_usb -i
+DISPLAY_COMMAND_SPI=el133uf1_demo -d /dev/spidev0.0 -i
+FALLBACK_TRY_BOTH=true
+
+# Manual Display Command Override (takes precedence over auto-detection)
+# For imx93-jaguar-eink boards with Spectra 6 display, use the correct GPIO pins:
+# DISPLAY_COMMAND=el133uf1_demo -d /dev/spidev0.0 -r 526 -b 528 -0 529 -1 619 --dc 527 --process-image image=
+# 
+# Note: The "image=" suffix is required for el133uf1_demo (no space before path)
+# GPIO pins for imx93-jaguar-eink: Reset=526, Busy=528, CS0=529, CS1=619, DC=527
+# The service runs as root for GPIO access. SPI device is /dev/spidev0.0
+# 
+# Image Processing Options:
+#   --process-image: Apply Stucki dithering to local files (RECOMMENDED)
+#   --no-process   : Skip image processing (for pre-processed images)
+#   (default/auto) : Applies processing to URLs, skips for local files
+# 
+# IMPORTANT: Use --process-image for local cached files to match the quality
+# of the test service which downloads and processes images from URLs.
+
+# Logging
+LOG_LEVEL=INFO
+
+# Display Settings
+WAVEFORM_MODE=0
+ENABLE_PMIC=1
+TEMPERATURE_DISABLED=1
+
+# PMU Configuration (optional)
+ENABLE_PMU_SLEEP=true
+# DISABLE_PMU_SLEEP_FOR_DEBUG: Set to true to use regular sleep loop instead of PMU sleep
+#                              Useful for debugging to see all logs without system suspend
+#                              (default: false)
+# DISABLE_PMU_SLEEP_FOR_DEBUG=true
+PMU_DEVICE=/dev/ttyLP2
+PMU_BAUD=115200
+POWER_CLI_PATH=/usr/bin/eink-power-cli
+
+# Sleep Calibration (optional)
+# SLEEP_CALIBRATION_SECONDS: Boot time overhead to subtract from sleep duration
+#                            Default: 72 (typical boot time for imx93-jaguar-eink)
+# MIN_SLEEP_SECONDS: Minimum sleep time to prevent excessive wake cycles
+#                    Default: 120 (must be > boot time for meaningful sleep)
+# SLEEP_CALIBRATION_SECONDS=72
+# MIN_SLEEP_SECONDS=120
+
+# Debug Overlay (optional)
+# Adds text overlay to displayed images for visual debugging
+# Template variables:
+#   ${HOSTNAME} - System hostname
+#   ${DATETIME} - Current date/time (YYYY-MM-DD HH:MM:SS)
+#
+# DEBUG_OVERLAY_TEMPLATE: Text template with variable substitution
+# Example: DEBUG_OVERLAY_TEMPLATE=Device: ${HOSTNAME} | Time: ${DATETIME}
+# DEBUG_OVERLAY_TEMPLATE=${HOSTNAME} @ ${DATETIME}
+#
+# DEBUG_OVERLAY_X_OFFSET: Horizontal position in pixels (default: 10)
+# DEBUG_OVERLAY_Y_OFFSET: Vertical position in pixels (default: 0 = top)
+# DEBUG_OVERLAY_FONT_SIZE: Font size in pixels (default: 0 = auto-calculate)
+# DEBUG_OVERLAY_FONT_COLOR: Color name or hex (default: black)
+#   Supported colors: black, white, red, green, blue, yellow, orange
+#   Or hex format: #RRGGBB (e.g., #FF0000 for red)
+#
+# DEBUG_OVERLAY_X_OFFSET=10
+# DEBUG_OVERLAY_Y_OFFSET=0
+# DEBUG_OVERLAY_FONT_SIZE=32
+# DEBUG_OVERLAY_FONT_COLOR=black
+
