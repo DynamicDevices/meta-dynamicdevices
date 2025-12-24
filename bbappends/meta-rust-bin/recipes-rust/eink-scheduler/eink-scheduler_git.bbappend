@@ -1,3 +1,7 @@
+# Only apply this bbappend to imx93-jaguar-eink builds
+# eink-scheduler is not included in Sentai or other builds
+COMPATIBLE_MACHINE = "imx93-jaguar-eink"
+
 # Disable eink-scheduler service by default to prevent board from sleeping too quickly
 # This allows easier SSH access for debugging and testing
 # Service can be manually enabled with: systemctl enable eink-scheduler
