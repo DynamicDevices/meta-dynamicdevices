@@ -3,6 +3,8 @@ Description=Improv BLE WiFi onboarding service
 Documentation=https://www.improv-wifi.com/ble/
 
 [Service]
+# Run as root to access Bluetooth stack (BLE requires elevated privileges)
+# Script handles file ownership correction to fio:fio after creation
 ExecStart=/usr/share/improv/onboarding-server.py
 Restart=always
 RestartSec=12
