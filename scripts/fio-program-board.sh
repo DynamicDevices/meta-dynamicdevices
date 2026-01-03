@@ -477,6 +477,9 @@ Options:
   --mfgfolder DIR           Custom folder containing imx-boot-mfgtool and u-boot-mfgtool.itb files
                             (UUU scripts remain in original mfgtool-files location)
                             (Relative paths are relative to current working directory)
+  --assembled-image         Download assembled system image (contains Docker images) as separate file
+                            Saved as lmp-factory-image-<machine>-assembled.wic.gz (both images can coexist)
+                            Fails if assembled image is not available for the target
   -v, --version            Show version information
   -h, --help               Show this help message
 
@@ -515,6 +518,9 @@ Examples:
   # Use relative path for custom boot files (relative to current working directory)
   $SCRIPT_NAME --factory my-factory --machine imx93-jaguar-eink 1451 --mfgfolder ./custom-boot-files --program
 
+  # Use assembled system image (contains Docker images)
+  $SCRIPT_NAME --factory my-factory --machine imx8mm-jaguar-sentai 1356 --assembled-image
+
   # Continuous programming mode for multiple boards
   $SCRIPT_NAME --machine imx93-jaguar-eink --continuous
 
@@ -531,7 +537,8 @@ Configuration:
   Use --configure to set up defaults interactively.
 
 The script downloads the following artifacts needed for board programming:
-  - lmp-factory-image-<machine>.wic.gz  (Main system image)
+  - lmp-factory-image-<machine>.wic.gz  (Standard system image - default)
+  - lmp-factory-image-<machine>-assembled.wic.gz  (Assembled system image with Docker images - use --assembled-image)
   - imx-boot-<machine>                  (Production bootloader)
   - u-boot-<machine>.itb                (Production U-Boot image)
   - Complete MFGTools package with UUU executables and programming scripts
@@ -875,6 +882,14 @@ download_artifact() {
     local output_file="$4"
     local description="$5"
     
+    # Resolve output_file to absolute path for reliable cache checking
+    if [[ "$output_file" != /* ]]; then
+        # Relative path - resolve to absolute
+        local output_dir_abs
+        output_dir_abs="$(cd "$(dirname "$output_file")" 2>/dev/null && pwd)" || output_dir_abs="$(pwd)"
+        output_file="$output_dir_abs/$(basename "$output_file")"
+    fi
+    
     # Check if file already exists and is valid (unless force flag is set)
     if [[ "$FORCE_DOWNLOAD" != "true" ]] && file_exists_and_valid "$output_file"; then
         local size
@@ -910,6 +925,7 @@ download_target_artifacts() {
     local factory="$2"
     local machine="$3"
     local output_dir="$4"
+    local use_assembled_image="${5:-false}"
     
     log_info "Starting download for target $target_number, machine $machine"
     log_info "Factory: $factory"
@@ -928,14 +944,36 @@ download_target_artifacts() {
     # Download mfgtool-files archive (contains complete programming package)
     local mfgtools_archive="$output_dir/mfgtool-files-$machine.tar.gz"
     local mfgtools_dir="$output_dir/mfgtool-files-$machine"
+    local mfgtools_target_file="$mfgtools_dir/.target-$target_number"
     
     # Check if MFGTools are already extracted (unless force flag is set)
+    local mfgtools_need_download=true
     if [[ "$FORCE_DOWNLOAD" != "true" ]] && [[ -d "$mfgtools_dir" && -f "$mfgtools_dir/uuu" && -f "$mfgtools_dir/full_image.uuu" ]]; then
-        log_info "MFGTools programming package already extracted - skipping"
-        ((artifacts_downloaded++))
+        # Verify mfgtools match the current target (if marker file exists)
+        # If marker file doesn't exist, assume they might be correct (backward compatibility)
+        if [[ -f "$mfgtools_target_file" ]]; then
+            # Marker file exists - check if it matches current target
+            if [[ "$(cat "$mfgtools_target_file" 2>/dev/null)" == "$target_number" ]]; then
+                log_info "MFGTools programming package already extracted for target $target_number - skipping"
+                ((artifacts_downloaded++))
+                mfgtools_need_download=false
+            else
+                log_info "MFGTools exist but are for a different target - re-downloading for target $target_number"
+                # Remove old mfgtools to force re-download
+                rm -rf "$mfgtools_dir"
+                rm -f "$mfgtools_archive"
+                mfgtools_need_download=true
+            fi
+        else
+            # No marker file - assume mfgtools might be correct (backward compatibility with old downloads)
+            log_info "MFGTools programming package already extracted (no target marker - assuming correct) - skipping"
+            log_info "Note: Use --force to re-download mfgtools if you encounter issues"
+            ((artifacts_downloaded++))
+            mfgtools_need_download=false
+        fi
         
         # Copy custom boot files if mfgfolder is specified (even when not re-extracting)
-        if [[ -n "$resolved_mfgfolder" ]]; then
+        if [[ "$mfgtools_need_download" == "false" ]] && [[ -n "$resolved_mfgfolder" ]]; then
             log_info "Copying custom boot files from: $resolved_mfgfolder"
             
             # Validate custom folder exists and has required files
@@ -971,7 +1009,11 @@ download_target_artifacts() {
                 return 1
             fi
         fi
-    elif download_artifact "$target_number" "$factory" \
+    fi
+    
+    # Download and extract mfgtools if needed
+    if [[ "$mfgtools_need_download" == "true" ]]; then
+        if download_artifact "$target_number" "$factory" \
         "$machine-mfgtools/mfgtool-files-$machine.tar.gz" \
         "$mfgtools_archive" \
         "MFGTools programming package"; then
@@ -981,6 +1023,8 @@ download_target_artifacts() {
         log_info "Extracting MFGTools programming package..."
         if tar -xzf "$mfgtools_archive" -C "$output_dir" 2>/dev/null; then
             log_success "Extracted MFGTools programming package"
+            # Create marker file to track which target these mfgtools are for
+            echo "$target_number" > "$mfgtools_dir/.target-$target_number"
             # Remove the archive after extraction
             rm -f "$mfgtools_archive"
             
@@ -1026,34 +1070,35 @@ download_target_artifacts() {
             log_error "Failed to extract MFGTools programming package"
             ((artifacts_failed++))
         fi
-    else
-        ((artifacts_failed++))
-        log_error "MFGTools programming package is required for programming"
-        log_error "Use --mfgfolder to specify custom mfgtool files if download fails"
-        
-        # Fallback: try individual mfgtool files
-        log_info "Trying individual mfgtool files as fallback..."
-        
-        # Manufacturing bootloader (required for programming)
-        if download_artifact "$target_number" "$factory" \
-            "$machine-mfgtools/mfgtool-files/imx-boot-mfgtool" \
-            "$output_dir/imx-boot-mfgtool" \
-            "Manufacturing bootloader"; then
-            ((artifacts_downloaded++))
         else
             ((artifacts_failed++))
-            log_error "Manufacturing bootloader is required for programming"
-        fi
-        
-        # Manufacturing U-Boot (required for programming)
-        if download_artifact "$target_number" "$factory" \
-            "$machine-mfgtools/mfgtool-files/u-boot-mfgtool.itb" \
-            "$output_dir/u-boot-mfgtool.itb" \
-            "Manufacturing U-Boot image"; then
-            ((artifacts_downloaded++))
-        else
-            ((artifacts_failed++))
-            log_error "Manufacturing U-Boot image is required for programming"
+            log_error "MFGTools programming package is required for programming"
+            log_error "Use --mfgfolder to specify custom mfgtool files if download fails"
+            
+            # Fallback: try individual mfgtool files
+            log_info "Trying individual mfgtool files as fallback..."
+            
+            # Manufacturing bootloader (required for programming)
+            if download_artifact "$target_number" "$factory" \
+                "$machine-mfgtools/mfgtool-files/imx-boot-mfgtool" \
+                "$output_dir/imx-boot-mfgtool" \
+                "Manufacturing bootloader"; then
+                ((artifacts_downloaded++))
+            else
+                ((artifacts_failed++))
+                log_error "Manufacturing bootloader is required for programming"
+            fi
+            
+            # Manufacturing U-Boot (required for programming)
+            if download_artifact "$target_number" "$factory" \
+                "$machine-mfgtools/mfgtool-files/u-boot-mfgtool.itb" \
+                "$output_dir/u-boot-mfgtool.itb" \
+                "Manufacturing U-Boot image"; then
+                ((artifacts_downloaded++))
+            else
+                ((artifacts_failed++))
+                log_error "Manufacturing U-Boot image is required for programming"
+            fi
         fi
     fi
     
@@ -1107,31 +1152,95 @@ download_target_artifacts() {
     # Try to get main system image from different possible paths
     local system_image_downloaded=false
     
-    # First try the standard path
-    if download_artifact "$target_number" "$factory" \
-        "$machine/lmp-factory-image-$machine.wic.gz" \
-        "$output_dir/lmp-factory-image-$machine.wic.gz" \
-        "Main system image"; then
-        ((artifacts_downloaded++))
-        system_image_downloaded=true
-    else
-        # Try alternative path structure (for app-only builds)
+    if [[ "$use_assembled_image" == "true" ]]; then
+        # Use assembled system image (contains Docker images)
+        log_info "Downloading assembled system image (contains Docker images)"
+        log_info "Assembled image will be saved with -assembled suffix to allow both images to coexist"
+        
+        # Use different filename for assembled image so both can coexist
+        local assembled_image_file="$output_dir/lmp-factory-image-$machine-assembled.wic.gz"
+        
+        # Extract tag from target info
         local tag_info
         tag_info=$(fioctl_with_factory "$factory" targets show "$target_number" 2>/dev/null | grep "Tags:" | awk '{print $2}')
-        if [[ -n "$tag_info" ]]; then
+        
+        if [[ -z "$tag_info" ]]; then
+            log_error "Cannot determine tag for assembled image - target may not have tags"
+            log_error "Assembled image path requires a tag from the target's Tags field"
+            log_info "Check target tags with: fioctl targets show $target_number"
+            ((artifacts_failed++))
+        else
+            log_info "Using tag: $tag_info"
             if download_artifact "$target_number" "$factory" \
                 "assemble-system-image/$tag_info/lmp-factory-image-$machine.wic.gz" \
-                "$output_dir/lmp-factory-image-$machine.wic.gz" \
-                "Main system image (from assemble-system-image)"; then
+                "$assembled_image_file" \
+                "Assembled system image (contains Docker images)"; then
                 ((artifacts_downloaded++))
                 system_image_downloaded=true
+                log_info "Assembled image saved as: $(basename "$assembled_image_file")"
+                
+                # Create symlink from standard filename to assembled image for UUU script compatibility
+                # The UUU script references the standard filename, so we need this link
+                local standard_image_file="$output_dir/lmp-factory-image-$machine.wic.gz"
+                if [[ -L "$standard_image_file" ]]; then
+                    # Remove existing symlink
+                    rm -f "$standard_image_file"
+                elif [[ -f "$standard_image_file" ]]; then
+                    # Standard image exists - remove it since we're using assembled
+                    log_info "Removing existing standard image to use assembled image for programming"
+                    rm -f "$standard_image_file"
+                fi
+                
+                # Create symlink so UUU script can find the assembled image
+                # Use relative path from output_dir for portability
+                cd "$output_dir"
+                ln -sf "$(basename "$assembled_image_file")" "$(basename "$standard_image_file")"
+                cd - > /dev/null
+                log_info "Created symlink: $(basename "$standard_image_file") -> $(basename "$assembled_image_file")"
+                log_info "UUU script will use assembled image via symlink"
+                
+                # Warn if assembled image seems too small (assembled images with Docker are typically larger)
+                local assembled_size
+                assembled_size=$(du -m "$assembled_image_file" | cut -f1)
+                if [[ $assembled_size -lt 600 ]]; then
+                    log_warn "Assembled image size ($assembled_size MB) seems small for an image with Docker containers"
+                    log_warn "If this seems incorrect, use --force to re-download"
+                fi
+            else
+                log_error "Failed to download assembled system image"
+                log_error "Path attempted: assemble-system-image/$tag_info/lmp-factory-image-$machine.wic.gz"
+                log_error "The assembled image may not be available for this target"
+                ((artifacts_failed++))
             fi
         fi
-    fi
-    
-    if [[ "$system_image_downloaded" == false ]]; then
-        log_warn "Main system image not available - this may be an mfgtools-only build or different artifact structure"
-        ((artifacts_failed++))
+    else
+        # Standard behavior: try standard path first, then assembled as fallback
+        # First try the standard path
+        if download_artifact "$target_number" "$factory" \
+            "$machine/lmp-factory-image-$machine.wic.gz" \
+            "$output_dir/lmp-factory-image-$machine.wic.gz" \
+            "Main system image"; then
+            ((artifacts_downloaded++))
+            system_image_downloaded=true
+        else
+            # Try alternative path structure (for app-only builds)
+            local tag_info
+            tag_info=$(fioctl_with_factory "$factory" targets show "$target_number" 2>/dev/null | grep "Tags:" | awk '{print $2}')
+            if [[ -n "$tag_info" ]]; then
+                if download_artifact "$target_number" "$factory" \
+                    "assemble-system-image/$tag_info/lmp-factory-image-$machine.wic.gz" \
+                    "$output_dir/lmp-factory-image-$machine.wic.gz" \
+                    "Main system image (from assemble-system-image)"; then
+                    ((artifacts_downloaded++))
+                    system_image_downloaded=true
+                fi
+            fi
+        fi
+        
+        if [[ "$system_image_downloaded" == false ]]; then
+            log_warn "Main system image not available - this may be an mfgtools-only build or different artifact structure"
+            ((artifacts_failed++))
+        fi
     fi
     
     # Manifest file (optional)
@@ -1463,6 +1572,7 @@ main() {
     local configure_flag=false
     local program_flag=false
     local continuous_flag=false
+    local use_assembled_image=false
     FORCE_DOWNLOAD="false"
     
     # Parse command line options
@@ -1504,6 +1614,10 @@ main() {
             --mfgfolder)
                 mfgfolder="$2"
                 shift 2
+                ;;
+            --assembled-image)
+                use_assembled_image=true
+                shift
                 ;;
             -v|--version)
                 show_version
@@ -1654,14 +1768,24 @@ main() {
     fi
     
     # Download artifacts
-    if download_target_artifacts "$target_number" "$factory" "$machine" "$output_dir"; then
+    if download_target_artifacts "$target_number" "$factory" "$machine" "$output_dir" "$use_assembled_image"; then
         echo
         log_success "All artifacts downloaded successfully!"
         log_info "Output directory: $output_dir"
         if [[ -f "$output_dir/program-$machine.sh" ]]; then
             log_info "Programming script: $output_dir/program-$machine.sh"
         else
-            log_info "System image: $output_dir/lmp-factory-image-$machine.wic.gz"
+            if [[ "$use_assembled_image" == "true" ]]; then
+                log_info "Assembled system image: $output_dir/lmp-factory-image-$machine-assembled.wic.gz"
+                if [[ -f "$output_dir/lmp-factory-image-$machine.wic.gz" ]]; then
+                    log_info "Standard system image: $output_dir/lmp-factory-image-$machine.wic.gz"
+                fi
+            else
+                log_info "System image: $output_dir/lmp-factory-image-$machine.wic.gz"
+                if [[ -f "$output_dir/lmp-factory-image-$machine-assembled.wic.gz" ]]; then
+                    log_info "Assembled system image: $output_dir/lmp-factory-image-$machine-assembled.wic.gz"
+                fi
+            fi
         fi
         echo
                 # Check if auto-programming is requested
@@ -1672,7 +1796,11 @@ main() {
                 log_warn "Auto-programming requested but no programming script available"
                 log_info "This target only contains system image - no mfgtools for automatic programming"
                 log_info "You can manually flash the system image using tools like dd or balenaEtcher"
-                log_info "System image location: $output_dir/lmp-factory-image-$machine.wic.gz"
+                if [[ "$use_assembled_image" == "true" ]]; then
+                    log_info "Assembled system image location: $output_dir/lmp-factory-image-$machine-assembled.wic.gz"
+                else
+                    log_info "System image location: $output_dir/lmp-factory-image-$machine.wic.gz"
+                fi
                 return 0
             fi
             
