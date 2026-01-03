@@ -39,4 +39,4 @@ RDEPENDS:${PN} = ""
 RPROVIDES:${PN} = "tas2563-firmware"
 
 # Only install for machines that use TAS2563 with mainline TAS2781 driver
-COMPATIBLE_MACHINE = "(imx8mm-jaguar-sentai)"
+COMPATIBLE_MACHINE = "(imx8mm-jaguar-sentai|imx8mm-jaguar-dt510)"
