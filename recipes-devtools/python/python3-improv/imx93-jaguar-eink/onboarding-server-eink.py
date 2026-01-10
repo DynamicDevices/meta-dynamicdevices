@@ -139,15 +139,24 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       #   Higher than GrosnyIoT (10) so Improv-configured networks are preferred
       # - auth-retries 3 (retry authentication 3 times)
       # - dhcp-timeout 60 (60 seconds for DHCP, longer than default 45)
+      # ⚠️  CRITICAL: wifi-sec.psk-flags:'0' is REQUIRED for the NetworkManager patch
+      # (0001-wifi-dont-clear-secrets-if-stored-in-keyfile.patch) to work correctly.
+      # Without this, the patch will not activate and connections may fail permanently
+      # after 4-way handshake failures.
+      # See: meta-dynamicdevices-distro/recipes-connectivity/networkmanager/networkmanager/README_PATCH_REQUIREMENTS.md
       nmcli.connection.add('wifi', {
           'ssid': ssid.decode('utf-8'),
           'wifi-sec.key-mgmt': 'wpa-psk',
           'wifi-sec.psk': passwd.decode('utf-8'),
+          'wifi-sec.psk-flags': '0',  # REQUIRED: Store PSK in file, not agent-only (patch requirement)
           'connection.autoconnect': 'yes',
           'connection.autoconnect-priority': '20',
           'connection.auth-retries': '3',
           'ipv4.dhcp-timeout': '60'
       }, f"{INTERFACE}", f"{CON_NAME}", True)
+      
+      # Save connection to keyfile to ensure secrets are persisted (REQUIRED)
+      nmcli.connection.save(f"{CON_NAME}")
     except:
       print(f'Could not add new connection {CON_NAME}')
       return None
