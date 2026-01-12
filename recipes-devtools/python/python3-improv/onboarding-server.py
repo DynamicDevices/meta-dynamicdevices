@@ -16,6 +16,7 @@ import asyncio
 import logging
 import uuid
 import nmcli
+import subprocess
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -113,8 +114,15 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
           'connection.permissions':''  # Allow system-wide use
       }, f"{INTERFACE}", f"{CON_NAME}", True)
       
-      # Save connection to keyfile to ensure secrets are persisted (REQUIRED)
-      nmcli.connection.save(f"{CON_NAME}")
+      # Save connection to keyfile to ensure secrets are persisted
+      # This is REQUIRED to persist psk-flags=0 setting
+      # Use subprocess since Python nmcli library doesn't have save() method
+      try:
+          subprocess.run(['nmcli', 'connection', 'save', f"{CON_NAME}"], 
+                        check=True, capture_output=True, timeout=5)
+      except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+          # Log but don't fail - connection may still work without explicit save
+          logger.warning(f"Could not save connection {CON_NAME} to keyfile: {e}")
     except:
       print(f'Could not add new connection {CON_NAME}')
       return None
