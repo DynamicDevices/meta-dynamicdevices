@@ -172,10 +172,29 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       print(f'Could not add new connection {CON_NAME}: {e}')
       return None
     
+    # CRITICAL: Explicitly modify connection to ensure psk-flags=0 is written to file
+    # NetworkManager 1.46.0 may not write psk-flags=0 to the keyfile if it's the default,
+    # but the NetworkManager patch REQUIRES it to be explicitly in the file to detect
+    # that secrets are stored. Use nmcli connection modify to force it to be written.
+    try:
+        subprocess.run(['nmcli', 'connection', 'modify', f"{CON_NAME}", 
+                       '802-11-wireless-security.psk-flags', '0'],
+                      check=True, capture_output=True, timeout=5)
+        logger.debug(f"Explicitly set psk-flags=0 for connection {CON_NAME}")
+    except subprocess.CalledProcessError as e:
+        logger.warning(f"Could not explicitly set psk-flags=0 (exit code {e.returncode}): {e.stderr.decode() if e.stderr else 'unknown error'}")
+        # Continue - connection was created, but psk-flags may not be in file
+    except subprocess.TimeoutExpired as e:
+        logger.warning(f"Timeout setting psk-flags=0: {e}")
+    except FileNotFoundError:
+        logger.error(f"nmcli command not found - cannot set psk-flags=0")
+    except Exception as e:
+        logger.warning(f"Unexpected error setting psk-flags=0: {e}")
+    
     # NetworkManager automatically saves connections when created/modified
     # In NetworkManager 1.46.0+, connections are saved automatically to
     # /etc/NetworkManager/system-connections/ when created with nmcli.connection.add()
-    # The psk-flags=0 setting is persisted automatically.
+    # The explicit modify above ensures psk-flags=0 is written to the file.
     # Use 'reload' to ensure NetworkManager picks up the connection immediately
     try:
         subprocess.run(['nmcli', 'connection', 'reload'], 
