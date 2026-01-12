@@ -18,6 +18,7 @@ import uuid
 import nmcli
 import subprocess
 import os
+import re
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -128,24 +129,54 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       print(f'Could not add new connection {CON_NAME}: {e}')
       return None
     
-    # CRITICAL: Explicitly modify connection to ensure psk-flags=0 is written to file
-    # NetworkManager 1.46.0 may not write psk-flags=0 to the keyfile if it's the default,
+    # CRITICAL: Explicitly add psk-flags=0 to connection file
+    # NetworkManager 1.46.0 may not write psk-flags=0 to the keyfile even when set,
     # but the NetworkManager patch REQUIRES it to be explicitly in the file to detect
-    # that secrets are stored. Use nmcli connection modify to force it to be written.
+    # that secrets are stored. Directly edit the file to ensure it's present.
+    connection_file = f"/etc/NetworkManager/system-connections/{CON_NAME}.nmconnection"
     try:
-        subprocess.run(['nmcli', 'connection', 'modify', f"{CON_NAME}", 
-                       '802-11-wireless-security.psk-flags', '0'],
-                      check=True, capture_output=True, timeout=5)
-        logger.debug(f"Explicitly set psk-flags=0 for connection {CON_NAME}")
-    except subprocess.CalledProcessError as e:
-        logger.warning(f"Could not explicitly set psk-flags=0 (exit code {e.returncode}): {e.stderr.decode() if e.stderr else 'unknown error'}")
-        # Continue - connection was created, but psk-flags may not be in file
-    except subprocess.TimeoutExpired as e:
-        logger.warning(f"Timeout setting psk-flags=0: {e}")
-    except FileNotFoundError:
-        logger.error(f"nmcli command not found - cannot set psk-flags=0")
+        if os.path.exists(connection_file):
+            # Read the file
+            with open(connection_file, 'r') as f:
+                content = f.read()
+            
+            # Check if psk-flags=0 is already in the file
+            if 'psk-flags=0' not in content and 'psk-flags=0\n' not in content:
+                # Add psk-flags=0 to [wifi-security] section
+                # Find [wifi-security] section and add psk-flags=0 after psk line
+                pattern = r'(\[wifi-security\]\n(?:[^\[]*\n)*?psk=[^\n]+\n)'
+                replacement = r'\1psk-flags=0\n'
+                new_content = re.sub(pattern, replacement, content)
+                
+                # If pattern didn't match, try adding it after [wifi-security]
+                if new_content == content:
+                    pattern = r'(\[wifi-security\]\n)'
+                    replacement = r'\1psk-flags=0\n'
+                    new_content = re.sub(pattern, replacement, content)
+                
+                # Write the file back (requires root, but we're running as root via sudo)
+                if new_content != content:
+                    with open(connection_file, 'w') as f:
+                        f.write(new_content)
+                    logger.info(f"Added psk-flags=0 to connection file {connection_file}")
+                else:
+                    logger.warning(f"Could not find [wifi-security] section to add psk-flags=0")
+            else:
+                logger.debug(f"psk-flags=0 already in connection file")
+        else:
+            logger.warning(f"Connection file not found at {connection_file} - cannot add psk-flags=0")
+    except PermissionError as e:
+        logger.warning(f"Permission denied editing connection file {connection_file}: {e}")
+        # Try nmcli modify as fallback
+        try:
+            subprocess.run(['nmcli', 'connection', 'modify', f"{CON_NAME}", 
+                           '802-11-wireless-security.psk-flags', '0'],
+                          check=True, capture_output=True, timeout=5)
+            logger.debug(f"Used nmcli to set psk-flags=0 (file edit failed)")
+        except Exception as e2:
+            logger.warning(f"nmcli modify also failed: {e2}")
     except Exception as e:
-        logger.warning(f"Unexpected error setting psk-flags=0: {e}")
+        logger.warning(f"Unexpected error adding psk-flags=0 to file: {e}", exc_info=True)
     
     # NetworkManager automatically saves connections when created/modified
     # In NetworkManager 1.46.0+, connections are saved automatically to
