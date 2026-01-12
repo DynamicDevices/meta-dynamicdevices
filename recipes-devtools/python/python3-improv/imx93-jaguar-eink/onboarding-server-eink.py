@@ -122,7 +122,14 @@ CON_NAME = os.getenv("IMPROV_CONNECTION_NAME", "improv-eink")
 INTERFACE = os.getenv("IMPROV_WIFI_INTERFACE", "wlan0")  # imx93-jaguar-eink uses wlan0
 TIMEOUT = int(os.getenv("IMPROV_CONNECTION_TIMEOUT", "10000"))
 
-loop = asyncio.get_event_loop()
+# Use new_event_loop() or get_event_loop() depending on Python version
+# get_event_loop() is deprecated in Python 3.10+ but still works
+try:
+    loop = asyncio.get_running_loop()
+except RuntimeError:
+    # No running loop, create new one
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 server = BlessServer(name=SERVICE_NAME, loop=loop)
 
 def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
@@ -165,21 +172,45 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       print(f'Could not add new connection {CON_NAME}: {e}')
       return None
     
-    # Save connection to keyfile to ensure secrets are persisted
-    # This is REQUIRED to persist psk-flags=0 setting
-    # Use subprocess since Python nmcli library doesn't have save() method
+    # NetworkManager automatically saves connections when created/modified
+    # In NetworkManager 1.46.0+, connections are saved automatically to
+    # /etc/NetworkManager/system-connections/ when created with nmcli.connection.add()
+    # The psk-flags=0 setting is persisted automatically.
+    # Use 'reload' to ensure NetworkManager picks up the connection immediately
     try:
-        subprocess.run(['nmcli', 'connection', 'save', f"{CON_NAME}"], 
+        subprocess.run(['nmcli', 'connection', 'reload'], 
                       check=True, capture_output=True, timeout=5)
-        logger.info(f"Successfully saved connection {CON_NAME} to keyfile")
+        logger.debug(f"Reloaded NetworkManager connections")
     except subprocess.CalledProcessError as e:
-        logger.warning(f"Could not save connection {CON_NAME} to keyfile (exit code {e.returncode}): {e.stderr.decode() if e.stderr else 'unknown error'}")
+        logger.debug(f"Could not reload NetworkManager connections (exit code {e.returncode}): {e.stderr.decode() if e.stderr else 'unknown error'}")
+        # Non-critical - connection is already saved automatically
     except subprocess.TimeoutExpired as e:
-        logger.warning(f"Timeout saving connection {CON_NAME} to keyfile: {e}")
+        logger.debug(f"Timeout reloading NetworkManager connections: {e}")
+        # Non-critical - connection is already saved automatically
     except FileNotFoundError:
-        logger.error(f"nmcli command not found - cannot save connection {CON_NAME} to keyfile")
+        logger.debug(f"nmcli command not found - cannot reload connections")
+        # Non-critical - connection is already saved automatically
     except Exception as e:
-        logger.warning(f"Unexpected error saving connection {CON_NAME} to keyfile: {e}")
+        logger.debug(f"Unexpected error reloading connections: {e}")
+        # Non-critical - connection is already saved automatically
+    
+    # Verify connection file exists and has correct settings
+    connection_file = f"/etc/NetworkManager/system-connections/{CON_NAME}.nmconnection"
+    try:
+        if os.path.exists(connection_file):
+            logger.debug(f"Connection file exists: {connection_file}")
+            # Read file to verify psk-flags=0 is set
+            with open(connection_file, 'r') as f:
+                content = f.read()
+                if 'psk-flags=0' in content or 'psk-flags=0\n' in content:
+                    logger.debug(f"Verified psk-flags=0 in connection file")
+                else:
+                    logger.warning(f"psk-flags=0 not found in connection file - connection may not work correctly")
+        else:
+            logger.warning(f"Connection file not found at {connection_file} - connection may not persist")
+    except Exception as e:
+        logger.debug(f"Could not verify connection file: {e}")
+        # Non-critical - just for verification
 
     try:
       nmcli.connection.up(f"{CON_NAME}", TIMEOUT)
