@@ -94,6 +94,9 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       print(f'No connection {CON_NAME} to remove')
 
     try:
+      # Create connection with secrets stored in file (not agent-only)
+      # This prevents "no secrets" errors on headless systems when 4-way handshake fails
+      #
       # ⚠️  CRITICAL: wifi-sec.psk-flags:'0' is REQUIRED for the NetworkManager patch
       # (0001-wifi-dont-clear-secrets-if-stored-in-keyfile.patch) to work correctly.
       # Without this, the patch will not activate and connections may fail permanently
@@ -103,7 +106,11 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
           'ssid':ssid.decode('utf-8'), 
           'wifi-sec.key-mgmt':'wpa-psk', 
           'wifi-sec.psk':passwd.decode('utf-8'),
-          'wifi-sec.psk-flags':'0'  # REQUIRED: Store PSK in file, not agent-only (patch requirement)
+          'wifi-sec.psk-flags':'0',  # REQUIRED: Store PSK in file, not agent-only (patch requirement)
+          'connection.autoconnect':'yes',
+          'connection.autoconnect-retries':'-1',  # Retry connection indefinitely (-1 = unlimited)
+          'connection.auth-retries':'-1',  # Retry authentication indefinitely (-1 = unlimited)
+          'connection.permissions':''  # Allow system-wide use
       }, f"{INTERFACE}", f"{CON_NAME}", True)
       
       # Save connection to keyfile to ensure secrets are persisted (REQUIRED)

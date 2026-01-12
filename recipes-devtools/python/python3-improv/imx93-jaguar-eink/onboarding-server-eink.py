@@ -137,8 +137,9 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       # Create WiFi connection with improved settings for boot-time reliability:
       # - autoconnect-priority 20 (highest priority - ensures wifi-connect.service selects this connection)
       #   Higher than GrosnyIoT (10) so Improv-configured networks are preferred
-      # - auth-retries 3 (retry authentication 3 times)
       # - dhcp-timeout 60 (60 seconds for DHCP, longer than default 45)
+      # - autoconnect-retries -1 (retry connection indefinitely - never give up)
+      # - auth-retries -1 (retry authentication indefinitely - never give up)
       # ⚠️  CRITICAL: wifi-sec.psk-flags:'0' is REQUIRED for the NetworkManager patch
       # (0001-wifi-dont-clear-secrets-if-stored-in-keyfile.patch) to work correctly.
       # Without this, the patch will not activate and connections may fail permanently
@@ -151,7 +152,9 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
           'wifi-sec.psk-flags': '0',  # REQUIRED: Store PSK in file, not agent-only (patch requirement)
           'connection.autoconnect': 'yes',
           'connection.autoconnect-priority': '20',
-          'connection.auth-retries': '3',
+          'connection.autoconnect-retries': '-1',  # Retry connection indefinitely (-1 = unlimited)
+          'connection.auth-retries': '-1',  # Retry authentication indefinitely (-1 = unlimited)
+          'connection.permissions': '',  # Allow system-wide use
           'ipv4.dhcp-timeout': '60'
       }, f"{INTERFACE}", f"{CON_NAME}", True)
       
