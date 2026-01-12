@@ -113,19 +113,28 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
           'connection.auth-retries':'-1',  # Retry authentication indefinitely (-1 = unlimited)
           'connection.permissions':''  # Allow system-wide use
       }, f"{INTERFACE}", f"{CON_NAME}", True)
+      logger.info(f"Successfully created WiFi connection {CON_NAME}")
       
-      # Save connection to keyfile to ensure secrets are persisted
-      # This is REQUIRED to persist psk-flags=0 setting
-      # Use subprocess since Python nmcli library doesn't have save() method
-      try:
-          subprocess.run(['nmcli', 'connection', 'save', f"{CON_NAME}"], 
-                        check=True, capture_output=True, timeout=5)
-      except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
-          # Log but don't fail - connection may still work without explicit save
-          logger.warning(f"Could not save connection {CON_NAME} to keyfile: {e}")
-    except:
-      print(f'Could not add new connection {CON_NAME}')
+    except Exception as e:
+      logger.error(f"Failed to create WiFi connection {CON_NAME}: {e}", exc_info=True)
+      print(f'Could not add new connection {CON_NAME}: {e}')
       return None
+    
+    # Save connection to keyfile to ensure secrets are persisted
+    # This is REQUIRED to persist psk-flags=0 setting
+    # Use subprocess since Python nmcli library doesn't have save() method
+    try:
+        subprocess.run(['nmcli', 'connection', 'save', f"{CON_NAME}"], 
+                      check=True, capture_output=True, timeout=5)
+        logger.info(f"Successfully saved connection {CON_NAME} to keyfile")
+    except subprocess.CalledProcessError as e:
+        logger.warning(f"Could not save connection {CON_NAME} to keyfile (exit code {e.returncode}): {e.stderr.decode() if e.stderr else 'unknown error'}")
+    except subprocess.TimeoutExpired as e:
+        logger.warning(f"Timeout saving connection {CON_NAME} to keyfile: {e}")
+    except FileNotFoundError:
+        logger.error(f"nmcli command not found - cannot save connection {CON_NAME} to keyfile")
+    except Exception as e:
+        logger.warning(f"Unexpected error saving connection {CON_NAME} to keyfile: {e}")
 
     try:
       nmcli.connection.up(f"{CON_NAME}", TIMEOUT)
