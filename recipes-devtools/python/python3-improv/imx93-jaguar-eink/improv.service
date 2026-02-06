@@ -1,0 +1,18 @@
+[Unit]
+Description=Improv BLE WiFi onboarding service for imx93-jaguar-eink
+Documentation=https://www.improv-wifi.com/ble/
+# CRITICAL: Must start WITHOUT network - this service is used to CONFIGURE WiFi!
+After=bluetooth.target
+Wants=bluetooth.target
+
+[Service]
+Type=simple
+ExecStart=/usr/share/improv/onboarding-server.py
+Restart=always
+RestartSec=12
+Environment="IMPROV_WIFI_INTERFACE=wlan0"
+Environment="IMPROV_SERVICE_NAME=Improv-Eink"
+Environment="IMPROV_CONNECTION_NAME=improv-eink"
+
+[Install]
+WantedBy=default.target

@@ -65,27 +65,31 @@ SYSTEMD_SERVICE:${PN} = "${@bb.utils.contains('MACHINE', 'imx93-jaguar-eink', 'm
 ## How It Works
 
 1. **FILESEXTRAPATHS**: Extends the file search path to the recipe directory (`THISDIR`)
-2. **Automatic Lookup**: Yocto automatically looks in `${MACHINE}/` subdirectory first
-3. **Machine-Specific**: For `imx93-jaguar-eink`, files are found in `imx93-jaguar-eink/`
-4. **Other Machines**: For other machines, files are found in the recipe directory root
+2. **Automatic Lookup**: Yocto automatically looks in `${MACHINE}/` subdirectory first, then recipe root
+3. **Same filenames**: Use the same filenames in machine folders (e.g. `improv.service`, `onboarding-server.py`) so the recipe needs no machine-specific SRC_URI, do_install, or SYSTEMD_SERVICE logic
 
 ## Example: python3-improv Recipe
 
 **Structure:**
 ```
 recipes-devtools/python/python3-improv/
-├── improv.service                    (common - all machines)
-├── onboarding-server.py              (common - all machines)
-├── python3-improv_git.bb            (recipe)
-└── imx93-jaguar-eink/               (machine-specific folder)
-    ├── improv-eink.service
-    └── onboarding-server-eink.py
+├── improv.service                    (default - all machines without override)
+├── onboarding-server.py              (default)
+├── python3-improv_git.bb              (recipe in parent directory)
+├── imx93-jaguar-eink/                (machine override - same filenames)
+│   ├── improv.service
+│   └── onboarding-server.py
+└── imx8mm-jaguar-inst/               (machine override - same filenames)
+    ├── improv.service
+    └── onboarding-server.py
 ```
 
 **Result:**
-- `imx93-jaguar-eink`: Uses files from `imx93-jaguar-eink/` subdirectory
-- All other machines (sentai, etc.): Use files from recipe directory root
-- No changes to original files - other machine behavior preserved
+- Yocto picks up `improv.service` and `onboarding-server.py` from `${MACHINE}/` when present; otherwise uses recipe root.
+- `imx93-jaguar-eink`: Uses files from `imx93-jaguar-eink/` (eink-XXXX BLE name, improv-eink connection).
+- `imx8mm-jaguar-inst`: Uses files from `imx8mm-jaguar-inst/` (Improv-Inst BLE, improv-inst connection).
+- All other machines: Use files from recipe directory root.
+- Recipe has no machine-specific SRC_URI, do_install, or SYSTEMD_SERVICE logic.
 
 ## Key Points
 
