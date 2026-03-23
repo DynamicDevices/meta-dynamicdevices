@@ -41,6 +41,17 @@ sudo ./wifi-suspend-diag.sh post
 ./wifi-suspend-diag.sh clean
 ```
 
+## SSH with Multiplexing
+
+Use `ssh-target.sh` for SSH connections with multiplexing (reuses connection, faster repeated commands):
+
+```bash
+./scripts/target/ssh-target.sh 192.168.2.139 "hostname"
+./scripts/target/ssh-target.sh 192.168.2.139   # interactive shell
+```
+
+Set `TARGET_IP`, `TARGET_USER`, `TARGET_PASS` to override defaults.
+
 ## Deployment
 
 Copy these scripts to the target board:
