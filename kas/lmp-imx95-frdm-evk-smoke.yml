@@ -15,7 +15,7 @@ header:
     - bsp.yml
     - dynamicdevices.yml
 
-distro: lmp-dynamicdevices-headless
+distro: lmp-dynamicdevices-headless-waydroid
 target: lmp-factory-image
 machine: imx95-frdm-evk
 
