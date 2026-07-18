@@ -11,8 +11,17 @@ ExecStart=/usr/share/improv/onboarding-server.py
 Restart=always
 RestartSec=12
 Environment="IMPROV_WIFI_INTERFACE=wlan0"
-Environment="IMPROV_SERVICE_NAME=Improv-Eink"
+# Advertise as eink-<BOARD_ID> (SoC serial suffix). This is the default in
+# onboarding-server.py; it stays <=10 chars (BLE UUID advertising limit) and is
+# what the Active-ESL Onboard app matches to identify the board and its id.
+# Environment="IMPROV_SERVICE_NAME=Improv-Eink"
 Environment="IMPROV_CONNECTION_NAME=improv-eink"
+# Host used to build the Improv success URL: https://${IMPROV_SERVER_HOST}?ip_address=..&token=..
+# The Active-ESL Onboard app reads the token over BLE to claim the device; this
+# also aligns the URL host for a web/QR onboarding fallback.
+# Live Active-ESL onboarding API (dedicated Cloudflare account, workers.dev URL for
+# now). TODO: switch to the custom domain onboard.active-esl.com when it's set up.
+Environment="IMPROV_SERVER_HOST=active-esl-onboard.active-esl.workers.dev"
 
 [Install]
 WantedBy=default.target
