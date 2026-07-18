@@ -230,6 +230,10 @@ _net_status_json_bytes = bytearray(
     json.dumps({"v": 1, "state": "disconnected", "iface": INTERFACE},
                separators=(",", ":")).encode("utf-8"))
 
+# Set to ask net_status_loop to refresh immediately (e.g. just after a
+# successful provision) without running the blocking nmcli work on the BLE loop.
+_net_refresh_event = asyncio.Event()
+
 
 def get_ipv4(iface):
     """Return the interface IPv4 via ioctl (no subprocess), or None."""
@@ -278,26 +282,33 @@ def get_ssid(iface):
 def compute_net_status():
     """Build the current network-status dict (blocking; call off the BLE loop)."""
     status = {"v": 1, "state": "disconnected", "iface": INTERFACE}
-    ip = get_ipv4(INTERFACE)
-    if ip:
-        status["ipv4"] = ip
     # Derive link state from NetworkManager's numeric device-state code
     # (100=connected, 40..99=connecting/configuring, else disconnected). String
     # matching is unsafe here because "disconnected" contains "connected".
+    #
+    # NM is authoritative: a lingering interface IP must NOT upgrade a
+    # disconnected/failed device to "connected". If we cannot read NM's state we
+    # stay "disconnected" (conservative) rather than trusting a possibly-stale IP.
+    code = 0
     try:
         d = nmcli.device.show(INTERFACE)
         m = re.match(r"\s*(\d+)", d.get("GENERAL.STATE") or "")
         code = int(m.group(1)) if m else 0
-        if code >= 100:
-            status["state"] = "connected" if ip else "connecting"
-        elif code >= 40:
-            status["state"] = "connecting"
-        else:
-            status["state"] = "connected" if ip else "disconnected"
-    except Exception:
-        status["state"] = "connected" if ip else "disconnected"
-    # SSID/RSSI are only meaningful when connected.
+    except Exception as e:
+        logger.debug(f"nmcli device state read failed: {e}")
+        code = 0
+    ip = get_ipv4(INTERFACE)
+    if code >= 100:
+        status["state"] = "connected" if ip else "connecting"
+    elif code >= 40:
+        status["state"] = "connecting"
+    else:
+        status["state"] = "disconnected"
+    # Only surface IP/SSID/RSSI when actually connected; a stale IP on a
+    # down interface would otherwise be misreported as a live connection.
     if status["state"] == "connected":
+        if ip:
+            status["ipv4"] = ip
         ssid = get_ssid(INTERFACE)
         if ssid:
             status["ssid"] = ssid
@@ -353,7 +364,12 @@ def _set_dis_values():
 
 
 async def net_status_loop(loop):
-    """Periodically refresh network status off the BLE event loop."""
+    """Periodically refresh network status off the BLE event loop.
+
+    The blocking nmcli work runs in an executor so the asyncio/BLE loop stays
+    responsive; publishing (which touches the BlueZ characteristic) happens back
+    on the loop thread. Wakes early when `_net_refresh_event` is set.
+    """
     while True:
         try:
             status = await loop.run_in_executor(None, compute_net_status)
@@ -362,7 +378,12 @@ async def net_status_loop(loop):
             raise
         except Exception as e:
             logger.debug(f"net status loop error: {e}")
-        await asyncio.sleep(5)
+        try:
+            await asyncio.wait_for(_net_refresh_event.wait(), timeout=5)
+        except asyncio.TimeoutError:
+            pass
+        finally:
+            _net_refresh_event.clear()
 
 
 def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
@@ -451,11 +472,14 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
       print('Error connecting')
       return None
 
-    # Publish fresh network status (state/SSID/IP) and notify subscribers.
+    # Ask the status loop to refresh immediately so the connected state/SSID/IP
+    # notify promptly. We deliberately do NOT call compute_net_status() here:
+    # this runs on the BLE event loop, and nmcli subprocesses would stall Improv
+    # read/write handling right after provisioning.
     try:
-        _publish_net_status(compute_net_status(), notify=True)
+        _net_refresh_event.set()
     except Exception as e:
-        logger.debug(f"net status publish after connect failed: {e}")
+        logger.debug(f"net status refresh request failed: {e}")
 
     token = uuid.uuid4()
     server = f"https://{SERVER_HOST}?ip_address={ip_addr}&token={token}"
@@ -505,9 +529,11 @@ async def run(loop):
 
     # Populate the static Device Information Service values.
     _set_dis_values()
-    # Seed network status now, then refresh periodically off the BLE loop.
+    # Seed network status once (off the BLE loop so nmcli doesn't stall startup),
+    # then refresh periodically / on demand.
     try:
-        _publish_net_status(compute_net_status(), notify=False)
+        status = await loop.run_in_executor(None, compute_net_status)
+        _publish_net_status(status, notify=False)
     except Exception as e:
         logger.debug(f"initial net status failed: {e}")
     net_task = loop.create_task(net_status_loop(loop))
