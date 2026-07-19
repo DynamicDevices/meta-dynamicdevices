@@ -420,16 +420,26 @@ def _drop_stale_adverts():
     Used when BlueZ has already dropped the advertisement (ActiveInstances==0):
     bless's stale objects would otherwise leak D-Bus objects and keep pushing the
     advertisement instance index upward on repeated recoveries.
+
+    This is deliberately NOT wrapped in a timeout like the stop/start_advertising
+    calls: ``bus.unexport`` is purely local, non-blocking bookkeeping. It removes
+    the object from dbus-fast's export table and buffers a non-blocking
+    ``InterfacesRemoved`` signal — there is no awaited D-Bus round-trip that a
+    wedged BlueZ stack could stall on, so there is nothing to time out. It must
+    also run on the event-loop thread (the dbus-fast bus is loop-affine), so it
+    cannot be offloaded to an executor. Each call is guarded so one bad object
+    can never abort the cleanup of the rest.
     """
     app = server.app
     stale = getattr(app, "advertisements", None)
-    if stale:
-        for old in list(stale):
-            try:
-                app.bus.unexport(old.path)
-            except Exception:
-                pass
-        stale.clear()
+    if not stale:
+        return
+    for old in list(stale):
+        try:
+            app.bus.unexport(old.path)
+        except Exception as e:
+            logger.debug(f"unexport of stale advert {old.path!r} failed: {e!r}")
+    stale.clear()
 
 
 async def _reassert_advert(had_registration: bool):
@@ -724,8 +734,20 @@ async def run(loop):
     except KeyboardInterrupt:
         logger.debug("Shutting Down")
     finally:
+        # Cancel the background tasks AND wait for them to actually finish before
+        # tearing BlueZ down. The watchdog may be mid _reassert_advert()
+        # (stop/start advertising) — if we let server.stop() run concurrently the
+        # two would race over the same BlueZ/D-Bus advertisement resources and
+        # produce a messy teardown. Awaiting the cancellation serialises it.
         net_task.cancel()
         advert_task.cancel()
+        for t in (net_task, advert_task):
+            try:
+                await t
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                logger.debug(f"background task raised during shutdown: {e!r}")
     await server.stop()
 
 try:
