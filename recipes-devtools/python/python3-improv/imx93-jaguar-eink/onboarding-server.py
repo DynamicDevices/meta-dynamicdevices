@@ -27,6 +27,7 @@ import json
 import socket
 import struct
 import fcntl
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -199,14 +200,41 @@ def get_hw_revision():
     """Hardware revision. No standard source on this SoC; overridable via env."""
     return "unknown"
 
-# Board-specific configuration for imx93-jaguar-eink (overridable via environment)
-SERVER_HOST = os.getenv("IMPROV_SERVER_HOST", "api.co.uk")
+# Board-specific configuration for imx93-jaguar-eink (overridable via environment).
+# Default is the live Active-ESL onboarding backend; improv.service also sets this
+# via IMPROV_SERVER_HOST, but the default must be a real host so the server still
+# points somewhere valid if the env var is ever missing.
+SERVER_HOST = os.getenv(
+    "IMPROV_SERVER_HOST", "active-esl-onboard.active-esl.workers.dev"
+)
 BOARD_ID = get_board_id()
 DEFAULT_SERVICE_NAME = f"eink-{BOARD_ID}"
 SERVICE_NAME = os.getenv("IMPROV_SERVICE_NAME", DEFAULT_SERVICE_NAME)
 CON_NAME = os.getenv("IMPROV_CONNECTION_NAME", "improv-eink")
 INTERFACE = os.getenv("IMPROV_WIFI_INTERFACE", "wlan0")
 TIMEOUT = int(os.getenv("IMPROV_CONNECTION_TIMEOUT", "10000"))
+# How often the advertising watchdog re-checks that BlueZ is still advertising
+# and re-registers it if not. Kept short so a dropped advert self-heals within
+# seconds — onboarding must never depend on a manual service restart.
+ADVERT_WATCHDOG_SECS = int(os.getenv("IMPROV_ADVERT_WATCHDOG_SECS", "15"))
+# Hard timeout on each BlueZ D-Bus call the watchdog makes, so a wedged BLE
+# stack can never freeze the watchdog loop itself.
+ADVERT_DBUS_TIMEOUT = float(os.getenv("IMPROV_ADVERT_DBUS_TIMEOUT", "5"))
+# Consecutive watchdog failures (can't query state, or can't re-register) after
+# which we treat the BLE stack as unrecoverable and exit so systemd restarts us
+# (Restart=always) — a clean re-init reliably restores advertising.
+ADVERT_MAX_FAILURES = int(os.getenv("IMPROV_ADVERT_MAX_FAILURES", "3"))
+# How often we proactively BOUNCE (unregister + re-register) the advertisement
+# even while BlueZ reports it as active. This is the backstop for the "ghost
+# advertising" state: BlueZ reports ActiveInstances>=1 but nothing is actually
+# on-air, so is_advertising() looks healthy and the drop-detection above never
+# fires. Observed after a failed/aborted BLE connect and around a fresh boot,
+# with Wi-Fi OFF (so not coexistence) — the board silently becomes
+# un-onboardable until a manual restart. Since ActiveInstances cannot tell us
+# whether the advert is truly radiating, we periodically re-assert it; kept
+# short so onboarding recovers within ~a minute without a restart. A bounce is
+# a sub-second re-register gap and is skipped whenever a central is mid-session.
+ADVERT_BOUNCE_SECS = int(os.getenv("IMPROV_ADVERT_BOUNCE_SECS", "60"))
 
 # Device Information Service values (auto-detected, overridable via environment
 # for multi-board reuse).
@@ -386,6 +414,159 @@ async def net_status_loop(loop):
             _net_refresh_event.clear()
 
 
+def _drop_stale_adverts():
+    """Unexport and forget any advertisement objects bless is still tracking.
+
+    Used when BlueZ has already dropped the advertisement (ActiveInstances==0):
+    bless's stale objects would otherwise leak D-Bus objects and keep pushing the
+    advertisement instance index upward on repeated recoveries.
+
+    This is deliberately NOT wrapped in a timeout like the stop/start_advertising
+    calls: ``bus.unexport`` is purely local, non-blocking bookkeeping. It removes
+    the object from dbus-fast's export table and buffers a non-blocking
+    ``InterfacesRemoved`` signal — there is no awaited D-Bus round-trip that a
+    wedged BlueZ stack could stall on, so there is nothing to time out. It must
+    also run on the event-loop thread (the dbus-fast bus is loop-affine), so it
+    cannot be offloaded to an executor. Each call is guarded so one bad object
+    can never abort the cleanup of the rest.
+    """
+    app = server.app
+    stale = getattr(app, "advertisements", None)
+    if not stale:
+        return
+    for old in list(stale):
+        try:
+            app.bus.unexport(old.path)
+        except Exception as e:
+            logger.debug(f"unexport of stale advert {old.path!r} failed: {e!r}")
+    stale.clear()
+
+
+async def _reassert_advert(had_registration: bool):
+    """(Re)assert the BLE advertisement so it is actually radiating again.
+
+    had_registration True  -> BlueZ still reports the advert (a bounce): cleanly
+                              stop_advertising() first so BlueZ drops the live
+                              instance, then start a fresh one.
+    had_registration False -> BlueZ already forgot it: drop bless's stale
+                              trackers, then start a fresh one.
+    """
+    app = server.app
+    adapter = server.adapter
+    if had_registration:
+        try:
+            await asyncio.wait_for(
+                app.stop_advertising(adapter), timeout=ADVERT_DBUS_TIMEOUT)
+        except Exception as e:
+            logger.warning(
+                f"advert bounce: stop_advertising failed ({e!r}); "
+                "clearing stale objects instead")
+            _drop_stale_adverts()
+    else:
+        _drop_stale_adverts()
+    await asyncio.wait_for(
+        app.start_advertising(adapter), timeout=ADVERT_DBUS_TIMEOUT)
+
+
+async def advertising_watchdog():
+    """Keep the Improv BLE advertisement alive AND actually on-air for the whole
+    product lifetime.
+
+    Two independent failure modes are handled:
+
+    1. Registration drop — BlueZ forgets the advertisement entirely
+       (ActiveInstances==0). bless registers it exactly once (in
+       ``server.start()``), so without this it stays gone until a manual restart.
+       Seen after ~an hour of uptime, adapter resets, and post-provision
+       NetworkManager churn.
+
+    2. On-air stall ("ghost advertising") — BlueZ still reports
+       ActiveInstances>=1 but nothing is radiating, so ``is_advertising()`` looks
+       healthy and case 1 never fires. Reproduced after a failed/aborted BLE
+       connect and around a fresh boot, with Wi-Fi OFF (so not coexistence): the
+       board silently becomes un-onboardable until a manual restart. Because
+       ActiveInstances cannot tell us whether the advert is truly on-air, we
+       cannot *detect* this directly — instead we periodically BOUNCE (re-assert)
+       the advertisement every ``ADVERT_BOUNCE_SECS`` so any stall self-heals
+       within about a minute.
+
+    Both re-assertions are skipped while a central is mid-session (a subscribed
+    characteristic) so we never disrupt an in-progress onboarding.
+    """
+    logger.info(
+        f"advertising watchdog started (check every {ADVERT_WATCHDOG_SECS}s, "
+        f"bounce every {ADVERT_BOUNCE_SECS}s)")
+    failures = 0
+    last_assert = time.monotonic()
+    while True:
+        await asyncio.sleep(ADVERT_WATCHDOG_SECS)
+
+        # 1) Query current state, but never let a wedged BLE stack freeze the
+        #    loop: bound every D-Bus call with a timeout.
+        try:
+            connected = await asyncio.wait_for(
+                server.is_connected(), timeout=ADVERT_DBUS_TIMEOUT)
+            advertising = await asyncio.wait_for(
+                server.is_advertising(), timeout=ADVERT_DBUS_TIMEOUT)
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            failures += 1
+            logger.error(
+                f"advertising watchdog: cannot query BLE state ({e!r}); "
+                f"failures={failures}/{ADVERT_MAX_FAILURES}")
+            if failures >= ADVERT_MAX_FAILURES:
+                logger.error("advertising watchdog: BLE stack unresponsive; "
+                             "exiting so systemd restarts the service")
+                os._exit(1)
+            continue
+
+        logger.debug(
+            f"advertising watchdog: connected={connected} "
+            f"advertising={advertising}")
+
+        # 2) A central is mid-session — never disturb an in-progress onboarding.
+        #    Reset the bounce clock so we don't bounce the instant it leaves.
+        if connected:
+            failures = 0
+            last_assert = time.monotonic()
+            continue
+
+        now = time.monotonic()
+        due_for_bounce = (now - last_assert) >= ADVERT_BOUNCE_SECS
+
+        # 3) Healthy registration and not yet due a bounce — leave it alone.
+        if advertising and not due_for_bounce:
+            if failures:
+                logger.info("advertising watchdog: BLE advertising healthy again")
+            failures = 0
+            continue
+
+        # 4) Re-assert the advertisement: either it is fully down
+        #    (ActiveInstances==0), or it is due a periodic bounce to clear a
+        #    possible on-air stall that BlueZ still reports as active.
+        reason = ("advertisement is down (ActiveInstances==0)"
+                  if not advertising else
+                  "periodic bounce (clears on-air stalls BlueZ reports as active)")
+        logger.warning(f"re-asserting BLE advertisement: {reason}")
+        try:
+            await _reassert_advert(had_registration=advertising)
+            last_assert = time.monotonic()
+            logger.info("BLE advertisement re-asserted by watchdog")
+            failures = 0
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            failures += 1
+            logger.error(
+                f"advertising watchdog: re-assert failed ({e!r}); "
+                f"failures={failures}/{ADVERT_MAX_FAILURES}")
+            if failures >= ADVERT_MAX_FAILURES:
+                logger.error("advertising watchdog: cannot restore advertising; "
+                             "exiting so systemd restarts the service")
+                os._exit(1)
+
+
 def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
     logger.warning(
         f"Creating Improv WiFi connection for '{ssid.decode('utf-8')}' with password: '{passwd.decode('utf-8')}'")
@@ -529,14 +710,20 @@ async def run(loop):
 
     # Populate the static Device Information Service values.
     _set_dis_values()
-    # Seed network status once (off the BLE loop so nmcli doesn't stall startup),
-    # then refresh periodically / on demand.
+    # Start the background tasks FIRST — especially the advertising watchdog,
+    # which must run even if the initial network probe below is slow/blocks.
+    # (Creating them before the initial seed guarantees the event loop keeps the
+    # watchdog alive regardless of how long the seed's executor call takes.)
+    net_task = loop.create_task(net_status_loop(loop))
+    # Self-healing advertising: onboarding must never rely on a manual restart.
+    advert_task = loop.create_task(advertising_watchdog())
+    # Seed network status once (off the BLE loop so nmcli doesn't stall startup);
+    # net_status_loop also refreshes it periodically / on demand.
     try:
         status = await loop.run_in_executor(None, compute_net_status)
         _publish_net_status(status, notify=False)
     except Exception as e:
         logger.debug(f"initial net status failed: {e}")
-    net_task = loop.create_task(net_status_loop(loop))
 
     try:
         trigger.clear()
@@ -547,7 +734,20 @@ async def run(loop):
     except KeyboardInterrupt:
         logger.debug("Shutting Down")
     finally:
+        # Cancel the background tasks AND wait for them to actually finish before
+        # tearing BlueZ down. The watchdog may be mid _reassert_advert()
+        # (stop/start advertising) — if we let server.stop() run concurrently the
+        # two would race over the same BlueZ/D-Bus advertisement resources and
+        # produce a messy teardown. Awaiting the cancellation serialises it.
         net_task.cancel()
+        advert_task.cancel()
+        for t in (net_task, advert_task):
+            try:
+                await t
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                logger.debug(f"background task raised during shutdown: {e!r}")
     await server.stop()
 
 try:
