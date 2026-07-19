@@ -255,7 +255,10 @@ server = BlessServer(name=SERVICE_NAME, loop=loop)
 # Cached JSON snapshot served on BLE reads; recomputed off the BLE event loop so
 # reads never block on nmcli.
 _net_status_json_bytes = bytearray(
-    json.dumps({"v": 1, "state": "disconnected", "iface": INTERFACE},
+    json.dumps({"v": 1,
+                "net": {"bearer": "wifi", "state": "disconnected",
+                        "iface": INTERFACE},
+                "state": "disconnected", "iface": INTERFACE},
                separators=(",", ":")).encode("utf-8"))
 
 # Set to ask net_status_loop to refresh immediately (e.g. just after a
@@ -355,6 +358,110 @@ def compute_net_status():
     return status
 
 
+# --- Device-Status superset (BLE-BOARD-PROFILE.md §5 / §5.1) ------------------
+# The vendor characteristic now carries the full Device-Status document: the
+# mandatory `net` block plus optional `time` and `sec` blocks. The legacy flat
+# {state,ssid,ipv4,rssi,iface} keys are mirrored at the top level for one release
+# so older app builds keep working; the app prefers the nested `net` block.
+_SEC_STATUS = None
+
+
+def compute_time_status():
+    """Wall-clock/time-sync status (`time` block).
+
+    `synced` comes from systemd-timesyncd's stamp file (root-free, no
+    subprocess). The PCF2131 RTC is unreliable on this board, so we report
+    `ntp` when synced and `none` otherwise rather than trusting the RTC.
+    """
+    synced = os.path.exists("/run/systemd/timesync/synchronized")
+    now = time.time()
+    return {
+        "epoch": int(now),
+        "iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
+        "source": "ntp" if synced else "none",
+        "synced": synced,
+    }
+
+
+def _read_secure_boot():
+    """i.MX93 secure-boot / lifecycle state.
+
+    Returns 'open' | 'closed' | 'unknown'. Correctly determining this requires
+    the ELE "get info" lifecycle field (OEM_OPEN vs OEM_CLOSED / FIELD_RETURN)
+    or interpreting specific SRK-hash / SEC_CONFIG fuses via the validated
+    i.MX93 OCOTP map — the raw ELE-OCOTP0 shadow cannot be interpreted safely
+    (every SoC has non-zero fuses: UID, boot config, ...), so a byte-level
+    heuristic would misreport a fused board. Until that ELE query lands
+    (tracked follow-up; see roadmap P0-1/P2-1 and BLE-BOARD-PROFILE.md §10) we
+    report 'unknown' rather than a value that could be wrong. This field is
+    self-reported and untrusted until backed by ELE attestation (P2-1).
+    """
+    return "unknown"
+
+
+def _read_storage_encrypted():
+    """True if any dm-crypt mapped device exists (root-free via sysfs)."""
+    import glob
+    try:
+        for p in glob.glob("/sys/block/dm-*/dm/uuid"):
+            try:
+                with open(p) as f:
+                    if f.read().startswith("CRYPT-"):
+                        return True
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return False
+
+
+def compute_sec_status():
+    """Self-reported security posture (`sec` block, §10). Cached: these values
+    are effectively static for the process lifetime."""
+    global _SEC_STATUS
+    if _SEC_STATUS is None:
+        _SEC_STATUS = {
+            "secure_boot": _read_secure_boot(),
+            # i.MX93 on-die EdgeLock Enclave (OP-TEE /dev/tee0 present).
+            "secure_element": "ele",
+            "storage_encrypted": _read_storage_encrypted(),
+            # Improv link is Just Works / unbonded today (roadmap P1-1).
+            "bonded": False,
+            # No remote attestation yet (roadmap P2-1) — sec is untrusted.
+            "attested": False,
+        }
+    return dict(_SEC_STATUS)
+
+
+def build_device_status(net):
+    """Compose the Device-Status JSON superset (§5) from the flat network dict.
+
+    Emits the nested `net` block and mirrors the legacy flat keys at top level
+    for one release (backward compatibility). `time`/`sec` are appended so the
+    app can render clock-sync and security posture honestly.
+    """
+    doc = {"v": 1, "net": {
+        "bearer": "wifi",
+        "state": net.get("state"),
+        "ssid": net.get("ssid"),
+        "ipv4": net.get("ipv4"),
+        "rssi": net.get("rssi"),
+        "iface": net.get("iface"),
+    }}
+    # Legacy flat mirror (remove once all app builds read the `net` block).
+    for k in ("state", "ssid", "ipv4", "rssi", "iface"):
+        if k in net:
+            doc[k] = net[k]
+    doc["time"] = compute_time_status()
+    doc["sec"] = compute_sec_status()
+    return doc
+
+
+def compute_device_status():
+    """Blocking; call off the BLE loop. Full Device-Status superset."""
+    return build_device_status(compute_net_status())
+
+
 def _publish_net_status(status_dict, notify=True):
     """Update the cached JSON + characteristic value; notify on change."""
     global _net_status_json_bytes
@@ -400,7 +507,7 @@ async def net_status_loop(loop):
     """
     while True:
         try:
-            status = await loop.run_in_executor(None, compute_net_status)
+            status = await loop.run_in_executor(None, compute_device_status)
             _publish_net_status(status)
         except asyncio.CancelledError:
             raise
@@ -720,7 +827,7 @@ async def run(loop):
     # Seed network status once (off the BLE loop so nmcli doesn't stall startup);
     # net_status_loop also refreshes it periodically / on demand.
     try:
-        status = await loop.run_in_executor(None, compute_net_status)
+        status = await loop.run_in_executor(None, compute_device_status)
         _publish_net_status(status, notify=False)
     except Exception as e:
         logger.debug(f"initial net status failed: {e}")
