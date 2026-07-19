@@ -27,6 +27,7 @@ import json
 import socket
 import struct
 import fcntl
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -223,6 +224,17 @@ ADVERT_DBUS_TIMEOUT = float(os.getenv("IMPROV_ADVERT_DBUS_TIMEOUT", "5"))
 # which we treat the BLE stack as unrecoverable and exit so systemd restarts us
 # (Restart=always) — a clean re-init reliably restores advertising.
 ADVERT_MAX_FAILURES = int(os.getenv("IMPROV_ADVERT_MAX_FAILURES", "3"))
+# How often we proactively BOUNCE (unregister + re-register) the advertisement
+# even while BlueZ reports it as active. This is the backstop for the "ghost
+# advertising" state: BlueZ reports ActiveInstances>=1 but nothing is actually
+# on-air, so is_advertising() looks healthy and the drop-detection above never
+# fires. Observed after a failed/aborted BLE connect and around a fresh boot,
+# with Wi-Fi OFF (so not coexistence) — the board silently becomes
+# un-onboardable until a manual restart. Since ActiveInstances cannot tell us
+# whether the advert is truly radiating, we periodically re-assert it; kept
+# short so onboarding recovers within ~a minute without a restart. A bounce is
+# a sub-second re-register gap and is skipped whenever a central is mid-session.
+ADVERT_BOUNCE_SECS = int(os.getenv("IMPROV_ADVERT_BOUNCE_SECS", "60"))
 
 # Device Information Service values (auto-detected, overridable via environment
 # for multi-board reuse).
@@ -402,23 +414,80 @@ async def net_status_loop(loop):
             _net_refresh_event.clear()
 
 
-async def advertising_watchdog():
-    """Keep the Improv BLE advertisement alive for the whole product lifetime.
+def _drop_stale_adverts():
+    """Unexport and forget any advertisement objects bless is still tracking.
 
-    bless registers the advertisement exactly once (in ``server.start()``); if
-    BlueZ ever drops it the device silently stops advertising and becomes
-    un-onboardable until the service is restarted. This was observed in the lab
-    (advert gone after ~an hour of uptime, process still healthy, no error) and
-    is a real risk on this shared Wi-Fi/BT radio (coexistence) and around
-    adapter resets / the post-provision NetworkManager churn.
-
-    For an onboarding product that is unacceptable, so this loop re-asserts the
-    advertisement whenever BlueZ reports zero active instances — unless a central
-    is mid-session (subscribed to a characteristic), in which case we leave it
-    alone and re-check next tick.
+    Used when BlueZ has already dropped the advertisement (ActiveInstances==0):
+    bless's stale objects would otherwise leak D-Bus objects and keep pushing the
+    advertisement instance index upward on repeated recoveries.
     """
-    logger.info(f"advertising watchdog started (every {ADVERT_WATCHDOG_SECS}s)")
+    app = server.app
+    stale = getattr(app, "advertisements", None)
+    if stale:
+        for old in list(stale):
+            try:
+                app.bus.unexport(old.path)
+            except Exception:
+                pass
+        stale.clear()
+
+
+async def _reassert_advert(had_registration: bool):
+    """(Re)assert the BLE advertisement so it is actually radiating again.
+
+    had_registration True  -> BlueZ still reports the advert (a bounce): cleanly
+                              stop_advertising() first so BlueZ drops the live
+                              instance, then start a fresh one.
+    had_registration False -> BlueZ already forgot it: drop bless's stale
+                              trackers, then start a fresh one.
+    """
+    app = server.app
+    adapter = server.adapter
+    if had_registration:
+        try:
+            await asyncio.wait_for(
+                app.stop_advertising(adapter), timeout=ADVERT_DBUS_TIMEOUT)
+        except Exception as e:
+            logger.warning(
+                f"advert bounce: stop_advertising failed ({e!r}); "
+                "clearing stale objects instead")
+            _drop_stale_adverts()
+    else:
+        _drop_stale_adverts()
+    await asyncio.wait_for(
+        app.start_advertising(adapter), timeout=ADVERT_DBUS_TIMEOUT)
+
+
+async def advertising_watchdog():
+    """Keep the Improv BLE advertisement alive AND actually on-air for the whole
+    product lifetime.
+
+    Two independent failure modes are handled:
+
+    1. Registration drop — BlueZ forgets the advertisement entirely
+       (ActiveInstances==0). bless registers it exactly once (in
+       ``server.start()``), so without this it stays gone until a manual restart.
+       Seen after ~an hour of uptime, adapter resets, and post-provision
+       NetworkManager churn.
+
+    2. On-air stall ("ghost advertising") — BlueZ still reports
+       ActiveInstances>=1 but nothing is radiating, so ``is_advertising()`` looks
+       healthy and case 1 never fires. Reproduced after a failed/aborted BLE
+       connect and around a fresh boot, with Wi-Fi OFF (so not coexistence): the
+       board silently becomes un-onboardable until a manual restart. Because
+       ActiveInstances cannot tell us whether the advert is truly on-air, we
+       cannot *detect* this directly — instead we periodically BOUNCE (re-assert)
+       the advertisement every ``ADVERT_BOUNCE_SECS`` so any stall self-heals
+       within about a minute.
+
+    Both re-assertions are skipped while a central is mid-session (a subscribed
+    characteristic) so we never disrupt an in-progress onboarding.
+    """
+    logger.info(
+        f"advertising watchdog started (check every {ADVERT_WATCHDOG_SECS}s, "
+        f"bounce every {ADVERT_BOUNCE_SECS}s)")
     failures = 0
+    last_assert = time.monotonic()
     while True:
         await asyncio.sleep(ADVERT_WATCHDOG_SECS)
 
@@ -446,40 +515,41 @@ async def advertising_watchdog():
             f"advertising watchdog: connected={connected} "
             f"advertising={advertising}")
 
-        # 2) Healthy: advertising, or a central is mid-session (don't disturb it).
-        if connected or advertising:
+        # 2) A central is mid-session — never disturb an in-progress onboarding.
+        #    Reset the bounce clock so we don't bounce the instant it leaves.
+        if connected:
+            failures = 0
+            last_assert = time.monotonic()
+            continue
+
+        now = time.monotonic()
+        due_for_bounce = (now - last_assert) >= ADVERT_BOUNCE_SECS
+
+        # 3) Healthy registration and not yet due a bounce — leave it alone.
+        if advertising and not due_for_bounce:
             if failures:
                 logger.info("advertising watchdog: BLE advertising healthy again")
             failures = 0
             continue
 
-        # 3) Advertisement is down with no active session — re-register it.
-        logger.warning("BLE advertisement is down; re-registering")
+        # 4) Re-assert the advertisement: either it is fully down
+        #    (ActiveInstances==0), or it is due a periodic bounce to clear a
+        #    possible on-air stall that BlueZ still reports as active.
+        reason = ("advertisement is down (ActiveInstances==0)"
+                  if not advertising else
+                  "periodic bounce (clears on-air stalls BlueZ reports as active)")
+        logger.warning(f"re-asserting BLE advertisement: {reason}")
         try:
-            app = server.app
-            # BlueZ has already forgotten the advertisement, but bless still
-            # tracks the stale object(s). Drop them so we register a single clean
-            # instance and don't leak D-Bus objects or exhaust the controller's
-            # advertising-instance limit over repeated recoveries.
-            stale = getattr(app, "advertisements", None)
-            if stale:
-                for old in list(stale):
-                    try:
-                        app.bus.unexport(old.path)
-                    except Exception:
-                        pass
-                stale.clear()
-            await asyncio.wait_for(
-                app.start_advertising(server.adapter),
-                timeout=ADVERT_DBUS_TIMEOUT)
-            logger.info("BLE advertisement re-registered by watchdog")
+            await _reassert_advert(had_registration=advertising)
+            last_assert = time.monotonic()
+            logger.info("BLE advertisement re-asserted by watchdog")
             failures = 0
         except asyncio.CancelledError:
             raise
         except Exception as e:
             failures += 1
             logger.error(
-                f"advertising watchdog: re-register failed ({e!r}); "
+                f"advertising watchdog: re-assert failed ({e!r}); "
                 f"failures={failures}/{ADVERT_MAX_FAILURES}")
             if failures >= ADVERT_MAX_FAILURES:
                 logger.error("advertising watchdog: cannot restore advertising; "
