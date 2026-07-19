@@ -199,14 +199,30 @@ def get_hw_revision():
     """Hardware revision. No standard source on this SoC; overridable via env."""
     return "unknown"
 
-# Board-specific configuration for imx93-jaguar-eink (overridable via environment)
-SERVER_HOST = os.getenv("IMPROV_SERVER_HOST", "api.co.uk")
+# Board-specific configuration for imx93-jaguar-eink (overridable via environment).
+# Default is the live Active-ESL onboarding backend; improv.service also sets this
+# via IMPROV_SERVER_HOST, but the default must be a real host so the server still
+# points somewhere valid if the env var is ever missing.
+SERVER_HOST = os.getenv(
+    "IMPROV_SERVER_HOST", "active-esl-onboard.active-esl.workers.dev"
+)
 BOARD_ID = get_board_id()
 DEFAULT_SERVICE_NAME = f"eink-{BOARD_ID}"
 SERVICE_NAME = os.getenv("IMPROV_SERVICE_NAME", DEFAULT_SERVICE_NAME)
 CON_NAME = os.getenv("IMPROV_CONNECTION_NAME", "improv-eink")
 INTERFACE = os.getenv("IMPROV_WIFI_INTERFACE", "wlan0")
 TIMEOUT = int(os.getenv("IMPROV_CONNECTION_TIMEOUT", "10000"))
+# How often the advertising watchdog re-checks that BlueZ is still advertising
+# and re-registers it if not. Kept short so a dropped advert self-heals within
+# seconds — onboarding must never depend on a manual service restart.
+ADVERT_WATCHDOG_SECS = int(os.getenv("IMPROV_ADVERT_WATCHDOG_SECS", "15"))
+# Hard timeout on each BlueZ D-Bus call the watchdog makes, so a wedged BLE
+# stack can never freeze the watchdog loop itself.
+ADVERT_DBUS_TIMEOUT = float(os.getenv("IMPROV_ADVERT_DBUS_TIMEOUT", "5"))
+# Consecutive watchdog failures (can't query state, or can't re-register) after
+# which we treat the BLE stack as unrecoverable and exit so systemd restarts us
+# (Restart=always) — a clean re-init reliably restores advertising.
+ADVERT_MAX_FAILURES = int(os.getenv("IMPROV_ADVERT_MAX_FAILURES", "3"))
 
 # Device Information Service values (auto-detected, overridable via environment
 # for multi-board reuse).
@@ -386,6 +402,91 @@ async def net_status_loop(loop):
             _net_refresh_event.clear()
 
 
+async def advertising_watchdog():
+    """Keep the Improv BLE advertisement alive for the whole product lifetime.
+
+    bless registers the advertisement exactly once (in ``server.start()``); if
+    BlueZ ever drops it the device silently stops advertising and becomes
+    un-onboardable until the service is restarted. This was observed in the lab
+    (advert gone after ~an hour of uptime, process still healthy, no error) and
+    is a real risk on this shared Wi-Fi/BT radio (coexistence) and around
+    adapter resets / the post-provision NetworkManager churn.
+
+    For an onboarding product that is unacceptable, so this loop re-asserts the
+    advertisement whenever BlueZ reports zero active instances — unless a central
+    is mid-session (subscribed to a characteristic), in which case we leave it
+    alone and re-check next tick.
+    """
+    logger.info(f"advertising watchdog started (every {ADVERT_WATCHDOG_SECS}s)")
+    failures = 0
+    while True:
+        await asyncio.sleep(ADVERT_WATCHDOG_SECS)
+
+        # 1) Query current state, but never let a wedged BLE stack freeze the
+        #    loop: bound every D-Bus call with a timeout.
+        try:
+            connected = await asyncio.wait_for(
+                server.is_connected(), timeout=ADVERT_DBUS_TIMEOUT)
+            advertising = await asyncio.wait_for(
+                server.is_advertising(), timeout=ADVERT_DBUS_TIMEOUT)
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            failures += 1
+            logger.error(
+                f"advertising watchdog: cannot query BLE state ({e!r}); "
+                f"failures={failures}/{ADVERT_MAX_FAILURES}")
+            if failures >= ADVERT_MAX_FAILURES:
+                logger.error("advertising watchdog: BLE stack unresponsive; "
+                             "exiting so systemd restarts the service")
+                os._exit(1)
+            continue
+
+        logger.debug(
+            f"advertising watchdog: connected={connected} "
+            f"advertising={advertising}")
+
+        # 2) Healthy: advertising, or a central is mid-session (don't disturb it).
+        if connected or advertising:
+            if failures:
+                logger.info("advertising watchdog: BLE advertising healthy again")
+            failures = 0
+            continue
+
+        # 3) Advertisement is down with no active session — re-register it.
+        logger.warning("BLE advertisement is down; re-registering")
+        try:
+            app = server.app
+            # BlueZ has already forgotten the advertisement, but bless still
+            # tracks the stale object(s). Drop them so we register a single clean
+            # instance and don't leak D-Bus objects or exhaust the controller's
+            # advertising-instance limit over repeated recoveries.
+            stale = getattr(app, "advertisements", None)
+            if stale:
+                for old in list(stale):
+                    try:
+                        app.bus.unexport(old.path)
+                    except Exception:
+                        pass
+                stale.clear()
+            await asyncio.wait_for(
+                app.start_advertising(server.adapter),
+                timeout=ADVERT_DBUS_TIMEOUT)
+            logger.info("BLE advertisement re-registered by watchdog")
+            failures = 0
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            failures += 1
+            logger.error(
+                f"advertising watchdog: re-register failed ({e!r}); "
+                f"failures={failures}/{ADVERT_MAX_FAILURES}")
+            if failures >= ADVERT_MAX_FAILURES:
+                logger.error("advertising watchdog: cannot restore advertising; "
+                             "exiting so systemd restarts the service")
+                os._exit(1)
+
+
 def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
     logger.warning(
         f"Creating Improv WiFi connection for '{ssid.decode('utf-8')}' with password: '{passwd.decode('utf-8')}'")
@@ -529,14 +630,20 @@ async def run(loop):
 
     # Populate the static Device Information Service values.
     _set_dis_values()
-    # Seed network status once (off the BLE loop so nmcli doesn't stall startup),
-    # then refresh periodically / on demand.
+    # Start the background tasks FIRST — especially the advertising watchdog,
+    # which must run even if the initial network probe below is slow/blocks.
+    # (Creating them before the initial seed guarantees the event loop keeps the
+    # watchdog alive regardless of how long the seed's executor call takes.)
+    net_task = loop.create_task(net_status_loop(loop))
+    # Self-healing advertising: onboarding must never rely on a manual restart.
+    advert_task = loop.create_task(advertising_watchdog())
+    # Seed network status once (off the BLE loop so nmcli doesn't stall startup);
+    # net_status_loop also refreshes it periodically / on demand.
     try:
         status = await loop.run_in_executor(None, compute_net_status)
         _publish_net_status(status, notify=False)
     except Exception as e:
         logger.debug(f"initial net status failed: {e}")
-    net_task = loop.create_task(net_status_loop(loop))
 
     try:
         trigger.clear()
@@ -548,6 +655,7 @@ async def run(loop):
         logger.debug("Shutting Down")
     finally:
         net_task.cancel()
+        advert_task.cancel()
     await server.stop()
 
 try:
