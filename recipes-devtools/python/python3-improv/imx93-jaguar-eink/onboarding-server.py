@@ -384,18 +384,46 @@ def compute_time_status():
 
 
 def _read_secure_boot():
-    """i.MX93 secure-boot / lifecycle state.
+    """i.MX93 secure-boot posture. Returns 'open' | 'closed' | 'unknown'.
 
-    Returns 'open' | 'closed' | 'unknown'. Correctly determining this requires
-    the ELE "get info" lifecycle field (OEM_OPEN vs OEM_CLOSED / FIELD_RETURN)
-    or interpreting specific SRK-hash / SEC_CONFIG fuses via the validated
-    i.MX93 OCOTP map — the raw ELE-OCOTP0 shadow cannot be interpreted safely
-    (every SoC has non-zero fuses: UID, boot config, ...), so a byte-level
-    heuristic would misreport a fused board. Until that ELE query lands
-    (tracked follow-up; see roadmap P0-1/P2-1 and BLE-BOARD-PROFILE.md §10) we
-    report 'unknown' rather than a value that could be wrong. This field is
-    self-reported and untrusted until backed by ELE attestation (P2-1).
+    The authoritative source is the EdgeLock Enclave (ELE) "get info"
+    lifecycle field (OEM_OPEN vs OEM_CLOSED / FIELD_RETURN). This kernel,
+    however, exposes no ELE MU char device (`/dev/ele_mu` absent) and no
+    lifecycle nvmem cell — the lifecycle lives behind OP-TEE/secure world —
+    so it cannot be read from Linux userspace without a dedicated OP-TEE TA.
+    That ELE-attested query remains a tracked follow-up (roadmap P0-1/P2-1,
+    BLE-BOARD-PROFILE.md §10) and needs secure-world plumbing.
+
+    As the best available userspace signal we read U-Boot's `sec_boot`
+    environment flag, which the NXP boot script uses to gate authenticated
+    boot (`auth_os`): 'yes' => authenticated boot enforced ('closed'),
+    'no' => not enforced ('open'). This reflects the *bootloader
+    configuration* rather than an ELE-attested hardware lifecycle, and —
+    like the whole `sec` block — is self-reported and untrusted until backed
+    by attestation (P2-1). A fuse/OCOTP byte heuristic is deliberately
+    avoided: the ELE-OCOTP0 shadow has non-zero UID/config words, so
+    byte-level guessing would misreport a fused board.
     """
+    val = ""
+    try:
+        # `-n` prints just the value; falls back to parsing `k=v` for older
+        # u-boot-fw-utils that lack `-n`.
+        out = subprocess.run(["fw_printenv", "-n", "sec_boot"],
+                             capture_output=True, timeout=4, text=True)
+        if out.returncode == 0:
+            val = out.stdout.strip().lower()
+        else:
+            out = subprocess.run(["fw_printenv", "sec_boot"],
+                                 capture_output=True, timeout=4, text=True)
+            if out.returncode == 0 and "=" in out.stdout:
+                val = out.stdout.strip().split("=", 1)[1].strip().lower()
+    except Exception as e:
+        logger.debug(f"secure_boot read failed: {e}")
+        return "unknown"
+    if val in ("yes", "1", "true"):
+        return "closed"
+    if val in ("no", "0", "false"):
+        return "open"
     return "unknown"
 
 
