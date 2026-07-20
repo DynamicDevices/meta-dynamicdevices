@@ -666,7 +666,16 @@ def wifi_connect(ssid: str, passwd: str) -> Optional[list[str]]:
     server = f"https://{SERVER_HOST}?ip_address={ip_addr}&token={token}"
     return [server]
 
-improv_server = ImprovProtocol(wifi_connect_callback=wifi_connect)
+# Improv chunks its RPC response into <= max_response_bytes packets. The library
+# default (100) is *below* our Wi-Fi-success redirect URL length (~117 B: the
+# active-esl-onboard.active-esl.workers.dev host + a UUID token), which trips a
+# pyImprov bug: it emits a spurious zero-length WIFI_SETTINGS packet *before* the
+# packet carrying the URL. Clients that complete on the first result then never
+# see the token ("connected to Wi-Fi but no claim token"). Raise the threshold so
+# the URL is returned in a single packet (~121 B, well within the ~185 B BLE MTU
+# the app negotiates).
+improv_server = ImprovProtocol(wifi_connect_callback=wifi_connect,
+                               max_response_bytes=200)
 
 def read_request(characteristic: BlessGATTCharacteristic, **kwargs) -> bytearray:
     try:
