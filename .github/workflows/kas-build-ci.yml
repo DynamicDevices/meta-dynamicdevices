@@ -46,7 +46,10 @@ jobs:
   # Validation job - validates Yocto layer compatibility
   validate:
     name: Validate Yocto Layers
-    runs-on: self-hosted
+    # Pin to a Linux self-hosted runner: bare `self-hosted` also matches the
+    # org's macOS runners, which have no Docker and fail this container job
+    # in ~6s with "docker: command not found".
+    runs-on: [self-hosted, Linux, X64]
     container:
       image: dynamicdevices/yocto-ci-build:latest
       options: --privileged --platform linux/amd64
@@ -167,7 +170,7 @@ jobs:
   # Summary job
   summary:
     name: Validation Summary
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux, X64]
     needs: [validate]
     if: always()
     
