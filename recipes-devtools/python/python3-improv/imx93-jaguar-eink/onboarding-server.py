@@ -528,10 +528,13 @@ def compute_ota_status():
 def build_device_status(net):
     """Compose the Device-Status JSON superset (§5) from the flat network dict.
 
-    Emits the nested `net` block and mirrors the legacy flat keys at top level
-    for one release (backward compatibility). `time`/`sec`/`ota` are appended so
-    the app can render clock-sync, security posture, and Foundries-enrolment
-    state honestly.
+    Emits the nested `net` block plus `time`/`sec`/`ota`. The legacy top-level
+    flat mirror (`state`/`ssid`/`ipv4`/`rssi`/`iface`) is intentionally
+    *not* emitted any more: with `ota` included the compact JSON is ~580 bytes
+    with the mirror and only ~490 without, and BlueZ/bless caps a single
+    characteristic value at 512 bytes (truncating mid-JSON otherwise). The app
+    has preferred the nested `net` block since the Device-Status superset
+    (meta-dynamicdevices #41) and still falls back to flat for older firmware.
     """
     doc = {"v": 1, "net": {
         "bearer": "wifi",
@@ -541,10 +544,6 @@ def build_device_status(net):
         "rssi": net.get("rssi"),
         "iface": net.get("iface"),
     }}
-    # Legacy flat mirror (remove once all app builds read the `net` block).
-    for k in ("state", "ssid", "ipv4", "rssi", "iface"):
-        if k in net:
-            doc[k] = net[k]
     doc["time"] = compute_time_status()
     doc["sec"] = compute_sec_status()
     doc["ota"] = compute_ota_status()
@@ -556,10 +555,48 @@ def compute_device_status():
     return build_device_status(compute_net_status())
 
 
+# BlueZ/bless characteristic-value ceiling. Truncation mid-JSON is worse than
+# omitting a redundant field, so `_publish_net_status` shrinks before send.
+_ATT_VALUE_MAX = 512
+
+
+def _shrink_to_att(doc):
+    """Return a compact JSON bytes that fits in one ATT value, or the best-effort
+    original. Progressive omits (never invent values): time.iso → ota.os_version
+    → ota.hwid. Logs if even the slim form exceeds the ceiling.
+    """
+    data = json.dumps(doc, separators=(",", ":")).encode("utf-8")
+    if len(data) <= _ATT_VALUE_MAX:
+        return data
+    # 1. Drop time.iso (epoch is enough for the app).
+    if "time" in doc and isinstance(doc["time"], dict) and "iso" in doc["time"]:
+        slim = dict(doc)
+        slim["time"] = {k: v for k, v in doc["time"].items() if k != "iso"}
+        data = json.dumps(slim, separators=(",", ":")).encode("utf-8")
+        if len(data) <= _ATT_VALUE_MAX:
+            logger.info("Device-Status shrunk: dropped time.iso (%d bytes)", len(data))
+            return data
+        doc = slim
+    # 2. Drop ota.os_version / ota.hwid (derivable from factory image / machine).
+    if "ota" in doc and isinstance(doc["ota"], dict):
+        slim = dict(doc)
+        ota = {k: v for k, v in doc["ota"].items() if k not in ("os_version", "hwid")}
+        slim["ota"] = ota
+        data = json.dumps(slim, separators=(",", ":")).encode("utf-8")
+        if len(data) <= _ATT_VALUE_MAX:
+            logger.info("Device-Status shrunk: dropped ota.os_version/hwid (%d bytes)",
+                        len(data))
+            return data
+        doc = slim
+    logger.warning("Device-Status JSON still %d bytes > ATT max %d; truncating",
+                   len(data), _ATT_VALUE_MAX)
+    return data[:_ATT_VALUE_MAX]
+
+
 def _publish_net_status(status_dict, notify=True):
     """Update the cached JSON + characteristic value; notify on change."""
     global _net_status_json_bytes
-    data = json.dumps(status_dict, separators=(",", ":")).encode("utf-8")
+    data = _shrink_to_att(status_dict)
     changed = bytes(data) != bytes(_net_status_json_bytes)
     _net_status_json_bytes = bytearray(data)
     try:
