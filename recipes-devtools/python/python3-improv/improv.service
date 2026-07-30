@@ -1,10 +1,15 @@
 [Unit]
 Description=Improv BLE WiFi onboarding service
 Documentation=https://www.improv-wifi.com/ble/
+# Order after BlueZ (same as imx93-jaguar-eink / imx8mm-jaguar-inst machine units).
+# Without this, improv can start ~400ms before bluetoothd is ready (DT510 lab).
+After=bluetooth.target
+Wants=bluetooth.target
 
 [Service]
 # Run as root to access Bluetooth stack (BLE requires elevated privileges)
 # Script handles file ownership correction to fio:fio after creation
+Type=simple
 ExecStart=/usr/share/improv/onboarding-server.py
 Restart=always
 RestartSec=12
