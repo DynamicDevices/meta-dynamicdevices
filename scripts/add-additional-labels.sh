@@ -31,6 +31,7 @@ gh api repos/DynamicDevices/meta-dynamicdevices/labels -f name="board: edge-eink
 
 gh api repos/DynamicDevices/meta-dynamicdevices/labels -f name="board: edge-ev" -f color="FF8C00" -f description="Edge EV Board (imx8mm-jaguar-phasora) specific issues" || echo "Label may already exist"
 
+gh api repos/DynamicDevices/meta-dynamicdevices/labels -f name="board: screen" -f color="4169E1" -f description="SCREEN Board (imx8mm-jaguar-screen) specific issues" || echo "Label may already exist"
 gh api repos/DynamicDevices/meta-dynamicdevices/labels -f name="board: edge-gw" -f color="00CED1" -f description="Edge GW Board (imx8mm-jaguar-inst) specific issues" || echo "Label may already exist"
 
 # IMPACT/SCOPE LABELS - Help understand the breadth of impact

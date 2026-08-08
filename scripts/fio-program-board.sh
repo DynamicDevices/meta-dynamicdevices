@@ -488,6 +488,7 @@ Supported Machines:
   - imx93-jaguar-eink     (Edge EInk Board)
   - imx8mm-jaguar-phasora (Edge EV Board)
   - imx8mm-jaguar-inst    (Edge GW Board)
+  - imx8mm-jaguar-screen  (SCREEN Board)
   - imx93-11x11-lpddr4x-evk (NXP EVK)
 
 Examples:
@@ -593,10 +594,11 @@ configure_interactive() {
     echo "  2) imx93-jaguar-eink     (Edge EInk Board)"
     echo "  3) imx8mm-jaguar-phasora (Edge EV Board)"
     echo "  4) imx8mm-jaguar-inst    (Edge GW Board)"
-    echo "  5) imx93-11x11-lpddr4x-evk (NXP EVK)"
-    echo "  6) Custom machine name"
+    echo "  5) imx8mm-jaguar-screen  (SCREEN Board)"
+    echo "  6) imx93-11x11-lpddr4x-evk (NXP EVK)"
+    echo "  7) Custom machine name"
     echo
-    echo -n "Select default machine (1-6)"
+    echo -n "Select default machine (1-7)"
     if [[ -n "$DEFAULT_MACHINE" ]]; then
         echo -n " (current: $DEFAULT_MACHINE)"
     fi
@@ -608,8 +610,9 @@ configure_interactive() {
         2) machine="imx93-jaguar-eink" ;;
         3) machine="imx8mm-jaguar-phasora" ;;
         4) machine="imx8mm-jaguar-inst" ;;
-        5) machine="imx93-11x11-lpddr4x-evk" ;;
-        6) 
+        5) machine="imx8mm-jaguar-screen" ;;
+        6) machine="imx93-11x11-lpddr4x-evk" ;;
+        7) 
             echo -n "Enter custom machine name: "
             read -r custom_machine
             if [[ -n "$custom_machine" ]]; then
@@ -853,6 +856,7 @@ validate_machine() {
         "imx93-jaguar-eink"
         "imx8mm-jaguar-phasora"
         "imx8mm-jaguar-inst"
+        "imx8mm-jaguar-screen"
         "imx93-11x11-lpddr4x-evk"
     )
     
