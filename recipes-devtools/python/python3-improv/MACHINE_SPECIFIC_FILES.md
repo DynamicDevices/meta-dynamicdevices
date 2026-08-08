@@ -80,6 +80,7 @@ recipes-devtools/python/python3-improv/
 │   ├── improv.service
 │   └── onboarding-server.py
 └── imx8mm-jaguar-inst/               (machine override - same filenames)
+└── imx8mm-jaguar-screen/             (machine override - same filenames)
     ├── improv.service
     └── onboarding-server.py
 ```
@@ -88,6 +89,7 @@ recipes-devtools/python/python3-improv/
 - Yocto picks up `improv.service` and `onboarding-server.py` from `${MACHINE}/` when present; otherwise uses recipe root.
 - `imx93-jaguar-eink`: Uses files from `imx93-jaguar-eink/` (eink-XXXX BLE name, improv-eink connection).
 - `imx8mm-jaguar-inst`: Uses files from `imx8mm-jaguar-inst/` (Improv-Inst BLE, improv-inst connection).
+- `imx8mm-jaguar-screen`: Uses files from `imx8mm-jaguar-screen/` (Improv-Screen BLE, improv-screen connection).
 - All other machines: Use files from recipe directory root.
 - Recipe has no machine-specific SRC_URI, do_install, or SYSTEMD_SERVICE logic.
 
