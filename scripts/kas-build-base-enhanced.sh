@@ -55,7 +55,8 @@ trap cleanup EXIT
 # Supported machines list
 SUPPORTED_MACHINES=(
     "imx8mm-jaguar-sentai"
-    "imx8mm-jaguar-inst" 
+    "imx8mm-jaguar-inst"
+    "imx8mm-jaguar-screen" 
     "imx8mm-jaguar-phasora"
     "imx8mm-jaguar-handheld"
     "imx93-jaguar-eink"
