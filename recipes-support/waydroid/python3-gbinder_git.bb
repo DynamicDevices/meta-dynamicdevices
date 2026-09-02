@@ -7,9 +7,10 @@ LICENSE = "GPL-3.0-only"
 SECTION = "devel/python"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1ebbd3e34237af26da5dc08a4e440464"
 
-# We're stuck @ 1.1.1 untill we are at cython3, build breaks with https://github.com/waydroid/gbinder-python/commit/4d8cb8f56da9e8159ea1b2ef76ddfa0253563db7
-PV = "1.1.1+git${SRCPV}"
-SRCREV = "990c3007eeac3e015fb38aecd76dd010b4b75a1e"
+# 1.1.1 fails with the Cython 3 toolchain used by Scarthgap. The bullseye
+# 1.1.2 tip includes the required noexcept declarations.
+PV = "1.1.2+git${SRCPV}"
+SRCREV = "5089d76d4cd958cedda0028ffd752c25508dd382"
 SRC_URI = "git://github.com/waydroid/gbinder-python.git;branch=bullseye;protocol=https \
            file://0001-setup.py-Migrate-away-from-deprecated-distutils.core.patch \
 "
@@ -26,4 +27,3 @@ SETUPTOOLS_BUILD_ARGS = "sdist --cython"
 inherit setuptools3 pkgconfig
 
 BBCLASSEXTEND = "native"
-
