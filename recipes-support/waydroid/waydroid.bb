@@ -40,6 +40,7 @@ COMPATIBLE_MACHINE:pinetab2 = "(.*)"
 COMPATIBLE_MACHINE:mido-halium = "(.*)"
 COMPATIBLE_MACHINE:tissot = "(.*)"
 COMPATIBLE_MACHINE:imx8mm-lpddr4-evk = "(.*)"
+COMPATIBLE_MACHINE:imx95-frdm-evk = "(.*)"
 
 inherit pkgconfig
 #inherit webos_app
@@ -86,6 +87,11 @@ do_install:append:imx8mm-lpddr4-evk() {
 }
 
 do_install:append:raspberrypi4-64() {
+    install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
+    install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
+}
+
+do_install:append:imx95-frdm-evk() {
     install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
     install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
 }
