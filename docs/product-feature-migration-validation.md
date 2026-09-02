@@ -49,8 +49,9 @@ Validated local rollout candidates (all worktrees clean when recorded):
 
 | Repository/worktree | Commit |
 | --- | --- |
-| `meta-dynamicdevices-bsp` | `3e2d741a7829` |
-| `meta-dynamicdevices-distro` | `ea70a12` |
+| `meta-dynamicdevices-bsp` | `c1868e70e8e2` |
+| `meta-dynamicdevices-distro` | `e8cbf0061fea` |
+| `meta-dynamicdevices` superproject | `d1d2651ca14a` |
 | Foundries `ci-scripts` | `53e954882c97` |
 | AESL `factory-core-ci` | `33b25f2d8b6e` |
 | AESL Factory Definition | `379727319ef4` |
@@ -60,8 +61,7 @@ superproject next, then Foundries/AESL configuration and manifest pins.
 
 1. Publish the distro, BSP, superproject, Foundries Factory Definition and
    AESL runner/config branches in dependency order.
-2. Update public/private manifest pins to the published commits. Private-source
-   pin changes and CI triggers require the physical hardware-key touch.
+2. Update public/private manifest pins to the published commits.
 3. Build deployable images and retain their rootfs/package manifests as the new
    baselines.
 4. Boot and exercise the Screen and Android targets on hardware, including
@@ -69,3 +69,21 @@ superproject next, then Foundries/AESL configuration and manifest pins.
    and rollback-sensitive behavior.
 5. Confirm no live factory, manifest or local build consumer names a legacy
    distro; only then delete the compatibility distro files.
+
+## Foundries manifest consumer audit
+
+The Factory Definition references 19 branch names. Sixteen currently exist in
+the Foundries manifest repository. Canonical-stack pin migrations are live for
+`main-imx95-frdm-devel` and `main-jaguar-screen`; validated local rollout
+commits are prepared for the other fourteen existing branches.
+
+The following configured branch names do not exist in the manifest repository
+and therefore cannot be migrated or built as named:
+
+- `imx8mm-jaguar-handheld-5in`
+- `imx8mm-jaguar-handheld-7in`
+- `main-rpi5`
+
+`main-jaguar-handheld` does exist, but it does not match either configured
+handheld branch name. These stale/mismatched Factory Definition entries must be
+resolved before the final no-legacy-consumer gate can pass.
