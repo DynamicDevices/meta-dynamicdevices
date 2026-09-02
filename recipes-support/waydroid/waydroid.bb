@@ -51,7 +51,7 @@ inherit features_check systemd
 # Product configuration selects the provider-neutral `android-container`
 # bundle. The distro layer expands that bundle to these implementation
 # prerequisites; fail early if Waydroid is pulled into an incomplete image.
-REQUIRED_DISTRO_FEATURES = "waydroid wayland opengl"
+REQUIRED_DISTRO_FEATURES = "waydroid wayland opengl vulkan"
 
 WEBOS_SYSTEMD_SERVICE = "waydroid-init.service waydroid-container.service"
 
