@@ -66,6 +66,11 @@ repos:
     commit: eeee54cfa3c51c1fd99604a0d5f173096bdcf1da
     path: build/layers/meta-tensorflow
 
+  meta-godot:
+    url: https://github.com/active-esl/meta-godot.git
+    commit: 58670332d8ae0c37e4ac0df884fede37ad4661bc
+    path: build/layers/meta-godot
+
   openembedded-core:
     url: https://github.com/lmp-mirrors/openembedded-core
     commit: 7a59dc5ee6edd9596e87c2fbcd1f2594c06b3d1b
