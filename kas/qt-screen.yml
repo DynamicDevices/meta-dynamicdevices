@@ -1,0 +1,14 @@
+header:
+  version: 14
+  includes:
+    - lmp-dynamicdevices-dev.yml
+
+machine: imx8mm-jaguar-screen
+distro: lmp-dynamicdevices-headless
+
+local_conf_header:
+  qt-screen-prototype: |
+    SCREEN_QT_DEMO = "1"
+    QT_GIT_PROTOCOL = "https"
+    DISTRO_FEATURES:append = " wayland opengl"
+    BBMASK += "meta-dynamicdevices-distro/recipes-graphics/godot/godot_.*[.]bbappend"

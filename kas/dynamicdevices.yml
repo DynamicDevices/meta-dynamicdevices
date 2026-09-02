@@ -10,6 +10,11 @@ repos:
   meta-dynamicdevices-distro:
     path: meta-dynamicdevices-distro
 
+  meta-qt6:
+    url: https://github.com/YoeDistro/meta-qt6.git
+    path: build/layers/meta-qt6
+    commit: d6e576a7d75d0371602e93124c4e2f1c539be8f3
+
   meta-rust-bin:
     url: https://github.com/rust-embedded/meta-rust-bin.git
     path: build/layers/meta-rust-bin
