@@ -50,7 +50,7 @@ Validated local rollout candidates (all worktrees clean when recorded):
 | Repository/worktree | Commit |
 | --- | --- |
 | `meta-dynamicdevices-bsp` | `3e2d741a7829` |
-| `meta-dynamicdevices-distro` | `93a18b3727ff` |
+| `meta-dynamicdevices-distro` | `ea70a12` |
 | Foundries `ci-scripts` | `53e954882c97` |
 | AESL `factory-core-ci` | `33b25f2d8b6e` |
 | AESL Factory Definition | `379727319ef4` |
