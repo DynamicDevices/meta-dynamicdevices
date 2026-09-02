@@ -45,7 +45,12 @@ inherit pkgconfig
 #inherit webos_app
 #inherit webos_filesystem_paths
 #inherit webos_systemd
-inherit systemd
+inherit features_check systemd
+
+# Product configuration selects the provider-neutral `android-container`
+# bundle. The distro layer expands that bundle to these implementation
+# prerequisites; fail early if Waydroid is pulled into an incomplete image.
+REQUIRED_DISTRO_FEATURES = "waydroid wayland opengl"
 
 WEBOS_SYSTEMD_SERVICE = "waydroid-init.service waydroid-container.service"
 
