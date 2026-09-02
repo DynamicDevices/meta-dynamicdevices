@@ -45,6 +45,19 @@ evidence.
 
 ## Rollout gates still required
 
+Validated local rollout candidates (all worktrees clean when recorded):
+
+| Repository/worktree | Commit |
+| --- | --- |
+| `meta-dynamicdevices-bsp` | `3e2d741a7829` |
+| `meta-dynamicdevices-distro` | `93a18b3727ff` |
+| Foundries `ci-scripts` | `53e954882c97` |
+| AESL `factory-core-ci` | `33b25f2d8b6e` |
+| AESL Factory Definition | `379727319ef4` |
+
+Publish dependencies before their consumers: distro and BSP first,
+superproject next, then Foundries/AESL configuration and manifest pins.
+
 1. Publish the distro, BSP, superproject, Foundries Factory Definition and
    AESL runner/config branches in dependency order.
 2. Update public/private manifest pins to the published commits. Private-source
