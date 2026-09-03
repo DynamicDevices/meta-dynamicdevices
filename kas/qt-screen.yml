@@ -12,3 +12,7 @@ local_conf_header:
     QT_GIT_PROTOCOL = "https"
     DISTRO_FEATURES:append = " wayland opengl"
     BBMASK += "meta-dynamicdevices-distro/recipes-graphics/godot/godot_.*[.]bbappend"
+    # Local proof builds require a syntactically valid module-signing identity.
+    # These files are throwaway build/conf artifacts and are never committed.
+    MODSIGN_PRIVKEY:forcevariable = "${TOPDIR}/conf/factory-keys/modsign.key"
+    MODSIGN_X509:forcevariable = "${TOPDIR}/conf/factory-keys/modsign.crt"
