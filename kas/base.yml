@@ -68,7 +68,7 @@ repos:
 
   meta-godot:
     url: https://github.com/active-esl/meta-godot.git
-    commit: 58670332d8ae0c37e4ac0df884fede37ad4661bc
+    commit: 3d28782b820f8c07eab54595fdcd188424096c26
     path: build/layers/meta-godot
 
   meta-flutter:
