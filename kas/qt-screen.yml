@@ -9,7 +9,6 @@ distro: lmp-dynamicdevices-headless
 local_conf_header:
   qt-screen-prototype: |
     QT_GIT_PROTOCOL = "https"
-    DISTRO_FEATURES:append = " wayland opengl"
     BBMASK += "meta-dynamicdevices-distro/recipes-graphics/godot/godot_.*[.]bbappend"
     # Local proof builds require a syntactically valid module-signing identity.
     # These files are throwaway build/conf artifacts and are never committed.
