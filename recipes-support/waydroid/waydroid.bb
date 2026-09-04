@@ -52,6 +52,7 @@ inherit features_check systemd
 # bundle. The distro layer expands that bundle to these implementation
 # prerequisites; fail early if Waydroid is pulled into an incomplete image.
 REQUIRED_DISTRO_FEATURES = "waydroid wayland opengl vulkan"
+REQUIRED_DISTRO_FEATURES:imx8mm-jaguar-screen = "waydroid wayland opengl etnaviv"
 
 WEBOS_SYSTEMD_SERVICE = "waydroid-init.service waydroid-container.service"
 
