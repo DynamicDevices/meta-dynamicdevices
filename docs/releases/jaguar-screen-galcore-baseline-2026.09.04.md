@@ -11,6 +11,8 @@ Etnaviv.
 - Machine: `imx8mm-jaguar-screen`
 - Hardware-lab device: `imx8mm-jaguar-screen-2210a09dab86563`
 - Hardware rollback target: Foundries target `2838`
+- Tagged source release build: Foundries target `2840`
+- Target 2840 OSTree: `0008cdaca80b08c524d6db29df02c6c168382ea9e8de07814083380a04d36ea2`
 - BSP submodule: `88b8e2706814622476f0eac962935f4888df7af7`
 - Distro submodule: `ef0bb9b09a72480e30507e9807d684aea8e98400`
 
@@ -33,7 +35,9 @@ revisions are the authoritative source assembly and build configuration.
 
 ## Rollback
 
-Prefer an OTA rollback of the hardware-lab device to Foundries target `2838`.
+Prefer an OTA rollback of the hardware-lab device to Foundries target `2840`,
+which was built from the tagged manifest commit. Target `2838` remains the
+known-running pre-release hardware fallback.
 For a source rollback, check out this tag in `meta-dynamicdevices`,
 `lmp-manifest`, and `ci-scripts`, then build the tagged manifest without any
 Etnaviv experiment commits.
