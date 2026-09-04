@@ -1,0 +1,17 @@
+[Unit]
+Description=Provision Waydroid Android images into persistent storage
+Wants=network-online.target
+After=network-online.target dbus.service
+Before=waydroid-container.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/waydroid-image-provision
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=60
+TimeoutStartSec=infinity
+
+[Install]
+WantedBy=multi-user.target
