@@ -24,6 +24,8 @@ RRECOMMENDS:${PN} += "\
 SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=https \
     file://gbinder.conf \
     file://waydroid-net.sh \
+    file://waydroid-image-provision \
+    file://waydroid-image-provision.service \
 "
 S = "${WORKDIR}/git"
 
@@ -40,6 +42,7 @@ COMPATIBLE_MACHINE:pinetab2 = "(.*)"
 COMPATIBLE_MACHINE:mido-halium = "(.*)"
 COMPATIBLE_MACHINE:tissot = "(.*)"
 COMPATIBLE_MACHINE:imx8mm-lpddr4-evk = "(.*)"
+COMPATIBLE_MACHINE:imx8mm-jaguar-screen = "(.*)"
 COMPATIBLE_MACHINE:imx95-frdm-evk = "(.*)"
 
 inherit pkgconfig
@@ -47,6 +50,9 @@ inherit pkgconfig
 #inherit webos_filesystem_paths
 #inherit webos_systemd
 inherit features_check systemd
+
+SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-screen = "waydroid-image-provision.service"
+SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-screen = "enable"
 
 # Product configuration selects the provider-neutral `android-container`
 # bundle. The distro layer expands that bundle to these implementation
@@ -61,6 +67,13 @@ EXTRA_OEMAKE = "SYSD_DIR=${systemd_system_unitdir} USE_NFTABLES="1" WAYDROID_VER
 
 do_install() {
     make install_luneos DESTDIR=${D}
+}
+
+do_install:append() {
+    install -Dm0755 ${WORKDIR}/waydroid-image-provision \
+        ${D}${libexecdir}/waydroid-image-provision
+    install -Dm0644 ${WORKDIR}/waydroid-image-provision.service \
+        ${D}${systemd_system_unitdir}/waydroid-image-provision.service
 }
 
 # Provided by libgbinder already for Halium devices, but necessary to add for non-Halium devices.
@@ -82,6 +95,11 @@ do_install:append:qemux86-64() {
 }
 
 do_install:append:imx8mm-lpddr4-evk() {
+    install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
+    install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
+}
+
+do_install:append:imx8mm-jaguar-screen() {
     install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
     install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
 }
