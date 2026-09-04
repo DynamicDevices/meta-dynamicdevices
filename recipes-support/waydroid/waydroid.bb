@@ -57,7 +57,8 @@ SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-screen = "enable"
 # Product configuration selects the provider-neutral `android-container`
 # bundle. The distro layer expands that bundle to these implementation
 # prerequisites; fail early if Waydroid is pulled into an incomplete image.
-REQUIRED_DISTRO_FEATURES = "waydroid wayland opengl vulkan"
+REQUIRED_DISTRO_FEATURES = "waydroid wayland opengl"
+REQUIRED_DISTRO_FEATURES:append:imx8mm-jaguar-screen = " etnaviv"
 
 WEBOS_SYSTEMD_SERVICE = "waydroid-init.service waydroid-container.service"
 
