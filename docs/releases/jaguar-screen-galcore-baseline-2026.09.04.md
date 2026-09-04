@@ -13,8 +13,12 @@ Etnaviv.
 - Hardware rollback target: Foundries target `2838`
 - Tagged source release build: Foundries target `2840`
 - Target 2840 OSTree: `0008cdaca80b08c524d6db29df02c6c168382ea9e8de07814083380a04d36ea2`
-- BSP submodule: `88b8e2706814622476f0eac962935f4888df7af7`
-- Distro submodule: `ef0bb9b09a72480e30507e9807d684aea8e98400`
+- Manifest-pinned BSP: `6ca2f503c0310cb6605890f09b68158cf3b0cf22`
+- Manifest-pinned distro: `84566da924d5f04ddaf1714b785ad6cd2625ef45`
+
+The top-level repository also records Git submodule links, but Foundries repo
+sync treats the explicit BSP and distro projects in `dynamic-devices.xml` as
+authoritative. Use the manifest-pinned revisions above for reproduction.
 
 The manifest and CI repositories carry the same release tag. Their tagged
 revisions are the authoritative source assembly and build configuration.
