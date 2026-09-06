@@ -103,6 +103,16 @@ do_install:append:imx8mm-lpddr4-evk() {
 do_install:append:imx8mm-jaguar-screen() {
     install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
     install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
+
+    # LXC executes hook paths.  The inherited LuneOS template uses /dev/null
+    # as a no-op post-stop hook, which exits 126 and makes every clean Waydroid
+    # shutdown look like a container failure.  Use an executable no-op.
+    config_base="${D}${libdir}/waydroid/data/configs/config_base"
+    if ! grep -qx 'lxc.hook.post-stop = /dev/null' "${config_base}"; then
+        bbfatal "unexpected Waydroid post-stop hook in ${config_base}"
+    fi
+    sed -i 's|^lxc.hook.post-stop = /dev/null$|lxc.hook.post-stop = /bin/true|' \
+        "${config_base}"
 }
 
 do_install:append:raspberrypi4-64() {
