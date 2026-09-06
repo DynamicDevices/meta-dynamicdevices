@@ -26,6 +26,12 @@ SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=
     file://waydroid-net.sh \
     file://waydroid-image-provision \
     file://waydroid-image-provision.service \
+    file://waydroid-jaguar-wait \
+    file://waydroid-jaguar-container.service \
+    file://waydroid-jaguar-session.service \
+    file://waydroid-jaguar-ui.service \
+    file://weston-jaguar-waydroid.ini \
+    file://90-waydroid-screen.conf \
 "
 S = "${WORKDIR}/git"
 
@@ -51,7 +57,12 @@ inherit pkgconfig
 #inherit webos_systemd
 inherit features_check systemd
 
-SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-screen = "waydroid-image-provision.service"
+SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-screen = " \
+    waydroid-image-provision.service \
+    waydroid-jaguar-container.service \
+    waydroid-jaguar-session.service \
+    waydroid-jaguar-ui.service \
+"
 SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-screen = "enable"
 
 # Product configuration selects the provider-neutral `android-container`
@@ -113,6 +124,23 @@ do_install:append:imx8mm-jaguar-screen() {
     fi
     sed -i 's|^lxc.hook.post-stop = /dev/null$|lxc.hook.post-stop = /bin/true|' \
         "${config_base}"
+
+    # The display controller is card2 on this board; card0 is the boot
+    # framebuffer and card1 is the render-only Etnaviv node.  Pinning card2
+    # prevents Weston from selecting the wrong KMS device after boot.
+    install -Dm0644 ${WORKDIR}/weston-jaguar-waydroid.ini \
+        ${D}${sysconfdir}/xdg/weston/waydroid-screen.ini
+    install -Dm0644 ${WORKDIR}/90-waydroid-screen.conf \
+        ${D}${systemd_system_unitdir}/weston.service.d/90-waydroid-screen.conf
+
+    install -Dm0755 ${WORKDIR}/waydroid-jaguar-wait \
+        ${D}${libexecdir}/waydroid-jaguar-wait
+    install -Dm0644 ${WORKDIR}/waydroid-jaguar-container.service \
+        ${D}${systemd_system_unitdir}/waydroid-jaguar-container.service
+    install -Dm0644 ${WORKDIR}/waydroid-jaguar-session.service \
+        ${D}${systemd_system_unitdir}/waydroid-jaguar-session.service
+    install -Dm0644 ${WORKDIR}/waydroid-jaguar-ui.service \
+        ${D}${systemd_system_unitdir}/waydroid-jaguar-ui.service
 }
 
 do_install:append:raspberrypi4-64() {
