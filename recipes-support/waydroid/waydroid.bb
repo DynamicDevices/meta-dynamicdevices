@@ -36,6 +36,7 @@ SRC_URI:append:imx8mm-jaguar-screen = " \
     file://waydroid-zram.service \
     file://waydroid-container-2gb.conf \
     file://waydroid-memory-headroom \
+    file://waydroid-board-evidence \
     file://waydroid-acceleration-check \
     file://waydroid-v4l2-probe \
     file://waydroid-vsidaemon.service \
@@ -136,6 +137,7 @@ do_install:append:imx8mm-jaguar-screen() {
     install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
     install -Dm0755 ${WORKDIR}/waydroid-zram ${D}${libexecdir}/waydroid-zram
     install -Dm0755 ${WORKDIR}/waydroid-memory-headroom ${D}${libexecdir}/waydroid-memory-headroom
+    install -Dm0755 ${WORKDIR}/waydroid-board-evidence ${D}${libexecdir}/waydroid-board-evidence
     install -Dm0755 ${WORKDIR}/waydroid-acceleration-check ${D}${libexecdir}/waydroid-acceleration-check
     install -Dm0755 ${WORKDIR}/waydroid-v4l2-probe ${D}${libexecdir}/waydroid-v4l2-probe
     install -Dm0644 ${WORKDIR}/waydroid-zram.service \

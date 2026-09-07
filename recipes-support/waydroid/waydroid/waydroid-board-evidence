@@ -1,0 +1,126 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+
+set -eu
+umask 027
+
+mode=${1:-capture}
+output=${2:-/var/log/waydroid-validation/$(date -u +%Y%m%dT%H%M%SZ)}
+failed=0
+
+mark_fail() {
+    echo "FAIL: $*" >&2
+    failed=1
+}
+
+capture_all() {
+    destination=$1
+    mkdir -p "${destination}"
+
+    {
+        echo "captured_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        echo "boot_id=$(cat /proc/sys/kernel/random/boot_id)"
+        echo "kernel=$(uname -srvmo)"
+        echo "uptime_seconds=$(cut -d' ' -f1 /proc/uptime)"
+        [ -r /etc/os-release ] && cat /etc/os-release
+    } > "${destination}/host.txt"
+
+    /usr/libexec/waydroid-memory-headroom > "${destination}/memory.txt" 2>&1 \
+        || mark_fail 'memory snapshot failed'
+    /usr/libexec/waydroid-acceleration-check > "${destination}/acceleration.txt" 2>&1 \
+        || mark_fail 'acceleration gate failed'
+
+    systemctl show waydroid-container.service waydroid-vsidaemon.service \
+        -p Id -p ActiveState -p SubState -p MainPID -p ControlGroup \
+        > "${destination}/services.txt" 2>&1 || mark_fail 'service snapshot failed'
+    journalctl -b --no-pager -n 200 \
+        -u waydroid-container.service -u waydroid-vsidaemon.service \
+        > "${destination}/service-journal.txt" 2>&1 || true
+
+    {
+        stat -c '%n uid=%u gid=%g mode=%a type=%t:%T' \
+            /dev/dri/renderD* /dev/dma_heap/* /dev/video* 2>/dev/null || true
+        for node in /sys/class/drm/renderD*/device/uevent; do
+            [ -r "${node}" ] || continue
+            echo "[${node}]"
+            cat "${node}"
+        done
+    } > "${destination}/accelerator-devices.txt"
+
+    {
+        for property in ro.build.fingerprint ro.build.version.release \
+                ro.build.version.security_patch ro.hardware.egl \
+                ro.hardware.gralloc ro.hardware.vulkan; do
+            printf '%s=' "${property}"
+            waydroid shell getprop "${property}" 2>/dev/null || true
+        done
+        waydroid shell pm list features 2>/dev/null \
+            | grep -E 'opengles|vulkan' || true
+        waydroid shell dumpsys SurfaceFlinger 2>/dev/null \
+            | grep -Ei 'GLES|etnaviv|GC7000|Vivante|refresh|fps' | head -80 || true
+        waydroid shell dumpsys media.codec 2>/dev/null \
+            | grep -E 'c2\.v4l2|decoder' | head -120 || true
+    } > "${destination}/android.txt"
+    waydroid shell dumpsys SurfaceFlinger --latency \
+        > "${destination}/surfaceflinger-latency.txt" 2>&1 || true
+
+    if [ -d /usr/share/waydroid-extra/evidence ]; then
+        (cd /usr/share/waydroid-extra/evidence && sha256sum *) \
+            > "${destination}/installed-evidence-sha256.txt" 2>&1 \
+            || mark_fail 'installed Android evidence hashing failed'
+    else
+        mark_fail 'installed Android evidence directory is absent'
+    fi
+}
+
+case "${mode}" in
+    capture)
+        capture_all "${output}"
+        ;;
+    restart)
+        capture_all "${output}/before"
+        systemctl restart waydroid-container.service \
+            || mark_fail 'container restart command failed'
+        running=false
+        attempts=0
+        while [ "${attempts}" -lt 90 ]; do
+            if waydroid status 2>/dev/null | grep -Fq 'Container: RUNNING'; then
+                running=true
+                break
+            fi
+            attempts=$((attempts + 1))
+            sleep 1
+        done
+        [ "${running}" = true ] || mark_fail 'container did not recover within 90 seconds'
+        capture_all "${output}/after"
+        ;;
+    suspend-prepare)
+        mkdir -p "${output}"
+        cat /proc/sys/kernel/random/boot_id > "${output}/boot-id"
+        date +%s > "${output}/started-at"
+        capture_all "${output}/before"
+        echo "Prepared ${output}; suspend the board, wake it, then run:"
+        echo "$0 suspend-verify ${output}"
+        ;;
+    suspend-verify)
+        [ -r "${output}/boot-id" ] && [ -r "${output}/started-at" ] \
+            || { echo "Missing suspend preparation state in ${output}" >&2; exit 2; }
+        [ "$(cat "${output}/boot-id")" = "$(cat /proc/sys/kernel/random/boot_id)" ] \
+            || mark_fail 'board rebooted instead of resuming the same kernel'
+        journalctl -k --no-pager --since "@$(cat "${output}/started-at")" \
+            > "${output}/suspend-kernel-journal.txt" 2>&1 || true
+        grep -Eiq 'PM: suspend entry|suspending system' "${output}/suspend-kernel-journal.txt" \
+            || mark_fail 'kernel suspend entry was not recorded'
+        grep -Eiq 'PM: suspend exit|resume from suspend|Finishing wakeup' \
+            "${output}/suspend-kernel-journal.txt" \
+            || mark_fail 'kernel resume was not recorded'
+        capture_all "${output}/after"
+        ;;
+    *)
+        echo "Usage: $0 {capture|restart|suspend-prepare|suspend-verify} [output-directory]" >&2
+        exit 2
+        ;;
+esac
+
+echo "evidence=${output}"
+exit "${failed}"

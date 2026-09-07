@@ -52,3 +52,19 @@ sudo /usr/libexec/waydroid-acceleration-check
 This is a release gate: it checks AppArmor is enabled and enforcing, the LXC
 profile is selected, the device policy is deny-by-default with exact rules,
 and the Android GPU/Vulkan/Codec2 runtime state matches the product contract.
+
+Record the complete target snapshots and restart proof with:
+
+```sh
+sudo /usr/libexec/waydroid-board-evidence capture
+sudo /usr/libexec/waydroid-board-evidence restart
+```
+
+Suspend/resume is a two-stage test so the evidence survives the SSH session
+dropping during suspend:
+
+```sh
+sudo /usr/libexec/waydroid-board-evidence suspend-prepare /var/log/waydroid-validation/suspend-1
+# Suspend and wake the board using the product wake source.
+sudo /usr/libexec/waydroid-board-evidence suspend-verify /var/log/waydroid-validation/suspend-1
+```
