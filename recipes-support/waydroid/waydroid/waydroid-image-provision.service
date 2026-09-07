@@ -1,8 +1,8 @@
 [Unit]
 Description=Provision Waydroid Android images into persistent storage
 Wants=network-online.target
-Requires=waydroid-vsidaemon.service
-After=network-online.target dbus.service waydroid-vsidaemon.service
+Requires=apparmor.service waydroid-vsidaemon.service
+After=network-online.target dbus.service apparmor.service waydroid-vsidaemon.service
 Before=waydroid-container.service
 StartLimitIntervalSec=0
 

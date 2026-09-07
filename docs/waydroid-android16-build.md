@@ -25,3 +25,30 @@ and build metadata as release evidence alongside the chunked images.
 CI runs this inside the digest-pinned Yocto build container with `/yocto`
 mounted at the same absolute path. Do not substitute `kas-container` without
 also arranging that mount and explicitly forwarding the AESL variables.
+
+## Host container security gate
+
+The `android-container` product feature also enables the AppArmor distro
+feature. The Jaguar kernel builds AppArmor into its ordered LSM list, and the
+Waydroid recipe installs all three upstream profiles in enforce mode. Image
+provisioning waits for `apparmor.service`; if the `lxc-waydroid` profile is not
+loaded, the generated LXC configuration remains unconfined and the runtime
+verification must fail.
+
+The patched, pinned Waydroid 1.6.3 runtime writes a deny-by-default LXC device
+policy. It then grants `rwm` only to fixed pseudo devices and the exact major
+and minor numbers of bind-mounted character devices. The product provisioner
+separately limits mounts to the chosen Etnaviv render node, approved DMA heaps,
+and the capability-selected NXP decoder. The GPU and heaps are `root:1003`
+(`AID_GRAPHICS`) mode `0660`; the decoder is `root:1013` (`AID_MEDIA`) mode
+`0660`. No block-device or wildcard device grant is generated.
+
+On the target, run:
+
+```sh
+sudo /usr/libexec/waydroid-acceleration-check
+```
+
+This is a release gate: it checks AppArmor is enabled and enforcing, the LXC
+profile is selected, the device policy is deny-by-default with exact rules,
+and the Android GPU/Vulkan/Codec2 runtime state matches the product contract.

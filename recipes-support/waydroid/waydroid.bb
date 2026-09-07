@@ -68,13 +68,13 @@ SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-screen = "waydroid-image-provision.service"
 SYSTEMD_SERVICE:${PN}:append:imx8mm-jaguar-screen = " waydroid-zram.service waydroid-vsidaemon.service"
 SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-screen = "enable"
 
-RDEPENDS:${PN}:append:imx8mm-jaguar-screen = " kmod util-linux-mkswap util-linux-swaponoff imx-vpu-hantro"
+RDEPENDS:${PN}:append:imx8mm-jaguar-screen = " apparmor kmod util-linux-mkswap util-linux-swaponoff imx-vpu-hantro"
 
 # Product configuration selects the provider-neutral `android-container`
 # bundle. The distro layer expands that bundle to these implementation
 # prerequisites; fail early if Waydroid is pulled into an incomplete image.
 REQUIRED_DISTRO_FEATURES = "waydroid wayland opengl"
-REQUIRED_DISTRO_FEATURES:append:imx8mm-jaguar-screen = " etnaviv"
+REQUIRED_DISTRO_FEATURES:append:imx8mm-jaguar-screen = " apparmor etnaviv"
 
 WEBOS_SYSTEMD_SERVICE = "waydroid-init.service waydroid-container.service"
 
@@ -83,7 +83,7 @@ CLEANBROKEN = "1"
 EXTRA_OEMAKE = "PREFIX=${prefix} SYSCONFDIR=${sysconfdir} SYSD_DIR=${systemd_system_unitdir} USE_NFTABLES=1"
 
 do_install() {
-    oe_runmake install DESTDIR=${D}
+    oe_runmake install install_apparmor DESTDIR=${D}
 
     # Keep the small webOS/LuneOS launcher integration out of the upstream
     # source tree so that the maintained Waydroid release can remain pinned.

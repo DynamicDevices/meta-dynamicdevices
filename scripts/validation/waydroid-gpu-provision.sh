@@ -47,6 +47,7 @@ if grep -Fq 'ro.hardware.vulkan' "${config}"; then
 fi
 
 printf '%s\n' \
+    'lxc.cgroup2.devices.deny = a' \
     "lxc.mount.entry = ${test_root}/dev/dri/renderD128 dev/dri/renderD128 none bind,create=file 0 0" \
     'lxc.mount.entry = /dev/dma_heap/system dev/dma_heap/system none bind,create=file 0 0' \
     'lxc.mount.entry = /dev/dma_heap/linux,cma dev/dma_heap/linux,cma none bind,create=file 0 0' \

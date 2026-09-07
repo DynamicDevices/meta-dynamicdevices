@@ -5,12 +5,44 @@ set -eu
 
 config=${WAYDROID_CONFIG:-/var/lib/waydroid/waydroid.cfg}
 nodes=${WAYDROID_LXC_NODES:-/var/lib/waydroid/lxc/waydroid/config_nodes}
+lxc_config=${WAYDROID_LXC_CONFIG:-/var/lib/waydroid/lxc/waydroid/config}
+apparmor_profiles=${WAYDROID_APPARMOR_PROFILES:-/sys/kernel/security/apparmor/profiles}
 sys_drm_dir=${WAYDROID_SYS_DRM_DIR:-/sys/class/drm}
 waydroid_bin=${WAYDROID_BIN:-/usr/bin/waydroid}
 failed=0
 
 pass() { echo "PASS: $*"; }
 fail() { echo "FAIL: $*" >&2; failed=1; }
+
+verify_char_device_rule() {
+    device=$1
+    label=$2
+    if [ ! -c "${device}" ]; then
+        fail "${label} is not a character device: ${device}"
+        return
+    fi
+    set -- $(stat -c '%t %T' "${device}")
+    major=$(printf '%d' "0x$1")
+    minor=$(printf '%d' "0x$2")
+    if grep -Fqx "${cgroup_controller}.devices.allow = c ${major}:${minor} rwm" "${nodes}"; then
+        pass "${label} has an exact cgroup device rule (${major}:${minor})"
+    else
+        fail "${label} lacks an exact cgroup device rule (${major}:${minor})"
+    fi
+}
+
+verify_device_dac() {
+    device=$1
+    gid=$2
+    label=$3
+    if [ -c "${device}" ] && [ "$(stat -c %u "${device}")" = 0 ] \
+            && [ "$(stat -c %g "${device}")" = "${gid}" ] \
+            && [ "$(stat -c %a "${device}")" = 660 ]; then
+        pass "${label} DAC is root:${gid} mode 0660"
+    else
+        fail "${label} DAC is not root:${gid} mode 0660"
+    fi
+}
 
 config_value() {
     key=$1
@@ -55,6 +87,15 @@ else
 fi
 
 if [ -r "${nodes}" ]; then
+    deny_count=$(grep -Ec '^lxc\.cgroup2?\.devices\.deny = a$' "${nodes}" || true)
+    if [ "${deny_count}" -eq 1 ] \
+            && ! grep -Eq '^lxc\.cgroup2?\.devices\.allow = a([[:space:]]|$)' "${nodes}"; then
+        pass 'LXC device policy denies by default and has no wildcard allow'
+    else
+        fail 'LXC device policy is not deny-by-default'
+    fi
+    cgroup_controller=$(grep -E '^lxc\.cgroup2?\.devices\.deny = a$' "${nodes}" \
+        | head -1 | sed 's/\.devices\.deny.*//')
     render_mounts=$(grep -c '/dev/dri/renderD' "${nodes}" || true)
     [ "${render_mounts}" -eq 1 ] && grep -Fq "${render}" "${nodes}" \
         && pass 'only the selected DRM render node is mounted' \
@@ -68,13 +109,41 @@ if [ -r "${nodes}" ]; then
     [ "${video_mounts}" -eq 1 ] && grep -Fq "${video}" "${nodes}" \
         && pass 'only the capability-selected V4L2 decoder node is mounted' \
         || fail 'V4L2 decoder-node mount is not exact'
+
+    if [ "${WAYDROID_ALLOW_FAKE_DEVICES:-0}" != 1 ] && [ -n "${cgroup_controller}" ]; then
+        verify_char_device_rule "${render}" 'DRM render node'
+        verify_device_dac "${render}" 1003 'DRM render node'
+        old_ifs=${IFS}
+        IFS=';'
+        for device in $(config_value dma_heap_devices); do
+            verify_char_device_rule "${device}" 'DMA heap'
+            verify_device_dac "${device}" 1003 'DMA heap'
+        done
+        IFS=${old_ifs}
+        verify_char_device_rule "${video}" 'V4L2 decoder node'
+    fi
 else
     fail "${nodes} is unavailable; initialize Waydroid first"
 fi
 
 if [ "${WAYDROID_ALLOW_FAKE_DEVICES:-0}" = 1 ]; then
-    pass 'V4L2 daemon and DAC checks skipped for fixture devices'
+    pass 'AppArmor, exact device-rule, V4L2 daemon and DAC checks skipped for fixture devices'
 else
+    [ -r /sys/module/apparmor/parameters/enabled ] \
+        && grep -Fqx Y /sys/module/apparmor/parameters/enabled \
+        && pass 'host AppArmor LSM is enabled' \
+        || fail 'host AppArmor LSM is not enabled'
+    [ -r "${lxc_config}" ] \
+        && grep -Fqx 'lxc.apparmor.profile = lxc-waydroid' "${lxc_config}" \
+        && ! grep -Eq '^lxc\.(aa_profile|apparmor\.profile) = unconfined$' "${lxc_config}" \
+        && pass 'Waydroid selects the enforcing AppArmor profile' \
+        || fail 'Waydroid is not configured with its AppArmor profile'
+    for profile in lxc-waydroid adbd android_app; do
+        [ -r "${apparmor_profiles}" ] \
+            && grep -Fq "${profile} (enforce)" "${apparmor_profiles}" \
+            && pass "Waydroid AppArmor profile ${profile} is enforcing" \
+            || fail "Waydroid AppArmor profile ${profile} is not enforcing"
+    done
     systemctl is-active --quiet waydroid-vsidaemon.service \
         && pass 'NXP Hantro userspace daemon is running' \
         || fail 'NXP Hantro userspace daemon is not running'
