@@ -34,14 +34,34 @@ if [ -z "${render_node}" ]; then
     exit 1
 fi
 
+dma_heap_devices=
+separator=
+have_system_heap=false
+for heap_name in system system-uncached linux,cma; do
+    candidate=/dev/dma_heap/${heap_name}
+    test_candidate=${WAYDROID_DEV_DMA_HEAP_DIR:-/dev/dma_heap}/${heap_name}
+    if [ -c "${test_candidate}" ] || {
+        [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" = 1 ] && [ -e "${test_candidate}" ]
+    }; then
+        dma_heap_devices=${dma_heap_devices}${separator}${candidate}
+        separator=';'
+        [ "${heap_name}" = system ] && have_system_heap=true
+    fi
+done
+
+if [ "${have_system_heap}" != true ]; then
+    echo "The required /dev/dma_heap/system device is unavailable" >&2
+    exit 1
+fi
+
 # Waydroid otherwise selects the first DRM node and may advertise a software
 # or unrelated GPU. Persist an exact, reviewable Android graphics contract.
-python3 - "${config}" "${render_node}" <<'PY'
+python3 - "${config}" "${render_node}" "${dma_heap_devices}" <<'PY'
 import configparser
 import os
 import sys
 
-path, render_node = sys.argv[1:]
+path, render_node, dma_heap_devices = sys.argv[1:]
 cfg = configparser.ConfigParser(interpolation=None)
 cfg.optionxform = str
 cfg.read(path)
@@ -49,6 +69,7 @@ cfg.read(path)
 if not cfg.has_section("waydroid"):
     cfg.add_section("waydroid")
 cfg.set("waydroid", "drm_device", render_node)
+cfg.set("waydroid", "dma_heap_devices", dma_heap_devices)
 
 if not cfg.has_section("properties"):
     cfg.add_section("properties")

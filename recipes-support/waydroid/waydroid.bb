@@ -22,6 +22,7 @@ RRECOMMENDS:${PN} += "\
 "
 
 SRC_URI = "git://github.com/waydroid/waydroid.git;branch=main;protocol=https \
+    file://0001-lxc-limit-graphics-device-permissions.patch \
     file://gbinder.conf \
     file://waydroid-luneos.env \
     file://waydroid-luneos-appinfo.json \

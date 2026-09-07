@@ -10,10 +10,13 @@ trap 'rm -rf "${test_root}"' EXIT HUP INT TERM
 
 mkdir -p "${test_root}/images" \
     "${test_root}/sys/class/drm/renderD128/device" \
-    "${test_root}/dev/dri"
+    "${test_root}/dev/dri" \
+    "${test_root}/dev/dma_heap"
 printf 'image\n' > "${test_root}/images/system.img"
 printf 'image\n' > "${test_root}/images/vendor.img"
 printf 'DRIVER=etnaviv\n' > "${test_root}/sys/class/drm/renderD128/device/uevent"
+printf 'heap\n' > "${test_root}/dev/dma_heap/system"
+printf 'heap\n' > "${test_root}/dev/dma_heap/linux,cma"
 printf '[waydroid]\narch = arm64\n\n[properties]\nro.hardware.vulkan = lvp\n' \
     > "${test_root}/waydroid.cfg"
 
@@ -21,11 +24,13 @@ WAYDROID_IMAGES_DIR=${test_root}/images \
 WAYDROID_CONFIG=${test_root}/waydroid.cfg \
 WAYDROID_SYS_DRM_DIR=${test_root}/sys/class/drm \
 WAYDROID_DEV_DRI_DIR=${test_root}/dev/dri \
+WAYDROID_DEV_DMA_HEAP_DIR=${test_root}/dev/dma_heap \
 WAYDROID_ALLOW_FAKE_DRM=1 \
     sh "${provision}"
 
 config=${test_root}/waydroid.cfg
 grep -Fqx 'drm_device = '"${test_root}"'/dev/dri/renderD128' "${config}"
+grep -Fqx 'dma_heap_devices = /dev/dma_heap/system;/dev/dma_heap/linux,cma' "${config}"
 grep -Fqx 'gralloc.gbm.device = '"${test_root}"'/dev/dri/renderD128' "${config}"
 grep -Fqx 'ro.hardware.egl = mesa' "${config}"
 grep -Fqx 'ro.hardware.gralloc = minigbm_gbm_mesa' "${config}"
