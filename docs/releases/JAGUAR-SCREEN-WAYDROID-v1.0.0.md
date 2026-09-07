@@ -14,7 +14,6 @@ the physical 1920x1200 display.
 - automatic Waydroid container, session and full-screen UI startup;
 - Binder, pressure stall and etnaviv host support;
 - Mesa GC600 acceleration in Weston and Android SurfaceFlinger;
-- immediate reboot support by keeping WDOG1 disabled through SPL and U-Boot;
 - offline Jaguar GPU Drive demo with live FPS and adjustable particle load.
 
 ## Evidence
@@ -26,10 +25,11 @@ the physical 1920x1200 display.
 - API: `OpenGL ES 2.0 Mesa 26.0.1`
 - Demo baseline: approximately 13 fps at 10,000 particles
 
-Target 2888 validates the final splash-orientation and SPL watchdog fixes. The
-release manifest adds this documentation and the demo source; it does not
-change the installed image. The release tags identify the exact manifest and
-layer commits used by the final release target.
+Target 2888 was rejected after physical validation: disabling the SPL watchdog
+did not remove the reboot delay and affected the proven boot presentation. A
+later release candidate must restore the target 2887 boot display path and
+prove immediate reboot on the board. The release tags will identify the exact
+manifest and layer commits used by that final target.
 
 ## Known limits
 

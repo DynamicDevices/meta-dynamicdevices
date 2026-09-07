@@ -6,8 +6,8 @@ Jaguar Screen Waydroid v1.0.0 boots the physical
 `imx8mm-jaguar-screen` board from a Foundries-built LmP image into a
 full-screen LineageOS desktop. The first proven image was Foundries target
 2887, built from manifest `88ab13ce2c5f611847566be3d1b8f9f4b4ca47cf`.
-Target 2888 validates the upright Weston handover and immediate-reboot
-firmware fixes.
+Target 2888 was rejected during physical validation: its SPL watchdog change
+did not remove the reboot delay and affected the proven boot presentation.
 
 The validated display path is:
 
@@ -78,9 +78,10 @@ Run `waydroid app install` and `waydroid app launch` as the `weston`
 session user. The exact environment is shown in
 `demos/jaguar-waydroid-gpu-demo/README.md`.
 
-The boot firmware must leave WDOG1 disabled. Both
-`CONFIG_SPL_WATCHDOG` and `CONFIG_WATCHDOG_AUTOSTART` are disabled in the
-Screen U-Boot configuration so Linux can perform an immediate reset.
+The Screen U-Boot configuration disables `CONFIG_WATCHDOG_AUTOSTART`. Do not
+change the SPL watchdog configuration as a reboot workaround: target 2888
+proved that doing so did not remove the delay and disturbed the display
+baseline. Treat immediate reboot as a separate Linux restart-path requirement.
 
 ## Demonstration
 
