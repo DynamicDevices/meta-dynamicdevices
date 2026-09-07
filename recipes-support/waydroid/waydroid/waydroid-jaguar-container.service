@@ -7,6 +7,7 @@ ConditionPathExists=/var/lib/waydroid/images/vendor.img
 
 [Service]
 Type=simple
+ExecStartPre=/usr/libexec/waydroid-jaguar-vpu-prepare
 ExecStart=/usr/bin/waydroid container start
 Restart=on-failure
 RestartSec=5

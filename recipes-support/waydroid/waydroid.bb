@@ -19,6 +19,7 @@ RRECOMMENDS:${PN} += "\
     kernel-module-binder-linux \
     kernel-module-ashmem-linux \
 "
+RRECOMMENDS:${PN}:append:imx8mm-jaguar-screen = " kernel-module-vsiv4l2"
 
 SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=https \
     file://gbinder.conf \
@@ -26,11 +27,13 @@ SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=
     file://waydroid-image-provision \
     file://waydroid-image-provision.service \
     file://waydroid-jaguar-wait \
+    file://waydroid-jaguar-vpu-prepare \
     file://waydroid-jaguar-container.service \
     file://waydroid-jaguar-session.service \
     file://waydroid-jaguar-ui.service \
     file://weston-jaguar-waydroid.ini \
     file://90-waydroid-screen.conf \
+    file://waydroid-vpu.conf \
 "
 S = "${WORKDIR}/git"
 
@@ -124,6 +127,14 @@ do_install:append:imx8mm-jaguar-screen() {
     sed -i 's|^lxc.hook.post-stop = /dev/null$|lxc.hook.post-stop = /bin/true|' \
         "${config_base}"
 
+    # The older Waydroid baseline forced OMX codecs. The Jaguar vendor image
+    # supplies a V4L2 Codec2 service, so allow MediaCodec to select it.
+    if ! grep -qx 'debug.stagefright.ccodec=0' "${config_base}"; then
+        bbfatal "unexpected Waydroid Codec2 setting in ${config_base}"
+    fi
+    sed -i 's/^debug.stagefright.ccodec=0$/debug.stagefright.ccodec=2/' \
+        "${config_base}"
+
     # The display controller is card2 on this board; card0 is the boot
     # framebuffer and card1 is the render-only Etnaviv node.  Pinning card2
     # prevents Weston from selecting the wrong KMS device after boot.
@@ -134,6 +145,10 @@ do_install:append:imx8mm-jaguar-screen() {
 
     install -Dm0755 ${WORKDIR}/waydroid-jaguar-wait \
         ${D}${libexecdir}/waydroid-jaguar-wait
+    install -Dm0755 ${WORKDIR}/waydroid-jaguar-vpu-prepare \
+        ${D}${libexecdir}/waydroid-jaguar-vpu-prepare
+    install -Dm0644 ${WORKDIR}/waydroid-vpu.conf \
+        ${D}${sysconfdir}/modules-load.d/waydroid-vpu.conf
     install -Dm0644 ${WORKDIR}/waydroid-jaguar-container.service \
         ${D}${systemd_system_unitdir}/waydroid-jaguar-container.service
     install -Dm0644 ${WORKDIR}/waydroid-jaguar-session.service \

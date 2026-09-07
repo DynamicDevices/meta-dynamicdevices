@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+
+config=/var/lib/waydroid/lxc/waydroid/config_nodes
+
+modprobe vsiv4l2
+
+# The camera normally occupies video0, followed by the VSI encoder and
+# decoder. NXP's driver leaves the sysfs `name` attribute empty, but publishes
+# ID_V4L_PRODUCT through udev. Use that identity so boot order cannot silently
+# redirect Android to the wrong device.
+decoder=
+for candidate in /dev/video*; do
+    [ -c "$candidate" ] || continue
+    udevadm info -q property -n "$candidate" 2>/dev/null \
+        | grep -Fqx 'ID_V4L_PRODUCT=vsi_v4l2dec' || continue
+    decoder="$candidate"
+    break
+done
+
+[ -n "$decoder" ] || {
+    echo "NXP VSI V4L2 decoder node was not created" >&2
+    exit 1
+}
+[ -c "$decoder" ] || {
+    echo "NXP VSI V4L2 decoder is not a character device: $decoder" >&2
+    exit 1
+}
+[ -f "$config" ] || {
+    echo "Waydroid LXC node configuration is missing: $config" >&2
+    exit 1
+}
+
+node=$(basename "$decoder")
+entry="lxc.mount.entry = $decoder dev/$node none bind,create=file,optional 0 0"
+grep -Fqx "$entry" "$config" || printf '%s\n' "$entry" >> "$config"
