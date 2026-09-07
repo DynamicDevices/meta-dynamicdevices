@@ -24,6 +24,19 @@ local_conf_header:
     FILESEXTRAPATHS:prepend:pn-waydroid-data := "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm:${AESL_ANDROID_ARTIFACT_DIR}:"
     require ${AESL_ANDROID_ARTIFACT_DIR}/waydroid-images.inc
 
+    # The base development profile suppresses SPDX for speed. This CRA proof
+    # image must describe the complete Linux host as well as carrying the
+    # Android SPDX document installed by waydroid-data.
+    CREATE_SPDX:forcevariable = "1"
+    INHERIT:remove = "spdx"
+    INHERIT:append = " create-spdx"
+    SPDX_PRETTY = "1"
+    SPDX_INCLUDE_SOURCES = "0"
+    SPDX_ARCHIVE_PACKAGED = "0"
+    SPDX_ARCHIVE_SOURCES = "0"
+    COPY_LIC_MANIFEST = "1"
+    COPY_LIC_DIRS = "1"
+
     python () {
         artifact_dir = d.getVar("AESL_ANDROID_ARTIFACT_DIR") or ""
         work_root = d.getVar("AESL_YOCTO_WORK_ROOT") or ""

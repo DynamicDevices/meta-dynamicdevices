@@ -62,6 +62,7 @@ jobs:
           test -d "${deploy}"
           find "${deploy}" -maxdepth 1 -type f -printf '%f\n' | sort
           find "${deploy}" -maxdepth 1 -type f -name '*.manifest' -print -quit | grep -q .
+          find "${deploy}" -maxdepth 1 -type f -name '*.spdx.tar.zst' -print -quit | grep -q .
 
       - uses: actions/upload-artifact@v4
         with:

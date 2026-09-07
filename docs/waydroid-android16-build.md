@@ -21,6 +21,10 @@ KAS_BUILD_DIR=/yocto/waydroid-host/kas-build \
 The KAS profile rejects artifact and work paths outside `/yocto`; `waydroid-data`
 rejects absent or malformed SHA-256 pins and installs the SBOM, source lock,
 and build metadata as release evidence alongside the chunked images.
+The proof profile also re-enables OpenEmbedded SPDX generation and copies the
+host package licence manifest and licence texts into the image. CI fails unless
+the deploy directory contains the host image manifest and SPDX archive, so the
+Android SBOM is not mistaken for a complete product SBOM.
 
 CI runs this inside the digest-pinned Yocto build container with `/yocto`
 mounted at the same absolute path. Do not substitute `kas-container` without
