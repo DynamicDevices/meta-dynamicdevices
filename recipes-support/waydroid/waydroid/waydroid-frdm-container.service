@@ -1,0 +1,16 @@
+[Unit]
+Description=Waydroid container on FRDM-IMX95
+Requires=waydroid-image-provision.service
+After=waydroid-image-provision.service dbus.service
+ConditionPathExists=/var/lib/waydroid/images/system.img
+ConditionPathExists=/var/lib/waydroid/images/vendor.img
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/waydroid container start
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target

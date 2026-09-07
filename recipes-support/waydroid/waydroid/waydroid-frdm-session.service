@@ -1,0 +1,22 @@
+[Unit]
+Description=Waydroid graphical session on FRDM-IMX95
+Requires=waydroid-frdm-container.service weston.service
+After=waydroid-frdm-container.service weston.service
+BindsTo=weston.service
+
+[Service]
+Type=simple
+User=weston
+Group=weston
+SupplementaryGroups=video render wayland
+Environment=HOME=/var/rootdirs/home/weston
+Environment=XDG_RUNTIME_DIR=/run/user/63
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/63/bus
+Environment=WAYLAND_DISPLAY=wayland-1
+ExecStart=/usr/bin/waydroid session start
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+
+[Install]
+WantedBy=graphical.target

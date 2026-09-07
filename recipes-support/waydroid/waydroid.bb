@@ -31,6 +31,10 @@ SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=
     file://waydroid-jaguar-ui.service \
     file://weston-jaguar-waydroid.ini \
     file://90-waydroid-screen.conf \
+    file://waydroid-frdm-container.service \
+    file://waydroid-frdm-session.service \
+    file://waydroid-frdm-ui.service \
+    file://waydroid-product-wait \
 "
 S = "${WORKDIR}/git"
 
@@ -63,6 +67,14 @@ SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-screen = " \
     waydroid-jaguar-ui.service \
 "
 SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-screen = "enable"
+
+SYSTEMD_SERVICE:${PN}:imx95-frdm-evk = " \
+    waydroid-image-provision.service \
+    waydroid-frdm-container.service \
+    waydroid-frdm-session.service \
+    waydroid-frdm-ui.service \
+"
+SYSTEMD_AUTO_ENABLE:${PN}:imx95-frdm-evk = "enable"
 
 # Product configuration selects the provider-neutral `android-container`
 # bundle. The distro layer expands that bundle to these implementation
@@ -150,6 +162,25 @@ do_install:append:raspberrypi4-64() {
 do_install:append:imx95-frdm-evk() {
     install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
     install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
+
+    # Match the Screen product's first-boot provisioning and graphical
+    # session flow, while leaving DRM connector/card selection to the FRDM
+    # BSP and Weston's normal device discovery.
+    config_base="${D}${libdir}/waydroid/data/configs/config_base"
+    if ! grep -qx 'lxc.hook.post-stop = /dev/null' "${config_base}"; then
+        bbfatal "unexpected Waydroid post-stop hook in ${config_base}"
+    fi
+    sed -i 's|^lxc.hook.post-stop = /dev/null$|lxc.hook.post-stop = /bin/true|' \
+        "${config_base}"
+
+    install -Dm0755 ${WORKDIR}/waydroid-product-wait \
+        ${D}${libexecdir}/waydroid-product-wait
+    install -Dm0644 ${WORKDIR}/waydroid-frdm-container.service \
+        ${D}${systemd_system_unitdir}/waydroid-frdm-container.service
+    install -Dm0644 ${WORKDIR}/waydroid-frdm-session.service \
+        ${D}${systemd_system_unitdir}/waydroid-frdm-session.service
+    install -Dm0644 ${WORKDIR}/waydroid-frdm-ui.service \
+        ${D}${systemd_system_unitdir}/waydroid-frdm-ui.service
 }
 
 FILES:${PN} += " \

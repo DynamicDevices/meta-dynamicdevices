@@ -1,0 +1,22 @@
+[Unit]
+Description=Present the Waydroid full-screen UI on FRDM-IMX95
+Requires=waydroid-frdm-session.service
+After=waydroid-frdm-session.service
+PartOf=waydroid-frdm-session.service
+
+[Service]
+Type=oneshot
+User=weston
+Group=weston
+SupplementaryGroups=video render wayland
+Environment=HOME=/var/rootdirs/home/weston
+Environment=XDG_RUNTIME_DIR=/run/user/63
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/63/bus
+Environment=WAYLAND_DISPLAY=wayland-1
+ExecStartPre=/usr/libexec/waydroid-product-wait session
+ExecStart=/usr/bin/waydroid show-full-ui
+RemainAfterExit=yes
+TimeoutStartSec=180
+
+[Install]
+WantedBy=graphical.target
