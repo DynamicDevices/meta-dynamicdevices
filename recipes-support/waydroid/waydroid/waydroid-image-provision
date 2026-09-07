@@ -3,16 +3,70 @@
 
 set -eu
 
-images_dir=/var/lib/waydroid/images
-config=/var/lib/waydroid/waydroid.cfg
+images_dir=${WAYDROID_IMAGES_DIR:-/var/lib/waydroid/images}
+config=${WAYDROID_CONFIG:-/var/lib/waydroid/waydroid.cfg}
+sys_drm_dir=${WAYDROID_SYS_DRM_DIR:-/sys/class/drm}
+dev_dri_dir=${WAYDROID_DEV_DRI_DIR:-/dev/dri}
+waydroid_bin=${WAYDROID_BIN:-/usr/bin/waydroid}
 
-if [ -s "${images_dir}/system.img" ] && [ -s "${images_dir}/vendor.img" ]; then
-    exit 0
+if ! [ -s "${images_dir}/system.img" ] || ! [ -s "${images_dir}/vendor.img" ]; then
+    # An interrupted first initialization can leave configuration claiming a
+    # channel revision whose image was never fully installed. Let Waydroid
+    # build that configuration again before its checksum-verified download.
+    rm -f "${config}"
+    "${waydroid_bin}" init
 fi
 
-# An interrupted first initialization can leave configuration claiming a
-# channel revision whose image was never fully installed.  Let Waydroid build
-# that configuration again before its checksum-verified channel download.
-rm -f "${config}"
+render_node=
+for sys_node in "${sys_drm_dir}"/renderD*; do
+    [ -r "${sys_node}/device/uevent" ] || continue
+    if grep -Fqx 'DRIVER=etnaviv' "${sys_node}/device/uevent"; then
+        candidate="${dev_dri_dir}/${sys_node##*/}"
+        if [ -c "${candidate}" ] || [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" = 1 ]; then
+            render_node=${candidate}
+            break
+        fi
+    fi
+done
 
-exec /usr/bin/waydroid init
+if [ -z "${render_node}" ]; then
+    echo "No Etnaviv DRM render node is available; refusing GPU fallback" >&2
+    exit 1
+fi
+
+# Waydroid otherwise selects the first DRM node and may advertise a software
+# or unrelated GPU. Persist an exact, reviewable Android graphics contract.
+python3 - "${config}" "${render_node}" <<'PY'
+import configparser
+import os
+import sys
+
+path, render_node = sys.argv[1:]
+cfg = configparser.ConfigParser(interpolation=None)
+cfg.optionxform = str
+cfg.read(path)
+
+if not cfg.has_section("waydroid"):
+    cfg.add_section("waydroid")
+cfg.set("waydroid", "drm_device", render_node)
+
+if not cfg.has_section("properties"):
+    cfg.add_section("properties")
+properties = {
+    "gralloc.gbm.device": render_node,
+    "ro.hardware.egl": "mesa",
+    "ro.hardware.gralloc": "minigbm_gbm_mesa",
+    "ro.hardware.hwcomposer": "waydroid",
+    "ro.opengles.version": "196609",
+}
+for key, value in properties.items():
+    cfg.set("properties", key, value)
+cfg.remove_option("properties", "ro.hardware.vulkan")
+
+tmp = path + ".tmp"
+with open(tmp, "w", encoding="utf-8") as output:
+    cfg.write(output)
+os.replace(tmp, path)
+PY
+
+echo "Pinned Waydroid graphics to Etnaviv node ${render_node}"
