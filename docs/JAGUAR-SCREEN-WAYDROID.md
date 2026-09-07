@@ -6,6 +6,8 @@ Jaguar Screen Waydroid v1.0.0 boots the physical
 `imx8mm-jaguar-screen` board from a Foundries-built LmP image into a
 full-screen LineageOS desktop. The first proven image was Foundries target
 2887, built from manifest `88ab13ce2c5f611847566be3d1b8f9f4b4ca47cf`.
+Target 2888 validates the upright Weston handover and immediate-reboot
+firmware fixes.
 
 The validated display path is:
 

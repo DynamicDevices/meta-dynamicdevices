@@ -26,9 +26,10 @@ the physical 1920x1200 display.
 - API: `OpenGL ES 2.0 Mesa 26.0.1`
 - Demo baseline: approximately 13 fps at 10,000 particles
 
-Target 2888 is the release validation build for the final splash-orientation
-and SPL watchdog fixes. The release tags identify the exact manifest and layer
-commits used by the final validated target.
+Target 2888 validates the final splash-orientation and SPL watchdog fixes. The
+release manifest adds this documentation and the demo source; it does not
+change the installed image. The release tags identify the exact manifest and
+layer commits used by the final release target.
 
 ## Known limits
 
