@@ -81,7 +81,9 @@ session user. The exact environment is shown in
 The Screen U-Boot configuration disables `CONFIG_WATCHDOG_AUTOSTART`. Do not
 change the SPL watchdog configuration as a reboot workaround: target 2888
 proved that doing so did not remove the delay and disturbed the display
-baseline. Treat immediate reboot as a separate Linux restart-path requirement.
+baseline. The Screen-specific systemd manager drop-in sets
+`RebootWatchdogSec=2s`. It bounds the final post-sync stall without changing
+U-Boot, the kernel, DRM, or the splash handoff.
 
 ## Demonstration
 

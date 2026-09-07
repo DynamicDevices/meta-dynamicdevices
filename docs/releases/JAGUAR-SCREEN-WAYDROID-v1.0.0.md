@@ -14,6 +14,7 @@ the physical 1920x1200 display.
 - automatic Waydroid container, session and full-screen UI startup;
 - Binder, pressure stall and etnaviv host support;
 - Mesa GC600 acceleration in Weston and Android SurfaceFlinger;
+- a two-second final reboot watchdog, applied after unmount and sync;
 - offline Jaguar GPU Drive demo with live FPS and adjustable particle load.
 
 ## Evidence
@@ -28,8 +29,10 @@ the physical 1920x1200 display.
 Target 2888 was rejected after physical validation: disabling the SPL watchdog
 did not remove the reboot delay and affected the proven boot presentation. A
 later release candidate must restore the target 2887 boot display path and
-prove immediate reboot on the board. The release tags will identify the exact
-manifest and layer commits used by that final target.
+prove the two-second final reboot watchdog on the board. A live configuration
+test reduced the measured gap from `systemd-shutdown: Rebooting` to SPL from
+59.5 seconds to 2.48 seconds. The release tags will identify the exact manifest
+and layer commits used by the final Foundries target.
 
 ## Known limits
 
