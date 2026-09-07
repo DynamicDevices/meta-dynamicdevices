@@ -20,10 +20,9 @@ printf 'heap\n' > "${test_root}/dev/dma_heap/system"
 printf 'heap\n' > "${test_root}/dev/dma_heap/linux,cma"
 printf 'vsi_v4l2dec\n' > "${test_root}/sys/class/video4linux/video2/name"
 printf 'video\n' > "${test_root}/dev/video2"
-printf '[waydroid]\narch = arm64\n\n[properties]\nro.hardware.vulkan = lvp\n' \
-    > "${test_root}/waydroid.cfg"
+printf '[waydroid]\narch = arm64\nimages_path = %s/images\n\n[properties]\nro.hardware.vulkan = lvp\n' \
+    "${test_root}" > "${test_root}/waydroid.cfg"
 
-WAYDROID_IMAGES_DIR=${test_root}/images \
 WAYDROID_CONFIG=${test_root}/waydroid.cfg \
 WAYDROID_SYS_DRM_DIR=${test_root}/sys/class/drm \
 WAYDROID_DEV_DRI_DIR=${test_root}/dev/dri \

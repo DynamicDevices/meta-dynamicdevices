@@ -3,7 +3,6 @@
 
 set -eu
 
-images_dir=${WAYDROID_IMAGES_DIR:-/var/lib/waydroid/images}
 config=${WAYDROID_CONFIG:-/var/lib/waydroid/waydroid.cfg}
 sys_drm_dir=${WAYDROID_SYS_DRM_DIR:-/sys/class/drm}
 dev_dri_dir=${WAYDROID_DEV_DRI_DIR:-/dev/dri}
@@ -12,12 +11,31 @@ dev_video_dir=${WAYDROID_DEV_VIDEO_DIR:-/dev}
 waydroid_bin=${WAYDROID_BIN:-/usr/bin/waydroid}
 v4l2_probe=${WAYDROID_V4L2_PROBE:-/usr/libexec/waydroid-v4l2-probe}
 
+configured_images_dir() {
+    python3 - "${config}" <<'PY'
+import configparser
+import sys
+
+cfg = configparser.ConfigParser(interpolation=None)
+cfg.read(sys.argv[1])
+print(cfg.get("waydroid", "images_path", fallback="/var/lib/waydroid/images"))
+PY
+}
+
+images_dir=${WAYDROID_IMAGES_DIR:-$(configured_images_dir)}
 if ! [ -s "${images_dir}/system.img" ] || ! [ -s "${images_dir}/vendor.img" ]; then
     # An interrupted first initialization can leave configuration claiming a
     # channel revision whose image was never fully installed. Let Waydroid
     # build that configuration again before its checksum-verified download.
     rm -f "${config}"
     "${waydroid_bin}" init
+    if [ -z "${WAYDROID_IMAGES_DIR:-}" ]; then
+        images_dir=$(configured_images_dir)
+    fi
+    if ! [ -s "${images_dir}/system.img" ] || ! [ -s "${images_dir}/vendor.img" ]; then
+        echo "Waydroid initialization did not provide complete images in ${images_dir}" >&2
+        exit 1
+    fi
 fi
 
 render_node=
