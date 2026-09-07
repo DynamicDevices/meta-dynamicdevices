@@ -7,6 +7,8 @@ images_dir=${WAYDROID_IMAGES_DIR:-/var/lib/waydroid/images}
 config=${WAYDROID_CONFIG:-/var/lib/waydroid/waydroid.cfg}
 sys_drm_dir=${WAYDROID_SYS_DRM_DIR:-/sys/class/drm}
 dev_dri_dir=${WAYDROID_DEV_DRI_DIR:-/dev/dri}
+sys_video_dir=${WAYDROID_SYS_VIDEO_DIR:-/sys/class/video4linux}
+dev_video_dir=${WAYDROID_DEV_VIDEO_DIR:-/dev}
 waydroid_bin=${WAYDROID_BIN:-/usr/bin/waydroid}
 
 if ! [ -s "${images_dir}/system.img" ] || ! [ -s "${images_dir}/vendor.img" ]; then
@@ -54,14 +56,34 @@ if [ "${have_system_heap}" != true ]; then
     exit 1
 fi
 
+video_devices=
+separator=
+for sys_node in "${sys_video_dir}"/video*; do
+    [ -r "${sys_node}/name" ] || continue
+    grep -Fqx 'vsi_v4l2dec' "${sys_node}/name" || continue
+    node_name=${sys_node##*/}
+    test_candidate=${dev_video_dir}/${node_name}
+    if [ -c "${test_candidate}" ] || {
+        [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" = 1 ] && [ -e "${test_candidate}" ]
+    }; then
+        video_devices=${video_devices}${separator}/dev/${node_name}
+        separator=';'
+    fi
+done
+
+if [ -z "${video_devices}" ]; then
+    echo "No vsi_v4l2dec device is available; refusing unrelated V4L2 nodes" >&2
+    exit 1
+fi
+
 # Waydroid otherwise selects the first DRM node and may advertise a software
 # or unrelated GPU. Persist an exact, reviewable Android graphics contract.
-python3 - "${config}" "${render_node}" "${dma_heap_devices}" <<'PY'
+python3 - "${config}" "${render_node}" "${dma_heap_devices}" "${video_devices}" <<'PY'
 import configparser
 import os
 import sys
 
-path, render_node, dma_heap_devices = sys.argv[1:]
+path, render_node, dma_heap_devices, video_devices = sys.argv[1:]
 cfg = configparser.ConfigParser(interpolation=None)
 cfg.optionxform = str
 cfg.read(path)
@@ -70,6 +92,7 @@ if not cfg.has_section("waydroid"):
     cfg.add_section("waydroid")
 cfg.set("waydroid", "drm_device", render_node)
 cfg.set("waydroid", "dma_heap_devices", dma_heap_devices)
+cfg.set("waydroid", "video_devices", video_devices)
 
 if not cfg.has_section("properties"):
     cfg.add_section("properties")

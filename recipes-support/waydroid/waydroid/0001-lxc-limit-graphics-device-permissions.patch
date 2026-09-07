@@ -1,7 +1,7 @@
 From 4e294bc169a3455c8d50bf1ff5c1636ae8d3825f Mon Sep 17 00:00:00 2001
 From: Active ESL <engineering@active-esl.com>
 Date: Mon, 7 Sep 2026 15:00:00 +0100
-Subject: [PATCH] lxc: limit graphics device permissions
+Subject: [PATCH] lxc: limit graphics and video device permissions
 
 Do not chmod every DRM render node and DMA heap on the host to 0777. The
 configured DRM node is the only render node exposed by lxc.py, so apply
@@ -9,14 +9,17 @@ permissions to that node alone. Permit products to provide a semicolon-separated
 DMA heap allowlist and use 0666, without meaningless execute bits, for the
 selected character devices.
 
-The empty dma_heap_devices setting retains upstream discovery for products
-which have not opted into an allowlist.
+Apply the same allowlist model to V4L2 nodes so a hardware decoder does not
+grant the Android container access to unrelated cameras or capture devices.
+
+Empty dma_heap_devices and video_devices settings retain upstream discovery
+for products which have not opted into an allowlist.
 
 Signed-off-by: Active ESL <engineering@active-esl.com>
 ---
- tools/actions/container_manager.py | 15 ++++++++++-----
- tools/helpers/lxc.py                | 23 ++++++++++++++++++++++-
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ tools/actions/container_manager.py | 19 ++++++++++++-------
+ tools/helpers/lxc.py                | 46 ++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 56 insertions(+), 9 deletions(-)
 
 diff --git a/tools/actions/container_manager.py b/tools/actions/container_manager.py
 index 6e088bb..ad71ad8 100644
@@ -38,8 +41,8 @@ index 6e088bb..ad71ad8 100644
 -        perm_list.extend(glob.glob("/dev/dri/renderD*"))
          # Framebuffers
          perm_list.extend(glob.glob("/dev/fb*"))
-         # Videos
-         perm_list.extend(glob.glob("/dev/video*"))
+-        # Videos
+-        perm_list.extend(glob.glob("/dev/video*"))
 -        # DMA-BUF Heaps
 -        perm_list.extend(glob.glob("/dev/dma_heap/*"))
 -
@@ -54,6 +57,8 @@ index 6e088bb..ad71ad8 100644
 +            chmod(render, "666")
 +        for path in helpers.lxc.get_dma_heap_devices(args):
 +            chmod(path, "666")
++        for path in helpers.lxc.get_video_devices(args):
++            chmod(path, "666")
 +
  def start(args):
      mainloop = GLib.MainLoop()
@@ -62,7 +67,7 @@ diff --git a/tools/helpers/lxc.py b/tools/helpers/lxc.py
 index 1b6ff49..937cd52 100644
 --- a/tools/helpers/lxc.py
 +++ b/tools/helpers/lxc.py
-@@ -37,6 +37,27 @@ def add_node_entry(nodes, src, dist, mnt_type, options, check):
+@@ -37,6 +37,48 @@ def add_node_entry(nodes, src, dist, mnt_type, options, check):
      nodes.append(entry)
      return True
  
@@ -87,17 +92,41 @@ index 1b6ff49..937cd52 100644
 +            logging.warning("Configured DMA heap does not exist: %s", path)
 +    return devices
 +
++def get_video_devices(args):
++    """Return configured V4L2 nodes, rejecting paths outside /dev/videoN."""
++    cfg = tools.config.load(args)
++    configured = cfg["waydroid"].get("video_devices", "").strip()
++    if not configured:
++        return sorted(glob.glob("/dev/video*"))
++
++    devices = []
++    for item in configured.split(";"):
++        path = os.path.normpath(item.strip())
++        name = os.path.basename(path)
++        if (os.path.dirname(path) != "/dev" or not name.startswith("video") or
++                not name[5:].isdigit() or any(char in path for char in ["\n", "\r"])):
++            logging.warning("Ignoring invalid V4L2 device path: %s", item)
++            continue
++        if os.path.exists(path):
++            devices.append(path)
++        else:
++            logging.warning("Configured V4L2 device does not exist: %s", path)
++    return devices
++
  def generate_nodes_lxc_config(args):
      nodes = []
      def make_entry(src, dist=None, mnt_type="none", options="bind,create=file,optional 0 0", check=True):
-@@ -68,7 +89,7 @@ def generate_nodes_lxc_config(args):
+@@ -66,9 +108,9 @@ def generate_nodes_lxc_config(args):
+     for n in glob.glob("/dev/graphics/fb*"):
          make_entry(n)
-     for n in glob.glob("/dev/video*"):
+-    for n in glob.glob("/dev/video*"):
++    for n in get_video_devices(args):
          make_entry(n)
 -    for n in glob.glob("/dev/dma_heap/*"):
 +    for n in get_dma_heap_devices(args):
          make_entry(n)
  
      # Binder dev nodes
+     make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder", check=False)
 -- 
 2.43.0
