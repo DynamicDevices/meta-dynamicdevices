@@ -7,13 +7,11 @@ LICENSE = "GPL-3.0-only"
 SECTION = "devel/python"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1ebbd3e34237af26da5dc08a4e440464"
 
-# 1.1.1 fails with the Cython 3 toolchain used by Scarthgap. The bullseye
-# 1.1.2 tip includes the required noexcept declarations.
-PV = "1.1.2+git${SRCPV}"
-SRCREV = "5089d76d4cd958cedda0028ffd752c25508dd382"
-SRC_URI = "git://github.com/waydroid/gbinder-python.git;branch=bullseye;protocol=https \
-           file://0001-setup.py-Migrate-away-from-deprecated-distutils.core.patch \
-"
+# Waydroid 1.6.3 requires gbinder-python >= 1.3.0. Version 1.3.1 retains
+# the Cython 3 noexcept fixes required by the Scarthgap toolchain.
+PV = "1.3.1+git${SRCPV}"
+SRCREV = "86b8feba4cacd0952b010d1c3af6a29a0c146ced"
+SRC_URI = "git://github.com/waydroid/gbinder-python.git;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
 
