@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""Report V4L2 mem2mem devices or select NXP's H.264 decoder."""
+
+import argparse
+import fcntl
+import glob
+import json
+import os
+import struct
+
+VIDIOC_QUERYCAP = 0x80685600
+VIDIOC_ENUM_FMT = 0xC0405602
+V4L2_BUF_TYPE_VIDEO_CAPTURE = 1
+V4L2_BUF_TYPE_VIDEO_OUTPUT = 2
+V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9
+V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE = 10
+V4L2_CAP_VIDEO_M2M_MPLANE = 0x00004000
+V4L2_CAP_VIDEO_M2M = 0x00008000
+V4L2_CAP_STREAMING = 0x04000000
+V4L2_CAP_DEVICE_CAPS = 0x80000000
+V4L2_PIX_FMT_H264 = struct.unpack("<I", b"H264")[0]
+
+
+def c_string(value):
+    return value.split(b"\0", 1)[0].decode("ascii", "replace")
+
+
+def fourcc(value):
+    return struct.pack("<I", value).decode("ascii", "replace")
+
+
+def formats(fd, queue_type):
+    result = []
+    for index in range(64):
+        desc = bytearray(64)
+        struct.pack_into("<II", desc, 0, index, queue_type)
+        try:
+            fcntl.ioctl(fd, VIDIOC_ENUM_FMT, desc, True)
+        except OSError:
+            break
+        result.append(fourcc(struct.unpack_from("<I", desc, 44)[0]))
+    return result
+
+
+def inspect(path):
+    fd = os.open(path, os.O_RDWR | os.O_NONBLOCK | os.O_CLOEXEC)
+    try:
+        cap = bytearray(104)
+        fcntl.ioctl(fd, VIDIOC_QUERYCAP, cap, True)
+        driver, card, bus, version, capabilities, device_caps = struct.unpack_from(
+            "<16s32s32sIII", cap
+        )
+        effective = device_caps if capabilities & V4L2_CAP_DEVICE_CAPS else capabilities
+        return {
+            "path": path,
+            "driver": c_string(driver),
+            "card": c_string(card),
+            "bus": c_string(bus),
+            "version": version,
+            "capabilities": "0x{:08x}".format(effective),
+            "single_planar_m2m": bool(effective & V4L2_CAP_VIDEO_M2M),
+            "multi_planar_m2m": bool(effective & V4L2_CAP_VIDEO_M2M_MPLANE),
+            "streaming": bool(effective & V4L2_CAP_STREAMING),
+            "output_formats": formats(fd, V4L2_BUF_TYPE_VIDEO_OUTPUT),
+            "capture_formats": formats(fd, V4L2_BUF_TYPE_VIDEO_CAPTURE),
+            "output_mplane_formats": formats(fd, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE),
+            "capture_mplane_formats": formats(fd, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE),
+        }
+    finally:
+        os.close(fd)
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--device-dir", default="/dev")
+parser.add_argument("--select-h264-decoder", action="store_true")
+args = parser.parse_args()
+
+devices = []
+for device in sorted(glob.glob(os.path.join(args.device_dir, "video[0-9]*"))):
+    try:
+        devices.append(inspect(device))
+    except OSError as error:
+        devices.append({"path": device, "error": str(error)})
+
+if args.select_h264_decoder:
+    matches = [
+        device
+        for device in devices
+        if device.get("driver") == "vsi_v4l2"
+        and device.get("single_planar_m2m")
+        and device.get("streaming")
+        and "H264" in device.get("output_formats", [])
+    ]
+    if len(matches) != 1:
+        raise SystemExit("expected exactly one NXP H.264 decoder, found {}".format(len(matches)))
+    print("/dev/" + os.path.basename(matches[0]["path"]))
+else:
+    print(json.dumps(devices, indent=2, sort_keys=True))

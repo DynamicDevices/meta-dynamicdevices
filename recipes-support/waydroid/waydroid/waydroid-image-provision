@@ -10,6 +10,7 @@ dev_dri_dir=${WAYDROID_DEV_DRI_DIR:-/dev/dri}
 sys_video_dir=${WAYDROID_SYS_VIDEO_DIR:-/sys/class/video4linux}
 dev_video_dir=${WAYDROID_DEV_VIDEO_DIR:-/dev}
 waydroid_bin=${WAYDROID_BIN:-/usr/bin/waydroid}
+v4l2_probe=${WAYDROID_V4L2_PROBE:-/usr/libexec/waydroid-v4l2-probe}
 
 if ! [ -s "${images_dir}/system.img" ] || ! [ -s "${images_dir}/vendor.img" ]; then
     # An interrupted first initialization can leave configuration claiming a
@@ -57,22 +58,24 @@ if [ "${have_system_heap}" != true ]; then
 fi
 
 video_devices=
-separator=
-for sys_node in "${sys_video_dir}"/video*; do
-    [ -r "${sys_node}/name" ] || continue
-    grep -Fqx 'vsi_v4l2dec' "${sys_node}/name" || continue
-    node_name=${sys_node##*/}
-    test_candidate=${dev_video_dir}/${node_name}
-    if [ -c "${test_candidate}" ] || {
-        [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" = 1 ] && [ -e "${test_candidate}" ]
-    }; then
-        video_devices=${video_devices}${separator}/dev/${node_name}
-        separator=';'
-    fi
-done
+if [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" = 1 ]; then
+    for sys_node in "${sys_video_dir}"/video*; do
+        [ -r "${sys_node}/name" ] || continue
+        grep -Fqx 'vsi_v4l2dec' "${sys_node}/name" || continue
+        node_name=${sys_node##*/}
+        [ -e "${dev_video_dir}/${node_name}" ] && video_devices=/dev/${node_name}
+    done
+else
+    # The NXP 6.6 driver leaves /sys/class/video4linux/video*/name empty. Query
+    # the ABI instead: accept only a vsiv4l2 stateful M2M streaming device
+    # whose encoded-input queue advertises H.264. This excludes the camera and
+    # the VSI encoder without relying on unstable /dev/video numbering.
+    video_devices=$("${v4l2_probe}" --device-dir "${dev_video_dir}" --select-h264-decoder) \
+        || video_devices=
+fi
 
 if [ -z "${video_devices}" ]; then
-    echo "No vsi_v4l2dec device is available; refusing unrelated V4L2 nodes" >&2
+    echo "No H.264-capable NXP vsiv4l2 decoder is available; refusing unrelated V4L2 nodes" >&2
     exit 1
 fi
 
