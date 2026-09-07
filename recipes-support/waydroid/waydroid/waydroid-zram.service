@@ -1,0 +1,14 @@
+[Unit]
+Description=Compressed swap for the 2 GB Waydroid product
+Documentation=https://github.com/DynamicDevices/meta-dynamicdevices
+After=systemd-modules-load.service
+Before=waydroid-container.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/waydroid-zram start
+ExecStop=/usr/libexec/waydroid-zram stop
+
+[Install]
+WantedBy=multi-user.target

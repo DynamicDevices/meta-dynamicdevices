@@ -27,6 +27,12 @@ SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=
     file://waydroid-image-provision \
     file://waydroid-image-provision.service \
 "
+SRC_URI:append:imx8mm-jaguar-screen = " \
+    file://waydroid-zram \
+    file://waydroid-zram.service \
+    file://waydroid-container-2gb.conf \
+    file://waydroid-memory-headroom \
+"
 S = "${WORKDIR}/git"
 
 # Needs quite new kernel (probably >= 3.18) and from LuneOS supported machines
@@ -52,7 +58,10 @@ inherit pkgconfig
 inherit features_check systemd
 
 SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-screen = "waydroid-image-provision.service"
+SYSTEMD_SERVICE:${PN}:append:imx8mm-jaguar-screen = " waydroid-zram.service"
 SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-screen = "enable"
+
+RDEPENDS:${PN}:append:imx8mm-jaguar-screen = " kmod util-linux-mkswap util-linux-swaponoff"
 
 # Product configuration selects the provider-neutral `android-container`
 # bundle. The distro layer expands that bundle to these implementation
@@ -103,6 +112,13 @@ do_install:append:imx8mm-lpddr4-evk() {
 do_install:append:imx8mm-jaguar-screen() {
     install -Dm644 -t "${D}${sysconfdir}" "${WORKDIR}/gbinder.conf"
     install -m 755 ${WORKDIR}/waydroid-net.sh ${D}/usr/lib/waydroid/data/scripts/waydroid-net.sh
+    install -Dm0755 ${WORKDIR}/waydroid-zram ${D}${libexecdir}/waydroid-zram
+    install -Dm0755 ${WORKDIR}/waydroid-memory-headroom ${D}${libexecdir}/waydroid-memory-headroom
+    install -Dm0644 ${WORKDIR}/waydroid-zram.service \
+        ${D}${systemd_system_unitdir}/waydroid-zram.service
+    install -d ${D}${systemd_system_unitdir}/waydroid-container.service.d
+    install -m 0644 ${WORKDIR}/waydroid-container-2gb.conf \
+        ${D}${systemd_system_unitdir}/waydroid-container.service.d/20-memory-2gb.conf
 }
 
 do_install:append:raspberrypi4-64() {

@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+cgroup=/sys/fs/cgroup/system.slice/waydroid-container.service
+
+awk '/^(MemTotal|MemAvailable|SwapTotal|SwapFree):/ { print }' /proc/meminfo
+
+for item in memory.current memory.peak memory.high memory.max memory.swap.current memory.swap.max memory.events; do
+    if [ -r "${cgroup}/${item}" ]; then
+        printf '%s=' "${item}"
+        cat "${cgroup}/${item}"
+    fi
+done
+
+if grep -q '^/dev/zram0[[:space:]]' /proc/swaps 2>/dev/null; then
+    echo "zram=active"
+else
+    echo "zram=inactive"
+fi
