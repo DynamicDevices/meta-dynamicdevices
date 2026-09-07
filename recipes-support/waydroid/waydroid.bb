@@ -11,7 +11,6 @@ SRCREV = "41f309f4c185a2c716723c081274eb56eb9263ff"
 SPV = "1.4.2"
 PV = "${SPV}+git${SRCPV}"
 
-
 RDEPENDS:${PN} += "lxc python3-gbinder python3-pygobject libgbinder python3-pyclip python3-dbus python3-compression python3-json gobject-introspection"
 
 # these modules are directly included in android-flavored kernels
@@ -161,22 +160,3 @@ FILES:${PN} += " \
     ${prefix}/libexec \
     /usr/palm/applications/id.waydro.container \
 "
-
-
-# Usage
-# =====
-# Below is obsolete since Waydroid can now just be started from Launcher, however it's good to keep for reference
-#
-# mkdir -p /run/luna-session/
-# mount --bind /tmp/luna-session /run/luna-session/
-# export XDG_RUNTIME_DIR=/run/luna-session
-# export XDG_SESSION_TYPE=wayland
-# -- also, make sure /etc/gbinder.conf has "ApiLevel = 30" (Halium 9 needs API 28)
-#
-# Then:
-# 0. waydroid init (just once, but needs network !)
-# 1. either
-#      waydroid show-full-ui
-#    or
-#      waydroid session start
-#      waydroid app launch com.android.settings

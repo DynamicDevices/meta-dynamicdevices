@@ -14,6 +14,11 @@ This folder contains formal documentation, reports, and reference materials for 
 **Audience**: Project managers, technical leads  
 **Contents**: Build-specific reports, testing checklists, issues tracking, next steps
 
+### `/releases/`
+**Purpose**: Tested product baselines tied to immutable source and Foundries targets
+**Audience**: Engineers, release reviewers, demonstration teams
+**Contents**: Release scope, evidence, known limits, and exact validation build
+
 ### `/investigations/`
 **Purpose**: Technical investigation reports and research findings  
 **Audience**: Engineers, technical team  
@@ -35,6 +40,11 @@ This folder contains formal documentation, reports, and reference materials for 
 **Contents**: Deprecated documentation, historical reports
 
 ## Engineering Documentation
+
+- [Jaguar Screen Waydroid](JAGUAR-SCREEN-WAYDROID.md) — released Android
+  container, graphics, boot and operations baseline.
+- [Jaguar Screen Waydroid v1.0.0](releases/JAGUAR-SCREEN-WAYDROID-v1.0.0.md)
+  — release evidence and known limits.
 
 **For day-to-day engineering documentation, guides, and tutorials, see the `wiki/` folder.**
 
