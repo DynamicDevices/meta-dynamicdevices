@@ -79,6 +79,14 @@ if [ -z "${video_devices}" ]; then
     exit 1
 fi
 
+if [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" != 1 ]; then
+    # The Android V4L2 Codec2 service runs as AID_MEDIA (stable numeric GID
+    # 1013). Grant that service access to only the capability-selected decoder;
+    # the camera and encoder are neither changed nor mounted into the container.
+    chown 0:1013 "${video_devices}"
+    chmod 0660 "${video_devices}"
+fi
+
 # Waydroid otherwise selects the first DRM node and may advertise a software
 # or unrelated GPU. Persist an exact, reviewable Android graphics contract.
 python3 - "${config}" "${render_node}" "${dma_heap_devices}" "${video_devices}" <<'PY'

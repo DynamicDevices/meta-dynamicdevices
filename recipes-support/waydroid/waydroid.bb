@@ -38,6 +38,7 @@ SRC_URI:append:imx8mm-jaguar-screen = " \
     file://waydroid-memory-headroom \
     file://waydroid-acceleration-check \
     file://waydroid-v4l2-probe \
+    file://waydroid-vsidaemon.service \
 "
 S = "${WORKDIR}/git"
 
@@ -64,10 +65,10 @@ inherit pkgconfig
 inherit features_check systemd
 
 SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-screen = "waydroid-image-provision.service"
-SYSTEMD_SERVICE:${PN}:append:imx8mm-jaguar-screen = " waydroid-zram.service"
+SYSTEMD_SERVICE:${PN}:append:imx8mm-jaguar-screen = " waydroid-zram.service waydroid-vsidaemon.service"
 SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-screen = "enable"
 
-RDEPENDS:${PN}:append:imx8mm-jaguar-screen = " kmod util-linux-mkswap util-linux-swaponoff"
+RDEPENDS:${PN}:append:imx8mm-jaguar-screen = " kmod util-linux-mkswap util-linux-swaponoff imx-vpu-hantro"
 
 # Product configuration selects the provider-neutral `android-container`
 # bundle. The distro layer expands that bundle to these implementation
@@ -139,6 +140,8 @@ do_install:append:imx8mm-jaguar-screen() {
     install -Dm0755 ${WORKDIR}/waydroid-v4l2-probe ${D}${libexecdir}/waydroid-v4l2-probe
     install -Dm0644 ${WORKDIR}/waydroid-zram.service \
         ${D}${systemd_system_unitdir}/waydroid-zram.service
+    install -Dm0644 ${WORKDIR}/waydroid-vsidaemon.service \
+        ${D}${systemd_system_unitdir}/waydroid-vsidaemon.service
     install -d ${D}${systemd_system_unitdir}/waydroid-container.service.d
     install -m 0644 ${WORKDIR}/waydroid-container-2gb.conf \
         ${D}${systemd_system_unitdir}/waydroid-container.service.d/20-memory-2gb.conf

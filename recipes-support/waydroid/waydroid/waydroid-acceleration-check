@@ -30,6 +30,7 @@ config_value() {
 [ -r "${config}" ] || { echo "FAIL: ${config} is unavailable" >&2; exit 1; }
 
 render=$(config_value drm_device)
+video=$(config_value video_devices)
 if { [ -c "${render}" ] || [ "${WAYDROID_ALLOW_FAKE_DEVICES:-0}" = 1 ]; } \
         && grep -Fqx 'DRIVER=etnaviv' "${sys_drm_dir}/${render##*/}/device/uevent"; then
     pass "configured render node ${render} is Etnaviv"
@@ -64,10 +65,23 @@ if [ -r "${nodes}" ]; then
         pass 'DMA heap mounts match the product allowlist'
     fi
     video_mounts=$(grep -c '/dev/video' "${nodes}" || true)
-    [ "${video_mounts}" -ge 1 ] && pass 'allowlisted V4L2 decoder node is mounted' \
-        || fail 'V4L2 decoder node is not mounted'
+    [ "${video_mounts}" -eq 1 ] && grep -Fq "${video}" "${nodes}" \
+        && pass 'only the capability-selected V4L2 decoder node is mounted' \
+        || fail 'V4L2 decoder-node mount is not exact'
 else
     fail "${nodes} is unavailable; initialize Waydroid first"
+fi
+
+if [ "${WAYDROID_ALLOW_FAKE_DEVICES:-0}" = 1 ]; then
+    pass 'V4L2 daemon and DAC checks skipped for fixture devices'
+else
+    systemctl is-active --quiet waydroid-vsidaemon.service \
+        && pass 'NXP Hantro userspace daemon is running' \
+        || fail 'NXP Hantro userspace daemon is not running'
+    [ -c "${video}" ] && [ "$(stat -c %g "${video}")" = 1013 ] \
+        && [ "$(stat -c %a "${video}")" = 660 ] \
+        && pass 'decoder DAC is restricted to root and Android AID_MEDIA' \
+        || fail 'decoder DAC is not root:1013 mode 0660'
 fi
 
 if ! "${waydroid_bin}" status 2>/dev/null | grep -Fq 'RUNNING'; then
