@@ -1,0 +1,71 @@
+name: Build AESL Android 16 Waydroid host image
+
+on:
+  workflow_dispatch:
+    inputs:
+      android_artifact_dir:
+        description: Reviewed Android artifact root under /yocto/android-16-artifacts
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-waydroid-imx8mm-aesl
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: [self-hosted, esl-proxmox]
+    timeout-minutes: 720
+    container:
+      image: dynamicdevices/yocto-ci-build@sha256:be170373625e77a6235a0bb3efb84d00be736221782d5d716e88aafd1b965794
+      options: --privileged --volume /yocto:/yocto
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Validate Android evidence and CI storage
+        env:
+          AESL_ANDROID_ARTIFACT_DIR: ${{ inputs.android_artifact_dir }}
+        run: |
+          case "${AESL_ANDROID_ARTIFACT_DIR}" in
+            /yocto/android-16-artifacts/*) ;;
+            *) echo "Android artifact must be under /yocto/android-16-artifacts" >&2; exit 1 ;;
+          esac
+          test -s "${AESL_ANDROID_ARTIFACT_DIR}/waydroid-images.inc"
+          test -s "${AESL_ANDROID_ARTIFACT_DIR}/source-manifest.xml"
+          test -s "${AESL_ANDROID_ARTIFACT_DIR}/build-info.json"
+          test -s "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm/system.img"
+          test -s "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm/vendor.img"
+          test -s "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm/sbom.spdx.json"
+          (cd "${AESL_ANDROID_ARTIFACT_DIR}" && sha256sum --check --strict SHA256SUMS)
+          install -d /yocto/waydroid-host/kas-work /yocto/waydroid-host/kas-build
+          available_kib=$(df --output=avail /yocto | tail -1 | tr -d ' ')
+          minimum_kib=$((300 * 1024 * 1024))
+          test "${available_kib}" -ge "${minimum_kib}"
+          df -h / /yocto
+
+      - name: Build pinned i.MX8MM host image
+        env:
+          AESL_ANDROID_ARTIFACT_DIR: ${{ inputs.android_artifact_dir }}
+          AESL_YOCTO_WORK_ROOT: /yocto/waydroid-host
+          KAS_WORK_DIR: /yocto/waydroid-host/kas-work
+          KAS_BUILD_DIR: /yocto/waydroid-host/kas-build
+        run: kas build kas/waydroid-imx8mm-aesl.yml
+
+      - name: Verify deploy evidence
+        run: |
+          deploy=/yocto/waydroid-host/tmp/deploy/images/imx8mm-jaguar-screen
+          test -d "${deploy}"
+          find "${deploy}" -maxdepth 1 -type f -printf '%f\n' | sort
+          find "${deploy}" -maxdepth 1 -type f -name '*.manifest' -print -quit | grep -q .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aesl-waydroid-imx8mm-host-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /yocto/waydroid-host/tmp/deploy/images/imx8mm-jaguar-screen
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,34 @@
+# AESL Android 16 / Waydroid proof image for the 2 GB Jaguar Screen.
+#
+# AESL_ANDROID_ARTIFACT_DIR must name the reviewed Android build artifact root
+# under /yocto. It contains waydroid-images.inc, source-manifest.xml,
+# build-info.json, and the imx8mm image/SBOM directory.
+
+header:
+  version: 14
+  includes:
+    - lmp-dynamicdevices-dev.yml
+
+machine: imx8mm-jaguar-screen
+distro: lmp-dynamicdevices
+target: lmp-factory-image
+
+local_conf_header:
+  aesl-waydroid-android16: |
+    DD_PRODUCT_FEATURES = "android-container"
+    AESL_ANDROID_ARTIFACT_DIR = "${@os.getenv('AESL_ANDROID_ARTIFACT_DIR', '')}"
+    AESL_YOCTO_WORK_ROOT = "${@os.getenv('AESL_YOCTO_WORK_ROOT', '/yocto/waydroid-host')}"
+    DL_DIR = "${AESL_YOCTO_WORK_ROOT}/downloads"
+    SSTATE_DIR = "${AESL_YOCTO_WORK_ROOT}/sstate-cache"
+    TMPDIR = "${AESL_YOCTO_WORK_ROOT}/tmp"
+    FILESEXTRAPATHS:prepend:pn-waydroid-data := "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm:${AESL_ANDROID_ARTIFACT_DIR}:"
+    require ${AESL_ANDROID_ARTIFACT_DIR}/waydroid-images.inc
+
+    python () {
+        artifact_dir = d.getVar("AESL_ANDROID_ARTIFACT_DIR") or ""
+        work_root = d.getVar("AESL_YOCTO_WORK_ROOT") or ""
+        if not artifact_dir.startswith("/yocto/"):
+            bb.fatal("AESL_ANDROID_ARTIFACT_DIR must be an absolute path under /yocto")
+        if not work_root.startswith("/yocto/"):
+            bb.fatal("AESL_YOCTO_WORK_ROOT must be an absolute path under /yocto")
+    }
