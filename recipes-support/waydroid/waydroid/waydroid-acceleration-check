@@ -1,0 +1,94 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+
+set -eu
+
+config=${WAYDROID_CONFIG:-/var/lib/waydroid/waydroid.cfg}
+nodes=${WAYDROID_LXC_NODES:-/var/lib/waydroid/lxc/waydroid/config_nodes}
+sys_drm_dir=${WAYDROID_SYS_DRM_DIR:-/sys/class/drm}
+waydroid_bin=${WAYDROID_BIN:-/usr/bin/waydroid}
+failed=0
+
+pass() { echo "PASS: $*"; }
+fail() { echo "FAIL: $*" >&2; failed=1; }
+
+config_value() {
+    key=$1
+    awk -F= -v wanted="${key}" '
+        {
+            key = $1
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+            if (key == wanted) {
+                value = substr($0, index($0, "=") + 1)
+                gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+                print value
+            }
+        }
+    ' "${config}" | tail -1
+}
+
+[ -r "${config}" ] || { echo "FAIL: ${config} is unavailable" >&2; exit 1; }
+
+render=$(config_value drm_device)
+if { [ -c "${render}" ] || [ "${WAYDROID_ALLOW_FAKE_DEVICES:-0}" = 1 ]; } \
+        && grep -Fqx 'DRIVER=etnaviv' "${sys_drm_dir}/${render##*/}/device/uevent"; then
+    pass "configured render node ${render} is Etnaviv"
+else
+    fail "configured render node is not an Etnaviv character device: ${render:-unset}"
+fi
+
+for expected in \
+    'ro.hardware.egl=mesa' \
+    'ro.hardware.gralloc=minigbm_gbm_mesa' \
+    'ro.hardware.hwcomposer=waydroid' \
+    'ro.opengles.version=196609'; do
+    key=${expected%%=*}
+    value=${expected#*=}
+    [ "$(config_value "${key}")" = "${value}" ] && pass "${expected}" || fail "missing ${expected}"
+done
+
+if [ -n "$(config_value ro.hardware.vulkan)" ]; then
+    fail 'Vulkan is configured without an i.MX8MM hardware driver'
+else
+    pass 'Vulkan override is absent'
+fi
+
+if [ -r "${nodes}" ]; then
+    render_mounts=$(grep -c '/dev/dri/renderD' "${nodes}" || true)
+    [ "${render_mounts}" -eq 1 ] && grep -Fq "${render}" "${nodes}" \
+        && pass 'only the selected DRM render node is mounted' \
+        || fail 'DRM render-node mount is not exact'
+    if grep '/dev/dma_heap/' "${nodes}" | grep -Ev '/dev/dma_heap/(system|system-uncached|linux,cma)([[:space:]]|$)' >/dev/null; then
+        fail 'an unapproved DMA heap is mounted'
+    else
+        pass 'DMA heap mounts match the product allowlist'
+    fi
+    video_mounts=$(grep -c '/dev/video' "${nodes}" || true)
+    [ "${video_mounts}" -ge 1 ] && pass 'allowlisted V4L2 decoder node is mounted' \
+        || fail 'V4L2 decoder node is not mounted'
+else
+    fail "${nodes} is unavailable; initialize Waydroid first"
+fi
+
+if ! "${waydroid_bin}" status 2>/dev/null | grep -Fq 'RUNNING'; then
+    fail 'Waydroid container is not running'
+else
+    pass 'Waydroid container is running'
+    [ "$("${waydroid_bin}" shell getprop ro.hardware.egl 2>/dev/null)" = mesa ] \
+        && pass 'Android selected Mesa EGL' || fail 'Android did not select Mesa EGL'
+    [ "$("${waydroid_bin}" shell getprop ro.hardware.gralloc 2>/dev/null)" = minigbm_gbm_mesa ] \
+        && pass 'Android selected minigbm GBM Mesa' || fail 'Android did not select minigbm GBM Mesa'
+    [ -z "$("${waydroid_bin}" shell getprop ro.hardware.vulkan 2>/dev/null)" ] \
+        && pass 'Android does not expose a Vulkan HAL' || fail 'Android exposes a Vulkan HAL'
+    if "${waydroid_bin}" shell pm list features 2>/dev/null | grep -Fq 'android.hardware.vulkan'; then
+        fail 'Android advertises a Vulkan feature'
+    else
+        pass 'Android does not advertise Vulkan features'
+    fi
+    "${waydroid_bin}" shell dumpsys SurfaceFlinger 2>/dev/null | grep -Eiq 'etnaviv|GC7000|Vivante' \
+        && pass 'SurfaceFlinger reports the i.MX8MM GPU' || fail 'SurfaceFlinger lacks Etnaviv/GC7000 evidence'
+    "${waydroid_bin}" shell dumpsys media.codec 2>/dev/null | grep -Fq 'c2.v4l2.avc.decoder' \
+        && pass 'V4L2 H.264 Codec2 component is registered' || fail 'V4L2 H.264 Codec2 component is absent'
+fi
+
+exit "${failed}"

@@ -3,9 +3,11 @@ set -eu
 
 cgroup=/sys/fs/cgroup/system.slice/waydroid-container.service
 
-awk '/^(MemTotal|MemAvailable|SwapTotal|SwapFree):/ { print }' /proc/meminfo
+echo '[memory]'
+awk '/^(MemTotal|MemAvailable|SwapTotal|SwapFree|CmaTotal|CmaFree):/ { print }' /proc/meminfo
 
-for item in memory.current memory.peak memory.high memory.max memory.swap.current memory.swap.max memory.events; do
+echo '[cgroup]'
+for item in memory.current memory.peak memory.high memory.max memory.swap.current memory.swap.max memory.events cpu.stat pids.current pids.peak; do
     if [ -r "${cgroup}/${item}" ]; then
         printf '%s=' "${item}"
         cat "${cgroup}/${item}"
@@ -14,6 +16,43 @@ done
 
 if grep -q '^/dev/zram0[[:space:]]' /proc/swaps 2>/dev/null; then
     echo "zram=active"
+    for item in comp_algorithm disksize mm_stat; do
+        if [ -r "/sys/block/zram0/${item}" ]; then
+            printf 'zram.%s=' "${item}"
+            cat "/sys/block/zram0/${item}"
+        fi
+    done
 else
     echo "zram=inactive"
 fi
+
+echo '[pressure]'
+for resource in cpu memory io; do
+    if [ -r "/proc/pressure/${resource}" ]; then
+        sed "s/^/${resource}.pressure=/" "/proc/pressure/${resource}"
+    fi
+done
+
+echo '[gpu-devfreq]'
+for devfreq in /sys/class/devfreq/*; do
+    [ -d "${devfreq}" ] || continue
+    name=$(cat "${devfreq}/name" 2>/dev/null || basename "${devfreq}")
+    case "${name}" in
+        *gpu*|*GPU*|*etnaviv*|*galcore*) ;;
+        *) continue ;;
+    esac
+    echo "gpu.name=${name}"
+    for item in cur_freq min_freq max_freq available_frequencies governor; do
+        if [ -r "${devfreq}/${item}" ]; then
+            printf 'gpu.%s=' "${item}"
+            cat "${devfreq}/${item}"
+        fi
+    done
+done
+
+echo '[thermal]'
+for zone in /sys/class/thermal/thermal_zone*; do
+    [ -r "${zone}/temp" ] || continue
+    printf '%s.%s=' "${zone##*/}" "$(cat "${zone}/type" 2>/dev/null || echo unknown)"
+    cat "${zone}/temp"
+done
