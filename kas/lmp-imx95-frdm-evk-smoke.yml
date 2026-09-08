@@ -31,7 +31,7 @@ repos:
 
   meta-lmp:
     url: https://github.com/foundriesio/meta-lmp
-    commit: 4dffdff79b4df49c683c9a7faea406595cb7e9ca
+    commit: d176612d7fc811bb8f511fcaa06dc617513c0eb5
     path: build/layers/meta-lmp
     layers:
       meta-lmp-base:
