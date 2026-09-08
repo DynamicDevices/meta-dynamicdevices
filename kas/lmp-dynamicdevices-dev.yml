@@ -32,6 +32,7 @@ local_conf_header:
      # DISABLE SIGNING FOR LOCAL DEVELOPMENT
      # This prevents the need for factory keys during local development
      UBOOT_SIGN_ENABLE = "0"
+     UBOOT_SPL_SIGN_ENABLE = "0"
      TF_A_SIGN_ENABLE = "0"
      OPTEE_TA_SIGN_ENABLE = "0"
      

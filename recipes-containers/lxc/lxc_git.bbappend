@@ -1,4 +1,3 @@
-# lxc meson+ninja fails at configure when clang ThinLTO is enabled but the
-# default Yocto linker is ld.bfd:
-#   ERROR: LLVM's ThinLTO only works with gold, lld, lld-link, ld64 or mold, not ld.bfd
+# clang ThinLTO cannot use the default ld.bfd linker selected by this build.
+# Waydroid needs LXC, so disable Meson's LTO switch for this dependency.
 EXTRA_OEMESON:append = " -Db_lto=false"
