@@ -21,9 +21,11 @@ verify_char_device_rule() {
         fail "${label} is not a character device: ${device}"
         return
     fi
-    set -- $(stat -c '%t %T' "${device}")
-    major=$(printf '%d' "0x$1")
-    minor=$(printf '%d' "0x$2")
+    device_numbers=$(stat -c '%t %T' "${device}")
+    major_hex=${device_numbers% *}
+    minor_hex=${device_numbers#* }
+    major=$(printf '%d' "0x${major_hex}")
+    minor=$(printf '%d' "0x${minor_hex}")
     if grep -Fqx "${cgroup_controller}.devices.allow = c ${major}:${minor} rwm" "${nodes}"; then
         pass "${label} has an exact cgroup device rule (${major}:${minor})"
     else
@@ -77,7 +79,11 @@ for expected in \
     'ro.opengles.version=196609'; do
     key=${expected%%=*}
     value=${expected#*=}
-    [ "$(config_value "${key}")" = "${value}" ] && pass "${expected}" || fail "missing ${expected}"
+    if [ "$(config_value "${key}")" = "${value}" ]; then
+        pass "${expected}"
+    else
+        fail "missing ${expected}"
+    fi
 done
 
 if [ -n "$(config_value ro.hardware.vulkan)" ]; then
@@ -97,18 +103,22 @@ if [ -r "${nodes}" ]; then
     cgroup_controller=$(grep -E '^lxc\.cgroup2?\.devices\.deny = a$' "${nodes}" \
         | head -1 | sed 's/\.devices\.deny.*//')
     render_mounts=$(grep -c '/dev/dri/renderD' "${nodes}" || true)
-    [ "${render_mounts}" -eq 1 ] && grep -Fq "${render}" "${nodes}" \
-        && pass 'only the selected DRM render node is mounted' \
-        || fail 'DRM render-node mount is not exact'
+    if [ "${render_mounts}" -eq 1 ] && grep -Fq "${render}" "${nodes}"; then
+        pass 'only the selected DRM render node is mounted'
+    else
+        fail 'DRM render-node mount is not exact'
+    fi
     if grep '/dev/dma_heap/' "${nodes}" | grep -Ev '/dev/dma_heap/(system|system-uncached|linux,cma)([[:space:]]|$)' >/dev/null; then
         fail 'an unapproved DMA heap is mounted'
     else
         pass 'DMA heap mounts match the product allowlist'
     fi
     video_mounts=$(grep -c '/dev/video' "${nodes}" || true)
-    [ "${video_mounts}" -eq 1 ] && grep -Fq "${video}" "${nodes}" \
-        && pass 'only the capability-selected V4L2 decoder node is mounted' \
-        || fail 'V4L2 decoder-node mount is not exact'
+    if [ "${video_mounts}" -eq 1 ] && grep -Fq "${video}" "${nodes}"; then
+        pass 'only the capability-selected V4L2 decoder node is mounted'
+    else
+        fail 'V4L2 decoder-node mount is not exact'
+    fi
 
     if [ "${WAYDROID_ALLOW_FAKE_DEVICES:-0}" != 1 ] && [ -n "${cgroup_controller}" ]; then
         verify_char_device_rule "${render}" 'DRM render node'
@@ -129,49 +139,76 @@ fi
 if [ "${WAYDROID_ALLOW_FAKE_DEVICES:-0}" = 1 ]; then
     pass 'AppArmor, exact device-rule, V4L2 daemon and DAC checks skipped for fixture devices'
 else
-    [ -r /sys/module/apparmor/parameters/enabled ] \
-        && grep -Fqx Y /sys/module/apparmor/parameters/enabled \
-        && pass 'host AppArmor LSM is enabled' \
-        || fail 'host AppArmor LSM is not enabled'
-    [ -r "${lxc_config}" ] \
-        && grep -Fqx 'lxc.apparmor.profile = lxc-waydroid' "${lxc_config}" \
-        && ! grep -Eq '^lxc\.(aa_profile|apparmor\.profile) = unconfined$' "${lxc_config}" \
-        && pass 'Waydroid selects the enforcing AppArmor profile' \
-        || fail 'Waydroid is not configured with its AppArmor profile'
+    if [ -r /sys/module/apparmor/parameters/enabled ] \
+            && grep -Fqx Y /sys/module/apparmor/parameters/enabled; then
+        pass 'host AppArmor LSM is enabled'
+    else
+        fail 'host AppArmor LSM is not enabled'
+    fi
+    if [ -r "${lxc_config}" ] \
+            && grep -Fqx 'lxc.apparmor.profile = lxc-waydroid' "${lxc_config}" \
+            && ! grep -Eq '^lxc\.(aa_profile|apparmor\.profile) = unconfined$' "${lxc_config}"; then
+        pass 'Waydroid selects the enforcing AppArmor profile'
+    else
+        fail 'Waydroid is not configured with its AppArmor profile'
+    fi
     for profile in lxc-waydroid adbd android_app; do
-        [ -r "${apparmor_profiles}" ] \
-            && grep -Fq "${profile} (enforce)" "${apparmor_profiles}" \
-            && pass "Waydroid AppArmor profile ${profile} is enforcing" \
-            || fail "Waydroid AppArmor profile ${profile} is not enforcing"
+        if [ -r "${apparmor_profiles}" ] \
+                && grep -Fq "${profile} (enforce)" "${apparmor_profiles}"; then
+            pass "Waydroid AppArmor profile ${profile} is enforcing"
+        else
+            fail "Waydroid AppArmor profile ${profile} is not enforcing"
+        fi
     done
-    systemctl is-active --quiet waydroid-vsidaemon.service \
-        && pass 'NXP Hantro userspace daemon is running' \
-        || fail 'NXP Hantro userspace daemon is not running'
-    [ -c "${video}" ] && [ "$(stat -c %g "${video}")" = 1013 ] \
-        && [ "$(stat -c %a "${video}")" = 660 ] \
-        && pass 'decoder DAC is restricted to root and Android AID_MEDIA' \
-        || fail 'decoder DAC is not root:1013 mode 0660'
+    if systemctl is-active --quiet waydroid-vsidaemon.service; then
+        pass 'NXP Hantro userspace daemon is running'
+    else
+        fail 'NXP Hantro userspace daemon is not running'
+    fi
+    if [ -c "${video}" ] && [ "$(stat -c %g "${video}")" = 1013 ] \
+            && [ "$(stat -c %a "${video}")" = 660 ]; then
+        pass 'decoder DAC is restricted to root and Android AID_MEDIA'
+    else
+        fail 'decoder DAC is not root:1013 mode 0660'
+    fi
 fi
 
 if ! "${waydroid_bin}" status 2>/dev/null | grep -Fq 'RUNNING'; then
     fail 'Waydroid container is not running'
 else
     pass 'Waydroid container is running'
-    [ "$("${waydroid_bin}" shell getprop ro.hardware.egl 2>/dev/null)" = mesa ] \
-        && pass 'Android selected Mesa EGL' || fail 'Android did not select Mesa EGL'
-    [ "$("${waydroid_bin}" shell getprop ro.hardware.gralloc 2>/dev/null)" = minigbm_gbm_mesa ] \
-        && pass 'Android selected minigbm GBM Mesa' || fail 'Android did not select minigbm GBM Mesa'
-    [ -z "$("${waydroid_bin}" shell getprop ro.hardware.vulkan 2>/dev/null)" ] \
-        && pass 'Android does not expose a Vulkan HAL' || fail 'Android exposes a Vulkan HAL'
+    if [ "$("${waydroid_bin}" shell getprop ro.hardware.egl 2>/dev/null)" = mesa ]; then
+        pass 'Android selected Mesa EGL'
+    else
+        fail 'Android did not select Mesa EGL'
+    fi
+    if [ "$("${waydroid_bin}" shell getprop ro.hardware.gralloc 2>/dev/null)" = minigbm_gbm_mesa ]; then
+        pass 'Android selected minigbm GBM Mesa'
+    else
+        fail 'Android did not select minigbm GBM Mesa'
+    fi
+    if [ -z "$("${waydroid_bin}" shell getprop ro.hardware.vulkan 2>/dev/null)" ]; then
+        pass 'Android does not expose a Vulkan HAL'
+    else
+        fail 'Android exposes a Vulkan HAL'
+    fi
     if "${waydroid_bin}" shell pm list features 2>/dev/null | grep -Fq 'android.hardware.vulkan'; then
         fail 'Android advertises a Vulkan feature'
     else
         pass 'Android does not advertise Vulkan features'
     fi
-    "${waydroid_bin}" shell dumpsys SurfaceFlinger 2>/dev/null | grep -Eiq 'etnaviv|GC7000|Vivante' \
-        && pass 'SurfaceFlinger reports the i.MX8MM GPU' || fail 'SurfaceFlinger lacks Etnaviv/GC7000 evidence'
-    "${waydroid_bin}" shell dumpsys media.codec 2>/dev/null | grep -Fq 'c2.v4l2.avc.decoder' \
-        && pass 'V4L2 H.264 Codec2 component is registered' || fail 'V4L2 H.264 Codec2 component is absent'
+    if "${waydroid_bin}" shell dumpsys SurfaceFlinger 2>/dev/null \
+            | grep -Eiq 'etnaviv|GC7000|Vivante'; then
+        pass 'SurfaceFlinger reports the i.MX8MM GPU'
+    else
+        fail 'SurfaceFlinger lacks Etnaviv/GC7000 evidence'
+    fi
+    if "${waydroid_bin}" shell dumpsys media.codec 2>/dev/null \
+            | grep -Fq 'c2.v4l2.avc.decoder'; then
+        pass 'V4L2 H.264 Codec2 component is registered'
+    else
+        fail 'V4L2 H.264 Codec2 component is absent'
+    fi
 fi
 
 exit "${failed}"

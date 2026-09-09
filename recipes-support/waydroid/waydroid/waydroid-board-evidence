@@ -65,7 +65,7 @@ capture_all() {
         > "${destination}/surfaceflinger-latency.txt" 2>&1 || true
 
     if [ -d /usr/share/waydroid-extra/evidence ]; then
-        (cd /usr/share/waydroid-extra/evidence && sha256sum *) \
+        (cd /usr/share/waydroid-extra/evidence && sha256sum -- ./*) \
             > "${destination}/installed-evidence-sha256.txt" 2>&1 \
             || mark_fail 'installed Android evidence hashing failed'
     else
@@ -103,8 +103,10 @@ case "${mode}" in
         echo "$0 suspend-verify ${output}"
         ;;
     suspend-verify)
-        [ -r "${output}/boot-id" ] && [ -r "${output}/started-at" ] \
-            || { echo "Missing suspend preparation state in ${output}" >&2; exit 2; }
+        if [ ! -r "${output}/boot-id" ] || [ ! -r "${output}/started-at" ]; then
+            echo "Missing suspend preparation state in ${output}" >&2
+            exit 2
+        fi
         [ "$(cat "${output}/boot-id")" = "$(cat /proc/sys/kernel/random/boot_id)" ] \
             || mark_fail 'board rebooted instead of resuming the same kernel'
         journalctl -k --no-pager --since "@$(cat "${output}/started-at")" \
