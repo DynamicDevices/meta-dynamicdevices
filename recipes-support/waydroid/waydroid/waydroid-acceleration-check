@@ -197,7 +197,11 @@ else
     else
         pass 'Android does not advertise Vulkan features'
     fi
-    if "${waydroid_bin}" shell dumpsys SurfaceFlinger 2>/dev/null \
+    surfaceflinger=$("${waydroid_bin}" shell dumpsys SurfaceFlinger 2>/dev/null || true)
+    if printf '%s\n' "${surfaceflinger}" \
+            | grep -Eiq 'swiftshader|llvmpipe|softpipe'; then
+        fail 'SurfaceFlinger reports a software renderer'
+    elif printf '%s\n' "${surfaceflinger}" \
             | grep -Eiq 'etnaviv|GC7000|Vivante'; then
         pass 'SurfaceFlinger reports the i.MX8MM GPU'
     else

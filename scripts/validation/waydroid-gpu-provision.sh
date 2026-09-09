@@ -54,6 +54,8 @@ printf '%s\n' \
     'lxc.mount.entry = /dev/video2 dev/video2 none bind,create=file 0 0' \
     > "${test_root}/config_nodes"
 
+# The parameter expansion below belongs in the generated fixture script.
+# shellcheck disable=SC2016
 printf '%s\n' \
     '#!/bin/sh' \
     'case "$*" in' \
@@ -62,7 +64,7 @@ printf '%s\n' \
     '  "shell getprop ro.hardware.gralloc") echo minigbm_gbm_mesa ;;' \
     '  "shell getprop ro.hardware.vulkan") : ;;' \
     '  "shell pm list features") echo feature:android.hardware.opengles.aep ;;' \
-    '  "shell dumpsys SurfaceFlinger") echo "GLES: Mesa etnaviv GC7000Lite" ;;' \
+    '  "shell dumpsys SurfaceFlinger") echo "${WAYDROID_TEST_RENDERER:-GLES: Mesa etnaviv GC7000Lite}" ;;' \
     '  "shell dumpsys media.codec") echo c2.v4l2.avc.decoder ;;' \
     '  *) exit 1 ;;' \
     'esac' > "${test_root}/waydroid"
@@ -76,6 +78,7 @@ WAYDROID_ALLOW_FAKE_DEVICES=1 \
     sh "${repo_root}/recipes-support/waydroid/waydroid/waydroid-acceleration-check"
 
 run_gate() {
+    WAYDROID_TEST_RENDERER=${WAYDROID_TEST_RENDERER:-} \
     WAYDROID_CONFIG=${config} \
     WAYDROID_LXC_NODES=${test_root}/config_nodes \
     WAYDROID_SYS_DRM_DIR=${test_root}/sys/class/drm \
@@ -107,6 +110,9 @@ printf 'DRIVER=etnaviv\n' > "${test_root}/sys/class/drm/renderD128/device/uevent
 printf 'lxc.cgroup2.devices.allow = a\n' >> "${test_root}/config_nodes"
 expect_gate_failure 'wildcard LXC device access'
 cp "${test_root}/config_nodes.good" "${test_root}/config_nodes"
+
+WAYDROID_TEST_RENDERER='GLES: llvmpipe etnaviv compatibility shim' \
+    expect_gate_failure 'a software SurfaceFlinger renderer'
 
 cat > "${test_root}/surfaceflinger-latency.txt" <<'LATENCY'
 16666666
