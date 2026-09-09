@@ -88,7 +88,8 @@ case "${mode}" in
         running=false
         attempts=0
         while [ "${attempts}" -lt 90 ]; do
-            if waydroid status 2>/dev/null | grep -Fq 'Container: RUNNING'; then
+            if waydroid status 2>/dev/null \
+                    | grep -Eq 'Container:[[:space:]]+RUNNING'; then
                 running=true
                 break
             fi
