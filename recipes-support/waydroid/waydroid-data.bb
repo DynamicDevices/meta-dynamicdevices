@@ -36,6 +36,8 @@ SHA256SUM_VENDOR:halium = "cd5b1394f35c97c0284f365e52588eecd7b89b6aa28624aefca55
 AESL_WAYDROID_SYSTEM_SHA256 ?= ""
 AESL_WAYDROID_VENDOR_SHA256 ?= ""
 AESL_WAYDROID_SBOM_SHA256 ?= ""
+AESL_WAYDROID_SYSTEM_NOTICE_SHA256 ?= ""
+AESL_WAYDROID_VENDOR_NOTICE_SHA256 ?= ""
 AESL_WAYDROID_SOURCE_MANIFEST_SHA256 ?= ""
 AESL_WAYDROID_BUILD_INFO_SHA256 ?= ""
 
@@ -52,10 +54,13 @@ SRC_URI:imx8mm-jaguar-screen = " \
     file://source-manifest.xml;name=source-manifest \
     file://build-info.json;name=build-info \
 "
+SRC_URI:append:imx8mm-jaguar-screen = "${@' file://NOTICE-system.xml.gz;name=system-notice' if d.getVar('AESL_WAYDROID_SYSTEM_NOTICE_SHA256') else ''}${@' file://NOTICE-vendor.xml.gz;name=vendor-notice' if d.getVar('AESL_WAYDROID_VENDOR_NOTICE_SHA256') else ''}"
 
 SRC_URI[system.sha256sum] = "${SHA256SUM_SYSTEM}"
 SRC_URI[vendor.sha256sum] = "${SHA256SUM_VENDOR}"
 SRC_URI[sbom.sha256sum] = "${AESL_WAYDROID_SBOM_SHA256}"
+SRC_URI[system-notice.sha256sum] = "${AESL_WAYDROID_SYSTEM_NOTICE_SHA256}"
+SRC_URI[vendor-notice.sha256sum] = "${AESL_WAYDROID_VENDOR_NOTICE_SHA256}"
 SRC_URI[source-manifest.sha256sum] = "${AESL_WAYDROID_SOURCE_MANIFEST_SHA256}"
 SRC_URI[build-info.sha256sum] = "${AESL_WAYDROID_BUILD_INFO_SHA256}"
 
@@ -103,6 +108,12 @@ do_install:append:imx8mm-jaguar-screen() {
         "${D}/usr/share/waydroid-extra/evidence/source-manifest.xml"
     install -m 0644 "${WORKDIR}/build-info.json" \
         "${D}/usr/share/waydroid-extra/evidence/build-info.json"
+    for notice in NOTICE-system.xml.gz NOTICE-vendor.xml.gz; do
+        if [ -s "${WORKDIR}/${notice}" ]; then
+            install -m 0644 "${WORKDIR}/${notice}" \
+                "${D}/usr/share/waydroid-extra/evidence/${notice}"
+        fi
+    done
     printf '%s  system.img\n%s  vendor.img\n' \
         "${AESL_WAYDROID_SYSTEM_SHA256}" "${AESL_WAYDROID_VENDOR_SHA256}" \
         > "${D}/usr/share/waydroid-extra/evidence/IMAGE_SHA256SUMS"

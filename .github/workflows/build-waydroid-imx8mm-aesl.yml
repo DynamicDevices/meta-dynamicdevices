@@ -50,6 +50,14 @@ jobs:
           test -s "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm/system.img"
           test -s "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm/vendor.img"
           test -s "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm/sbom.spdx.json"
+          if [ "${AESL_RELEASE_MODE}" = production ]; then
+            test -s "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm/NOTICE-system.xml.gz"
+            test -s "${AESL_ANDROID_ARTIFACT_DIR}/imx8mm/NOTICE-vendor.xml.gz"
+            grep -Eq '^AESL_WAYDROID_SYSTEM_NOTICE_SHA256 = "[0-9a-f]{64}"$' \
+              "${AESL_ANDROID_ARTIFACT_DIR}/waydroid-images.inc"
+            grep -Eq '^AESL_WAYDROID_VENDOR_NOTICE_SHA256 = "[0-9a-f]{64}"$' \
+              "${AESL_ANDROID_ARTIFACT_DIR}/waydroid-images.inc"
+          fi
           python3 scripts/validation/validate-waydroid-build-info.py \
             "${AESL_ANDROID_ARTIFACT_DIR}/build-info.json" \
             --release-mode "${AESL_RELEASE_MODE}"

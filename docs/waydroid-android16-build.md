@@ -30,7 +30,10 @@ The host workflow defaults to `integration` mode so a reviewed Android
 `userdebug` artifact can be exercised on the board. Select `production` only
 with an Android `user` artifact whose `build-info.json` records both production
 release class and the blocking SELinux production gate; the workflow rejects
-missing or integration-only provenance.
+missing or integration-only provenance. Production also requires the Android
+system and vendor NOTICE archives. Their generated pins are consumed by
+`waydroid-data` and the archives are installed beside the Android SBOM and
+source-lock evidence.
 
 CI runs this inside the digest-pinned Yocto build container with `/yocto`
 mounted at the same absolute path. Do not substitute `kas-container` without
