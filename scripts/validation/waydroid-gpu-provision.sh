@@ -3,7 +3,7 @@
 
 set -eu
 
-repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+repo_root=$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)
 provision=${repo_root}/recipes-support/waydroid/waydroid/waydroid-image-provision
 test_root=$(mktemp -d /tmp/waydroid-gpu-provision.XXXXXX)
 trap 'rm -rf "${test_root}"' EXIT HUP INT TERM
@@ -74,5 +74,38 @@ WAYDROID_SYS_DRM_DIR=${test_root}/sys/class/drm \
 WAYDROID_BIN=${test_root}/waydroid \
 WAYDROID_ALLOW_FAKE_DEVICES=1 \
     sh "${repo_root}/recipes-support/waydroid/waydroid/waydroid-acceleration-check"
+
+run_gate() {
+    WAYDROID_CONFIG=${config} \
+    WAYDROID_LXC_NODES=${test_root}/config_nodes \
+    WAYDROID_SYS_DRM_DIR=${test_root}/sys/class/drm \
+    WAYDROID_BIN=${test_root}/waydroid \
+    WAYDROID_ALLOW_FAKE_DEVICES=1 \
+        sh "${repo_root}/recipes-support/waydroid/waydroid/waydroid-acceleration-check"
+}
+
+expect_gate_failure() {
+    description=$1
+    if run_gate > "${test_root}/negative-test.log" 2>&1; then
+        echo "Release gate accepted ${description}" >&2
+        cat "${test_root}/negative-test.log" >&2
+        exit 1
+    fi
+}
+
+cp "${config}" "${test_root}/waydroid.cfg.good"
+cp "${test_root}/config_nodes" "${test_root}/config_nodes.good"
+
+printf 'ro.hardware.vulkan = lvp\n' >> "${config}"
+expect_gate_failure 'a software Vulkan HAL override'
+cp "${test_root}/waydroid.cfg.good" "${config}"
+
+printf 'DRIVER=vgem\n' > "${test_root}/sys/class/drm/renderD128/device/uevent"
+expect_gate_failure 'a non-Etnaviv render node'
+printf 'DRIVER=etnaviv\n' > "${test_root}/sys/class/drm/renderD128/device/uevent"
+
+printf 'lxc.cgroup2.devices.allow = a\n' >> "${test_root}/config_nodes"
+expect_gate_failure 'wildcard LXC device access'
+cp "${test_root}/config_nodes.good" "${test_root}/config_nodes"
 
 echo 'Waydroid Etnaviv GPU and V4L2 provisioning: passed'
