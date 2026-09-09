@@ -12,15 +12,20 @@ image, run:
 ```
 
 Collect results at idle, after kiosk launch, during video playback, during an
-application update and after repeated application restarts. Also check the
-kernel journal for OOM kills and zram writeback failures.
+application update and after repeated application restarts. The report takes a
+two-second CPU sample and records the host filesystems that contain Waydroid's
+state and images. Also check the kernel journal for OOM kills and zram
+writeback failures.
 
 Resource gates under the target workload:
 
 - green: container peak below 70% of `MemoryMax` and host available memory
-  above 30%;
-- amber: either reaches 70%;
-- red: either reaches 85%, `memory.events` reports `oom`/`oom_kill`, or the
-  kernel OOM killer runs.
+  above 30%, CPU busy below 70% with idle above 30%, and relevant filesystems
+  below 70%;
+- amber: RAM or filesystem use reaches 70%, CPU busy reaches 70%, or CPU idle
+  falls to 30%;
+- red: RAM or filesystem use reaches 85%, CPU busy reaches 85%, CPU idle falls
+  to 15%, `memory.events` reports `oom`/`oom_kill`, or the kernel OOM killer
+  runs.
 
 Adjust `MemoryHigh`, `MemoryMax` or zram size only from recorded board data.

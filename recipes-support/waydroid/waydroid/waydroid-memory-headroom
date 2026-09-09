@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
 set -eu
 
 cgroup=/sys/fs/cgroup/system.slice/waydroid-container.service
@@ -31,6 +32,47 @@ for resource in cpu memory io; do
     if [ -r "/proc/pressure/${resource}" ]; then
         sed "s/^/${resource}.pressure=/" "/proc/pressure/${resource}"
     fi
+done
+
+echo '[cpu]'
+cpu_sample() {
+    awk '/^cpu / {
+        total = 0
+        for (field = 2; field <= NF; field++) total += $field
+        idle = $5 + $6
+        printf "%.0f:%.0f\n", total, idle
+        exit
+    }' /proc/stat
+}
+cpu_before=$(cpu_sample)
+sample_seconds=${WAYDROID_CPU_SAMPLE_SECONDS:-2}
+sleep "${sample_seconds}"
+cpu_after=$(cpu_sample)
+total_before=${cpu_before%%:*}
+idle_before=${cpu_before#*:}
+total_after=${cpu_after%%:*}
+idle_after=${cpu_after#*:}
+total_delta=$((total_after - total_before))
+idle_delta=$((idle_after - idle_before))
+if [ "${total_delta}" -gt 0 ]; then
+    idle_pct=$((idle_delta * 100 / total_delta))
+    printf 'cpu.sample_seconds=%s\n' "${sample_seconds}"
+    printf 'cpu.idle_pct=%s\n' "${idle_pct}"
+    printf 'cpu.busy_pct=%s\n' "$((100 - idle_pct))"
+fi
+printf 'cpu.loadavg='
+cat /proc/loadavg
+printf 'cpu.count='
+getconf _NPROCESSORS_ONLN
+
+echo '[storage]'
+for path in / /var/lib/waydroid /etc/waydroid-extra/images; do
+    [ -e "${path}" ] || continue
+    df -Pk "${path}" | awk -v path="${path}" 'NR == 2 {
+        gsub(/%/, "", $5)
+        printf "storage.path=%s size_kib=%s used_kib=%s available_kib=%s used_pct=%s mount=%s\n", \
+            path, $2, $3, $4, $5, $6
+    }'
 done
 
 echo '[gpu-devfreq]'
