@@ -1,4 +1,6 @@
-# Local Android-container smoke configuration for FRDM-IMX95 (LPDDR4x).
+# Local LmP v96 Android-container smoke configuration for FRDM-IMX95.
+# Generic i.MX95 enablement comes from the NXP partner layer; the DD layers
+# contribute only product policy and application integration.
 
 header:
   version: 14
@@ -12,9 +14,29 @@ target: lmp-factory-image
 machine: imx95-frdm-evk
 
 repos:
+  # Use the in-progress local consumer branches for this development gate.
+  # Production continues to use the reviewed submodule commits.
+  meta-dynamicdevices-bsp:
+    path: /data_drive/esl/.codex-bsp-imx95-screen-integration
+
+  meta-dynamicdevices-distro:
+    path: /data_drive/esl/meta-dynamicdevices-product-features/meta-dynamicdevices-distro
+
+  bitbake:
+    commit: 1c9ec1ffde75809de34c10d3ec2b40d84d258cb4
+
+  openembedded-core:
+    commit: 7af6b75221d5703ba5bf43c7cd9f1e7a2e0ed20b
+
+  meta-arm:
+    commit: 8e0f8af90fefb03f08cd2228cde7a89902a6b37c
+
+  meta-openembedded:
+    commit: f1f248262d662315159ee96c604f97415d1dbe6a
+
   meta-imx:
     url: https://github.com/nxp-imx/meta-imx.git
-    branch: scarthgap-6.6.52-2.2.1
+    commit: e83d4402acde050d2b2761995761c81c797b5b03
     path: build/layers/meta-imx
     layers:
       meta-imx-bsp:
@@ -31,11 +53,16 @@ repos:
 
   meta-lmp:
     url: https://github.com/foundriesio/meta-lmp
-    commit: d176612d7fc811bb8f511fcaa06dc617513c0eb5
+    commit: 455bf51bd908cb008dd048031247478ffc62a43a
     path: build/layers/meta-lmp
     layers:
       meta-lmp-base:
       meta-lmp-bsp:
+
+  # Local development checkout. A production Factory manifest must replace
+  # this path with the reviewed, remotely published partner commit.
+  meta-partner-nxp-imx:
+    path: /data_drive/esl/.codex-meta-partner-nxp-imx95
 
 local_conf_header:
   product-features: |
@@ -47,11 +74,6 @@ local_conf_header:
     DEV_MODE = "1"
     NXP_WIFI_SECURE_FIRMWARE = "0"
 
-    # kas-container mounts the shared builder cache at /var/cache.
-    DL_DIR = "/var/cache/downloads"
-    SSTATE_DIR = "/var/cache/sstate"
-    PERSISTENT_DIR = "/var/cache/persistent"
-
     UBOOT_SIGN_ENABLE = "0"
     UBOOT_SPL_SIGN_ENABLE = "0"
     TF_A_SIGN_ENABLE = "0"
@@ -59,6 +81,7 @@ local_conf_header:
     UEFI_SIGN_ENABLE = "0"
     MODSIGN = "0"
     MODSIGN_ENABLE = "0"
+    DISTRO_FEATURES:remove = "modsign"
     SIGN_ENABLE = "0"
 
     SIGNING_UBOOT_SIGN_KEY = "${TOPDIR}/bitbake.lock"
