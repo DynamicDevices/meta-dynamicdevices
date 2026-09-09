@@ -1,0 +1,48 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+
+set -eu
+
+input=${1:--}
+
+awk '
+    NR == 1 {
+        refresh_ns = $1 + 0
+        next
+    }
+    $2 ~ /^[0-9]+$/ {
+        presented_ns = $2 + 0
+        if (presented_ns <= 0 || presented_ns >= 9.0e18)
+            next
+        if (previous_ns > 0) {
+            delta_ns = presented_ns - previous_ns
+            if (delta_ns > 0) {
+                intervals++
+                total_ns += delta_ns
+                if (delta_ns > worst_ns)
+                    worst_ns = delta_ns
+                if (refresh_ns > 0 && delta_ns > refresh_ns * 1.5)
+                    missed_intervals++
+            }
+        }
+        previous_ns = presented_ns
+    }
+    END {
+        if (refresh_ns <= 0) {
+            print "frame.error=invalid_refresh_period"
+            exit 2
+        }
+        printf "frame.refresh_period_ns=%.0f\n", refresh_ns
+        printf "frame.target_fps=%.2f\n", 1000000000 / refresh_ns
+        printf "frame.intervals=%d\n", intervals
+        if (intervals == 0) {
+            print "frame.error=no_presented_intervals"
+            exit 3
+        }
+        printf "frame.effective_fps=%.2f\n", 1000000000 * intervals / total_ns
+        printf "frame.missed_intervals=%d\n", missed_intervals
+        printf "frame.missed_intervals_pct=%.2f\n", 100 * missed_intervals / intervals
+        printf "frame.worst_interval_ns=%.0f\n", worst_ns
+        printf "frame.worst_refresh_periods=%.2f\n", worst_ns / refresh_ns
+    }
+' "${input}"

@@ -108,4 +108,19 @@ printf 'lxc.cgroup2.devices.allow = a\n' >> "${test_root}/config_nodes"
 expect_gate_failure 'wildcard LXC device access'
 cp "${test_root}/config_nodes.good" "${test_root}/config_nodes"
 
+cat > "${test_root}/surfaceflinger-latency.txt" <<'LATENCY'
+16666666
+990000000 1000000000 1001000000
+1006666666 1016666666 1017666666
+1023333332 1033333332 1034333332
+1056666664 1066666664 1067666664
+LATENCY
+sh "${repo_root}/recipes-support/waydroid/waydroid/waydroid-frame-headroom" \
+    "${test_root}/surfaceflinger-latency.txt" > "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.target_fps=60.00' "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.intervals=3' "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.effective_fps=45.00' "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.missed_intervals=1' "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.worst_refresh_periods=2.00' "${test_root}/frame-headroom.txt"
+
 echo 'Waydroid Etnaviv GPU and V4L2 provisioning: passed'

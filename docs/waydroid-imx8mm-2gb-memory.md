@@ -17,6 +17,12 @@ two-second CPU sample and records the host filesystems that contain Waydroid's
 state and images. Also check the kernel journal for OOM kills and zram
 writeback failures.
 
+`waydroid-board-evidence capture` also records raw SurfaceFlinger presentation
+timestamps and summarizes the target refresh rate, effective frame rate,
+missed refresh intervals and worst frame gap. Capture this during steady-state
+shipping kiosk animation and video playback; an idle surface is not a valid
+frame-rate headroom measurement.
+
 Resource gates under the target workload:
 
 - green: container peak below 70% of `MemoryMax` and host available memory

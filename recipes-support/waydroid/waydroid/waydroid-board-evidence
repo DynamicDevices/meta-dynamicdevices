@@ -63,6 +63,10 @@ capture_all() {
     } > "${destination}/android.txt"
     waydroid shell dumpsys SurfaceFlinger --latency \
         > "${destination}/surfaceflinger-latency.txt" 2>&1 || true
+    /usr/libexec/waydroid-frame-headroom \
+        "${destination}/surfaceflinger-latency.txt" \
+        > "${destination}/frame-headroom.txt" 2>&1 \
+        || mark_fail 'SurfaceFlinger frame-headroom summary failed'
 
     if [ -d /usr/share/waydroid-extra/evidence ]; then
         (cd /usr/share/waydroid-extra/evidence && sha256sum -- ./*) \
