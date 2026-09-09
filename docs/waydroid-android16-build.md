@@ -26,6 +26,12 @@ host package licence manifest and licence texts into the image. CI fails unless
 the deploy directory contains the host image manifest and SPDX archive, so the
 Android SBOM is not mistaken for a complete product SBOM.
 
+The host workflow defaults to `integration` mode so a reviewed Android
+`userdebug` artifact can be exercised on the board. Select `production` only
+with an Android `user` artifact whose `build-info.json` records both production
+release class and the blocking SELinux production gate; the workflow rejects
+missing or integration-only provenance.
+
 CI runs this inside the digest-pinned Yocto build container with `/yocto`
 mounted at the same absolute path. Do not substitute `kas-container` without
 also arranging that mount and explicitly forwarding the AESL variables.
