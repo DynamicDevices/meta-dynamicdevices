@@ -1,4 +1,4 @@
-# Local LmP v96 Android-container smoke configuration for FRDM-IMX95.
+# Local LmP v96 HDMI/Waydroid smoke configuration for FRDM-IMX95.
 # Generic i.MX95 enablement comes from the NXP partner layer; the DD layers
 # contribute only product policy and application integration.
 
@@ -67,7 +67,7 @@ repos:
 
 local_conf_header:
   product-features: |
-    DD_PRODUCT_FEATURES = "android-container"
+    DD_PRODUCT_FEATURES = "display android-container"
 
   imx95-smoke: |
     ACCEPT_FSL_EULA = "1"
