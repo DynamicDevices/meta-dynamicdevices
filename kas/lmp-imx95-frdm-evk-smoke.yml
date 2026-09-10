@@ -5,9 +5,9 @@
 header:
   version: 14
   includes:
-    - base.yml
-    - bsp.yml
-    - dynamicdevices.yml
+    - kas/base.yml
+    - kas/bsp.yml
+    - kas/dynamicdevices.yml
 
 distro: lmp-dynamicdevices
 target: lmp-factory-image
@@ -15,12 +15,13 @@ machine: imx95-frdm-evk
 
 repos:
   # Use the in-progress local consumer branches for this development gate.
-  # Production continues to use the reviewed submodule commits.
+  # Paths are relative to KAS_WORK_DIR; set it to the common parent directory
+  # containing these clean checkouts. Production uses reviewed remote commits.
   meta-dynamicdevices-bsp:
-    path: /data_drive/esl/.codex-bsp-imx95-screen-integration
+    path: meta-dynamicdevices-bsp
 
   meta-dynamicdevices-distro:
-    path: /data_drive/esl/meta-dynamicdevices-product-features/meta-dynamicdevices-distro
+    path: meta-dynamicdevices-distro
 
   bitbake:
     commit: 1c9ec1ffde75809de34c10d3ec2b40d84d258cb4
@@ -62,7 +63,7 @@ repos:
   # Local development checkout. A production Factory manifest must replace
   # this path with the reviewed, remotely published partner commit.
   meta-partner-nxp-imx:
-    path: /data_drive/esl/.codex-meta-partner-nxp-imx95
+    path: meta-partner-nxp-imx
 
 local_conf_header:
   product-features: |
