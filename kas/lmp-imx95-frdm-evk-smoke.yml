@@ -18,7 +18,7 @@ repos:
   # reproducible without sibling development checkouts.
   meta-dynamicdevices-bsp:
     url: https://github.com/DynamicDevices/meta-dynamicdevices-bsp.git
-    commit: cfe34c0a12d7aeec8ae3ef956431200469fcd398
+    commit: ad8f3a4533de4b3c6362142b308ca12a7eaa84fc
     path: build/layers/meta-dynamicdevices-bsp
 
   meta-dynamicdevices-distro:
