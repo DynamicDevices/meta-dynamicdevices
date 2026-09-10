@@ -100,7 +100,7 @@ local_conf_header:
 
     # The BSP's secure default is override-specific (`:sota`), so the local
     # development override must use the same override to take precedence.
-    UBOOT_SIGN_ENABLE:sota = "0"
+    UBOOT_SIGN_ENABLE:sota:mx95-generic-bsp = "0"
     UBOOT_SPL_SIGN_ENABLE = "0"
     TF_A_SIGN_ENABLE = "0"
     OPTEE_TA_SIGN_ENABLE = "0"
