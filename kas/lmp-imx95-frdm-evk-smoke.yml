@@ -80,6 +80,9 @@ repos:
       0001-scarthgap-compatibility:
         repo: meta-partner-nxp-imx
         path: kas/patches/meta-nxp-connectivity/0001-nxp-otbr-declare-scarthgap-compatibility.patch
+      0002-zigbee-scarthgap-compatibility:
+        repo: meta-partner-nxp-imx
+        path: kas/patches/meta-nxp-connectivity/0002-nxp-zigbee-rcp-declare-scarthgap-compatibility.patch
 
 local_conf_header:
   product-features: |
