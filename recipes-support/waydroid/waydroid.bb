@@ -12,6 +12,7 @@ SPV = "1.4.2"
 PV = "${SPV}+git${SRCPV}"
 
 RDEPENDS:${PN} += "lxc python3-gbinder python3-pygobject libgbinder python3-pyclip python3-dbus python3-compression python3-json gobject-introspection"
+RDEPENDS:${PN}:append:imx95-frdm-evk = " ca-certificates curl"
 
 # these modules are directly included in android-flavored kernels
 # Note: Waydroid requires kernel >= 3.18 !
@@ -24,6 +25,7 @@ SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=
     file://gbinder.conf \
     file://waydroid-net.sh \
     file://waydroid-image-provision \
+    file://waydroid-image-release.conf \
     file://waydroid-image-provision.service \
     file://waydroid-jaguar-wait \
     file://waydroid-jaguar-container.service \
@@ -175,6 +177,8 @@ do_install:append:imx95-frdm-evk() {
 
     install -Dm0755 ${WORKDIR}/waydroid-product-wait \
         ${D}${libexecdir}/waydroid-product-wait
+    install -Dm0644 ${WORKDIR}/waydroid-image-release.conf \
+        ${D}${datadir}/waydroid-extra/waydroid-image-release.conf
     install -Dm0644 ${WORKDIR}/waydroid-frdm-container.service \
         ${D}${systemd_system_unitdir}/waydroid-frdm-container.service
     install -Dm0644 ${WORKDIR}/waydroid-frdm-session.service \
@@ -188,6 +192,7 @@ FILES:${PN} += " \
     ${libdir} \
     ${datadir}/dbus-1 \
     ${datadir}/polkit-1 \
+    ${datadir}/waydroid-extra \
     ${prefix}/libexec \
     /usr/palm/applications/id.waydro.container \
 "

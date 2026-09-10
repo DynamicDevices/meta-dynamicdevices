@@ -48,6 +48,25 @@ Android images are deliberately stored outside OSTree in
 services without replacing an already-provisioned Android image. Delete or
 replace those images only as a deliberate image-management operation.
 
+FRDM-IMX95 uses the same service sequence but provisions the immutable Active
+ESL ARM64 release `aesl-waydroid-arm64-baseline-e2f1dd4-20260906`. Its paired
+LineageOS 20 system and Mainline vendor images are downloaded to a temporary
+directory, checked against the release SHA-256s, and only then installed under
+`/etc/waydroid-extra/images`. Waydroid treats that location as preinstalled
+and refuses rolling OTA replacement. The release also publishes build metadata
+and the SHA-256-pinned 1,254-project Android source manifest. An interrupted or
+corrupt download fails provisioning rather than falling back to a rolling
+channel or mixing image revisions. Provisioning is ordered after Foundries'
+one-shot `resize-helper.service`, which expands the final `otaroot` partition
+before the approximately 2.4 GB image pair is downloaded.
+
+Run the host-side idempotence and atomic-upgrade regression before changing
+the provisioner or release contract:
+
+```sh
+recipes-support/waydroid/tests/test-waydroid-image-provision.sh
+```
+
 ## Host requirements
 
 The release requires:

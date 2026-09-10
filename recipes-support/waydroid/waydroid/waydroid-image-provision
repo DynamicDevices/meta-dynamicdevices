@@ -5,14 +5,86 @@ set -eu
 
 images_dir=/var/lib/waydroid/images
 config=/var/lib/waydroid/waydroid.cfg
+release_config=/usr/share/waydroid-extra/waydroid-image-release.conf
+preinstalled_dir=/etc/waydroid-extra/images
+
+release_marker_matches() {
+    [ -r "${release_config}" ] && [ -r "${preinstalled_dir}/release.conf" ] ||
+        return 1
+    current_sum=$(sha256sum "${release_config}")
+    current_sum=${current_sum%% *}
+    installed_sum=$(sha256sum "${preinstalled_dir}/release.conf")
+    installed_sum=${installed_sum%% *}
+    [ "${current_sum}" = "${installed_sum}" ]
+}
 
 if [ -s "${images_dir}/system.img" ] && [ -s "${images_dir}/vendor.img" ]; then
     exit 0
 fi
 
+# A completed immutable-image initialization keeps its images in /etc rather
+# than copying them into Waydroid's writable state.  Match the installed
+# release marker as well as the image pair so normal reboots do not download
+# multi-gigabyte images again, while a future OS release can intentionally
+# advance the pin.
+if [ -r "${release_config}" ] && [ -s "${config}" ] && \
+        [ -s "${preinstalled_dir}/system.img" ] && \
+        [ -s "${preinstalled_dir}/vendor.img" ] && \
+        release_marker_matches; then
+    exit 0
+fi
+
 # An interrupted first initialization can leave configuration claiming a
 # channel revision whose image was never fully installed.  Let Waydroid build
-# that configuration again before its checksum-verified channel download.
+# that configuration again.
 rm -f "${config}"
 
+# FRDM-IMX95 consumes a reviewed, immutable Active ESL release rather than
+# Waydroid's rolling OTA channel. The pair is staged and verified together so
+# an interrupted download can never leave one new image beside one old image.
+if [ -r "${release_config}" ]; then
+    # This file is installed root-owned from the Foundries OS image.
+    # shellcheck disable=SC1090
+    . "${release_config}"
+
+    # If only Waydroid's generated configuration was lost, reuse a complete
+    # image pair from the same pinned release instead of downloading it again.
+    if [ -s "${preinstalled_dir}/system.img" ] && \
+            [ -s "${preinstalled_dir}/vendor.img" ] && \
+            release_marker_matches; then
+        exec /usr/bin/waydroid init --images_path "${preinstalled_dir}" --force
+    fi
+
+    install -d -m 0755 /etc/waydroid-extra
+    stage=$(mktemp -d /etc/waydroid-extra/.provision.XXXXXX)
+    trap 'test -z "${stage}" || rm -rf "${stage}"' EXIT HUP INT TERM
+
+    for image in system vendor; do
+        case "${image}" in
+            system) expected=${WAYDROID_SYSTEM_SHA256} ;;
+            vendor) expected=${WAYDROID_VENDOR_SHA256} ;;
+        esac
+        output=${stage}/${image}.img
+        curl --fail --location --retry 5 --retry-all-errors \
+            --output "${output}" "${WAYDROID_IMAGE_BASE_URL}/${image}.img"
+        printf '%s  %s\n' "${expected}" "${output}" | sha256sum -c - >/dev/null
+    done
+
+    chmod 0644 "${stage}/system.img" "${stage}/vendor.img"
+    install -m 0644 "${release_config}" "${stage}/release.conf"
+
+    old=${preinstalled_dir}.old
+    rm -rf "${old}"
+    if [ -d "${preinstalled_dir}" ]; then
+        mv "${preinstalled_dir}" "${old}"
+    fi
+    mv "${stage}" "${preinstalled_dir}"
+    stage=
+    rm -rf "${old}"
+    trap - EXIT HUP INT TERM
+    exec /usr/bin/waydroid init --images_path "${preinstalled_dir}" --force
+fi
+
+# Existing machines retain the proven rolling-channel behaviour until they
+# opt into an immutable product release of their own.
 exec /usr/bin/waydroid init

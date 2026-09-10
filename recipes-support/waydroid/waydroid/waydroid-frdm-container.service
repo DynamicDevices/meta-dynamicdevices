@@ -2,8 +2,7 @@
 Description=Waydroid container on FRDM-IMX95
 Requires=waydroid-image-provision.service
 After=waydroid-image-provision.service dbus.service
-ConditionPathExists=/var/lib/waydroid/images/system.img
-ConditionPathExists=/var/lib/waydroid/images/vendor.img
+ConditionPathExists=/var/lib/waydroid/waydroid.cfg
 
 [Service]
 Type=simple

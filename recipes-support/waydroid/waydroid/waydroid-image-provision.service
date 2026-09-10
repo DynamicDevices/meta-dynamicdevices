@@ -1,7 +1,7 @@
 [Unit]
 Description=Provision Waydroid Android images into persistent storage
 Wants=network-online.target
-After=network-online.target dbus.service
+After=network-online.target dbus.service resize-helper.service
 Before=waydroid-container.service
 StartLimitIntervalSec=0
 
