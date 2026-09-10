@@ -23,7 +23,7 @@ repos:
 
   meta-dynamicdevices-distro:
     url: https://github.com/DynamicDevices/meta-dynamicdevices-distro.git
-    commit: f191e4d7f078de100f850787eadbe4133316c2cc
+    commit: 9d693eec2d3e841f094ce6547f3ada17d2360868
     path: build/layers/meta-dynamicdevices-distro
 
   bitbake:
