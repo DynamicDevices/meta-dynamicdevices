@@ -66,7 +66,7 @@ repos:
   # NXP BSP support is maintained independently as a Foundries partner layer.
   meta-partner-nxp-imx:
     url: https://github.com/active-esl/meta-partner-nxp-imx.git
-    commit: e03aec6b1749b44fb113741982a7e60bad8a94e1
+    commit: 92d14aa8c6fc9924b0a4b5adee9c4f00b4ce6089
     path: build/layers/meta-partner-nxp-imx
 
   # Keep IW612 userspace aligned with the same NXP 2.2.0 component release as
