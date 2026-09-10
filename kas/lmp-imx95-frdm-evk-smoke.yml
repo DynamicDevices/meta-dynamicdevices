@@ -65,6 +65,22 @@ repos:
   meta-partner-nxp-imx:
     path: meta-partner-nxp-imx
 
+  # Keep IW612 userspace aligned with the same NXP 2.2.0 component release as
+  # the partner BSP. This replaces the older DD fork inherited from
+  # dynamicdevices.yml for this i.MX95 product gate while retaining its Zigbee
+  # RCP layer and adding the IW612 OTBR layer.
+  meta-nxp-connectivity:
+    url: https://github.com/nxp-imx/meta-nxp-connectivity.git
+    commit: 14a32aa7467f58257e3bb93a5c0fa443c70ae1ae
+    path: build/layers/meta-nxp-connectivity
+    layers:
+      meta-nxp-zigbee-rcp:
+      meta-nxp-otbr:
+    patches:
+      0001-scarthgap-compatibility:
+        repo: meta-partner-nxp-imx
+        path: kas/patches/meta-nxp-connectivity/0001-nxp-otbr-declare-scarthgap-compatibility.patch
+
 local_conf_header:
   product-features: |
     DD_PRODUCT_FEATURES = "display android-container"
