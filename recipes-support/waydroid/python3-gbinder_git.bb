@@ -22,4 +22,19 @@ DEPENDS:append:class-native = " python-native "
 
 inherit setuptools3 pkgconfig
 
+# Cython records its absolute input path in the generated C source.  Yocto
+# copies that source into ${PN}-src after compilation, so compiler debug-prefix
+# flags cannot rewrite it.  Keep the source package reproducible without
+# suppressing the buildpaths QA check.
+python3_gbinder_fix_debug_sources() {
+    generated_source="${PKGD}${TARGET_DBGSRC_DIR}/gbinder.c"
+    if [ -f "$generated_source" ]; then
+        sed -i \
+            -e 's#${S}#${TARGET_DBGSRC_DIR}#g' \
+            -e 's#${WORKDIR}#${TARGET_DBGSRC_DIR}#g' \
+            "$generated_source"
+    fi
+}
+PACKAGESPLITFUNCS =+ "python3_gbinder_fix_debug_sources"
+
 BBCLASSEXTEND = "native"
