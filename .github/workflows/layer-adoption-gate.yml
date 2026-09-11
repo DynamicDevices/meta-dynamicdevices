@@ -56,6 +56,9 @@ jobs:
     if: needs.detect.outputs.material == 'true'
     strategy:
       fail-fast: false
+      # Full Yocto baseline/candidate pairs are I/O and disk intensive. Keep
+      # the hard gate comprehensive without overwhelming one self-hosted host.
+      max-parallel: 2
       matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
     runs-on: [self-hosted, Linux, X64]
     container:
