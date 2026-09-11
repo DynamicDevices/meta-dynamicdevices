@@ -20,8 +20,6 @@ DEPENDS = "libgbinder python3-cython-native libglibutil"
 RDEPENDS:${PN}:class-native = ""
 DEPENDS:append:class-native = " python-native "
 
-SETUPTOOLS_BUILD_ARGS = "sdist --cython"
-
 inherit setuptools3 pkgconfig
 
 BBCLASSEXTEND = "native"
