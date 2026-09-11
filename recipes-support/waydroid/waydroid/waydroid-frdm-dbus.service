@@ -1,0 +1,16 @@
+[Unit]
+Description=Waydroid session D-Bus on FRDM-IMX95
+Before=waydroid-frdm-session.service
+
+[Service]
+Type=simple
+User=weston
+Group=weston
+RuntimeDirectory=waydroid-frdm
+RuntimeDirectoryMode=0700
+ExecStart=/usr/bin/dbus-daemon --session --nofork --address=unix:path=/run/waydroid-frdm/bus
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical.target

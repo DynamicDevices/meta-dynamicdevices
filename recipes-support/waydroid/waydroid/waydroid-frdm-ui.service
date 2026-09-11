@@ -11,6 +11,7 @@ Group=weston
 SupplementaryGroups=video render wayland
 Environment=HOME=/var/rootdirs/home/weston
 Environment=XDG_RUNTIME_DIR=/run
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/waydroid-frdm/bus
 Environment=WAYLAND_DISPLAY=wayland-0
 ExecStartPre=/usr/libexec/waydroid-product-wait session
 ExecStart=/usr/bin/waydroid show-full-ui

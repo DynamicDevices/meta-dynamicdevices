@@ -34,9 +34,11 @@ SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=
     file://weston-jaguar-waydroid.ini \
     file://90-waydroid-screen.conf \
     file://waydroid-frdm-container.service \
+    file://waydroid-frdm-dbus.service \
     file://waydroid-frdm-session.service \
     file://waydroid-frdm-ui.service \
     file://waydroid-product-wait \
+    file://0002-lxc-drop-apparmor-key-without-apparmor.patch \
 "
 S = "${WORKDIR}/git"
 
@@ -73,6 +75,7 @@ SYSTEMD_AUTO_ENABLE:${PN}:imx8mm-jaguar-screen = "enable"
 SYSTEMD_SERVICE:${PN}:imx95-frdm-evk = " \
     waydroid-image-provision.service \
     waydroid-frdm-container.service \
+    waydroid-frdm-dbus.service \
     waydroid-frdm-session.service \
     waydroid-frdm-ui.service \
 "
@@ -181,6 +184,8 @@ do_install:append:imx95-frdm-evk() {
         ${D}${datadir}/waydroid-extra/waydroid-image-release.conf
     install -Dm0644 ${WORKDIR}/waydroid-frdm-container.service \
         ${D}${systemd_system_unitdir}/waydroid-frdm-container.service
+    install -Dm0644 ${WORKDIR}/waydroid-frdm-dbus.service \
+        ${D}${systemd_system_unitdir}/waydroid-frdm-dbus.service
     install -Dm0644 ${WORKDIR}/waydroid-frdm-session.service \
         ${D}${systemd_system_unitdir}/waydroid-frdm-session.service
     install -Dm0644 ${WORKDIR}/waydroid-frdm-ui.service \
