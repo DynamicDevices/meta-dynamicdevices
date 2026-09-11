@@ -12,7 +12,7 @@ on:
         required: true
 
 concurrency:
-  group: layer-adoption-${${ github.event.pull_request.number || github.ref }}
+  group: layer-adoption-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -20,9 +20,9 @@ jobs:
     name: Detect material layer change
     runs-on: [self-hosted, Linux, X64]
     outputs:
-      material: ${${ steps.detect.outputs.material }}
-      matrix: ${${ steps.matrix.outputs.matrix }}
-      base_sha: ${${ steps.base.outputs.sha }}
+      material: ${{ steps.detect.outputs.material }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      base_sha: ${{ steps.base.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,9 +30,9 @@ jobs:
       - id: base
         name: Resolve immutable baseline
         env:
-          PR_BASE: ${${ github.event.pull_request.base.sha }}
-          PUSH_BASE: ${${ github.event.before }}
-          INPUT_BASE: ${${ inputs.base_sha }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE: ${{ github.event.before }}
+          INPUT_BASE: ${{ inputs.base_sha }}
         run: |
           sha="${PR_BASE:-${INPUT_BASE:-${PUSH_BASE:-}}}"
           if [ -z "$sha" ] || printf '%s' "$sha" | grep -Eq '^0+$'; then
@@ -44,19 +44,19 @@ jobs:
         name: Require an adoption contract
         run: |
           python3 scripts/validation/detect-layer-adoption.py \
-            --base '${${ steps.base.outputs.sha }}' \
-            --head '${${ github.sha }}' \
+            --base '${{ steps.base.outputs.sha }}' \
+            --head '${{ github.sha }}' \
             --github-output "$GITHUB_OUTPUT"
       - id: matrix
         run: echo "matrix=$(jq -c '{include:.tuples}' ci/layer-adoption-tuples.json)" >> "$GITHUB_OUTPUT"
 
   regression:
-    name: Protect ${${ matrix.id }}
+    name: Protect ${{ matrix.id }}
     needs: detect
     if: needs.detect.outputs.material == 'true'
     strategy:
       fail-fast: false
-      matrix: ${${ fromJSON(needs.detect.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
     runs-on: [self-hosted, Linux, X64]
     container:
       image: dynamicdevices/yocto-ci-build:latest
@@ -68,7 +68,7 @@ jobs:
           path: candidate
       - name: Create baseline worktree
         working-directory: candidate
-        run: git worktree add ../baseline '${${ needs.detect.outputs.base_sha }}'
+        run: git worktree add ../baseline '${{ needs.detect.outputs.base_sha }}'
       - name: Install KAS when absent
         run: command -v kas >/dev/null || pip3 install kas
       - name: Restore Yocto caches
@@ -77,34 +77,34 @@ jobs:
           path: |
             ~/yocto/downloads
             ~/yocto/sstate-cache
-          key: layer-adoption-${${ matrix.machine }}-${${ hashFiles('candidate/kas/**') }}
+          key: layer-adoption-${{ matrix.machine }}-${{ hashFiles('candidate/kas/**') }}
           restore-keys: |
-            layer-adoption-${${ matrix.machine }}-
+            layer-adoption-${{ matrix.machine }}-
             layer-adoption-
       - name: Build and capture baseline
         working-directory: baseline
         run: |
           ../candidate/scripts/validation/capture-layer-state.sh \
-            '${${ matrix.config }}' '${${ matrix.machine }}' '${${ matrix.image }}' \
-            '../evidence/baseline/${${ matrix.id }}'
+            '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.image }}' \
+            '../evidence/baseline/${{ matrix.id }}'
       - name: Build and capture candidate
         working-directory: candidate
         run: |
           scripts/validation/capture-layer-state.sh \
-            '${${ matrix.config }}' '${${ matrix.machine }}' '${${ matrix.image }}' \
-            '../evidence/candidate/${${ matrix.id }}'
+            '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.image }}' \
+            '../evidence/candidate/${{ matrix.id }}'
       - name: Reject unexplained contamination
         run: |
           python3 candidate/scripts/validation/compare-layer-state.py \
-            --baseline 'evidence/baseline/${${ matrix.id }}' \
-            --candidate 'evidence/candidate/${${ matrix.id }}' \
-            --tuple '${${ matrix.id }}' \
+            --baseline 'evidence/baseline/${{ matrix.id }}' \
+            --candidate 'evidence/candidate/${{ matrix.id }}' \
+            --tuple '${{ matrix.id }}' \
             --contract candidate/ci/layer-adoption-contract.json
       - name: Preserve comparison evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: layer-adoption-${${ matrix.id }}
+          name: layer-adoption-${{ matrix.id }}
           path: evidence
           retention-days: 14
 
@@ -116,9 +116,9 @@ jobs:
     steps:
       - name: Enforce gate result
         env:
-          DETECT: ${${ needs.detect.result }}
-          MATERIAL: ${${ needs.detect.outputs.material }}
-          REGRESSION: ${${ needs.regression.result }}
+          DETECT: ${{ needs.detect.result }}
+          MATERIAL: ${{ needs.detect.outputs.material }}
+          REGRESSION: ${{ needs.regression.result }}
         run: |
           test "$DETECT" = success
           if [ "$MATERIAL" = true ]; then
