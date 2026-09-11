@@ -18,12 +18,12 @@ repos:
   # reproducible without sibling development checkouts.
   meta-dynamicdevices-bsp:
     url: https://github.com/DynamicDevices/meta-dynamicdevices-bsp.git
-    commit: ad8f3a4533de4b3c6362142b308ca12a7eaa84fc
+    commit: 187ab1682cab48f1b0f24998212787c5134e8d97
     path: build/layers/meta-dynamicdevices-bsp
 
   meta-dynamicdevices-distro:
     url: https://github.com/DynamicDevices/meta-dynamicdevices-distro.git
-    commit: 2e7a829f90670f7df36e37ce48033c6962bf480d
+    commit: 6fbe4c53313b6b032881022f58656b04da220be9
     path: build/layers/meta-dynamicdevices-distro
 
   bitbake:
@@ -68,7 +68,7 @@ repos:
   # NXP BSP support is maintained independently as a Foundries partner layer.
   meta-partner-nxp-imx:
     url: https://github.com/active-esl/meta-partner-nxp-imx.git
-    commit: a609d068154f7bf1f9a9649a262998bef53a2caa
+    commit: b897fe18cef50bebcfa6c7f25c918c532def9dc4
     path: build/layers/meta-partner-nxp-imx
 
   # Keep IW612 userspace aligned with the same NXP 2.2.0 component release as
