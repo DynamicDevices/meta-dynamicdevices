@@ -46,22 +46,21 @@ jobs:
   # Validation job - validates Yocto layer compatibility
   validate:
     name: Validate Yocto Layers
-    # Pin to a Linux self-hosted runner: bare `self-hosted` also matches the
-    # org's macOS runners, which have no Docker and fail this container job
-    # in ~6s with "docker: command not found".
-    runs-on: [self-hosted, Linux, X64]
+    # Pin container work to the dedicated Yocto runner. Generic Linux labels
+    # also match esl-nixos, which intentionally has no Docker daemon.
+    runs-on: [self-hosted, Linux, X64, yocto]
     container:
       image: dynamicdevices/yocto-ci-build:latest
       options: --privileged --platform linux/amd64
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
       - name: Cache KAS layers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             build/layers
@@ -72,7 +71,7 @@ jobs:
             kas-layers-
 
       - name: Cache Yocto downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/yocto/downloads
           key: yocto-downloads-${{ runner.os }}-${{ hashFiles('kas/lmp-dynamicdevices-base.yml') }}
@@ -177,27 +176,28 @@ jobs:
     steps:
       - name: Generate validation summary
         run: |
-          echo "# KAS Layer Validation Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Workflow:** ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Determine overall status
-          if [ "${{ needs.validate.result }}" = "success" ]; then
-            echo "## ✅ Validation Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
-            echo "All meta-dynamicdevices layers pass comprehensive yocto-check-layer validation!" >> $GITHUB_STEP_SUMMARY
-            echo "Layers are ready for Yocto Project compatibility." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "## ❌ Validation Status: FAILED" >> $GITHUB_STEP_SUMMARY
-            echo "- Layer validation: ${{ needs.validate.result }}" >> $GITHUB_STEP_SUMMARY
-            echo "Please fix validation issues before proceeding." >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Validation Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tool:** Official yocto-check-layer" >> $GITHUB_STEP_SUMMARY
-          echo "- **Layers:** meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro" >> $GITHUB_STEP_SUMMARY
-          echo "- **Compliance:** Full Yocto Project compatibility validation" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "# KAS Layer Validation Summary"
+            echo
+            echo "**Workflow:** ${{ github.workflow }}"
+            echo "**Trigger:** ${{ github.event_name }}"
+            echo "**Commit:** ${{ github.sha }}"
+            echo "**Branch:** ${{ github.ref_name }}"
+            echo
+
+            if [ "${{ needs.validate.result }}" = "success" ]; then
+              echo "## ✅ Validation Status: SUCCESS"
+              echo "All meta-dynamicdevices layers pass comprehensive yocto-check-layer validation!"
+              echo "Layers are ready for Yocto Project compatibility."
+            else
+              echo "## ❌ Validation Status: FAILED"
+              echo "- Layer validation: ${{ needs.validate.result }}"
+              echo "Please fix validation issues before proceeding."
+            fi
+
+            echo
+            echo "## Validation Coverage"
+            echo "- **Tool:** Official yocto-check-layer"
+            echo "- **Layers:** meta-dynamicdevices, meta-dynamicdevices-bsp, meta-dynamicdevices-distro"
+            echo "- **Compliance:** Full Yocto Project compatibility validation"
+          } >> "$GITHUB_STEP_SUMMARY"
