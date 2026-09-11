@@ -66,6 +66,14 @@ This is a release gate: it checks AppArmor is enabled and enforcing, the LXC
 profile is selected, the device policy is deny-by-default with exact rules,
 and the Android GPU/Vulkan/Codec2 runtime state matches the product contract.
 
+The Android 16 Binder contract is pinned independently of the Android images:
+Waydroid 1.6.3 selects the AIDL6 service-manager protocol for API 36,
+libgbinder 1.1.52 is fixed at
+`e906afcffbfa51b7fbefe042a13b933d9e8dfdd9`, and libglibutil 1.0.82 is fixed
+at `cccc4aa8f1745096f6feb66da7883b35055d9423`. The Waydroid recipe carries a
+narrow compatibility patch which selects `id.waydro.waydroid.IPlatform` only
+for AIDL6, retaining the legacy descriptor for older Android images.
+
 Record the complete target snapshots and restart proof with:
 
 ```sh
