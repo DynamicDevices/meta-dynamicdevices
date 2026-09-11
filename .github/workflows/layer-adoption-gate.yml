@@ -70,7 +70,7 @@ jobs:
       # the hard gate comprehensive without overwhelming one self-hosted host.
       max-parallel: 2
       matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [self-hosted, Linux, X64, yocto]
     container:
       image: dynamicdevices/yocto-ci-build:latest
       options: --privileged --platform linux/amd64
