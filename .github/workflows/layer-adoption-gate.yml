@@ -43,6 +43,7 @@ jobs:
       - id: detect
         name: Require an adoption contract
         run: |
+          python3 -m unittest discover -s scripts/validation/tests -p 'test_*.py'
           python3 scripts/validation/detect-layer-adoption.py \
             --base '${{ steps.base.outputs.sha }}' \
             --head '${{ github.sha }}' \
