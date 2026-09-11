@@ -127,6 +127,17 @@ api_call() {
     fi
 }
 
+primary_build_run() {
+    local build_id=$1
+
+    api_call "projects/$FACTORY/lmp/builds/$build_id/" | \
+    jq -er '
+        [.data.build.runs[] |
+         select((.name | endswith("-mfgtools")) | not)][0].name //
+        .data.build.runs[0].name
+    '
+}
+
 # =============================================================================
 # BUILD MONITORING COMMANDS - CRITICAL FIOCTL ALTERNATIVE
 # =============================================================================
@@ -207,7 +218,12 @@ builds_command() {
                 return 1
             fi
             
-            run_name=${run_name:-"imx93-jaguar-eink"}  # Default to main build run
+            if [ -z "$run_name" ]; then
+                run_name=$(primary_build_run "$build_id") || {
+                    echo "❌ Unable to resolve a build run for target $build_id" >&2
+                    return 1
+                }
+            fi
             lines=${4:-50}                             # Default to last 50 lines
             
             echo -e "${CYAN}📋 Build $build_id logs ($run_name, last $lines lines):${NC}"
@@ -226,7 +242,12 @@ builds_command() {
                 return 1
             fi
             
-            run_name=${run_name:-"imx93-jaguar-eink"}  # Default to main build run
+            if [ -z "$run_name" ]; then
+                run_name=$(primary_build_run "$build_id") || {
+                    echo "❌ Unable to resolve a build run for target $build_id" >&2
+                    return 1
+                }
+            fi
             interval=${4:-10}                          # Default refresh every 10 seconds
             
             echo -e "${CYAN}👀 Following Build $build_id logs (every ${interval}s, Ctrl+C to stop):${NC}"
@@ -249,15 +270,21 @@ builds_command() {
             # Search build logs for specific patterns - debugging superpower!
             if [ -z "$build_id" ] || [ -z "$run_name" ]; then
                 echo "❌ Build ID and search pattern required"
-                echo "💡 Usage: $0 builds search <build_id> <search_pattern>"
+                echo "💡 Usage: $0 builds search <build_id> <search_pattern> [run_name]"
                 echo "💡 Example: $0 builds search 2131 'config.*warning'"
                 return 1
             fi
             
-            pattern=$run_name                          # Second arg is actually the pattern
-            run_name="imx93-jaguar-eink"              # Use default run name
+            pattern=$run_name                          # Third arg is the pattern
+            run_name=${4:-}
+            if [ -z "$run_name" ]; then
+                run_name=$(primary_build_run "$build_id") || {
+                    echo "❌ Unable to resolve a build run for target $build_id" >&2
+                    return 1
+                }
+            fi
             
-            echo -e "${CYAN}🔍 Searching Build $build_id for: '$pattern'${NC}"
+            echo -e "${CYAN}🔍 Searching Build $build_id ($run_name) for: '$pattern'${NC}"
             echo "# Pattern searching in build logs - advanced debugging capability"
             
             # Search logs with context lines for better understanding
@@ -272,7 +299,7 @@ builds_command() {
             echo "  status <id>       - Detailed build status and run information"
             echo "  logs <id> [run] [lines]    - Show build logs (default: 50 lines)"
             echo "  follow <id> [run] [sec]    - Follow logs in real-time (default: 10s)"
-            echo "  search <id> <pattern>      - Search logs for specific patterns"
+            echo "  search <id> <pattern> [run] - Search logs for specific patterns"
             ;;
     esac
 }
@@ -590,5 +617,7 @@ main() {
     esac
 }
 
-# Execute main function with all arguments
-main "$@"
+# Execute only when invoked directly; sourcing is supported for regression tests.
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    main "$@"
+fi
