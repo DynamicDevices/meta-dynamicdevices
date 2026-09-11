@@ -44,6 +44,8 @@ repos:
     path: build/layers/meta-imx
     layers:
       meta-imx-bsp:
+      meta-imx-sdk:
+      meta-imx-ml:
 
   meta-freescale:
     url: https://github.com/lmp-mirrors/meta-freescale
