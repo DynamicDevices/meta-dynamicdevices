@@ -48,7 +48,17 @@ jobs:
             --head '${{ github.sha }}' \
             --github-output "$GITHUB_OUTPUT"
       - id: matrix
-        run: echo "matrix=$(jq -c '{include:.tuples}' ci/layer-adoption-tuples.json)" >> "$GITHUB_OUTPUT"
+        name: Publish protected tuple matrix
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          with open("ci/layer-adoption-tuples.json", encoding="utf-8") as source:
+              matrix = {"include": json.load(source)["tuples"]}
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+          PY
 
   regression:
     name: Protect ${{ matrix.id }}
