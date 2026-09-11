@@ -98,13 +98,15 @@ jobs:
         working-directory: baseline
         run: |
           ../candidate/scripts/validation/capture-layer-state.sh \
-            '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.image }}' \
+            '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.distro }}' \
+            '${{ matrix.image }}' \
             '../evidence/baseline/${{ matrix.id }}'
       - name: Build and capture candidate
         working-directory: candidate
         run: |
           scripts/validation/capture-layer-state.sh \
-            '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.image }}' \
+            '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.distro }}' \
+            '${{ matrix.image }}' \
             '../evidence/candidate/${{ matrix.id }}'
       - name: Reject unexplained contamination
         run: |

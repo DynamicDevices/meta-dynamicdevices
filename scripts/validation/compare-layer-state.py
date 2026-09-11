@@ -14,7 +14,7 @@ from pathlib import Path
 def files(root: Path) -> dict[str, list[str]]:
     result: dict[str, list[str]] = {}
     for path in sorted(root.rglob("*")):
-        if path.is_file():
+        if path.is_file() and path.name != "metadata.json":
             result[str(path.relative_to(root))] = path.read_text(errors="replace").splitlines()
     return result
 
