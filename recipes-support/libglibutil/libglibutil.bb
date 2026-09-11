@@ -3,7 +3,7 @@
 DESCRIPTION = "Library of glib utilities."
 LICENSE = "BSD-3-Clause"
 SECTION = "webos/support"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=d06f24f367f70ea228818e7442fa90c7"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=84b6ba729d0490a306a608778fb69982"
 
 DEPENDS = "glib-2.0"
 
