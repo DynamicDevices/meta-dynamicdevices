@@ -3,7 +3,7 @@
 DESCRIPTION = "Library used to interact with Android's binder module."
 LICENSE = "BSD-3-Clause"
 SECTION = "webos/support"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=78995ef51510572817bf9586588261b3"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=6b4103b77e6fa766a75a1c2c3ba715c8"
 
 DEPENDS = "glib-2.0 libglibutil"
 
