@@ -25,6 +25,7 @@ RRECOMMENDS:${PN} += "\
 SRC_URI = "git://github.com/waydroid/waydroid.git;branch=main;protocol=https \
     file://0001-lxc-limit-graphics-device-permissions.patch \
     file://0002-lxc-provide-writable-android-metadata.patch \
+    file://0003-platform-use-Android-16-interface-descriptor.patch \
     file://gbinder.conf \
     file://waydroid-luneos.env \
     file://waydroid-luneos-appinfo.json \
