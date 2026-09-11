@@ -218,6 +218,9 @@ FILES:${PN} += " \
     ${sysconfdir} \
     ${libdir} \
     ${datadir}/dbus-1 \
+    ${datadir}/desktop-directories \
+    ${datadir}/icons \
+    ${datadir}/metainfo \
     ${datadir}/polkit-1 \
     ${datadir}/waydroid-extra \
     ${prefix}/libexec \
