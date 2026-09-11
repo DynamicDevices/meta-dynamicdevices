@@ -1,0 +1,141 @@
+From b800aa3663bb259d0f8445155d8cd01996e5eef9 Mon Sep 17 00:00:00 2001
+From: Active ESL <engineering@active-esl.com>
+Date: Mon, 7 Sep 2026 16:26:44 +0100
+Subject: [PATCH] lxc: enforce exact graphics and video device policy
+
+---
+ data/configs/apparmor_profiles/adbd         |  3 +-
+ data/configs/apparmor_profiles/android_app  |  2 +-
+ data/configs/apparmor_profiles/lxc-waydroid |  3 +-
+ tools/actions/container_manager.py          | 19 +++---
+ tools/helpers/lxc.py                        | 65 ++++++++++++++++++++-
+ 5 files changed, 77 insertions(+), 15 deletions(-)
+
+diff --git a/data/configs/apparmor_profiles/adbd b/data/configs/apparmor_profiles/adbd
+index 2ce14e6..5e969e5 100644
+--- a/data/configs/apparmor_profiles/adbd
++++ b/data/configs/apparmor_profiles/adbd
+@@ -1 +1 @@
+-profile adbd flags=(attach_disconnected,mediate_deleted,complain) {
++profile adbd flags=(attach_disconnected,mediate_deleted) {
+@@ -56 +55,0 @@ profile adbd flags=(attach_disconnected,mediate_deleted,complain) {
+-
+diff --git a/data/configs/apparmor_profiles/android_app b/data/configs/apparmor_profiles/android_app
+index 2f4e35e..5d567fd 100644
+--- a/data/configs/apparmor_profiles/android_app
++++ b/data/configs/apparmor_profiles/android_app
+@@ -1 +1 @@
+-profile android_app flags=(attach_disconnected, complain, mediate_deleted) {
++profile android_app flags=(attach_disconnected, mediate_deleted) {
+diff --git a/data/configs/apparmor_profiles/lxc-waydroid b/data/configs/apparmor_profiles/lxc-waydroid
+index e17d709..3f9e52f 100644
+--- a/data/configs/apparmor_profiles/lxc-waydroid
++++ b/data/configs/apparmor_profiles/lxc-waydroid
+@@ -1 +1 @@
+-profile lxc-waydroid flags=(attach_disconnected, complain, mediate_deleted) {
++profile lxc-waydroid flags=(attach_disconnected, mediate_deleted) {
+@@ -68 +67,0 @@ profile lxc-waydroid flags=(attach_disconnected, complain, mediate_deleted) {
+-
+diff --git a/tools/actions/container_manager.py b/tools/actions/container_manager.py
+index 6e088bb..7c781c3 100644
+--- a/tools/actions/container_manager.py
++++ b/tools/actions/container_manager.py
+@@ -68,0 +69 @@ def set_permissions(args, perm_list=None, mode="777"):
++    use_default_list = perm_list is None
+@@ -95,2 +95,0 @@ def set_permissions(args, perm_list=None, mode="777"):
+-        # DRM render nodes
+-        perm_list.extend(glob.glob("/dev/dri/renderD*"))
+@@ -99,5 +97,0 @@ def set_permissions(args, perm_list=None, mode="777"):
+-        # Videos
+-        perm_list.extend(glob.glob("/dev/video*"))
+-        # DMA-BUF Heaps
+-        perm_list.extend(glob.glob("/dev/dma_heap/*"))
+-
+@@ -106,0 +101,11 @@ def set_permissions(args, perm_list=None, mode="777"):
++    if use_default_list:
++        # The container receives only the selected render node. Do not relax
++        # permissions on unrelated host GPUs or add execute bits to devices.
++        render, _ = helpers.gpu.getDriNode(args)
++        if render:
++            chmod(render, "660")
++        for path in helpers.lxc.get_dma_heap_devices(args):
++            chmod(path, "660")
++        for path in helpers.lxc.get_video_devices(args):
++            chmod(path, "660")
++
+diff --git a/tools/helpers/lxc.py b/tools/helpers/lxc.py
+index 1b6ff49..3dcc5cd 100644
+--- a/tools/helpers/lxc.py
++++ b/tools/helpers/lxc.py
+@@ -37,0 +38,9 @@ def add_node_entry(nodes, src, dist, mnt_type, options, check):
++    try:
++        device = os.stat(src)
++    except (FileNotFoundError, TypeError):
++        return True
++    if stat.S_ISCHR(device.st_mode):
++        controller = ("lxc.cgroup2" if os.path.exists("/sys/fs/cgroup/cgroup.controllers")
++                      else "lxc.cgroup")
++        nodes.append("{}.devices.allow = c {}:{} rwm".format(
++            controller, os.major(device.st_rdev), os.minor(device.st_rdev)))
+@@ -39,0 +49,42 @@ def add_node_entry(nodes, src, dist, mnt_type, options, check):
++def get_dma_heap_devices(args):
++    """Return configured DMA heaps, rejecting paths outside /dev/dma_heap."""
++    cfg = tools.config.load(args)
++    configured = cfg["waydroid"].get("dma_heap_devices", "").strip()
++    if not configured:
++        return sorted(glob.glob("/dev/dma_heap/*"))
++
++    devices = []
++    for item in configured.split(";"):
++        path = os.path.normpath(item.strip())
++        if (not path.startswith("/dev/dma_heap/") or
++                os.path.dirname(path) != "/dev/dma_heap" or
++                any(char in path for char in ["\n", "\r"])):
++            logging.warning("Ignoring invalid DMA heap path: %s", item)
++            continue
++        if os.path.exists(path):
++            devices.append(path)
++        else:
++            logging.warning("Configured DMA heap does not exist: %s", path)
++    return devices
++
++def get_video_devices(args):
++    """Return configured V4L2 nodes, rejecting paths outside /dev/videoN."""
++    cfg = tools.config.load(args)
++    configured = cfg["waydroid"].get("video_devices", "").strip()
++    if not configured:
++        return sorted(glob.glob("/dev/video*"))
++
++    devices = []
++    for item in configured.split(";"):
++        path = os.path.normpath(item.strip())
++        name = os.path.basename(path)
++        if (os.path.dirname(path) != "/dev" or not name.startswith("video") or
++                not name[5:].isdigit() or any(char in path for char in ["\n", "\r"])):
++            logging.warning("Ignoring invalid V4L2 device path: %s", item)
++            continue
++        if os.path.exists(path):
++            devices.append(path)
++        else:
++            logging.warning("Configured V4L2 device does not exist: %s", path)
++    return devices
++
+@@ -41 +92,9 @@ def generate_nodes_lxc_config(args):
+-    nodes = []
++    controller = ("lxc.cgroup2" if os.path.exists("/sys/fs/cgroup/cgroup.controllers")
++                  else "lxc.cgroup")
++    nodes = ["{}.devices.deny = a".format(controller)]
++    # Android creates these standard pseudo devices after LXC mounts its /dev
++    # tmpfs. Permit only their fixed majors/minors plus the devpts range.
++    for device in ("c 1:3 rwm", "c 1:5 rwm", "c 1:7 rwm", "c 1:8 rwm",
++                   "c 1:9 rwm", "c 5:0 rwm", "c 5:1 rwm", "c 5:2 rwm",
++                   "c 136:* rwm"):
++        nodes.append("{}.devices.allow = {}".format(controller, device))
+@@ -69 +128 @@ def generate_nodes_lxc_config(args):
+-    for n in glob.glob("/dev/video*"):
++    for n in get_video_devices(args):
+@@ -71 +130 @@ def generate_nodes_lxc_config(args):
+-    for n in glob.glob("/dev/dma_heap/*"):
++    for n in get_dma_heap_devices(args):
+--
+2.43.0

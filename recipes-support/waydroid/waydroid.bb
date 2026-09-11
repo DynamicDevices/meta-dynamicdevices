@@ -7,12 +7,13 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=1ebbd3e34237af26da5dc08a4e440464"
 
 SECTION = "webos/support"
 
-SRCREV = "41f309f4c185a2c716723c081274eb56eb9263ff"
-SPV = "1.4.2"
+SRCREV = "5b7e2e71be3f6bfaaaab3b461251dacaf1ce4991"
+SPV = "1.6.3"
 PV = "${SPV}+git${SRCPV}"
 
 RDEPENDS:${PN} += "lxc python3-gbinder python3-pygobject libgbinder python3-pyclip python3-dbus python3-compression python3-json gobject-introspection"
-RDEPENDS:${PN}:append:imx95-frdm-evk = " ca-certificates curl"
+RDEPENDS:${PN}:append:imx95-frdm-evk = " apparmor ca-certificates curl"
+RDEPENDS:${PN}:append:imx8mm-jaguar-screen = " apparmor"
 
 # these modules are directly included in android-flavored kernels
 # Note: Waydroid requires kernel >= 3.18 !
@@ -21,8 +22,12 @@ RRECOMMENDS:${PN} += "\
     kernel-module-ashmem-linux \
 "
 
-SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=https \
+SRC_URI = "git://github.com/waydroid/waydroid.git;branch=main;protocol=https \
+    file://0001-lxc-limit-graphics-device-permissions.patch \
     file://gbinder.conf \
+    file://waydroid-luneos.env \
+    file://waydroid-luneos-appinfo.json \
+    file://waydroid-luneos.sh \
     file://waydroid-net.sh \
     file://waydroid-image-provision \
     file://waydroid-image-release.conf \
@@ -38,7 +43,6 @@ SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=
     file://waydroid-frdm-session.service \
     file://waydroid-frdm-ui.service \
     file://waydroid-product-wait \
-    file://0002-lxc-drop-apparmor-key-without-apparmor.patch \
 "
 S = "${WORKDIR}/git"
 
@@ -85,16 +89,32 @@ SYSTEMD_AUTO_ENABLE:${PN}:imx95-frdm-evk = "enable"
 # bundle. The distro layer expands that bundle to these implementation
 # prerequisites; fail early if Waydroid is pulled into an incomplete image.
 REQUIRED_DISTRO_FEATURES = "waydroid wayland opengl vulkan"
-REQUIRED_DISTRO_FEATURES:imx8mm-jaguar-screen = "waydroid wayland opengl etnaviv"
+REQUIRED_DISTRO_FEATURES:append:imx95-frdm-evk = " apparmor"
+REQUIRED_DISTRO_FEATURES:imx8mm-jaguar-screen = "waydroid apparmor wayland opengl etnaviv"
 
 WEBOS_SYSTEMD_SERVICE = "waydroid-init.service waydroid-container.service"
 
 CLEANBROKEN = "1"
 
-EXTRA_OEMAKE = "SYSD_DIR=${systemd_system_unitdir} USE_NFTABLES="1" WAYDROID_VERSION=${SPV}"
+EXTRA_OEMAKE = "PREFIX=${prefix} SYSCONFDIR=${sysconfdir} SYSD_DIR=${systemd_system_unitdir} USE_NFTABLES=1"
 
 do_install() {
-    make install_luneos DESTDIR=${D}
+    oe_runmake install install_apparmor DESTDIR=${D}
+
+    # Keep the small webOS/LuneOS launcher integration out of the upstream
+    # source tree so that the maintained Waydroid release can remain pinned.
+    install -d ${D}${prefix}/palm/applications/id.waydro.container
+    install -d ${D}${sysconfdir}/id.waydro.Container
+    install -m 0644 ${S}/data/AppIcon.png \
+        ${D}${prefix}/palm/applications/id.waydro.container/icon.png
+    install -m 0644 ${WORKDIR}/waydroid-luneos-appinfo.json \
+        ${D}${prefix}/palm/applications/id.waydro.container/appinfo.json
+    sed -i -e 's:__VERSION__:${SPV}:g' \
+        ${D}${prefix}/palm/applications/id.waydro.container/appinfo.json
+    install -m 0755 ${WORKDIR}/waydroid-luneos.sh \
+        ${D}${prefix}/palm/applications/id.waydro.container/waydroid.sh
+    install -m 0644 ${WORKDIR}/waydroid-luneos.env \
+        ${D}${sysconfdir}/id.waydro.Container/waydroid.env
 }
 
 do_install:append() {
