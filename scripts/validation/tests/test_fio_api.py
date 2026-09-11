@@ -17,6 +17,20 @@ class FioApiRunSelectionTests(unittest.TestCase):
             config.parent.mkdir(parents=True)
             config.write_text("access_token fixture bearer test-token\n", encoding="utf-8")
 
+            fixture_bin = Path(home) / "bin"
+            fixture_bin.mkdir()
+            jq = fixture_bin / "jq"
+            jq.write_text(
+                "#!/usr/bin/env python3\n"
+                "import json, sys\n"
+                "runs = json.load(sys.stdin)['data']['build']['runs']\n"
+                "primary = next((run for run in runs "
+                "if not run['name'].endswith('-mfgtools')), runs[0])\n"
+                "print(primary['name'])\n",
+                encoding="utf-8",
+            )
+            jq.chmod(0o755)
+
             command = textwrap.dedent(
                 f"""
                 set -e
@@ -41,6 +55,7 @@ class FioApiRunSelectionTests(unittest.TestCase):
             )
             environment = os.environ.copy()
             environment["HOME"] = home
+            environment["PATH"] = f"{fixture_bin}:{environment['PATH']}"
             subprocess.run(["bash", "-c", command], check=True, env=environment)
 
 
