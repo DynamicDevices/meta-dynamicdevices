@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "tuples": [
+    {"id": "imx8mm-jaguar-dt510-image", "machine": "imx8mm-jaguar-dt510", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml"},
+    {"id": "imx8mm-jaguar-handheld-image", "machine": "imx8mm-jaguar-handheld", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml"},
+    {"id": "imx8mm-jaguar-inst-image", "machine": "imx8mm-jaguar-inst", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml"},
+    {"id": "imx8mm-jaguar-phasora-image", "machine": "imx8mm-jaguar-phasora", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml"},
+    {"id": "imx8mm-jaguar-screen-image", "machine": "imx8mm-jaguar-screen", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml"},
+    {"id": "imx8mm-jaguar-sentai-image", "machine": "imx8mm-jaguar-sentai", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml"},
+    {"id": "imx93-jaguar-eink-image", "machine": "imx93-jaguar-eink", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml"},
+
+    {"id": "imx8mm-jaguar-dt510-mfgtool", "machine": "imx8mm-jaguar-dt510", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml"},
+    {"id": "imx8mm-jaguar-handheld-mfgtool", "machine": "imx8mm-jaguar-handheld", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml"},
+    {"id": "imx8mm-jaguar-inst-mfgtool", "machine": "imx8mm-jaguar-inst", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml"},
+    {"id": "imx8mm-jaguar-phasora-mfgtool", "machine": "imx8mm-jaguar-phasora", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml"},
+    {"id": "imx8mm-jaguar-screen-mfgtool", "machine": "imx8mm-jaguar-screen", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml"},
+    {"id": "imx8mm-jaguar-sentai-mfgtool", "machine": "imx8mm-jaguar-sentai", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml"},
+    {"id": "imx93-jaguar-eink-mfgtool", "machine": "imx93-jaguar-eink", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml"}
+  ]
+}
