@@ -1,0 +1,5 @@
+{
+  "schema": 1,
+  "reason": "Adopt the isolated NXP i.MX95 partner layer without changing any pre-existing Dynamic Devices build tuple.",
+  "allowed_deltas": {}
+}
