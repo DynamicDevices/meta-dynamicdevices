@@ -11,6 +11,7 @@ from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).parents[1] / "run-layer-adoption-regression.py"
+WORKFLOW_PATH = Path(__file__).parents[3] / ".github/workflows/layer-adoption-gate.yml"
 SPEC = importlib.util.spec_from_file_location("run_layer_adoption_regression", MODULE_PATH)
 assert SPEC and SPEC.loader
 MODULE = importlib.util.module_from_spec(SPEC)
@@ -18,6 +19,12 @@ SPEC.loader.exec_module(MODULE)
 
 
 class BaselineEvidenceTests(unittest.TestCase):
+    def test_gate_initializes_product_submodules_in_both_worktrees(self) -> None:
+        workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+        self.assertEqual(workflow.count("submodule update --init --recursive"), 2)
+        self.assertEqual(workflow.count("meta-dynamicdevices-bsp meta-dynamicdevices-distro"), 2)
+        self.assertIn("git -C ../baseline", workflow)
+
     def test_valid_cache_is_accepted_and_tampering_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
