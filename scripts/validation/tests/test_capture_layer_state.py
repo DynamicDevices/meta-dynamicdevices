@@ -50,6 +50,13 @@ printf '%s\n' \\
         self.assertIn("find build/tmp/log/cooker -type f -name '*.log'", source)
         self.assertNotIn("find \"$output_dir\" -type f -name '*.log'", source)
 
+    def test_encoded_bitbake_provenance_checkout_is_normalised(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "'s/_(baseline|candidate)_build_layers_/_REPO_build_layers_/g'",
+            source,
+        )
+
     def test_capture_command_replays_failure_log_and_preserves_status(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
         match = re.search(r"(?ms)^capture_command\(\) \{\n.*?^\}\n", source)
