@@ -75,6 +75,8 @@ jobs:
     container:
       image: dynamicdevices/yocto-ci-build:latest
       options: --privileged --platform linux/amd64
+    env:
+      LAYER_ADOPTION_TEST_KEYS_DIR: ${{ runner.temp }}/layer-adoption-keys-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.id }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -95,6 +97,8 @@ jobs:
           restore-keys: |
             layer-adoption-${{ matrix.machine }}-
             layer-adoption-
+      - name: Generate ephemeral signing keys
+        run: candidate/scripts/validation/generate-layer-adoption-test-keys.sh "$LAYER_ADOPTION_TEST_KEYS_DIR"
       - name: Build and capture baseline
         working-directory: baseline
         run: |

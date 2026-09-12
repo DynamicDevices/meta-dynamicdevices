@@ -13,6 +13,23 @@ distro=$3
 target=$4
 product_features=$5
 output_dir=$6
+test_keys_dir=${LAYER_ADOPTION_TEST_KEYS_DIR:-}
+
+if [ -z "$test_keys_dir" ] || [ ! -d "$test_keys_dir" ]; then
+    echo "ERROR: LAYER_ADOPTION_TEST_KEYS_DIR must name the generated test-key directory" >&2
+    exit 2
+fi
+test_keys_dir=$(realpath "$test_keys_dir")
+for key in \
+    ubootdev.key ubootdev.crt spldev.key spldev.crt \
+    privkey_modsign.pem x509_modsign.crt \
+    uefi/DB.key uefi/DB.crt tf-a/privkey_ec_prime256v1.pem
+do
+    if [ ! -s "$test_keys_dir/$key" ]; then
+        echo "ERROR: required test signing key is missing: $key" >&2
+        exit 2
+    fi
+done
 
 case "$output_dir" in
     /*) ;;
@@ -37,6 +54,19 @@ header:
 local_conf_header:
   layer-adoption-product-features: |
     DD_PRODUCT_FEATURES = $product_features_quoted
+    UBOOT_SIGN_KEYDIR = "$test_keys_dir"
+    UEFI_SIGN_KEYDIR = "$test_keys_dir/uefi"
+    MODSIGN_KEY_DIR = "$test_keys_dir"
+    SIGNING_UBOOT_SIGN_KEY = "$test_keys_dir/ubootdev.key"
+    SIGNING_UBOOT_SIGN_CRT = "$test_keys_dir/ubootdev.crt"
+    SIGNING_UBOOT_SPL_SIGN_KEY = "$test_keys_dir/spldev.key"
+    SIGNING_UBOOT_SPL_SIGN_CRT = "$test_keys_dir/spldev.crt"
+    SIGNING_MODSIGN_PRIVKEY = "$test_keys_dir/privkey_modsign.pem"
+    SIGNING_MODSIGN_X509 = "$test_keys_dir/x509_modsign.crt"
+    SIGNING_UEFI_SIGN_KEY = "$test_keys_dir/uefi/DB.key"
+    SIGNING_UEFI_SIGN_CRT = "$test_keys_dir/uefi/DB.crt"
+    OPTEE_TA_SIGN_KEY = "$test_keys_dir/ubootdev.key"
+    TF_A_SIGN_KEY_PATH = "$test_keys_dir/tf-a/privkey_ec_prime256v1.pem"
 EOF
 combined_config="${config}:${overlay}"
 kas checkout "$combined_config"
@@ -44,6 +74,17 @@ kas checkout "$combined_config"
 cat > "$output_dir/metadata.json" <<EOF
 {"commit":"$(git rev-parse HEAD)","config":"$config","machine":"$machine","distro":"$distro","target":"$target","product_features":"$product_features"}
 EOF
+
+# Record only public fingerprints. This proves both halves of the comparison
+# used the same signing identities without preserving disposable private keys.
+for key in \
+    ubootdev.key spldev.key privkey_modsign.pem uefi/DB.key \
+    tf-a/privkey_ec_prime256v1.pem
+do
+    fingerprint=$(openssl pkey -in "$test_keys_dir/$key" -pubout -outform DER 2>/dev/null \
+        | sha256sum | cut -d ' ' -f 1)
+    printf '%s\t%s\n' "$key" "$fingerprint"
+done > "$output_dir/test-signing-key-fingerprints.txt"
 printf '%s\n' \
     "kas checkout CONFIG:PRODUCT_FEATURE_OVERLAY" \
     "bitbake-layers show-layers" \
@@ -98,7 +139,9 @@ sed -E "s#$PWD/##g" build/recipe-depends.dot | sort -u \
 # temporarily only as input, avoiding volatile host variables in comparisons.
 capture_command environment run_bitbake "bitbake -e $target"
 python3 "$(dirname "$0")/select-bitbake-env.py" \
-    "$output_dir/environment.log" > "$output_dir/selected-environment.txt"
+    "$output_dir/environment.log" \
+    | sed -E "s#$PWD#<REPO>#g; s#$test_keys_dir#<TEST_KEYS>#g" \
+    > "$output_dir/selected-environment.txt"
 grep -Fqx "MACHINE=\"$machine\"" "$output_dir/selected-environment.txt"
 grep -Fqx "DISTRO=\"$distro\"" "$output_dir/selected-environment.txt"
 grep -Fqx "DD_PRODUCT_FEATURES=\"$product_features\"" "$output_dir/selected-environment.txt"
