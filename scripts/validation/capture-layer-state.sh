@@ -73,6 +73,8 @@ local_conf_header:
     UBOOT_SIGN_KEYDIR = "$test_keys_dir"
     UEFI_SIGN_KEYDIR = "$test_keys_dir/uefi"
     MODSIGN_KEY_DIR = "$test_keys_dir"
+    MODSIGN_PRIVKEY = "$test_keys_dir/privkey_modsign.pem"
+    MODSIGN_X509 = "$test_keys_dir/x509_modsign.crt"
     SIGNING_UBOOT_SIGN_KEY = "$test_keys_dir/ubootdev.key"
     SIGNING_UBOOT_SIGN_CRT = "$test_keys_dir/ubootdev.crt"
     SIGNING_UBOOT_SPL_SIGN_KEY = "$test_keys_dir/spldev.key"
@@ -183,6 +185,8 @@ require_selected_value() {
 require_selected_value MACHINE "$machine"
 require_selected_value DISTRO "$distro"
 require_selected_value DD_PRODUCT_FEATURES "$product_features"
+require_selected_value MODSIGN_PRIVKEY "<TEST_KEYS>/privkey_modsign.pem"
+require_selected_value MODSIGN_X509 "<TEST_KEYS>/x509_modsign.crt"
 rm "$output_dir/environment.log"
 
 # A parse-only graph is not proof that packaging, signing, recovery image size,

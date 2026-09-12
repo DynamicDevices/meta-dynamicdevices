@@ -103,7 +103,8 @@ jobs:
         run: |
           set -euo pipefail
           keys="$LAYER_ADOPTION_CACHE/test-keys"
-          if [ ! -s "$keys/ubootdev.key" ]; then
+          if ! candidate/scripts/validation/generate-layer-adoption-test-keys.sh \
+              --check "$keys"; then
             test "$keys" = /var/cache/layer-adoption/test-keys
             rm -rf -- "$keys"
             rm -rf -- "$LAYER_ADOPTION_CACHE/baselines"
