@@ -52,7 +52,15 @@ export DISTRO="$distro"
 product_features_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$product_features")
 downloads_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$cache_root/downloads")
 sstate_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$cache_root/sstate-cache")
-overlay="$output_dir/layer-adoption-product-features.yml"
+repository_root=$(git rev-parse --show-toplevel)
+overlay_dir="$repository_root/.layer-adoption-overlays"
+mkdir -p "$overlay_dir"
+overlay=$(mktemp "$overlay_dir/product-features.XXXXXX.yml")
+cleanup_overlay() {
+    rm -f "$overlay"
+    rmdir "$overlay_dir" 2>/dev/null || true
+}
+trap cleanup_overlay EXIT
 cat > "$overlay" <<EOF
 header:
   version: 14
@@ -185,6 +193,5 @@ find "$output_dir" -type f -name '*.log' -print0 \
 # Raw command logs are useful for diagnosis but contain progress ordering and
 # timing noise. The deterministic projections above are the comparison input.
 rm -f "$output_dir"/*.log
-# The generated overlay is an input already represented in metadata.json; it
-# must not become a baseline/candidate comparison artefact with differing paths.
-rm -f "$overlay"
+# The generated overlay is removed by the EXIT trap. Keeping it inside the
+# worktree satisfies KAS's same-repository rule for concatenated configs.
