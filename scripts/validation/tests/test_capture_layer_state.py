@@ -15,7 +15,34 @@ class CaptureLayerStateTests(unittest.TestCase):
     def test_shell_does_not_expand_sed_end_anchor_as_argument_count(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertNotIn('s#[[:space:]]+$##"', source)
-        self.assertEqual(source.count("-e 's#[[:space:]]+$##'"), 3)
+        self.assertEqual(source.count("-e 's#[[:space:]]+$##'"), 1)
+        self.assertEqual(source.count("| normalise_kas_projection"), 3)
+
+    def test_kas_projection_removes_host_noise_and_sorts_at_call_site(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        match = re.search(r"(?ms)^normalise_kas_projection\(\) \{\n.*?^\}\n", source)
+        self.assertIsNotNone(match)
+        result = subprocess.run(
+            [
+                "bash",
+                "-c",
+                match.group(0)
+                + """
+PWD=/workspace/candidate
+printf '%s\n' \\
+  '2026-09-12 20:00:00 - INFO     - kas 4.7 started' \\
+  '/__w/project/baseline/build/layers/meta/conf/layer.conf  ' \\
+  '/workspace/candidate/recipe.bb' | normalise_kas_projection
+""",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(
+            result.stdout,
+            "<REPO>/build/layers/meta/conf/layer.conf\n<REPO>/recipe.bb\n",
+        )
 
     def test_capture_command_replays_failure_log_and_preserves_status(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
