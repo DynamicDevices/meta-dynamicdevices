@@ -15,6 +15,10 @@ concurrency:
   group: layer-adoption-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   detect:
     name: Detect material layer change
