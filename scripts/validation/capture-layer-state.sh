@@ -134,13 +134,13 @@ capture_command() {
 }
 
 capture_command show-layers run_bitbake "bitbake-layers show-layers" \
-    | sed -E "s#$PWD/##g; s#[[:space:]]+$##" \
+    | sed -E -e "s#$PWD/##g" -e 's#[[:space:]]+$##' \
     > "$output_dir/layers.txt"
 capture_command show-appends run_bitbake "bitbake-layers show-appends" \
-    | sed -E "s#$PWD/##g; s#[[:space:]]+$##" \
+    | sed -E -e "s#$PWD/##g" -e 's#[[:space:]]+$##' \
     > "$output_dir/appends.txt"
 capture_command show-recipes run_bitbake "bitbake-layers show-recipes" \
-    | sed -E "s#$PWD/##g; s#[[:space:]]+$##" \
+    | sed -E -e "s#$PWD/##g" -e 's#[[:space:]]+$##' \
     > "$output_dir/recipes.txt"
 
 capture_command graph run_bitbake "bitbake -g $target"
