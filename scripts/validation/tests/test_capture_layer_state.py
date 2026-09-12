@@ -57,6 +57,13 @@ capture_command failure bash -c 'printf "visible diagnostic\\n"; exit 7' \\
         self.assertIn("build/task-depends.dot", source)
         self.assertNotIn("build/recipe-depends.dot", source)
 
+    def test_environment_assertions_emit_named_diagnostics(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn('capture_command environment run_bitbake "bitbake -e $target" >/dev/null', source)
+        self.assertIn("require_selected_value() {", source)
+        self.assertEqual(source.count("require_selected_value "), 3)
+        self.assertIn("ERROR: selected BitBake environment does not contain", source)
+
 
 if __name__ == "__main__":
     unittest.main()
