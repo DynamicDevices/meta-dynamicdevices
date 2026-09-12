@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,6 +21,26 @@ SPEC.loader.exec_module(MODULE)
 
 
 class BaselineEvidenceTests(unittest.TestCase):
+    def test_local_kas_wrappers_use_ci_container_digest(self) -> None:
+        root = WORKFLOW_PATH.parents[2]
+        workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+        helper_name = "kas-container-image.sh"
+        helper = (root / "scripts" / helper_name).read_text(encoding="utf-8")
+        local_pin = re.search(r'^KAS_CONTAINER_IMAGE="([^"]+)"$', helper, re.MULTILINE)
+        ci_pin = re.search(r"^\s+image: (\S+)$", workflow, re.MULTILINE)
+        self.assertIsNotNone(local_pin)
+        self.assertIsNotNone(ci_pin)
+        self.assertEqual(local_pin.group(1), ci_pin.group(1))
+
+        wrappers = [
+            path for path in (root / "scripts").glob("kas-*.sh")
+            if path.name != helper_name and "kas-container" in path.read_text(encoding="utf-8")
+        ]
+        self.assertTrue(wrappers)
+        for wrapper in wrappers:
+            with self.subTest(wrapper=wrapper.name):
+                self.assertIn(helper_name, wrapper.read_text(encoding="utf-8"))
+
     def test_worktree_preparation_is_owned_by_shared_driver(self) -> None:
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
         self.assertNotIn("submodule update", workflow)

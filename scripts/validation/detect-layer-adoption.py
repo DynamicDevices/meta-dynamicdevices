@@ -13,14 +13,30 @@ from pathlib import Path
 
 
 MATERIAL_PATHS = (
+    re.compile(r"^\.github/workflows/layer-adoption-gate\.yml$"),
+    re.compile(r"^\.gitattributes$"),
     re.compile(r"^\.gitmodules$"),
+    re.compile(r"^ci/layer-adoption-contract\.json$"),
     re.compile(r"(^|/)conf/layer\.conf$"),
     re.compile(r"^kas/.*\.ya?ml$"),
+    re.compile(r"^meta-dynamicdevices-(?:bsp|distro)$"),
+    re.compile(r"^meta-partner-nxp-imx$"),
+    re.compile(r"^scripts/kas-.*\.sh$"),
+    re.compile(
+        r"^scripts/validation/(?:capture-layer-state\.sh|compare-layer-state\.py|"
+        r"detect-layer-adoption\.py|generate-layer-adoption-test-keys\.sh|"
+        r"run-layer-adoption-regression\.py)$"
+    ),
     re.compile(r"^ci/layer-adoption-tuples\.json$"),
 )
 
 TUPLE_FIELDS = ("id", "machine", "distro", "image", "config", "product_features")
 NONEMPTY_TUPLE_FIELDS = ("id", "machine", "distro", "image", "config")
+
+
+def is_material_path(path: str) -> bool:
+    """Return whether a change can alter local or CI KAS build semantics."""
+    return any(pattern.search(path) for pattern in MATERIAL_PATHS)
 
 
 def git(*args: str) -> str:
@@ -110,10 +126,7 @@ def main() -> int:
         return 2
 
     changed = git("diff", "--name-only", f"{args.base}...{args.head}").splitlines()
-    material_files = [
-        path for path in changed
-        if any(pattern.search(path) for pattern in MATERIAL_PATHS)
-    ]
+    material_files = [path for path in changed if is_material_path(path)]
     # Treat every KAS change as material. YAML context makes line-only pin
     # detection easy to evade (for example by adding a list item below an
     # existing `includes:` key), and a false-positive build is safer than a
