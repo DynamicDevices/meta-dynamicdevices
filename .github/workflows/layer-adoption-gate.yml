@@ -22,7 +22,7 @@ defaults:
 jobs:
   detect:
     name: Detect material layer change
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
     outputs:
       material: ${{ steps.detect.outputs.material }}
       base_sha: ${{ steps.base.outputs.sha }}
@@ -146,7 +146,7 @@ jobs:
     name: Layer Adoption Gate
     needs: [detect, regression]
     if: always()
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
     steps:
       - name: Enforce gate result
         env:
