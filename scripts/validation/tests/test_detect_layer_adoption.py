@@ -35,6 +35,31 @@ def entry(tuple_id: str, machine: str = "machine-a") -> dict[str, str]:
 
 
 class ProtectedTupleTests(unittest.TestCase):
+    def test_local_and_ci_kas_process_changes_are_material(self) -> None:
+        paths = (
+            ".github/workflows/layer-adoption-gate.yml",
+            ".gitattributes",
+            "ci/layer-adoption-contract.json",
+            "ci/layer-adoption-tuples.json",
+            "kas/lmp-dynamicdevices.yml",
+            "meta-dynamicdevices-bsp",
+            "meta-dynamicdevices-distro",
+            "meta-partner-nxp-imx",
+            "scripts/kas-build-base.sh",
+            "scripts/kas-shell-base.sh",
+            "scripts/validation/capture-layer-state.sh",
+            "scripts/validation/compare-layer-state.py",
+            "scripts/validation/detect-layer-adoption.py",
+            "scripts/validation/generate-layer-adoption-test-keys.sh",
+            "scripts/validation/run-layer-adoption-regression.py",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                self.assertTrue(MODULE.is_material_path(path))
+
+    def test_unrelated_utility_change_is_not_material(self) -> None:
+        self.assertFalse(MODULE.is_material_path("scripts/analyze-boot-logs.sh"))
+
     def validate(self, baseline: str, candidate: str) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
