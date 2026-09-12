@@ -117,13 +117,21 @@ printf '%s\n' \
 # Static layer surfaces are captured as well as BitBake's resolved view. This
 # makes wildcard/dangling appends and global layer.conf policy visible even
 # when they do not happen to alter the first recipe selected by BitBake.
-find build/layers -type f \( -path '*/conf/layer.conf' -o -name '*.bbclass' \) -print0 \
-    | sort -z \
+find build/layers "$repository_root" \
+    -path "$repository_root/build" -prune -o \
+    -path "$repository_root/.git" -prune -o \
+    -type f \( -path '*/conf/layer.conf' -o -name '*.bbclass' \) -print0 \
+    | sort -zu \
     | xargs -0 grep -nHE \
         '(^|[[:space:]])(IMAGE_INSTALL|CORE_IMAGE_|PACKAGE_INSTALL|DISTRO_FEATURES|MACHINE_FEATURES|PACKAGECONFIG|PREFERRED_(VERSION|PROVIDER)|DEFAULT_PREFERENCE|RDEPENDS|INHERIT|BBMASK|BBPATH|BBFILES|BBFILE_PRIORITY|INITRAMFS_MAXSIZE|IMAGE_FSTYPES|WKS_FILE|UBOOT_|KERNEL_|OPTEE_|SDKIMAGE_FEATURES|TOOLCHAIN_TARGET_TASK)(:|\[|[[:space:]])*([+?:.]?=)' \
-        > "$output_dir/layer-conf-policy.txt" || true
-find build/layers -type f -name '*.bbappend' -printf '%p\n' \
-    | sed -E 's#^build/layers/##' \
+    | sed -E "s#^$repository_root/#meta-dynamicdevices/#" \
+    > "$output_dir/layer-conf-policy.txt" || true
+find build/layers "$repository_root" \
+    -path "$repository_root/build" -prune -o \
+    -path "$repository_root/.git" -prune -o \
+    -type f -name '*.bbappend' -printf '%p\n' \
+    | sed -E -e 's#^build/layers/##' \
+        -e "s#^$repository_root/#meta-dynamicdevices/#" \
     | sort -u > "$output_dir/all-bbappends.txt"
 
 run_bitbake() {
@@ -144,14 +152,25 @@ capture_command() {
     fi
 }
 
+normalise_kas_projection() {
+    sed -E \
+        -e '/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} - (DEBUG|INFO|WARNING|ERROR)[[:space:]]+- /d' \
+        -e 's#(/[^/[:space:]]+)*/(baseline|candidate)(/|$)#<REPO>\3#g' \
+        -e "s#$PWD#<REPO>#g" \
+        -e 's#[[:space:]]+$##'
+}
+
 capture_command show-layers run_bitbake "bitbake-layers show-layers" \
-    | sed -E -e "s#$PWD/##g" -e 's#[[:space:]]+$##' \
+    | normalise_kas_projection \
+    | python3 "$(dirname "$0")/canonicalise-bitbake-layer-output.py" layers \
     > "$output_dir/layers.txt"
 capture_command show-appends run_bitbake "bitbake-layers show-appends" \
-    | sed -E -e "s#$PWD/##g" -e 's#[[:space:]]+$##' \
+    | normalise_kas_projection \
+    | python3 "$(dirname "$0")/canonicalise-bitbake-layer-output.py" appends \
     > "$output_dir/appends.txt"
 capture_command show-recipes run_bitbake "bitbake-layers show-recipes" \
-    | sed -E -e "s#$PWD/##g" -e 's#[[:space:]]+$##' \
+    | normalise_kas_projection \
+    | python3 "$(dirname "$0")/canonicalise-bitbake-layer-output.py" recipes \
     > "$output_dir/recipes.txt"
 
 capture_command graph run_bitbake "bitbake -g $target"
@@ -171,7 +190,12 @@ sed -E "s#$PWD/##g" build/task-depends.dot | sort -u \
 capture_command environment run_bitbake "bitbake -e $target" >/dev/null
 python3 "$(dirname "$0")/select-bitbake-env.py" \
     "$output_dir/environment.log" \
-    | sed -E "s#$PWD#<REPO>#g; s#$test_keys_dir#<TEST_KEYS>#g; s#$cache_root#<YOCTO_CACHE>#g" \
+    | sed -E \
+        -e 's#(/[^/[:space:]]+)*/(baseline|candidate)(/|$)#<REPO>\3#g' \
+        -e "s#$PWD#<REPO>#g" \
+        -e "s#$test_keys_dir#<TEST_KEYS>#g" \
+        -e "s#$cache_root#<YOCTO_CACHE>#g" \
+        -e 's/[0-9]{14}/TIMESTAMP/g' \
     > "$output_dir/selected-environment.txt"
 require_selected_value() {
     local name=$1
@@ -207,7 +231,7 @@ if [ ! -d "$deploy_dir" ]; then
 fi
 
 find "$deploy_dir" -maxdepth 1 -type f -printf '%f\t%s\n' \
-    | sed -E 's/-[0-9]{14}(\.|-)/-TIMESTAMP\1/g' \
+    | sed -E 's/-[0-9]{14}(\.|-|$)/-TIMESTAMP\1/g' \
     | sort -u > "$output_dir/deploy-layout-and-sizes.txt"
 # The expression belongs to awk; shell expansion would be a bug.
 # shellcheck disable=SC2016
