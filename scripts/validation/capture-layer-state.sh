@@ -155,8 +155,9 @@ capture_command graph run_bitbake "bitbake -g $target"
 sort -u build/pn-buildlist > "$output_dir/pn-buildlist.txt"
 sed -E "s#$PWD/##g" build/task-depends.dot | sort -u \
     > "$output_dir/task-depends.dot"
-sed -E "s#$PWD/##g" build/recipe-depends.dot | sort -u \
-    > "$output_dir/recipe-depends.dot"
+# Current BitBake deliberately removes the obsolete recipe-depends.dot output.
+# pn-buildlist plus the finer-grained task graph retain provider and dependency
+# selection coverage without relying on that removed compatibility artifact.
 
 # Capture final values and BitBake's assignment provenance for policy that a
 # newly enabled layer can silently change. The full environment is retained
