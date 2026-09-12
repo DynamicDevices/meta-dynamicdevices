@@ -78,6 +78,16 @@ jobs:
     env:
       LAYER_ADOPTION_TEST_KEYS_DIR: /tmp/layer-adoption-keys-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.id }}
     steps:
+      - name: Reset job-owned workspace
+        run: |
+          workspace=$(realpath -m -- "$GITHUB_WORKSPACE")
+          test -n "$workspace"
+          test "$workspace" != /
+          for name in candidate baseline evidence; do
+            target=$(realpath -m -- "$workspace/$name")
+            test "$(dirname "$target")" = "$workspace"
+            rm -rf -- "$target"
+          done
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -97,6 +107,14 @@ jobs:
           restore-keys: |
             layer-adoption-${{ matrix.machine }}-
             layer-adoption-
+      - name: Require safe build capacity
+        run: |
+          available_kib=$(df -Pk "$GITHUB_WORKSPACE" | awk 'NR == 2 {print $4}')
+          minimum_kib=$((150 * 1024 * 1024))
+          if [ "$available_kib" -lt "$minimum_kib" ]; then
+            echo "ERROR: layer-adoption build requires at least 150 GiB free; found $((available_kib / 1024 / 1024)) GiB" >&2
+            exit 1
+          fi
       - name: Generate ephemeral signing keys
         run: candidate/scripts/validation/generate-layer-adoption-test-keys.sh "$LAYER_ADOPTION_TEST_KEYS_DIR"
       - name: Build and capture baseline
@@ -106,6 +124,12 @@ jobs:
             '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.distro }}' \
             '${{ matrix.image }}' '${{ matrix.product_features }}' \
             '../evidence/baseline/${{ matrix.id }}'
+      - name: Release baseline build workspace
+        run: |
+          workspace=$(realpath -m -- "$GITHUB_WORKSPACE")
+          target=$(realpath -m -- "$workspace/baseline/build")
+          test "$target" = "$workspace/baseline/build"
+          rm -rf -- "$target"
       - name: Build and capture candidate
         working-directory: candidate
         run: |
@@ -127,6 +151,20 @@ jobs:
           name: layer-adoption-${{ matrix.id }}
           path: evidence
           retention-days: 14
+      - name: Remove job-owned build trees
+        if: always()
+        run: |
+          workspace=$(realpath -m -- "$GITHUB_WORKSPACE")
+          test -n "$workspace"
+          test "$workspace" != /
+          for name in candidate/build baseline/build evidence; do
+            target=$(realpath -m -- "$workspace/$name")
+            case "$target" in
+              "$workspace/candidate/build"|"$workspace/baseline/build"|"$workspace/evidence") ;;
+              *) echo "ERROR: refusing unsafe cleanup target: $target" >&2; exit 1 ;;
+            esac
+            rm -rf -- "$target"
+          done
 
   required:
     name: Layer Adoption Gate
