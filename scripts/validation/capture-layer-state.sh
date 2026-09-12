@@ -159,6 +159,7 @@ normalise_kas_projection() {
         -e '/^Summary: There were [0-9]+ WARNING messages?\.?$/d' \
         -e '/^NOTE: Starting bitbake server\.\.\.$/d' \
         -e 's#(/[^/[:space:]]+)*/(baseline|candidate)(/|$)#<REPO>\3#g' \
+        -e 's/_(baseline|candidate)_build_layers_/_REPO_build_layers_/g' \
         -e "s#$PWD#<REPO>#g" \
         -e 's#[[:space:]]+$##'
 }
@@ -195,6 +196,7 @@ python3 "$(dirname "$0")/select-bitbake-env.py" \
     "$output_dir/environment.log" \
     | sed -E \
         -e 's#(/[^/[:space:]]+)*/(baseline|candidate)(/|$)#<REPO>\3#g' \
+        -e 's/_(baseline|candidate)_build_layers_/_REPO_build_layers_/g' \
         -e "s#$PWD#<REPO>#g" \
         -e "s#$test_keys_dir#<TEST_KEYS>#g" \
         -e "s#$cache_root#<YOCTO_CACHE>#g" \
