@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 MODULE_PATH = Path(__file__).parents[1] / "run-layer-adoption-regression.py"
@@ -19,11 +20,52 @@ SPEC.loader.exec_module(MODULE)
 
 
 class BaselineEvidenceTests(unittest.TestCase):
-    def test_gate_initializes_product_submodules_in_both_worktrees(self) -> None:
+    def test_worktree_preparation_is_owned_by_shared_driver(self) -> None:
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
-        self.assertEqual(workflow.count("submodule update --init --recursive"), 2)
-        self.assertEqual(workflow.count("meta-dynamicdevices-bsp meta-dynamicdevices-distro"), 2)
-        self.assertIn("git -C ../baseline", workflow)
+        self.assertNotIn("submodule update", workflow)
+
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            pinned = "a" * 40
+
+            def git_result(command: list[str], **kwargs: object) -> str:
+                if "ls-tree" in command:
+                    relative = command[-1]
+                    return f"160000 commit {pinned}\t{relative}\n"
+                if "rev-parse" in command:
+                    return pinned + "\n"
+                if "status" in command:
+                    return ""
+                self.fail(f"unexpected git command: {command}")
+
+            def initialize(command: list[str], **kwargs: object) -> None:
+                relative = command[-1]
+                layer_conf = repository / relative / "conf/layer.conf"
+                layer_conf.parent.mkdir(parents=True)
+                layer_conf.touch()
+
+            with mock.patch.object(
+                MODULE.subprocess, "check_output", side_effect=git_result
+            ), mock.patch.object(MODULE.subprocess, "run", side_effect=initialize) as run:
+                MODULE.prepare_repository(repository)
+
+            self.assertEqual(run.call_count, 2)
+
+    def test_worktree_preparation_rejects_unpinned_layer(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            layer = repository / MODULE.PRODUCT_SUBMODULES[0]
+            (layer / "conf").mkdir(parents=True)
+            (layer / "conf/layer.conf").touch()
+            results = [
+                f"160000 commit {'a' * 40}\t{layer.name}\n",
+                "b" * 40 + "\n",
+            ]
+            with mock.patch.object(
+                MODULE.subprocess, "check_output", side_effect=results
+            ):
+                with self.assertRaisesRegex(RuntimeError, "expected pinned"):
+                    MODULE.prepare_repository(repository)
 
     def test_gate_does_not_run_bitbake_as_root(self) -> None:
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")

@@ -15,6 +15,7 @@ from pathlib import Path
 
 MARKER = ".complete.json"
 FIELDS = ("id", "machine", "distro", "image", "config", "product_features")
+PRODUCT_SUBMODULES = ("meta-dynamicdevices-bsp", "meta-dynamicdevices-distro")
 
 
 def evidence_digest(root: Path) -> str:
@@ -68,6 +69,46 @@ def remove_build_tree(repository: Path) -> None:
     shutil.rmtree(build, ignore_errors=True)
 
 
+def git_output(repository: Path, *args: str) -> str:
+    return subprocess.check_output(["git", *args], cwd=repository, text=True).strip()
+
+
+def prepare_repository(repository: Path) -> None:
+    """Initialize and verify the pinned local layers used by every KAS tuple."""
+    for relative in PRODUCT_SUBMODULES:
+        entry = git_output(repository, "ls-tree", "HEAD", "--", relative).split()
+        if len(entry) < 3 or entry[0] != "160000" or entry[1] != "commit":
+            raise RuntimeError(f"{repository}: {relative} is not a pinned git submodule")
+        expected = entry[2]
+        layer = repository / relative
+        layer_conf = layer / "conf/layer.conf"
+        if not layer_conf.is_file():
+            subprocess.run(
+                [
+                    "git",
+                    "-c",
+                    "url.https://github.com/.insteadOf=git@github.com:",
+                    "submodule",
+                    "update",
+                    "--init",
+                    "--recursive",
+                    "--",
+                    relative,
+                ],
+                cwd=repository,
+                check=True,
+            )
+        if not layer_conf.is_file():
+            raise RuntimeError(f"{repository}: {relative}/conf/layer.conf is missing")
+        actual = git_output(layer, "rev-parse", "HEAD")
+        if actual != expected:
+            raise RuntimeError(
+                f"{repository}: {relative} is at {actual}, expected pinned {expected}"
+            )
+        if git_output(layer, "status", "--porcelain", "--untracked-files=all"):
+            raise RuntimeError(f"{repository}: {relative} has uncommitted content")
+
+
 def capture(
     script: Path,
     repository: Path,
@@ -112,6 +153,12 @@ def main() -> int:
     base_sha = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=baseline, text=True
     ).strip()
+
+    # This preparation is intentionally owned by the shared regression driver,
+    # not by CI YAML. Local and hosted runs therefore build the same pinned
+    # submodule content through the same KAS capture path.
+    prepare_repository(baseline)
+    prepare_repository(candidate)
 
     environment = os.environ.copy()
     environment["LAYER_ADOPTION_TEST_KEYS_DIR"] = str(test_keys)

@@ -90,15 +90,7 @@ jobs:
           path: candidate
       - name: Create baseline worktree
         working-directory: candidate
-        run: |
-          git worktree add ../baseline '${{ needs.detect.outputs.base_sha }}'
-          git -c url.https://github.com/.insteadOf=git@github.com: \
-            submodule update --init --recursive \
-            meta-dynamicdevices-bsp meta-dynamicdevices-distro
-          git -C ../baseline \
-            -c url.https://github.com/.insteadOf=git@github.com: \
-            submodule update --init --recursive \
-            meta-dynamicdevices-bsp meta-dynamicdevices-distro
+        run: git worktree add ../baseline '${{ needs.detect.outputs.base_sha }}'
       - name: Require safe build capacity
         run: |
           available_kib=$(df -Pk "$GITHUB_WORKSPACE" | awk 'NR == 2 {print $4}')
