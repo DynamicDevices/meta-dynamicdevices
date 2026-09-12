@@ -1,5 +1,9 @@
 #!/bin/sh
 
+script_dir=$(CDPATH='' cd -P "$(dirname "$0")" && pwd)
+# shellcheck source=kas-container-image.sh
+. "$script_dir/kas-container-image.sh"
+
 # KAS Shell Base Script
 # Usage: ./kas-shell-base.sh [options]
 #   -c "command"  : Execute command in kas environment

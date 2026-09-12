@@ -17,7 +17,6 @@ repos:
 
   meta-nxp-connectivity:
     url: https://github.com/dynamicdevices/meta-nxp-connectivity
-    branch: ajl/support-foundries
     path: build/layers/meta-nxp-connectivity
     commit: fc89124886d4a01af9dd72d7890fdf491317bbff
     layers:

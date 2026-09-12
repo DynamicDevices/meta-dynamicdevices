@@ -9,6 +9,8 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+# shellcheck source=kas-container-image.sh
+. "$SCRIPT_DIR/kas-container-image.sh"
 DEFAULT_CACHE_DIR="${HOME}/yocto"
 LOG_FILE="${PROJECT_ROOT}/logs/kas-build-$(date +%Y%m%d-%H%M%S).log"
 

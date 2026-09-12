@@ -1,0 +1,162 @@
+name: Layer Adoption Gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: Baseline commit to compare
+        required: true
+
+concurrency:
+  group: layer-adoption-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  detect:
+    name: Detect material layer change
+    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
+    outputs:
+      material: ${{ steps.detect.outputs.material }}
+      base_sha: ${{ steps.base.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: base
+        name: Resolve immutable baseline
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE: ${{ github.event.before }}
+          INPUT_BASE: ${{ inputs.base_sha }}
+        run: |
+          sha="${PR_BASE:-${INPUT_BASE:-${PUSH_BASE:-}}}"
+          if [ -z "$sha" ] || printf '%s' "$sha" | grep -Eq '^0+$'; then
+            sha=$(git rev-parse HEAD^)
+          fi
+          git cat-file -e "$sha^{commit}"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - id: detect
+        name: Validate repository and require an adoption contract
+        run: |
+          python3 -m unittest discover -s scripts/validation/tests -p 'test_*.py'
+          find scripts -type f -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+          python3 -m json.tool ci/layer-adoption-contract.json >/dev/null
+          python3 -m json.tool ci/layer-adoption-tuples.json >/dev/null
+          # Mail-format patch payloads legitimately contain the conventional
+          # "-- " separator. Check repository sources without rewriting the
+          # third-party patches that BitBake applies.
+          git diff --check '${{ steps.base.outputs.sha }}...${{ github.sha }}' -- . ':(exclude)**/*.patch'
+          python3 scripts/validation/detect-layer-adoption.py \
+            --base '${{ steps.base.outputs.sha }}' \
+            --head '${{ github.sha }}' \
+            --github-output "$GITHUB_OUTPUT"
+  regression:
+    name: Existing product regression
+    needs: detect
+    if: needs.detect.outputs.material == 'true'
+    # One named ai-tools runner owns the persistent Yocto cache. Keeping the
+    # complete matrix inside one job makes resource use and the required gate
+    # obvious, while the driver still fails closed on every protected tuple.
+    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
+    container:
+      image: ghcr.io/siemens/kas/kas@sha256:d989add57fc441fe9e27bb2dd6ed98c5597b44c807928e35a72dc1cfbdda9abe
+      # Match the dedicated ai-tools runner account so BitBake's root-user
+      # sanity check remains active and bind-mounted cache files stay writable.
+      options: --privileged --platform linux/amd64 --user 1002:1002 -v /home/ghrunner/yocto-layer-adoption:/var/cache/layer-adoption
+    env:
+      LAYER_ADOPTION_CACHE: /var/cache/layer-adoption
+    steps:
+      - name: Reset job-owned workspace
+        run: |
+          workspace=$(realpath -m -- "$GITHUB_WORKSPACE")
+          test -n "$workspace"
+          test "$workspace" != /
+          for name in candidate baseline evidence; do
+            target=$(realpath -m -- "$workspace/$name")
+            test "$(dirname "$target")" = "$workspace"
+            rm -rf -- "$target"
+          done
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          path: candidate
+      - name: Create baseline worktree
+        working-directory: candidate
+        run: git worktree add ../baseline '${{ needs.detect.outputs.base_sha }}'
+      - name: Require safe build capacity
+        run: |
+          available_kib=$(df -Pk "$GITHUB_WORKSPACE" | awk 'NR == 2 {print $4}')
+          minimum_kib=$((150 * 1024 * 1024))
+          if [ "$available_kib" -lt "$minimum_kib" ]; then
+            echo "ERROR: layer-adoption build requires at least 150 GiB free; found $((available_kib / 1024 / 1024)) GiB" >&2
+            exit 1
+          fi
+      - name: Prepare persistent test-only signing identity
+        run: |
+          set -euo pipefail
+          keys="$LAYER_ADOPTION_CACHE/test-keys"
+          if ! candidate/scripts/validation/generate-layer-adoption-test-keys.sh \
+              --check "$keys"; then
+            test "$keys" = /var/cache/layer-adoption/test-keys
+            rm -rf -- "$keys"
+            rm -rf -- "$LAYER_ADOPTION_CACHE/baselines"
+            temporary=$(mktemp -d "$LAYER_ADOPTION_CACHE/.test-keys.XXXXXX")
+            candidate/scripts/validation/generate-layer-adoption-test-keys.sh "$temporary"
+            mv "$temporary" "$keys"
+          fi
+      - name: Build and compare every protected tuple
+        run: |
+          python3 candidate/scripts/validation/run-layer-adoption-regression.py \
+            --baseline baseline \
+            --candidate candidate \
+            --evidence evidence \
+            --cache "$LAYER_ADOPTION_CACHE" \
+            --test-keys "$LAYER_ADOPTION_CACHE/test-keys"
+      - name: Preserve comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: layer-adoption-evidence
+          path: evidence
+          retention-days: 14
+      - name: Remove job-owned build trees
+        if: always()
+        run: |
+          workspace=$(realpath -m -- "$GITHUB_WORKSPACE")
+          test -n "$workspace"
+          test "$workspace" != /
+          for name in candidate/build baseline/build evidence; do
+            target=$(realpath -m -- "$workspace/$name")
+            case "$target" in
+              "$workspace/candidate/build"|"$workspace/baseline/build"|"$workspace/evidence") ;;
+              *) echo "ERROR: refusing unsafe cleanup target: $target" >&2; exit 1 ;;
+            esac
+            rm -rf -- "$target"
+          done
+
+  required:
+    name: Layer Adoption Gate
+    needs: [detect, regression]
+    if: always()
+    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
+    steps:
+      - name: Enforce gate result
+        env:
+          DETECT: ${{ needs.detect.result }}
+          MATERIAL: ${{ needs.detect.outputs.material }}
+          REGRESSION: ${{ needs.regression.result }}
+        run: |
+          test "$DETECT" = success
+          if [ "$MATERIAL" = true ]; then
+            test "$REGRESSION" = success
+          else
+            test "$REGRESSION" = skipped
+          fi
