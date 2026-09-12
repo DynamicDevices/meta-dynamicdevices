@@ -51,6 +51,12 @@ capture_command failure bash -c 'printf "visible diagnostic\\n"; exit 7' \\
                 "visible diagnostic\n",
             )
 
+    def test_dependency_capture_uses_current_bitbake_graph_outputs(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("build/pn-buildlist", source)
+        self.assertIn("build/task-depends.dot", source)
+        self.assertNotIn("build/recipe-depends.dot", source)
+
 
 if __name__ == "__main__":
     unittest.main()
