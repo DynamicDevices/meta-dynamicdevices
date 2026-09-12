@@ -61,13 +61,19 @@ capture_command failure bash -c 'printf "visible diagnostic\\n"; exit 7' \\
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn('capture_command environment run_bitbake "bitbake -e $target" >/dev/null', source)
         self.assertIn("require_selected_value() {", source)
-        self.assertEqual(source.count("require_selected_value "), 5)
+        self.assertEqual(source.count("require_selected_value "), 10)
         self.assertIn("ERROR: selected BitBake environment does not contain", source)
 
     def test_module_signing_uses_kernel_runtime_variables(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
-        self.assertIn('MODSIGN_PRIVKEY = "$test_keys_dir/privkey_modsign.pem"', source)
-        self.assertIn('MODSIGN_X509 = "$test_keys_dir/x509_modsign.crt"', source)
+        self.assertIn(
+            'MODSIGN_PRIVKEY:forcevariable = "$test_keys_dir/privkey_modsign.pem"',
+            source,
+        )
+        self.assertIn(
+            'MODSIGN_X509:forcevariable = "$test_keys_dir/x509_modsign.crt"',
+            source,
+        )
         self.assertIn(
             'require_selected_value MODSIGN_PRIVKEY "<TEST_KEYS>/privkey_modsign.pem"',
             source,
@@ -75,6 +81,26 @@ capture_command failure bash -c 'printf "visible diagnostic\\n"; exit 7' \\
         self.assertIn(
             'require_selected_value MODSIGN_X509 "<TEST_KEYS>/x509_modsign.crt"',
             source,
+        )
+
+    def test_every_signing_consumer_path_is_forced_and_asserted(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        runtime_paths = {
+            "UBOOT_SIGN_KEYDIR": "<TEST_KEYS>",
+            "UBOOT_SPL_SIGN_KEYDIR": "<TEST_KEYS>",
+            "UEFI_SIGN_KEYDIR": "<TEST_KEYS>/uefi",
+            "OPTEE_TA_SIGN_KEY": "<TEST_KEYS>/ubootdev.key",
+            "TF_A_SIGN_KEY_PATH": "<TEST_KEYS>/tf-a/privkey_ec_prime256v1.pem",
+        }
+        for name, expected in runtime_paths.items():
+            with self.subTest(name=name):
+                self.assertIn(f"{name}:forcevariable =", source)
+                self.assertIn(
+                    f'require_selected_value {name} "{expected}"', source
+                )
+        self.assertNotRegex(
+            source,
+            r"(?m)^    (?:SIGNING_|MODSIGN_|UBOOT_|UEFI_|OPTEE_|TF_A_)[A-Z0-9_]+ =",
         )
 
     def test_disk_monitor_uses_inode_not_disk_units(self) -> None:
