@@ -14,12 +14,15 @@ target=$4
 product_features=$5
 output_dir=$6
 test_keys_dir=${LAYER_ADOPTION_TEST_KEYS_DIR:-}
+cache_root=${LAYER_ADOPTION_CACHE_DIR:-$HOME/yocto}
 
 if [ -z "$test_keys_dir" ] || [ ! -d "$test_keys_dir" ]; then
     echo "ERROR: LAYER_ADOPTION_TEST_KEYS_DIR must name the generated test-key directory" >&2
     exit 2
 fi
 test_keys_dir=$(realpath "$test_keys_dir")
+mkdir -p "$cache_root/downloads" "$cache_root/sstate-cache"
+cache_root=$(realpath "$cache_root")
 for key in \
     ubootdev.key ubootdev.crt spldev.key spldev.crt \
     privkey_modsign.pem x509_modsign.crt \
@@ -47,6 +50,8 @@ export DISTRO="$distro"
 # quoting is also valid BitBake quoting and prevents tuple text from becoming
 # local.conf syntax.
 product_features_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$product_features")
+downloads_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$cache_root/downloads")
+sstate_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$cache_root/sstate-cache")
 overlay="$output_dir/layer-adoption-product-features.yml"
 cat > "$overlay" <<EOF
 header:
@@ -54,6 +59,9 @@ header:
 local_conf_header:
   layer-adoption-product-features: |
     DD_PRODUCT_FEATURES = $product_features_quoted
+    DL_DIR = $downloads_quoted
+    SSTATE_DIR = $sstate_quoted
+    BB_DISKMON_DIRS = "STOPTASKS,\${TMPDIR},20G,1G STOPTASKS,\${DL_DIR},20G,1G STOPTASKS,\${SSTATE_DIR},20G,1G HALT,\${TMPDIR},10G,1G HALT,\${DL_DIR},10G,1G HALT,\${SSTATE_DIR},10G,1G"
     UBOOT_SIGN_KEYDIR = "$test_keys_dir"
     UEFI_SIGN_KEYDIR = "$test_keys_dir/uefi"
     MODSIGN_KEY_DIR = "$test_keys_dir"
@@ -140,7 +148,7 @@ sed -E "s#$PWD/##g" build/recipe-depends.dot | sort -u \
 capture_command environment run_bitbake "bitbake -e $target"
 python3 "$(dirname "$0")/select-bitbake-env.py" \
     "$output_dir/environment.log" \
-    | sed -E "s#$PWD#<REPO>#g; s#$test_keys_dir#<TEST_KEYS>#g" \
+    | sed -E "s#$PWD#<REPO>#g; s#$test_keys_dir#<TEST_KEYS>#g; s#$cache_root#<YOCTO_CACHE>#g" \
     > "$output_dir/selected-environment.txt"
 grep -Fqx "MACHINE=\"$machine\"" "$output_dir/selected-environment.txt"
 grep -Fqx "DISTRO=\"$distro\"" "$output_dir/selected-environment.txt"
