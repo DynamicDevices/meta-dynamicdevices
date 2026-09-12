@@ -155,6 +155,9 @@ capture_command() {
 normalise_kas_projection() {
     sed -E \
         -e '/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} - (DEBUG|INFO|WARNING|ERROR)[[:space:]]+- /d' \
+        -e '/WARNING:/d' \
+        -e '/^Summary: There were [0-9]+ WARNING messages?\.?$/d' \
+        -e '/^NOTE: Starting bitbake server\.\.\.$/d' \
         -e 's#(/[^/[:space:]]+)*/(baseline|candidate)(/|$)#<REPO>\3#g' \
         -e "s#$PWD#<REPO>#g" \
         -e 's#[[:space:]]+$##'
@@ -241,13 +244,21 @@ find "$deploy_dir" -maxdepth 1 -type f -name '*.manifest' -print0 \
     | sort -u > "$output_dir/packages.txt"
 
 # New warnings are regressions even when BitBake returns zero.
-find "$output_dir" -type f -name '*.log' -print0 \
+# Cooker logs preserve one BitBake warning per line. Combined stdout/stderr
+# command logs can splice concurrent parser warnings together and are not a
+# deterministic warning source.
+find build/tmp/log/cooker -type f -name '*.log' -print0 \
     | xargs -0 -r grep -hE '(^|[[:space:]])WARNING:' \
-    | sed -E "s#$PWD/##g; s/[0-9]{4}-[0-9]{2}-[0-9]{2}[^ ]*//g" \
+    | sed -E \
+        -e 's/^.*WARNING:/WARNING:/' \
+        -e 's#(/[^/[:space:]]+)*/(baseline|candidate)(/|$)#<REPO>\3#g' \
+        -e "s#$PWD#<REPO>#g" \
+        -e 's/[0-9]{4}-[0-9]{2}-[0-9]{2}[^ ]*//g' \
     | sort -u > "$output_dir/warnings.txt" || true
 
 # Raw command logs are useful for diagnosis but contain progress ordering and
-# timing noise. The deterministic projections above are the comparison input.
+# timing noise. The deterministic projections and cooker warnings above are
+# the comparison input.
 rm -f "$output_dir"/*.log
 # The generated overlay is removed by the EXIT trap. Keeping it inside the
 # worktree satisfies KAS's same-repository rule for concatenated configs.
