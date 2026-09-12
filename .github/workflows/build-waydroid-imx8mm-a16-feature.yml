@@ -1,6 +1,10 @@
 name: Build i.MX8MM Android 16 host from integration branch
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/build-waydroid-imx8mm-a16-feature.yml
   workflow_dispatch:
     inputs:
       android_artifact_dir:
@@ -24,7 +28,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  layer-adoption-gate:
+    name: Layer Adoption Gate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate constrained integration dispatcher
+        run: |
+          grep -Fq 'ref: feat/jaguar-screen-waydroid-2gb' \
+            .github/workflows/build-waydroid-imx8mm-a16-feature.yml
+          grep -Fq 'options: --privileged --volume /yocto:/yocto' \
+            .github/workflows/build-waydroid-imx8mm-a16-feature.yml
+          git diff --check HEAD^
+
   build:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, esl-proxmox]
     timeout-minutes: 720
     container:
