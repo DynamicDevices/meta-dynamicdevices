@@ -14,6 +14,18 @@ target: lmp-factory-image
 machine: imx95-frdm-evk
 
 repos:
+  # UI framework layers belong to this graphical product configuration.  They
+  # must not expose recipes or bbappends to every product through base.yml.
+  meta-godot:
+    url: https://github.com/active-esl/meta-godot.git
+    commit: 58670332d8ae0c37e4ac0df884fede37ad4661bc
+    path: build/layers/meta-godot
+
+  meta-flutter:
+    url: https://github.com/meta-flutter/meta-flutter.git
+    commit: 34a3d4eb3a36b8c9c2af9c4ef2b75986d821fa3f
+    path: build/layers/meta-flutter
+
   # Pin the reviewed Dynamic Devices product layers so this gate is
   # reproducible without sibling development checkouts.
   meta-dynamicdevices-bsp:
@@ -68,7 +80,7 @@ repos:
   # NXP BSP support is maintained independently as a Foundries partner layer.
   meta-partner-nxp-imx:
     url: https://github.com/active-esl/meta-partner-nxp-imx.git
-    commit: 78596babbde5e10d23f3232855fd7984ffd13ba6
+    commit: 216be357ae4acc5e5f8bbd49cfdb809e20a6c831
     path: build/layers/meta-partner-nxp-imx
 
   # Keep IW612 userspace aligned with the same NXP 2.2.0 component release as
