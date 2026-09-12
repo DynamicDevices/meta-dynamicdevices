@@ -32,6 +32,7 @@ PWD=/workspace/candidate
 printf '%s\n' \\
   '2026-09-12 20:00:00 - INFO     - kas 4.7 started' \\
   '/__w/project/baseline/build/layers/meta/conf/layer.conf  ' \\
+  'Parsing recipes...WARNING: deterministic warning' \\
   '/workspace/candidate/recipe.bb' | normalise_kas_projection
 """,
             ],
@@ -43,6 +44,11 @@ printf '%s\n' \\
             result.stdout,
             "<REPO>/build/layers/meta/conf/layer.conf\n<REPO>/recipe.bb\n",
         )
+
+    def test_warnings_come_from_cooker_logs_not_interleaved_command_logs(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("find build/tmp/log/cooker -type f -name '*.log'", source)
+        self.assertNotIn("find \"$output_dir\" -type f -name '*.log'", source)
 
     def test_capture_command_replays_failure_log_and_preserves_status(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
