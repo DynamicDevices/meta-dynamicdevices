@@ -11,6 +11,12 @@ do_compile[network] = "1"
 RUSTFLAGS:append = " --remap-path-prefix=${WORKDIR}=/usr/src/debug/${PN}/${PV}"
 RUSTFLAGS:append = " --remap-path-prefix=${TMPDIR}=/usr/src/debug/tmpdir"
 
+# gpio-utils' old backtrace-sys dependency builds bundled C sources from
+# Cargo's registry.  Rust's remap flags do not reach that C compiler, and the
+# standard Yocto CFLAGS only cover ${S} and ${B}, leaving cargo_home embedded
+# in the split debug binary.  Remap the whole recipe work directory for C too.
+CFLAGS:append = " -ffile-prefix-map=${WORKDIR}=/usr/src/debug/${PN}/${PV}"
+
 SRC_URI = "git://github.com/rust-embedded/gpio-utils.git;protocol=https;branch=master"
 SRCREV="02b0658cd7e13e46f6b1a5de3fd9655711749759"
 S = "${WORKDIR}/git"

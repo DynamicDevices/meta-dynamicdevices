@@ -68,7 +68,7 @@ inherit pkgconfig
 #inherit webos_app
 #inherit webos_filesystem_paths
 #inherit webos_systemd
-inherit features_check systemd
+inherit features_check mime-xdg systemd
 
 SYSTEMD_SERVICE:${PN}:imx8mm-jaguar-screen = " \
     waydroid-image-provision.service \
@@ -212,6 +212,13 @@ do_install:append:imx95-frdm-evk() {
         ${D}${systemd_system_unitdir}/waydroid-frdm-session.service
     install -Dm0644 ${WORKDIR}/waydroid-frdm-ui.service \
         ${D}${systemd_system_unitdir}/waydroid-frdm-ui.service
+}
+
+# Upstream's recursive install can preserve the checkout owner's numeric UID.
+# Image payloads must be deterministic and owned by root regardless of the
+# host or container account used for the build.
+do_install:append() {
+    chown -R 0:0 "${D}"
 }
 
 FILES:${PN} += " \
