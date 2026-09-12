@@ -6,6 +6,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -21,6 +22,24 @@ SPEC.loader.exec_module(MODULE)
 
 
 class BaselineEvidenceTests(unittest.TestCase):
+    def test_generated_signing_identity_is_validated_before_reuse(self) -> None:
+        generator = MODULE_PATH.parent / "generate-layer-adoption-test-keys.sh"
+        with tempfile.TemporaryDirectory() as directory:
+            keys = Path(directory) / "keys"
+            subprocess.run([str(generator), str(keys)], check=True, capture_output=True)
+            subprocess.run(
+                [str(generator), "--check", str(keys)], check=True, capture_output=True
+            )
+            (keys / "x509_modsign.crt").write_text("invalid\n", encoding="utf-8")
+            invalid = subprocess.run(
+                [str(generator), "--check", str(keys)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(invalid.returncode, 0)
+            self.assertIn("invalid or expire within seven days", invalid.stderr)
+
     def test_local_kas_wrappers_use_ci_container_digest(self) -> None:
         root = WORKFLOW_PATH.parents[2]
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
