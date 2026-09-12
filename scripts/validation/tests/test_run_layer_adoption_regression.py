@@ -119,13 +119,37 @@ class BaselineEvidenceTests(unittest.TestCase):
             marker = {
                 "base_sha": "abc123",
                 "tuple_id": "machine-image",
+                "capture_schema": "schema-a",
                 "evidence_sha256": MODULE.evidence_digest(root),
             }
             (root / MODULE.MARKER).write_text(json.dumps(marker), encoding="utf-8")
-            self.assertTrue(MODULE.valid_cached_evidence(root, "abc123", "machine-image"))
+            self.assertTrue(
+                MODULE.valid_cached_evidence(
+                    root, "abc123", "machine-image", "schema-a"
+                )
+            )
+            self.assertFalse(
+                MODULE.valid_cached_evidence(
+                    root, "abc123", "machine-image", "schema-b"
+                )
+            )
 
             (root / "packages.txt").write_text("package-b\n", encoding="utf-8")
-            self.assertFalse(MODULE.valid_cached_evidence(root, "abc123", "machine-image"))
+            self.assertFalse(
+                MODULE.valid_cached_evidence(
+                    root, "abc123", "machine-image", "schema-a"
+                )
+            )
+
+    def test_capture_schema_covers_every_evidence_producer(self) -> None:
+        root = MODULE_PATH.parents[2]
+        first = MODULE.capture_schema_digest(root)
+        self.assertRegex(first, r"^[0-9a-f]{64}$")
+        self.assertIn("scripts/validation/capture-layer-state.sh", MODULE.CAPTURE_SCHEMA_FILES)
+        self.assertIn(
+            "scripts/validation/canonicalise-bitbake-layer-output.py",
+            MODULE.CAPTURE_SCHEMA_FILES,
+        )
 
     def test_marker_is_not_part_of_evidence_digest(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

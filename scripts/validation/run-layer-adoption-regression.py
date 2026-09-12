@@ -16,6 +16,13 @@ from pathlib import Path
 MARKER = ".complete.json"
 FIELDS = ("id", "machine", "distro", "image", "config", "product_features")
 PRODUCT_SUBMODULES = ("meta-dynamicdevices-bsp", "meta-dynamicdevices-distro")
+CAPTURE_SCHEMA_FILES = (
+    "scripts/validation/run-layer-adoption-regression.py",
+    "scripts/validation/capture-layer-state.sh",
+    "scripts/validation/canonicalise-bitbake-layer-output.py",
+    "scripts/validation/select-bitbake-env.py",
+    "scripts/validation/generate-layer-adoption-test-keys.sh",
+)
 
 
 def evidence_digest(root: Path) -> str:
@@ -30,7 +37,18 @@ def evidence_digest(root: Path) -> str:
     return digest.hexdigest()
 
 
-def valid_cached_evidence(root: Path, base_sha: str, tuple_id: str) -> bool:
+def capture_schema_digest(repository: Path) -> str:
+    digest = hashlib.sha256()
+    for relative in CAPTURE_SCHEMA_FILES:
+        digest.update(relative.encode())
+        digest.update(b"\0")
+        digest.update(hashlib.sha256((repository / relative).read_bytes()).digest())
+    return digest.hexdigest()
+
+
+def valid_cached_evidence(
+    root: Path, base_sha: str, tuple_id: str, capture_schema: str
+) -> bool:
     try:
         marker = json.loads((root / MARKER).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -38,6 +56,7 @@ def valid_cached_evidence(root: Path, base_sha: str, tuple_id: str) -> bool:
     return marker == {
         "base_sha": base_sha,
         "tuple_id": tuple_id,
+        "capture_schema": capture_schema,
         "evidence_sha256": evidence_digest(root),
     }
 
@@ -153,6 +172,7 @@ def main() -> int:
     base_sha = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=baseline, text=True
     ).strip()
+    capture_schema = capture_schema_digest(candidate)
 
     # This preparation is intentionally owned by the shared regression driver,
     # not by CI YAML. Local and hosted runs therefore build the same pinned
@@ -175,7 +195,7 @@ def main() -> int:
         candidate_output = evidence / "candidate" / tuple_id
         temporary: Path | None = None
         try:
-            if valid_cached_evidence(cached, base_sha, tuple_id):
+            if valid_cached_evidence(cached, base_sha, tuple_id, capture_schema):
                 print(f"Reusing immutable baseline evidence for {base_sha}", flush=True)
             else:
                 shutil.rmtree(cached, ignore_errors=True)
@@ -185,6 +205,7 @@ def main() -> int:
                 marker = {
                     "base_sha": base_sha,
                     "tuple_id": tuple_id,
+                    "capture_schema": capture_schema,
                     "evidence_sha256": evidence_digest(temporary),
                 }
                 (temporary / MARKER).write_text(
