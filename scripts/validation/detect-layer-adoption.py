@@ -19,7 +19,8 @@ MATERIAL_PATHS = (
     re.compile(r"^ci/layer-adoption-tuples\.json$"),
 )
 
-REQUIRED_TUPLE_FIELDS = ("id", "machine", "distro", "image", "config")
+TUPLE_FIELDS = ("id", "machine", "distro", "image", "config", "product_features")
+NONEMPTY_TUPLE_FIELDS = ("id", "machine", "distro", "image", "config")
 
 
 def git(*args: str) -> str:
@@ -38,13 +39,17 @@ def parse_tuples(raw: str, source: str) -> dict[str, dict[str, str]]:
     for index, entry in enumerate(document["tuples"]):
         if not isinstance(entry, dict):
             raise ValueError(f"{source}: tuple {index} is not an object")
-        missing = [field for field in REQUIRED_TUPLE_FIELDS if not str(entry.get(field, "")).strip()]
+        missing = [field for field in TUPLE_FIELDS if field not in entry]
+        missing.extend(
+            field for field in NONEMPTY_TUPLE_FIELDS
+            if field in entry and not str(entry[field]).strip()
+        )
         if missing:
             raise ValueError(f"{source}: tuple {index} lacks {', '.join(missing)}")
         tuple_id = str(entry["id"])
         if tuple_id in result:
             raise ValueError(f"{source}: duplicate tuple id {tuple_id}")
-        result[tuple_id] = {field: str(entry[field]) for field in REQUIRED_TUPLE_FIELDS}
+        result[tuple_id] = {field: str(entry[field]) for field in TUPLE_FIELDS}
     if not result:
         raise ValueError(f"{source}: tuple matrix must not be empty")
     return result
