@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate one genuine but disposable signing-key set shared by a baseline and candidate build.
+# Generate one genuine, test-only signing identity shared by compared builds.
 set -euo pipefail
 umask 077
 
@@ -50,4 +50,4 @@ openssl ecparam -name prime256v1 -genkey -noout \
     -out "$output_dir/tf-a/privkey_ec_prime256v1.pem"
 openssl ec -in "$output_dir/tf-a/privkey_ec_prime256v1.pem" -check -noout
 
-printf 'PASS: generated ephemeral layer-adoption signing keys in %s\n' "$output_dir"
+printf 'PASS: generated test-only layer-adoption signing keys in %s\n' "$output_dir"
