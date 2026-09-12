@@ -34,6 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - name: Validate constrained integration dispatcher
         run: |
           grep -Fq 'ref: feat/jaguar-screen-waydroid-2gb' \
