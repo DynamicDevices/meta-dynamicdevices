@@ -21,7 +21,6 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     outputs:
       material: ${{ steps.detect.outputs.material }}
-      matrix: ${{ steps.matrix.outputs.matrix }}
       base_sha: ${{ steps.base.outputs.sha }}
     steps:
       - uses: actions/checkout@v7
@@ -41,42 +40,33 @@ jobs:
           git cat-file -e "$sha^{commit}"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
       - id: detect
-        name: Require an adoption contract
+        name: Validate repository and require an adoption contract
         run: |
           python3 -m unittest discover -s scripts/validation/tests -p 'test_*.py'
+          find scripts -type f -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+          python3 -m json.tool ci/layer-adoption-contract.json >/dev/null
+          python3 -m json.tool ci/layer-adoption-tuples.json >/dev/null
+          # Mail-format patch payloads legitimately contain the conventional
+          # "-- " separator. Check repository sources without rewriting the
+          # third-party patches that BitBake applies.
+          git diff --check '${{ steps.base.outputs.sha }}...${{ github.sha }}' -- . ':(exclude)**/*.patch'
           python3 scripts/validation/detect-layer-adoption.py \
             --base '${{ steps.base.outputs.sha }}' \
             --head '${{ github.sha }}' \
             --github-output "$GITHUB_OUTPUT"
-      - id: matrix
-        name: Publish protected tuple matrix
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-
-          with open("ci/layer-adoption-tuples.json", encoding="utf-8") as source:
-              matrix = {"include": json.load(source)["tuples"]}
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
-          PY
-
   regression:
-    name: Protect ${{ matrix.id }}
+    name: Existing product regression
     needs: detect
     if: needs.detect.outputs.material == 'true'
-    strategy:
-      fail-fast: false
-      # Full Yocto baseline/candidate pairs are I/O and disk intensive. Keep
-      # the hard gate comprehensive without overwhelming one self-hosted host.
-      max-parallel: 2
-      matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
-    runs-on: [self-hosted, Linux, X64, yocto]
+    # One named ai-tools runner owns the persistent Yocto cache. Keeping the
+    # complete matrix inside one job makes resource use and the required gate
+    # obvious, while the driver still fails closed on every protected tuple.
+    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
     container:
-      image: dynamicdevices/yocto-ci-build:latest
-      options: --privileged --platform linux/amd64
+      image: ghcr.io/siemens/kas/kas@sha256:d989add57fc441fe9e27bb2dd6ed98c5597b44c807928e35a72dc1cfbdda9abe
+      options: --privileged --platform linux/amd64 --user 0:0 -v /home/ghrunner/yocto-layer-adoption:/var/cache/layer-adoption
     env:
-      LAYER_ADOPTION_TEST_KEYS_DIR: /tmp/layer-adoption-keys-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.id }}
+      LAYER_ADOPTION_CACHE: /var/cache/layer-adoption
     steps:
       - name: Reset job-owned workspace
         run: |
@@ -95,18 +85,6 @@ jobs:
       - name: Create baseline worktree
         working-directory: candidate
         run: git worktree add ../baseline '${{ needs.detect.outputs.base_sha }}'
-      - name: Install KAS when absent
-        run: command -v kas >/dev/null || pip3 install kas
-      - name: Restore Yocto caches
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/yocto/downloads
-            ~/yocto/sstate-cache
-          key: layer-adoption-${{ matrix.machine }}-${{ hashFiles('candidate/kas/**') }}
-          restore-keys: |
-            layer-adoption-${{ matrix.machine }}-
-            layer-adoption-
       - name: Require safe build capacity
         run: |
           available_kib=$(df -Pk "$GITHUB_WORKSPACE" | awk 'NR == 2 {print $4}')
@@ -115,40 +93,31 @@ jobs:
             echo "ERROR: layer-adoption build requires at least 150 GiB free; found $((available_kib / 1024 / 1024)) GiB" >&2
             exit 1
           fi
-      - name: Generate ephemeral signing keys
-        run: candidate/scripts/validation/generate-layer-adoption-test-keys.sh "$LAYER_ADOPTION_TEST_KEYS_DIR"
-      - name: Build and capture baseline
-        working-directory: baseline
+      - name: Prepare persistent test-only signing identity
         run: |
-          ../candidate/scripts/validation/capture-layer-state.sh \
-            '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.distro }}' \
-            '${{ matrix.image }}' '${{ matrix.product_features }}' \
-            '../evidence/baseline/${{ matrix.id }}'
-      - name: Release baseline build workspace
+          set -euo pipefail
+          keys="$LAYER_ADOPTION_CACHE/test-keys"
+          if [ ! -s "$keys/ubootdev.key" ]; then
+            test "$keys" = /var/cache/layer-adoption/test-keys
+            rm -rf -- "$keys"
+            rm -rf -- "$LAYER_ADOPTION_CACHE/baselines"
+            temporary=$(mktemp -d "$LAYER_ADOPTION_CACHE/.test-keys.XXXXXX")
+            candidate/scripts/validation/generate-layer-adoption-test-keys.sh "$temporary"
+            mv "$temporary" "$keys"
+          fi
+      - name: Build and compare every protected tuple
         run: |
-          workspace=$(realpath -m -- "$GITHUB_WORKSPACE")
-          target=$(realpath -m -- "$workspace/baseline/build")
-          test "$target" = "$workspace/baseline/build"
-          rm -rf -- "$target"
-      - name: Build and capture candidate
-        working-directory: candidate
-        run: |
-          scripts/validation/capture-layer-state.sh \
-            '${{ matrix.config }}' '${{ matrix.machine }}' '${{ matrix.distro }}' \
-            '${{ matrix.image }}' '${{ matrix.product_features }}' \
-            '../evidence/candidate/${{ matrix.id }}'
-      - name: Reject unexplained contamination
-        run: |
-          python3 candidate/scripts/validation/compare-layer-state.py \
-            --baseline 'evidence/baseline/${{ matrix.id }}' \
-            --candidate 'evidence/candidate/${{ matrix.id }}' \
-            --tuple '${{ matrix.id }}' \
-            --contract candidate/ci/layer-adoption-contract.json
+          python3 candidate/scripts/validation/run-layer-adoption-regression.py \
+            --baseline baseline \
+            --candidate candidate \
+            --evidence evidence \
+            --cache "$LAYER_ADOPTION_CACHE" \
+            --test-keys "$LAYER_ADOPTION_CACHE/test-keys"
       - name: Preserve comparison evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: layer-adoption-${{ matrix.id }}
+          name: layer-adoption-evidence
           path: evidence
           retention-days: 14
       - name: Remove job-owned build trees
