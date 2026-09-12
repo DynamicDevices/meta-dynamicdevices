@@ -64,6 +64,15 @@ capture_command failure bash -c 'printf "visible diagnostic\\n"; exit 7' \\
         self.assertEqual(source.count("require_selected_value "), 3)
         self.assertIn("ERROR: selected BitBake environment does not contain", source)
 
+    def test_disk_monitor_uses_inode_not_disk_units(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        disk_monitor = next(
+            line for line in source.splitlines() if "BB_DISKMON_DIRS =" in line
+        )
+        self.assertNotIn(",1G", disk_monitor)
+        self.assertEqual(disk_monitor.count(",100K"), 3)
+        self.assertEqual(disk_monitor.count(",50K"), 3)
+
 
 if __name__ == "__main__":
     unittest.main()
