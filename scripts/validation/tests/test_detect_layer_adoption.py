@@ -30,6 +30,7 @@ def entry(tuple_id: str, machine: str = "machine-a") -> dict[str, str]:
         "distro": "distro-a",
         "image": "image-a",
         "config": "kas/test.yml",
+        "product_features": "",
     }
 
 
@@ -62,6 +63,18 @@ class ProtectedTupleTests(unittest.TestCase):
     def test_duplicate_candidate_id_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "duplicate tuple id existing"):
             self.validate(document(entry("existing")), document(entry("existing"), entry("existing")))
+
+    def test_missing_product_features_fails(self) -> None:
+        candidate = entry("existing")
+        del candidate["product_features"]
+        with self.assertRaisesRegex(ValueError, "lacks product_features"):
+            self.validate(document(entry("existing")), document(candidate))
+
+    def test_redefining_product_features_fails(self) -> None:
+        candidate = entry("existing")
+        candidate["product_features"] = "display"
+        with self.assertRaisesRegex(ValueError, "redefined=existing"):
+            self.validate(document(entry("existing")), document(candidate))
 
 
 if __name__ == "__main__":

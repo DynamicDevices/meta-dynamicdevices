@@ -2,8 +2,8 @@
 # Build one protected tuple and capture deterministic layer/package/task state.
 set -euo pipefail
 
-if [ "$#" -ne 5 ]; then
-    echo "Usage: $0 KAS_CONFIG MACHINE DISTRO TARGET OUTPUT_DIR" >&2
+if [ "$#" -ne 6 ]; then
+    echo "Usage: $0 KAS_CONFIG MACHINE DISTRO TARGET PRODUCT_FEATURES OUTPUT_DIR" >&2
     exit 2
 fi
 
@@ -11,7 +11,8 @@ config=$1
 machine=$2
 distro=$3
 target=$4
-output_dir=$5
+product_features=$5
+output_dir=$6
 
 case "$output_dir" in
     /*) ;;
@@ -22,19 +23,36 @@ mkdir -p "$output_dir"
 export KAS_MACHINE="$machine"
 export KAS_DISTRO="$distro"
 export DISTRO="$distro"
-kas checkout "$config"
+
+# KAS deliberately sanitises the environment before entering BitBake's build
+# environment, so an exported DD_PRODUCT_FEATURES is silently lost. Inject the
+# reviewed tuple value through a generated KAS overlay instead. JSON string
+# quoting is also valid BitBake quoting and prevents tuple text from becoming
+# local.conf syntax.
+product_features_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$product_features")
+overlay="$output_dir/layer-adoption-product-features.yml"
+cat > "$overlay" <<EOF
+header:
+  version: 14
+local_conf_header:
+  layer-adoption-product-features: |
+    DD_PRODUCT_FEATURES = $product_features_quoted
+EOF
+combined_config="${config}:${overlay}"
+kas checkout "$combined_config"
 
 cat > "$output_dir/metadata.json" <<EOF
-{"commit":"$(git rev-parse HEAD)","config":"$config","machine":"$machine","distro":"$distro","target":"$target"}
+{"commit":"$(git rev-parse HEAD)","config":"$config","machine":"$machine","distro":"$distro","target":"$target","product_features":"$product_features"}
 EOF
 printf '%s\n' \
-    "kas checkout $config" \
+    "kas checkout CONFIG:PRODUCT_FEATURE_OVERLAY" \
     "bitbake-layers show-layers" \
     "bitbake-layers show-appends" \
     "bitbake-layers show-recipes" \
     "bitbake -g $target" \
     "bitbake -e $target" \
-    "bitbake $target" > "$output_dir/commands.txt"
+    "bitbake $target" \
+    "DD_PRODUCT_FEATURES=$product_features" > "$output_dir/commands.txt"
 
 # Static layer surfaces are captured as well as BitBake's resolved view. This
 # makes wildcard/dangling appends and global layer.conf policy visible even
@@ -49,7 +67,7 @@ find build/layers -type f -name '*.bbappend' -printf '%p\n' \
     | sort -u > "$output_dir/all-bbappends.txt"
 
 run_bitbake() {
-    kas shell "$config" -c "$1"
+    kas shell "$combined_config" -c "$1"
 }
 
 capture_command() {
@@ -83,6 +101,7 @@ python3 "$(dirname "$0")/select-bitbake-env.py" \
     "$output_dir/environment.log" > "$output_dir/selected-environment.txt"
 grep -Fqx "MACHINE=\"$machine\"" "$output_dir/selected-environment.txt"
 grep -Fqx "DISTRO=\"$distro\"" "$output_dir/selected-environment.txt"
+grep -Fqx "DD_PRODUCT_FEATURES=\"$product_features\"" "$output_dir/selected-environment.txt"
 rm "$output_dir/environment.log"
 
 # A parse-only graph is not proof that packaging, signing, recovery image size,
@@ -115,3 +134,6 @@ find "$output_dir" -type f -name '*.log' -print0 \
 # Raw command logs are useful for diagnosis but contain progress ordering and
 # timing noise. The deterministic projections above are the comparison input.
 rm -f "$output_dir"/*.log
+# The generated overlay is an input already represented in metadata.json; it
+# must not become a baseline/candidate comparison artefact with differing paths.
+rm -f "$overlay"
