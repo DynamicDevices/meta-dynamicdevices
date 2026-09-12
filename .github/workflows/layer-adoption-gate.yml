@@ -68,7 +68,9 @@ jobs:
     runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
     container:
       image: ghcr.io/siemens/kas/kas@sha256:d989add57fc441fe9e27bb2dd6ed98c5597b44c807928e35a72dc1cfbdda9abe
-      options: --privileged --platform linux/amd64 --user 0:0 -v /home/ghrunner/yocto-layer-adoption:/var/cache/layer-adoption
+      # Match the dedicated ai-tools runner account so BitBake's root-user
+      # sanity check remains active and bind-mounted cache files stay writable.
+      options: --privileged --platform linux/amd64 --user 1002:1002 -v /home/ghrunner/yocto-layer-adoption:/var/cache/layer-adoption
     env:
       LAYER_ADOPTION_CACHE: /var/cache/layer-adoption
     steps:
