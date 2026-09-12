@@ -162,14 +162,27 @@ sed -E "s#$PWD/##g" build/task-depends.dot | sort -u \
 # Capture final values and BitBake's assignment provenance for policy that a
 # newly enabled layer can silently change. The full environment is retained
 # temporarily only as input, avoiding volatile host variables in comparisons.
-capture_command environment run_bitbake "bitbake -e $target"
+# The complete environment is intentionally retained in evidence but is too
+# large for routine CI output. capture_command still replays it to stderr if
+# BitBake fails, so diagnostics are not lost.
+capture_command environment run_bitbake "bitbake -e $target" >/dev/null
 python3 "$(dirname "$0")/select-bitbake-env.py" \
     "$output_dir/environment.log" \
     | sed -E "s#$PWD#<REPO>#g; s#$test_keys_dir#<TEST_KEYS>#g; s#$cache_root#<YOCTO_CACHE>#g" \
     > "$output_dir/selected-environment.txt"
-grep -Fqx "MACHINE=\"$machine\"" "$output_dir/selected-environment.txt"
-grep -Fqx "DISTRO=\"$distro\"" "$output_dir/selected-environment.txt"
-grep -Fqx "DD_PRODUCT_FEATURES=\"$product_features\"" "$output_dir/selected-environment.txt"
+require_selected_value() {
+    local name=$1
+    local expected=$2
+    if ! grep -Fqx "$name=\"$expected\"" "$output_dir/selected-environment.txt"; then
+        echo "ERROR: selected BitBake environment does not contain $name=\"$expected\"" >&2
+        grep -E "^${name}=" "$output_dir/selected-environment.txt" >&2 || \
+            echo "ERROR: $name is absent from selected BitBake environment" >&2
+        return 1
+    fi
+}
+require_selected_value MACHINE "$machine"
+require_selected_value DISTRO "$distro"
+require_selected_value DD_PRODUCT_FEATURES "$product_features"
 rm "$output_dir/environment.log"
 
 # A parse-only graph is not proof that packaging, signing, recovery image size,
