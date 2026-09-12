@@ -130,7 +130,15 @@ run_bitbake() {
 capture_command() {
     local name=$1
     shift
-    "$@" 2>&1 | tee "$output_dir/$name.log"
+    local log="$output_dir/$name.log"
+    if "$@" 2>&1 | tee "$log"; then
+        return 0
+    else
+        local statuses=("${PIPESTATUS[@]}")
+        echo "ERROR: command failed while capturing $name" >&2
+        cat "$log" >&2
+        return "${statuses[0]}"
+    fi
 }
 
 capture_command show-layers run_bitbake "bitbake-layers show-layers" \
