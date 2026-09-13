@@ -2,8 +2,8 @@
 # Build one protected tuple and capture deterministic layer/package/task state.
 set -euo pipefail
 
-if [ "$#" -ne 6 ]; then
-    echo "Usage: $0 KAS_CONFIG MACHINE DISTRO TARGET PRODUCT_FEATURES OUTPUT_DIR" >&2
+if [ "$#" -ne 7 ]; then
+    echo "Usage: $0 KAS_CONFIG MACHINE DISTRO TARGET PRODUCT_FEATURES VARIABLES_JSON OUTPUT_DIR" >&2
     exit 2
 fi
 
@@ -12,7 +12,8 @@ machine=$2
 distro=$3
 target=$4
 product_features=$5
-output_dir=$6
+variables_json=$6
+output_dir=$7
 test_keys_dir=${LAYER_ADOPTION_TEST_KEYS_DIR:-}
 cache_root=${LAYER_ADOPTION_CACHE_DIR:-$HOME/yocto}
 
@@ -52,6 +53,22 @@ export DISTRO="$distro"
 product_features_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$product_features")
 downloads_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$cache_root/downloads")
 sstate_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$cache_root/sstate-cache")
+variable_assignments=$(python3 - "$variables_json" <<'PY'
+import json
+import re
+import sys
+
+variables = json.loads(sys.argv[1])
+if not isinstance(variables, dict):
+    raise SystemExit("tuple variables must be a JSON object")
+for name, value in sorted(variables.items()):
+    if not isinstance(name, str) or not re.fullmatch(r"[A-Z0-9_]+(?::[a-z0-9_-]+)*", name):
+        raise SystemExit(f"invalid BitBake variable name: {name!r}")
+    if not isinstance(value, str):
+        raise SystemExit(f"BitBake variable {name} must have a string value")
+    print(f"    {name} = {json.dumps(value)}")
+PY
+)
 repository_root=$(git rev-parse --show-toplevel)
 overlay_dir="$repository_root/.layer-adoption-overlays"
 mkdir -p "$overlay_dir"
@@ -67,6 +84,7 @@ header:
 local_conf_header:
   layer-adoption-product-features: |
     DD_PRODUCT_FEATURES = $product_features_quoted
+$variable_assignments
     DL_DIR = $downloads_quoted
     SSTATE_DIR = $sstate_quoted
     BB_DISKMON_DIRS = "STOPTASKS,\${TMPDIR},20G,100K STOPTASKS,\${DL_DIR},20G,100K STOPTASKS,\${SSTATE_DIR},20G,100K HALT,\${TMPDIR},10G,50K HALT,\${DL_DIR},10G,50K HALT,\${SSTATE_DIR},10G,50K"
@@ -90,9 +108,22 @@ EOF
 combined_config="${config}:${overlay}"
 kas checkout "$combined_config"
 
-cat > "$output_dir/metadata.json" <<EOF
-{"commit":"$(git rev-parse HEAD)","config":"$config","machine":"$machine","distro":"$distro","target":"$target","product_features":"$product_features"}
-EOF
+python3 - "$output_dir/metadata.json" "$(git rev-parse HEAD)" "$config" "$machine" "$distro" "$target" "$product_features" "$variables_json" <<'PY'
+import json
+import pathlib
+import sys
+
+path, commit, config, machine, distro, target, features, variables = sys.argv[1:]
+pathlib.Path(path).write_text(json.dumps({
+    "commit": commit,
+    "config": config,
+    "machine": machine,
+    "distro": distro,
+    "target": target,
+    "product_features": features,
+    "variables": json.loads(variables),
+}, sort_keys=True) + "\n", encoding="utf-8")
+PY
 
 # Record only public fingerprints. This proves both halves of the comparison
 # used the same signing identities without preserving disposable private keys.
@@ -112,7 +143,8 @@ printf '%s\n' \
     "bitbake -g $target" \
     "bitbake -e $target" \
     "bitbake $target" \
-    "DD_PRODUCT_FEATURES=$product_features" > "$output_dir/commands.txt"
+    "DD_PRODUCT_FEATURES=$product_features" \
+    "TUPLE_VARIABLES=$variables_json" > "$output_dir/commands.txt"
 
 # Static layer surfaces are captured as well as BitBake's resolved view. This
 # makes wildcard/dangling appends and global layer.conf policy visible even

@@ -159,6 +159,12 @@ capture_command failure bash -c 'printf "visible diagnostic\\n"; exit 7' \\
         self.assertEqual(disk_monitor.count(",100K"), 3)
         self.assertEqual(disk_monitor.count(",50K"), 3)
 
+    def test_tuple_variables_are_validated_and_injected_into_overlay(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("variables_json=$6", source)
+        self.assertIn('re.fullmatch(r"[A-Z0-9_]+(?::[a-z0-9_-]+)*", name)', source)
+        self.assertIn("$variable_assignments", source)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -30,7 +30,10 @@ MATERIAL_PATHS = (
     re.compile(r"^ci/layer-adoption-tuples\.json$"),
 )
 
-TUPLE_FIELDS = ("id", "machine", "distro", "image", "config", "product_features")
+TUPLE_FIELDS = (
+    "id", "machine", "distro", "image", "config", "product_features", "variables"
+)
+REQUIRED_TUPLE_FIELDS = tuple(field for field in TUPLE_FIELDS if field != "variables")
 NONEMPTY_TUPLE_FIELDS = ("id", "machine", "distro", "image", "config")
 
 
@@ -43,7 +46,7 @@ def git(*args: str) -> str:
     return subprocess.check_output(["git", *args], text=True)
 
 
-def parse_tuples(raw: str, source: str) -> dict[str, dict[str, str]]:
+def parse_tuples(raw: str, source: str) -> dict[str, dict[str, object]]:
     try:
         document = json.loads(raw)
     except json.JSONDecodeError as exc:
@@ -51,21 +54,32 @@ def parse_tuples(raw: str, source: str) -> dict[str, dict[str, str]]:
     if document.get("schema") != 1 or not isinstance(document.get("tuples"), list):
         raise ValueError(f"{source}: expected schema=1 and a tuples array")
 
-    result: dict[str, dict[str, str]] = {}
+    result: dict[str, dict[str, object]] = {}
     for index, entry in enumerate(document["tuples"]):
         if not isinstance(entry, dict):
             raise ValueError(f"{source}: tuple {index} is not an object")
-        missing = [field for field in TUPLE_FIELDS if field not in entry]
+        missing = [field for field in REQUIRED_TUPLE_FIELDS if field not in entry]
         missing.extend(
             field for field in NONEMPTY_TUPLE_FIELDS
             if field in entry and not str(entry[field]).strip()
         )
         if missing:
             raise ValueError(f"{source}: tuple {index} lacks {', '.join(missing)}")
+        variables = entry.get("variables", {})
+        if not isinstance(variables, dict) or any(
+            not isinstance(name, str)
+            or not re.fullmatch(r"[A-Z0-9_]+(?::[a-z0-9_-]+)*", name)
+            or not isinstance(value, str)
+            for name, value in variables.items()
+        ):
+            raise ValueError(f"{source}: tuple {index} has invalid variables")
         tuple_id = str(entry["id"])
         if tuple_id in result:
             raise ValueError(f"{source}: duplicate tuple id {tuple_id}")
-        result[tuple_id] = {field: str(entry[field]) for field in TUPLE_FIELDS}
+        result[tuple_id] = {
+            field: (dict(sorted(variables.items())) if field == "variables" else str(entry[field]))
+            for field in TUPLE_FIELDS
+        }
     if not result:
         raise ValueError(f"{source}: tuple matrix must not be empty")
     return result
