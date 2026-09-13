@@ -16,7 +16,6 @@ files_runtime_file(waydroid_runtime_t)
 type waydroid_rootfs_t;
 files_type(waydroid_rootfs_t)
 
-# Development phase only. The host remains enforcing while accesses from
-# this dedicated domain are logged but not denied. R26 release validation
-# must remove this statement after the AVC-derived allow-list is reviewed.
-permissive waydroid_t;
+# Replaced with a permissive declaration only for an explicitly selected
+# LOCAL_DEVELOPMENT_BUILD. Release policy is enforcing by default.
+# WAYDROID_DEVELOPMENT_PERMISSIVE

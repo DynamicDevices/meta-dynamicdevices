@@ -10,6 +10,7 @@ target: lmp-factory-image
 local_conf_header:
   r26-jaguar-screen-selinux: |
     DD_PRODUCT_FEATURES = "display android-container"
+    WAYDROID_SELINUX_DEVELOPMENT_PERMISSIVE = "1"
     ASSEMBLE_SYSTEM_IMAGE = "0"
     LOCAL_DEVELOPMENT_BUILD = "1"
     OPTEE_TA_SIGN_ENABLE = "0"
@@ -19,13 +20,13 @@ local_conf_header:
     TF_A_SIGN_ENABLE = "0"
     UEFI_SIGN_ENABLE = "0"
     MODSIGN_ENABLE = "0"
+    MODSIGN = "0"
+    DISTRO_FEATURES:remove = "modsign"
     SIGNING_UBOOT_SIGN_KEY = "${TOPDIR}/bitbake.lock"
     SIGNING_UBOOT_SIGN_CRT = "${TOPDIR}/bitbake.lock"
     SIGNING_UBOOT_SPL_SIGN_KEY = "${TOPDIR}/bitbake.lock"
     SIGNING_UBOOT_SPL_SIGN_CRT = "${TOPDIR}/bitbake.lock"
     SIGNING_UEFI_SIGN_KEY = "${TOPDIR}/bitbake.lock"
     SIGNING_UEFI_SIGN_CRT = "${TOPDIR}/bitbake.lock"
-    SIGNING_MODSIGN_PRIVKEY = "${TOPDIR}/bitbake.lock"
-    SIGNING_MODSIGN_X509 = "${TOPDIR}/bitbake.lock"
     OPTEE_TA_SIGN_KEY = "${TOPDIR}/bitbake.lock"
     TF_A_SIGN_KEY_PATH = "${TOPDIR}/bitbake.lock"

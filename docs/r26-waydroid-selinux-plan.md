@@ -44,11 +44,14 @@ new refpolicy modules otherwise default to `off` when absent from the upstream
 
 ## Development policy lifecycle
 
-The first hardware image keeps the host globally enforcing but declares only
-`waydroid_t` permissive. This isolates policy discovery to the Waydroid domain
-and avoids weakening unrelated host services. The statement
-`permissive waydroid_t;` is a release blocker and must be removed after AVCs
-have been classified and converted to narrow rules.
+The first hardware image keeps the host globally enforcing but explicitly sets
+`WAYDROID_SELINUX_DEVELOPMENT_PERMISSIVE = "1"` to declare only `waydroid_t`
+permissive. The recipe rejects that setting unless
+`LOCAL_DEVELOPMENT_BUILD = "1"`; all other builds compile the Waydroid domain
+enforcing by default. This isolates policy discovery to the Waydroid domain,
+avoids weakening unrelated host services, and prevents the discovery setting
+from leaking into a Foundries production build. Hardware AVCs must still be
+classified and converted to narrow rules before release.
 
 Immutable OSTree content is labelled at image construction with
 `selinux-image`. `FIRST_BOOT_RELABEL` remains disabled because a whole-root
@@ -65,10 +68,26 @@ host-policy types, so Waydroid applies the single host-owned
 SELinux is active. This avoids any release rule permitting execution from the
 generic `unlabeled_t` type.
 
-## Existing CI tuple regression matrix
+## Phased CI tuple regression matrix
 
-The layer-adoption gate covers every active `ci-scripts` platform tuple, not
-only the new Jaguar Screen image.
+To reach physical Jaguar Screen testing without waiting for every historical
+product build, the current gate is intentionally focused on three tuples: the
+existing Jaguar Screen image, its mfgtool/recovery image, and the exact
+Foundries `main-jaguar-screen` Android-container image. The remaining active
+platform inventory below is deferred to a later CI expansion and is not
+claimed as passed by this phase.
+
+### Explicitly deprecated tuples
+
+On 13 September 2026 the product owner retired the
+`imx8mm-jaguar-inst` and `imx8mm-jaguar-phasora` build families. This includes
+normal images and mfgtool/recovery builds, plus both the
+`main-jaguar-phasora` and `main-jaguar-phasora-ext` Foundries refs. They are
+therefore intentionally excluded from the protected regression matrix and will
+be removed from the Foundries factory build configuration. Their removal is a
+reviewed product-lifecycle decision, not an unexplained loss of gate coverage.
+
+### Deferred active Foundries inventory
 
 | Platform ref | Machine | Platform distro/special case | Existing mfgtool tuple |
 | --- | --- | --- | --- |
@@ -80,10 +99,7 @@ only the new Jaguar Screen image.
 | `main-jaguar-sentai-ocf` | `imx8mm-jaguar-sentai` | headless, signed/LUKS/OCF | yes |
 | `imx8mm-jaguar-handheld-5in` | `imx8mm-jaguar-handheld-5in` | legacy Waydroid distro | yes |
 | `imx8mm-jaguar-handheld-7in` | `imx8mm-jaguar-handheld-7in` | legacy Waydroid distro | yes |
-| `main-jaguar-phasora` | `imx8mm-jaguar-phasora` | headless | yes |
-| `main-jaguar-phasora-ext` | `imx8mm-jaguar-phasora` | headless | yes |
 | `main-imx8ulp` | `imx8ulp-lpddr4-evk` | headless | yes |
-| `main-jaguar-inst` | `imx8mm-jaguar-inst` | headless | yes |
 | `main-rpi4` | `raspberrypi4-64` | default | no |
 | `main-rpi4-v2g-evse` | `raspberrypi4-64` | legacy Waydroid distro | no |
 | `main-rpi5` | `raspberrypi5` | default | no |
@@ -104,10 +120,18 @@ only the new Jaguar Screen image.
   `policy/modules.conf` contains `waydroid = module` and the build produced
   `waydroid.pp` (114,378 bytes), proving the custom module is compiled rather
   than merely present in `SRC_URI`.
+- The development policy build completed with only `waydroid_t` permissive;
+  the enforcing-smoke build also completed and its generated source contains
+  no permissive declaration. A permissive request in a non-development build
+  is rejected during parsing.
+- The real `virtual/kernel:do_kernel_configcheck` completed all 873 tasks after
+  the local preflight correctly removed the disabled `modsign` distro feature.
+  This proves the Jaguar kernel accepts the SELinux configuration fragment;
+  the earlier dry run and invalid dummy-certificate attempt are not counted.
 
-The full image, kernel configuration, adoption matrix, Foundries build and
-physical-board gates remain open; this recipe proof does not substitute for
-them.
+The focused adoption matrix, full image, Foundries build and physical-board
+gates remain open. Deferred product tuples must be restored before a
+production-wide layer-adoption claim.
 
 1. Resolve the exact candidate manifest and prove every project SHA exists.
 2. Parse the Jaguar Screen platform and mfgtool configurations.
