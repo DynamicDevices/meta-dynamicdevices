@@ -1,0 +1,138 @@
+# Local LmP v96 HDMI/Waydroid smoke configuration for FRDM-IMX95.
+# Generic i.MX95 enablement comes from the NXP partner layer; the DD layers
+# contribute only product policy and application integration.
+
+header:
+  version: 14
+  includes:
+    - kas/base.yml
+    - kas/bsp.yml
+    - kas/dynamicdevices.yml
+
+distro: lmp-dynamicdevices
+target: lmp-factory-image
+machine: imx95-frdm-evk
+
+repos:
+  # UI framework layers belong to this graphical product configuration.  They
+  # must not expose recipes or bbappends to every product through base.yml.
+  meta-godot:
+    url: https://github.com/active-esl/meta-godot.git
+    commit: 58670332d8ae0c37e4ac0df884fede37ad4661bc
+    path: build/layers/meta-godot
+
+  meta-flutter:
+    url: https://github.com/meta-flutter/meta-flutter.git
+    commit: 34a3d4eb3a36b8c9c2af9c4ef2b75986d821fa3f
+    path: build/layers/meta-flutter
+
+  # Pin the reviewed Dynamic Devices product layers so this gate is
+  # reproducible without sibling development checkouts.
+  meta-dynamicdevices-bsp:
+    url: https://github.com/DynamicDevices/meta-dynamicdevices-bsp.git
+    commit: 187ab1682cab48f1b0f24998212787c5134e8d97
+    path: build/layers/meta-dynamicdevices-bsp
+
+  meta-dynamicdevices-distro:
+    url: https://github.com/DynamicDevices/meta-dynamicdevices-distro.git
+    commit: 76bc03d863a71aa715ffd76039124f2ec96f8729
+    path: build/layers/meta-dynamicdevices-distro
+
+  bitbake:
+    commit: 1c9ec1ffde75809de34c10d3ec2b40d84d258cb4
+
+  openembedded-core:
+    commit: 7af6b75221d5703ba5bf43c7cd9f1e7a2e0ed20b
+
+  meta-arm:
+    commit: 8e0f8af90fefb03f08cd2228cde7a89902a6b37c
+
+  meta-openembedded:
+    commit: f1f248262d662315159ee96c604f97415d1dbe6a
+
+  meta-imx:
+    url: https://github.com/nxp-imx/meta-imx.git
+    commit: e83d4402acde050d2b2761995761c81c797b5b03
+    path: build/layers/meta-imx
+    layers:
+      meta-imx-bsp:
+      meta-imx-sdk:
+      meta-imx-ml:
+
+  meta-freescale:
+    url: https://github.com/lmp-mirrors/meta-freescale
+    commit: 281202125dee44b45ddd56822e43af9c007e4d3d
+    path: build/layers/meta-freescale
+
+  meta-freescale-3rdparty:
+    url: https://github.com/lmp-mirrors/meta-freescale-3rdparty
+    commit: 70c83e96c7f75e73245cb77f1b0cada9ed4bbc6d
+    path: build/layers/meta-freescale-3rdparty
+
+  meta-lmp:
+    url: https://github.com/foundriesio/meta-lmp
+    commit: 455bf51bd908cb008dd048031247478ffc62a43a
+    path: build/layers/meta-lmp
+    layers:
+      meta-lmp-base:
+      meta-lmp-bsp:
+
+  # NXP BSP support is maintained independently as a Foundries partner layer.
+  meta-partner-nxp-imx:
+    url: https://github.com/active-esl/meta-partner-nxp-imx.git
+    commit: 216be357ae4acc5e5f8bbd49cfdb809e20a6c831
+    path: build/layers/meta-partner-nxp-imx
+
+  # Keep IW612 userspace aligned with the same NXP 2.2.0 component release as
+  # the partner BSP. This replaces the older DD fork inherited from
+  # dynamicdevices.yml for this i.MX95 product gate while retaining its Zigbee
+  # RCP layer and adding the IW612 OTBR layer.
+  meta-nxp-connectivity:
+    url: https://github.com/nxp-imx/meta-nxp-connectivity.git
+    commit: 14a32aa7467f58257e3bb93a5c0fa443c70ae1ae
+    path: build/layers/meta-nxp-connectivity
+    layers:
+      meta-nxp-zigbee-rcp:
+      meta-nxp-otbr:
+    patches:
+      0001-scarthgap-compatibility:
+        repo: meta-partner-nxp-imx
+        path: kas/patches/meta-nxp-connectivity/0001-nxp-otbr-declare-scarthgap-compatibility.patch
+      0002-zigbee-scarthgap-compatibility:
+        repo: meta-partner-nxp-imx
+        path: kas/patches/meta-nxp-connectivity/0002-nxp-zigbee-rcp-declare-scarthgap-compatibility.patch
+
+local_conf_header:
+  product-features: |
+    DD_PRODUCT_FEATURES = "display android-container"
+
+  imx95-smoke: |
+    ACCEPT_FSL_EULA = "1"
+    LOCAL_DEVELOPMENT_BUILD = "1"
+    DEV_MODE = "1"
+    NXP_WIFI_SECURE_FIRMWARE = "0"
+
+    # The BSP's secure default is override-specific (`:sota`), so the local
+    # development override must use the same override to take precedence.
+    UBOOT_SIGN_ENABLE:sota:mx95-generic-bsp = "0"
+    UBOOT_SPL_SIGN_ENABLE = "0"
+    TF_A_SIGN_ENABLE = "0"
+    OPTEE_TA_SIGN_ENABLE = "0"
+    UEFI_SIGN_ENABLE = "0"
+    MODSIGN = "0"
+    MODSIGN_ENABLE = "0"
+    DISTRO_FEATURES:remove = "modsign"
+    SIGN_ENABLE = "0"
+
+    SIGNING_UBOOT_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+    SIGNING_UBOOT_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+    SIGNING_UBOOT_SPL_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+    SIGNING_UBOOT_SPL_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+    SIGNING_UEFI_SIGN_KEY = "${TOPDIR}/bitbake.lock"
+    SIGNING_UEFI_SIGN_CRT = "${TOPDIR}/bitbake.lock"
+    SIGNING_MODSIGN_PRIVKEY = "${TOPDIR}/bitbake.lock"
+    SIGNING_MODSIGN_X509 = "${TOPDIR}/bitbake.lock"
+    TF_A_SIGN_KEY_PATH = "${TOPDIR}/bitbake.lock"
+
+    INHERIT:remove = "sign_rpm create-spdx spdx"
+    CREATE_SPDX:forcevariable = "0"

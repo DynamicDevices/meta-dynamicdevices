@@ -1,5 +1,6 @@
 # Build outputs and layers (these are downloaded by KAS)
 build/
+**/out/
 tmp/
 tmp-glibc/
 cache/

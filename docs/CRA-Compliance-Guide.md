@@ -125,7 +125,7 @@ Each audit event generates a comprehensive JSON report:
 The CRA compliance system is built into the distro layer and automatically enabled:
 
 ```bash
-# In meta-dynamicdevices-distro/conf/distro/lmp-dynamicdevices-headless.conf
+# In meta-dynamicdevices-distro/conf/distro/lmp-dynamicdevices.conf
 DISTRO_FEATURES:append = " cra-audit"
 ```
 
