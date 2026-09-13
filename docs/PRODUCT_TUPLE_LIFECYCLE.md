@@ -17,11 +17,10 @@ may remain in the repository for history or possible future reactivation, but
 reactivation requires an explicit product decision and restoration of both
 image and recovery coverage.
 
-## Temporarily deferred CI coverage
+## Active protected products
 
-For the current R26 screen-board integration phase, the layer-adoption workflow
-runs only the `imx8mm-jaguar-screen` factory-image and mfgtool/recovery tuples.
-Other still-active product families are deferred to a later CI expansion; they
-are not deprecated, and this focused run must not be cited as proof that the
-full historical product matrix passed. Production-wide adoption remains gated
-on restoring and passing that broader coverage.
+The layer-adoption workflow protects both factory-image and mfgtool/recovery
+tuples for DT510, Handheld, Screen, Sentai and i.MX93 E-Ink. The executable
+contract in `ci/layer-adoption-contract.json` names these active machines, and
+the regression driver rejects an incomplete or one-sided matrix before any
+build starts.
