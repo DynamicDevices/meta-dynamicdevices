@@ -76,6 +76,7 @@ capture labels sh -c 'ls -ldZ /var/lib/waydroid /var/lib/waydroid/images /run/wa
 capture device-labels sh -c 'ls -lZ /dev/binder* /dev/vndbinder* /dev/hwbinder* /dev/dri/* /dev/video* 2>/dev/null || true'
 capture binder waydroid shell service list
 capture surfaceflinger waydroid shell dumpsys SurfaceFlinger
+capture android-low-ram sh -c 'waydroid shell getprop ro.config.low_ram; waydroid shell getprop ro.lmk.low; waydroid shell getprop ro.lmk.medium; waydroid shell getprop ro.lmk.critical'
 capture memory sh -c 'cat /proc/meminfo; echo; cat /proc/swaps; echo; zramctl 2>/dev/null || true; echo; for z in /sys/block/zram*; do for n in disksize comp_algorithm mem_used_total; do f="$z/$n"; [ ! -e "$f" ] || { printf "%s: " "$f"; cat "$f"; }; done; done'
 capture gpu sh -c 'dmesg | grep -Ei "etnaviv|galcore|drm" || true; echo; waydroid shell dumpsys SurfaceFlinger 2>/dev/null | grep -Ei "GLES|EGL|render" || true'
 capture v4l2 sh -c 'v4l2-ctl --list-devices 2>/dev/null || true; echo; gst-inspect-1.0 v4l2h264dec 2>/dev/null || gst-inspect-1.0 v4l2slh264dec 2>/dev/null || true; echo; dmesg | grep -Ei "v4l2|vpu|hantro|h264" || true'
@@ -92,8 +93,18 @@ if grep -Eq '(^| )(selinux=0|enforcing=0)( |$)' /proc/cmdline; then
 else
     record kernel-selinux-arguments PASS "SELinux is not disabled on the kernel command line"
 fi
-expect_output waydroid-module '^waydroid[[:space:]]' sh -c 'semodule -lfull | grep "^waydroid[[:space:]]"'
-expect_output waydroid-domain 'waydroid_t' sh -c 'ps -eZ | grep -E "[w]aydroid|[l]xc"'
+expect_output waydroid-module '(^|[[:space:]])waydroid([[:space:]]|$)' semodule -lfull
+if ps -eZ | awk '
+    /[w]aydroid|[l]xc/ {
+        found = 1
+        if ($1 !~ /:waydroid_t:/) bad = 1
+    }
+    END { exit !(found && !bad) }
+'; then
+    record waydroid-domain PASS 'every visible Waydroid/LXC process is in waydroid_t'
+else
+    record waydroid-domain FAIL 'missing Waydroid/LXC process or one is outside waydroid_t; see waydroid-processes.txt'
+fi
 expect_output binder-service-list '^[[:space:]]*[0-9]+[[:space:]]' waydroid shell service list
 expect_output surfaceflinger-running 'GLES|EGL|Display' waydroid shell dumpsys SurfaceFlinger
 services_ok=1
@@ -108,7 +119,9 @@ else
 fi
 expect_output waydroid-network 'UP|UNKNOWN' waydroid shell ip -brief address
 expect_output zram-active '/dev/zram' sh -c 'cat /proc/swaps'
+expect_output android-low-ram '^(true|1)$' waydroid shell getprop ro.config.low_ram
 expect_output etnaviv-active 'etnaviv' sh -c 'dmesg | grep -i etnaviv'
+expect_output hardware-renderer 'etnaviv|Vivante|GC[0-9]+' sh -c 'waydroid shell dumpsys SurfaceFlinger | grep -Ei "GLES|EGL|render"'
 
 if [ "$release" -eq 1 ]; then
     if semanage permissive -l 2>/dev/null | grep -qx 'waydroid_t'; then

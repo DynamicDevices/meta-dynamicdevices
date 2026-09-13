@@ -23,7 +23,9 @@ class BoardEvidenceCollectorTests(unittest.TestCase):
             "kiosk-services",
             "waydroid-network",
             "zram-active",
+            "android-low-ram",
             "etnaviv-active",
+            "hardware-renderer",
             "v4l2-h264-decode",
             "ota-state",
             "secure-boot",
@@ -36,6 +38,10 @@ class BoardEvidenceCollectorTests(unittest.TestCase):
         self.assertIn("h264parse", self.source)
         self.assertIn("fakesink", self.source)
         self.assertIn("NOT_RUN", self.source)
+
+    def test_every_waydroid_process_must_be_confined(self):
+        self.assertIn("found && !bad", self.source)
+        self.assertIn("every visible Waydroid/LXC process is in waydroid_t", self.source)
 
     def test_collector_does_not_update_or_reboot(self):
         for forbidden in ("fioctl update", "aktualizr-lite update", "reboot", "shutdown"):
