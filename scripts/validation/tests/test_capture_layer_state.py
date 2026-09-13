@@ -164,6 +164,11 @@ capture_command failure bash -c 'printf "visible diagnostic\\n"; exit 7' \\
         self.assertIn("variables_json=$6", source)
         self.assertIn('CONNECTIVITY_CHECK_URIS = "https://www.example.com/"', source)
         self.assertIn(
+            "git://go.googlesource.com/oauth2 "
+            "git://github.com/golang/oauth2.git;protocol=https",
+            source,
+        )
+        self.assertIn(
             'DEPENDS:append:pn-bison-native = " help2man-native"', source
         )
         self.assertIn('PATCHTOOL:pn-runc-opencontainers = "quilt"', source)

@@ -90,6 +90,10 @@ $variable_assignments
     # Use a stable, deliberately selected CI probe rather than OE-core's
     # release-specific default URL. Source fetches remain independently fatal.
     CONNECTIVITY_CHECK_URIS = "https://www.example.com/"
+    # docker-compose vendors golang.org/x/oauth2 from go.googlesource.com.
+    # Prefer its official GitHub mirror so this protected tuple is not coupled
+    # to one source host; BitBake still verifies the recipe-pinned SRCREV.
+    PREMIRRORS:append = " git://go.googlesource.com/oauth2 git://github.com/golang/oauth2.git;protocol=https \n"
     # Foundries tuples use PATCHTOOL=git, which can make bison's generated
     # manual appear stale. Provide the generator hermetically rather than
     # depending on an undeclared package in the CI container.
