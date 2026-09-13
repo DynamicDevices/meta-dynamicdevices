@@ -22,6 +22,89 @@ SPEC.loader.exec_module(MODULE)
 
 
 class BaselineEvidenceTests(unittest.TestCase):
+    def test_audited_baseline_repair_is_exact_and_fail_closed(self) -> None:
+        old = "a" * 40
+        new = "b" * 40
+        changed_file = "recipes-bsp/u-boot/u-boot-fio/board/fix.patch"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            contract = root / "contract.json"
+            contract.write_text(
+                json.dumps(
+                    {
+                        "baseline_repairs": [
+                            {
+                                "base_sha": "base",
+                                "submodule": "meta-dynamicdevices-bsp",
+                                "from": old,
+                                "to": new,
+                                "url": "https://github.com/DynamicDevices/bsp.git",
+                                "ref": "refs/heads/focused-backport",
+                                "files": [changed_file],
+                                "reason": "repair an exact pre-existing patch failure",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                MODULE, "submodule_commit", side_effect=[old, new]
+            ), mock.patch.object(
+                MODULE,
+                "git_output",
+                side_effect=[changed_file + "\n", new, ""],
+            ), mock.patch.object(MODULE.subprocess, "run") as run:
+                MODULE.apply_baseline_repairs(
+                    root / "baseline", root / "candidate", contract, "base"
+                )
+
+            self.assertEqual(run.call_count, 3)
+            self.assertEqual(
+                run.call_args_list[1].args[0],
+                [
+                    "git",
+                    "fetch",
+                    "https://github.com/DynamicDevices/bsp.git",
+                    "refs/heads/focused-backport",
+                ],
+            )
+
+    def test_audited_baseline_repair_rejects_extra_files(self) -> None:
+        old = "a" * 40
+        new = "b" * 40
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            contract = root / "contract.json"
+            contract.write_text(
+                json.dumps(
+                    {
+                        "baseline_repairs": [
+                            {
+                                "base_sha": "base",
+                                "submodule": "meta-dynamicdevices-bsp",
+                                "from": old,
+                                "to": new,
+                                "url": "https://github.com/DynamicDevices/bsp.git",
+                                "ref": "refs/heads/focused-backport",
+                                "files": ["expected.patch"],
+                                "reason": "focused repair",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                MODULE, "submodule_commit", side_effect=[old, new]
+            ), mock.patch.object(
+                MODULE, "git_output", return_value="unexpected.patch\n"
+            ), mock.patch.object(MODULE.subprocess, "run"):
+                with self.assertRaisesRegex(RuntimeError, "do not match contract"):
+                    MODULE.apply_baseline_repairs(
+                        root / "baseline", root / "candidate", contract, "base"
+                    )
+
     def test_generated_signing_identity_is_validated_before_reuse(self) -> None:
         generator = MODULE_PATH.parent / "generate-layer-adoption-test-keys.sh"
         with tempfile.TemporaryDirectory() as directory:
@@ -146,6 +229,7 @@ class BaselineEvidenceTests(unittest.TestCase):
         first = MODULE.capture_schema_digest(root)
         self.assertRegex(first, r"^[0-9a-f]{64}$")
         self.assertIn("scripts/validation/capture-layer-state.sh", MODULE.CAPTURE_SCHEMA_FILES)
+        self.assertIn("ci/layer-adoption-contract.json", MODULE.CAPTURE_SCHEMA_FILES)
         self.assertIn(
             "scripts/validation/canonicalise-bitbake-layer-output.py",
             MODULE.CAPTURE_SCHEMA_FILES,

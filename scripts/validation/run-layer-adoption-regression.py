@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -17,12 +18,20 @@ MARKER = ".complete.json"
 FIELDS = ("id", "machine", "distro", "image", "config", "product_features")
 PRODUCT_SUBMODULES = ("meta-dynamicdevices-bsp", "meta-dynamicdevices-distro")
 CAPTURE_SCHEMA_FILES = (
+    "ci/layer-adoption-contract.json",
     "scripts/validation/run-layer-adoption-regression.py",
     "scripts/validation/capture-layer-state.sh",
     "scripts/validation/canonicalise-bitbake-layer-output.py",
     "scripts/validation/select-bitbake-env.py",
     "scripts/validation/generate-layer-adoption-test-keys.sh",
 )
+
+
+def submodule_commit(repository: Path, relative: str) -> str:
+    entry = git_output(repository, "ls-tree", "HEAD", "--", relative).split()
+    if len(entry) < 3 or entry[0] != "160000" or entry[1] != "commit":
+        raise RuntimeError(f"{repository}: {relative} is not a pinned git submodule")
+    return entry[2]
 
 
 def evidence_digest(root: Path) -> str:
@@ -95,10 +104,7 @@ def git_output(repository: Path, *args: str) -> str:
 def prepare_repository(repository: Path) -> None:
     """Initialize and verify the pinned local layers used by every KAS tuple."""
     for relative in PRODUCT_SUBMODULES:
-        entry = git_output(repository, "ls-tree", "HEAD", "--", relative).split()
-        if len(entry) < 3 or entry[0] != "160000" or entry[1] != "commit":
-            raise RuntimeError(f"{repository}: {relative} is not a pinned git submodule")
-        expected = entry[2]
+        expected = submodule_commit(repository, relative)
         layer = repository / relative
         layer_conf = layer / "conf/layer.conf"
         if not layer_conf.is_file():
@@ -126,6 +132,82 @@ def prepare_repository(repository: Path) -> None:
             )
         if git_output(layer, "status", "--porcelain", "--untracked-files=all"):
             raise RuntimeError(f"{repository}: {relative} has uncommitted content")
+
+
+def apply_baseline_repairs(
+    baseline: Path, candidate: Path, contract_path: Path, base_sha: str
+) -> None:
+    """Apply an exact, audited repair to an otherwise unbuildable baseline."""
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    repairs = contract.get("baseline_repairs", [])
+    if not isinstance(repairs, list):
+        raise ValueError("baseline_repairs must be an array")
+    for repair in repairs:
+        if not isinstance(repair, dict):
+            raise ValueError("baseline repair must be an object")
+        if repair.get("base_sha") != base_sha:
+            continue
+        required = {"submodule", "from", "to", "url", "ref", "files", "reason"}
+        if not required <= repair.keys():
+            raise ValueError("baseline repair is incomplete")
+        relative = str(repair["submodule"])
+        old = str(repair["from"])
+        new = str(repair["to"])
+        url = str(repair["url"])
+        ref = str(repair["ref"])
+        files = repair["files"]
+        reason = str(repair["reason"]).strip()
+        if relative not in PRODUCT_SUBMODULES:
+            raise ValueError(f"unsupported baseline repair submodule: {relative}")
+        if any(not re.fullmatch(r"[0-9a-f]{40}", commit) for commit in (old, new)):
+            raise ValueError("baseline repair pins must be full lowercase commit IDs")
+        if not url.startswith("https://github.com/DynamicDevices/"):
+            raise ValueError("baseline repair URL must use the DynamicDevices HTTPS origin")
+        if not ref.startswith("refs/heads/"):
+            raise ValueError("baseline repair ref must be an explicit branch")
+        if (
+            not reason
+            or not isinstance(files, list)
+            or not files
+            or any(
+                not isinstance(path, str)
+                or Path(path).is_absolute()
+                or ".." in Path(path).parts
+                for path in files
+            )
+        ):
+            raise ValueError("baseline repair needs a reason and exact file list")
+        if submodule_commit(baseline, relative) != old:
+            raise RuntimeError(f"baseline repair {relative}: unexpected source pin")
+        if submodule_commit(candidate, relative) != new:
+            raise RuntimeError(f"baseline repair {relative}: unexpected candidate pin")
+
+        candidate_layer = candidate / relative
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", old, new],
+            cwd=candidate_layer,
+            check=True,
+        )
+        changed = git_output(candidate_layer, "diff", "--name-only", old, new).splitlines()
+        if sorted(changed) != sorted(str(path) for path in files):
+            raise RuntimeError(
+                f"baseline repair {relative}: changed files do not match contract"
+            )
+
+        baseline_layer = baseline / relative
+        subprocess.run(["git", "fetch", url, ref], cwd=baseline_layer, check=True)
+        fetched = git_output(baseline_layer, "rev-parse", "FETCH_HEAD")
+        if fetched != new:
+            raise RuntimeError(f"baseline repair {relative}: ref resolved to {fetched}")
+        subprocess.run(
+            ["git", "checkout", "--detach", new], cwd=baseline_layer, check=True
+        )
+        if git_output(baseline_layer, "status", "--porcelain", "--untracked-files=all"):
+            raise RuntimeError(f"baseline repair {relative}: checkout is dirty")
+        print(
+            f"Applying audited baseline repair for {relative}: {old} -> {new}",
+            flush=True,
+        )
 
 
 def capture(
@@ -179,6 +261,7 @@ def main() -> int:
     # submodule content through the same KAS capture path.
     prepare_repository(baseline)
     prepare_repository(candidate)
+    apply_baseline_repairs(baseline, candidate, contract, base_sha)
 
     environment = os.environ.copy()
     environment["LAYER_ADOPTION_TEST_KEYS_DIR"] = str(test_keys)
