@@ -2,6 +2,7 @@
 """Fail closed if the Waydroid SELinux development escape hatch broadens."""
 
 from pathlib import Path
+import subprocess
 import unittest
 
 
@@ -10,7 +11,7 @@ APPEND = ROOT / "dynamic-layers/selinux/recipes-security/refpolicy/refpolicy-tar
 POLICY = ROOT / "dynamic-layers/selinux/recipes-security/refpolicy/refpolicy-targeted/waydroid.te"
 DEVELOPMENT_KAS = ROOT / "kas/r26-jaguar-screen-selinux.yml"
 ENFORCING_KAS = ROOT / "kas/r26-jaguar-screen-selinux-enforcing-smoke.yml"
-FACTORY_IMAGE = ROOT / "meta-dynamicdevices-distro/recipes-samples/images/lmp-factory-image.bb"
+AUDITED_DISTRO_COMMIT = "c926b49277ce7679820576708a58e2e9ae758e7a"
 
 
 class WaydroidSelinuxPolicyTest(unittest.TestCase):
@@ -34,11 +35,21 @@ class WaydroidSelinuxPolicyTest(unittest.TestCase):
         text = ENFORCING_KAS.read_text(encoding="utf-8")
         self.assertIn('WAYDROID_SELINUX_DEVELOPMENT_PERMISSIVE = "0"', text)
 
-    def test_cra_runtime_is_scoped_to_selinux_screen_image(self) -> None:
-        text = FACTORY_IMAGE.read_text(encoding="utf-8")
-        self.assertIn("d.getVar('MACHINE') == 'imx8mm-jaguar-screen'", text)
-        self.assertIn("bb.utils.contains('DISTRO_FEATURES', 'selinux'", text)
-        self.assertIn("'lmp-feature-audit.inc'", text)
+    def test_cra_runtime_uses_the_audited_distro_pin(self) -> None:
+        """Keep CI independent of an initialized submodule worktree.
+
+        The exact-manifest preflight validates the contents of this immutable
+        distro commit, including the screen-and-SELinux-only audit runtime.
+        This source gate ensures the product continues to reference that
+        audited content address.
+        """
+        entry = subprocess.check_output(
+            ["git", "ls-tree", "HEAD", "meta-dynamicdevices-distro"],
+            cwd=ROOT,
+            text=True,
+        ).split()
+        self.assertEqual(entry[:2], ["160000", "commit"])
+        self.assertEqual(entry[2], AUDITED_DISTRO_COMMIT)
 
 
 if __name__ == "__main__":
