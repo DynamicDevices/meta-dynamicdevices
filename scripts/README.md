@@ -29,6 +29,7 @@ This directory contains utility scripts for building, testing, managing, and aut
 | `rdc-control.sh` | Hardware Control | Resource domain control | i.MX8MM RDC management |
 | `validation/validate-layers.sh` | Quality Assurance | Yocto layer validation | Project compatibility |
 | `validate-layers-local.sh` | Quality Assurance | Comprehensive yocto-check-layer validation | KAS-based local validation |
+| `validation/capture-r26-waydroid-board-evidence.sh` | Hardware Validation | Read-only Jaguar Screen SELinux/Waydroid acceptance capture | Release/development modes and optional H.264 decode proof |
 
 ## 📋 Table of Contents
 

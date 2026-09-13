@@ -148,6 +148,20 @@ production-wide layer-adoption claim.
 
 ## Hardware acceptance
 
+Run the read-only evidence collector after the development OTA, using a small
+raw Annex-B H.264 sample so hardware decode is exercised rather than inferred:
+
+```sh
+sudo scripts/validation/capture-r26-waydroid-board-evidence.sh \
+    /var/tmp/r26-waydroid-development --h264 /var/tmp/r26-test.h264
+```
+
+After AVC classification and the enforcing policy rebuild, repeat with
+`--release`. A non-zero result or any `NOT_RUN` acceptance item is not release
+evidence. Preserve the resulting directory with the Foundries target number,
+manifest SHA, OTA install and rollback logs; the collector itself is
+read-only and does not perform an update or rollback.
+
 - `getenforce` reports `Enforcing`; kernel command line does not disable it.
 - Waydroid processes enter `waydroid_t`; no Waydroid process remains
   `unconfined_t`, `init_t`, or another generic domain.
