@@ -22,6 +22,40 @@ SPEC.loader.exec_module(MODULE)
 
 
 class BaselineEvidenceTests(unittest.TestCase):
+    def test_active_products_require_complete_image_and_recovery_pairs(self) -> None:
+        def protected_entry(
+            tuple_id: str, machine: str, distro: str, image: str, config: str
+        ) -> dict[str, str]:
+            return {
+                "id": tuple_id,
+                "machine": machine,
+                "distro": distro,
+                "image": image,
+                "config": config,
+                "product_features": "",
+            }
+
+        image = protected_entry(
+            "board-image",
+            "board",
+            "lmp-dynamicdevices",
+            "lmp-factory-image",
+            "kas/lmp-dynamicdevices.yml",
+        )
+        mfgtool = protected_entry(
+            "board-mfgtool",
+            "board",
+            "lmp-mfgtool",
+            "mfgtool-files",
+            "kas/lmp-dynamicdevices-mfgtool.yml",
+        )
+        contract = {"protected_machines": ["board"]}
+        MODULE.validate_tuple_coverage([image, mfgtool], contract)
+        with self.assertRaisesRegex(ValueError, "exactly one factory-image"):
+            MODULE.validate_tuple_coverage([image], contract)
+        with self.assertRaisesRegex(ValueError, "missing=board"):
+            MODULE.validate_tuple_coverage([], contract)
+
     def test_ci_shard_selects_exactly_one_known_tuple(self) -> None:
         tuples = [
             {"id": "image-a"},
