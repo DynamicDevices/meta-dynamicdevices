@@ -87,6 +87,9 @@ local_conf_header:
 $variable_assignments
     DL_DIR = $downloads_quoted
     SSTATE_DIR = $sstate_quoted
+    # Use a stable, deliberately selected CI probe rather than OE-core's
+    # release-specific default URL. Source fetches remain independently fatal.
+    CONNECTIVITY_CHECK_URIS = "https://www.example.com/"
     BB_DISKMON_DIRS = "STOPTASKS,\${TMPDIR},20G,100K STOPTASKS,\${DL_DIR},20G,100K STOPTASKS,\${SSTATE_DIR},20G,100K HALT,\${TMPDIR},10G,50K HALT,\${DL_DIR},10G,50K HALT,\${SSTATE_DIR},10G,50K"
     UBOOT_SIGN_KEYDIR:forcevariable = "$test_keys_dir"
     UBOOT_SPL_SIGN_KEYDIR:forcevariable = "$test_keys_dir"
