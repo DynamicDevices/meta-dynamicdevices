@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "tuples": [
+    {"id": "imx8mm-jaguar-screen-image", "machine": "imx8mm-jaguar-screen", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml", "product_features": "display flutter godot"},
+    {"id": "imx8mm-jaguar-screen-mfgtool", "machine": "imx8mm-jaguar-screen", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml", "product_features": ""}
+  ]
+}
