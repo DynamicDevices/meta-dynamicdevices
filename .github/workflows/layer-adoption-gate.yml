@@ -3,6 +3,8 @@ name: Layer Adoption Gate
 on:
   pull_request:
     branches: [main, develop]
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main, develop]
   workflow_dispatch:
@@ -10,10 +12,14 @@ on:
       base_sha:
         description: Baseline commit to compare
         required: true
+      tuple_id:
+        description: One protected tuple to build for focused development
+        required: true
+        default: imx8mm-jaguar-screen-waydroid-image
 
 concurrency:
-  group: layer-adoption-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: layer-adoption-${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'merge_group' }}
 
 defaults:
   run:
@@ -22,7 +28,7 @@ defaults:
 jobs:
   detect:
     name: Detect material layer change
-    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
+    runs-on: [self-hosted, Linux, X64, yocto, dd-esl-proxmox]
     outputs:
       material: ${{ steps.detect.outputs.material }}
       base_sha: ${{ steps.base.outputs.sha }}
@@ -35,10 +41,11 @@ jobs:
         name: Resolve immutable baseline
         env:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
+          MERGE_BASE: ${{ github.event.merge_group.base_sha }}
           PUSH_BASE: ${{ github.event.before }}
           INPUT_BASE: ${{ inputs.base_sha }}
         run: |
-          sha="${PR_BASE:-${INPUT_BASE:-${PUSH_BASE:-}}}"
+          sha="${PR_BASE:-${MERGE_BASE:-${INPUT_BASE:-${PUSH_BASE:-}}}}"
           if [ -z "$sha" ] || printf '%s' "$sha" | grep -Eq '^0+$'; then
             sha=$(git rev-parse HEAD^)
           fi
@@ -59,10 +66,14 @@ jobs:
             --base '${{ steps.base.outputs.sha }}' \
             --head '${{ github.sha }}' \
             --github-output "$GITHUB_OUTPUT"
-          tuple_ids=$(python3 -c 'import json; print(json.dumps([entry["id"] for entry in json.load(open("ci/layer-adoption-tuples.json"))["tuples"]], separators=(",", ":")))')
+          if [ '${{ github.event_name }}' = workflow_dispatch ]; then
+            tuple_ids=$(python3 -c 'import json,sys; ids=[entry["id"] for entry in json.load(open("ci/layer-adoption-tuples.json"))["tuples"]]; requested=sys.argv[1]; requested in ids or sys.exit(f"unknown protected tuple: {requested}"); print(json.dumps([requested],separators=(",",":")))' '${{ inputs.tuple_id }}')
+          else
+            tuple_ids=$(python3 -c 'import json; print(json.dumps([entry["id"] for entry in json.load(open("ci/layer-adoption-tuples.json"))["tuples"]], separators=(",", ":")))')
+          fi
           echo "tuple_ids=$tuple_ids" >> "$GITHUB_OUTPUT"
   regression:
-    name: Existing product regression (${{ matrix.tuple_id }})
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Development validation — baseline comparison' || 'Product readiness validation — baseline comparison' }} (${{ matrix.tuple_id }})
     needs: detect
     if: needs.detect.outputs.material == 'true'
     strategy:
@@ -72,12 +83,12 @@ jobs:
     # Each tuple is an independent shard so one failure cannot hide later
     # product failures. The final Layer Adoption Gate remains the single
     # branch-protection contract, and local driver runs still cover all tuples.
-    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
+    runs-on: [self-hosted, Linux, X64, yocto, dd-esl-proxmox]
     container:
       image: ghcr.io/siemens/kas/kas@sha256:d989add57fc441fe9e27bb2dd6ed98c5597b44c807928e35a72dc1cfbdda9abe
-      # Match the dedicated ai-tools runner account so BitBake's root-user
-      # sanity check remains active and bind-mounted cache files stay writable.
-      options: --privileged --platform linux/amd64 --user 1002:1002 -v /home/ghrunner/yocto-layer-adoption:/var/cache/layer-adoption
+      # Match the dedicated DD registration on CT101 so BitBake's root-user
+      # sanity check remains active and the /yocto cache stays writable.
+      options: --privileged --platform linux/amd64 --user 999:995 -v /yocto/yocto-layer-adoption:/var/cache/layer-adoption
     env:
       LAYER_ADOPTION_CACHE: /var/cache/layer-adoption
     steps:
@@ -119,7 +130,7 @@ jobs:
             candidate/scripts/validation/generate-layer-adoption-test-keys.sh "$temporary"
             mv "$temporary" "$keys"
           fi
-      - name: Build and compare every protected tuple
+      - name: Build and compare selected protected tuple
         run: |
           python3 candidate/scripts/validation/run-layer-adoption-regression.py \
             --baseline baseline \
@@ -151,10 +162,10 @@ jobs:
           done
 
   required:
-    name: Layer Adoption Gate
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Development Validation' || 'Layer Adoption Gate' }}
     needs: [detect, regression]
     if: always()
-    runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
+    runs-on: [self-hosted, Linux, X64, yocto, dd-esl-proxmox]
     steps:
       - name: Enforce gate result
         env:

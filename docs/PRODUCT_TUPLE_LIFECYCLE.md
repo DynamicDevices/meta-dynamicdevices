@@ -20,8 +20,9 @@ image and recovery coverage.
 ## Temporarily deferred CI coverage
 
 For the current R26 screen-board integration phase, the layer-adoption workflow
-runs only the `imx8mm-jaguar-screen` factory-image and mfgtool/recovery tuples.
-Other still-active product families are deferred to a later CI expansion; they
-are not deprecated, and this focused run must not be cited as proof that the
-full historical product matrix passed. Production-wide adoption remains gated
-on restoring and passing that broader coverage.
+runs the existing `imx8mm-jaguar-screen` factory-image and mfgtool/recovery
+tuples, then adds the exact Foundries `main-jaguar-screen` Android-container
+tuple. Other still-active product families are deferred to a later CI
+expansion; they are not deprecated, and this focused run must not be cited as
+proof that the full historical product matrix passed. Production-wide adoption
+remains gated on restoring and passing that broader coverage.

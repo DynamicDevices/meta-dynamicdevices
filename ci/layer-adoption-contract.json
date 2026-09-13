@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "reason": "Adopt the isolated NXP i.MX95 partner layer without changing any pre-existing Dynamic Devices build tuple.",
+  "reason": "Adopt the exact-pinned Scarthgap meta-selinux layer and enable enforcing host SELinux only for product-feature Android containers, while preserving every existing Foundries platform, signing, recovery and manufacturing tuple.",
   "baseline_repairs": [
     {
       "base_sha": "dda54409ee27e29612c01cc1ff0eb88233ca1da5",
@@ -19,7 +19,7 @@
         "recipes-bsp/upd72020x-load/upd72020x-load/LicenseRef-markusj-upd72020x-load",
         "recipes-bsp/upd72020x-load/upd72020x-load_git.bb"
       ],
-      "reason": "The immutable baseline has two stale U-Boot patch contexts, mishandles intentionally empty board-scripts packages, carries three product DTS files that no longer compile against the pinned kernel, and does not expose the Phasora loader's custom license text to SPDX generation. Build both sides with the focused eight-file backport while auditing the exact old-to-new submodule transition."
+      "reason": "The immutable mainline baseline has two stale U-Boot patch contexts, mishandles intentionally empty board-scripts packages, carries three product DTS files that no longer compile against the pinned kernel, and does not expose the Phasora loader's custom license text to SPDX generation. Build both sides with the focused eight-file backport; the candidate BSP must contain this exact repair commit before its product-specific changes."
     }
   ],
   "allowed_deltas": {}

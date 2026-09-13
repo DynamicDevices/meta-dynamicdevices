@@ -16,7 +16,8 @@ from pathlib import Path
 
 MARKER = ".complete.json"
 LFS_POINTER_PREFIX = b"version https://git-lfs.github.com/spec/v1\n"
-FIELDS = ("id", "machine", "distro", "image", "config", "product_features")
+FIELDS = ("id", "machine", "distro", "image", "config", "product_features", "variables")
+REQUIRED_FIELDS = tuple(field for field in FIELDS if field != "variables")
 PRODUCT_SUBMODULES = ("meta-dynamicdevices-bsp", "meta-dynamicdevices-distro")
 CAPTURE_SCHEMA_FILES = (
     "ci/layer-adoption-contract.json",
@@ -71,16 +72,27 @@ def valid_cached_evidence(
     }
 
 
-def load_tuples(path: Path) -> list[dict[str, str]]:
+def load_tuples(path: Path) -> list[dict[str, object]]:
     document = json.loads(path.read_text(encoding="utf-8"))
     if document.get("schema") != 1 or not isinstance(document.get("tuples"), list):
         raise ValueError(f"{path}: expected schema=1 and a tuples array")
     tuples = []
     seen = set()
     for index, raw in enumerate(document["tuples"]):
-        if not isinstance(raw, dict) or any(field not in raw for field in FIELDS):
+        if not isinstance(raw, dict) or any(field not in raw for field in REQUIRED_FIELDS):
             raise ValueError(f"{path}: tuple {index} is incomplete")
-        entry = {field: str(raw[field]) for field in FIELDS}
+        entry: dict[str, object] = {
+            field: str(raw[field]) for field in FIELDS if field != "variables"
+        }
+        variables = raw.get("variables", {})
+        if not isinstance(variables, dict) or any(
+            not isinstance(name, str)
+            or not re.fullmatch(r"[A-Z0-9_]+(?::[a-z0-9_-]+)*", name)
+            or not isinstance(value, str)
+            for name, value in variables.items()
+        ):
+            raise ValueError(f"{path}: tuple {index} has invalid variables")
+        entry["variables"] = dict(sorted(variables.items()))
         if not entry["id"] or entry["id"] in seen:
             raise ValueError(f"{path}: duplicate or empty tuple id {entry['id']!r}")
         seen.add(entry["id"])
@@ -91,8 +103,8 @@ def load_tuples(path: Path) -> list[dict[str, str]]:
 
 
 def select_tuples(
-    tuples: list[dict[str, str]], tuple_id: str | None
-) -> list[dict[str, str]]:
+    tuples: list[dict[str, object]], tuple_id: str | None
+) -> list[dict[str, object]]:
     """Select one CI shard while keeping the local default as the full gate."""
     if tuple_id is None:
         return tuples
@@ -210,15 +222,23 @@ def apply_baseline_repairs(
             raise ValueError("baseline repair needs a reason and exact file list")
         if submodule_commit(baseline, relative) != old:
             raise RuntimeError(f"baseline repair {relative}: unexpected source pin")
-        if submodule_commit(candidate, relative) != new:
-            raise RuntimeError(f"baseline repair {relative}: unexpected candidate pin")
-
         candidate_layer = candidate / relative
+        candidate_commit = submodule_commit(candidate, relative)
         subprocess.run(
             ["git", "merge-base", "--is-ancestor", old, new],
             cwd=candidate_layer,
             check=True,
         )
+        descendant = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", new, candidate_commit],
+            cwd=candidate_layer,
+            check=False,
+        )
+        if descendant.returncode != 0:
+            raise RuntimeError(
+                f"baseline repair {relative}: candidate {candidate_commit} "
+                f"does not contain audited repair {new}"
+            )
         changed = git_output(candidate_layer, "diff", "--name-only", old, new).splitlines()
         if sorted(changed) != sorted(str(path) for path in files):
             raise RuntimeError(
@@ -244,18 +264,19 @@ def apply_baseline_repairs(
 def capture(
     script: Path,
     repository: Path,
-    entry: dict[str, str],
+    entry: dict[str, object],
     output: Path,
     environment: dict[str, str],
 ) -> None:
     subprocess.run(
         [
             str(script),
-            entry["config"],
-            entry["machine"],
-            entry["distro"],
-            entry["image"],
-            entry["product_features"],
+            str(entry["config"]),
+            str(entry["machine"]),
+            str(entry["distro"]),
+            str(entry["image"]),
+            str(entry["product_features"]),
+            json.dumps(entry["variables"], sort_keys=True, separators=(",", ":")),
             str(output),
         ],
         cwd=repository,
@@ -296,7 +317,7 @@ def main() -> int:
     prepare_repository(baseline)
     prepare_repository(candidate)
     apply_baseline_repairs(baseline, candidate, contract, base_sha)
-    for config in sorted({entry["config"] for entry in tuples}):
+    for config in sorted({str(entry["config"]) for entry in tuples}):
         materialize_config(baseline, config)
         materialize_config(candidate, config)
 
@@ -308,7 +329,7 @@ def main() -> int:
     (evidence / "candidate").mkdir(parents=True)
 
     for entry in tuples:
-        tuple_id = entry["id"]
+        tuple_id = str(entry["id"])
         print(f"::group::Protect {tuple_id}", flush=True)
         cached = cache / "baselines" / base_sha / tuple_id
         baseline_output = evidence / "baseline" / tuple_id

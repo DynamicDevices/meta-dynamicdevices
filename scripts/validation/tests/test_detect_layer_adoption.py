@@ -31,10 +31,17 @@ def entry(tuple_id: str, machine: str = "machine-a") -> dict[str, str]:
         "image": "image-a",
         "config": "kas/test.yml",
         "product_features": "",
+        "variables": {},
     }
 
 
 class ProtectedTupleTests(unittest.TestCase):
+    def test_legacy_tuple_without_variables_normalises_to_empty_mapping(self) -> None:
+        legacy = entry("existing")
+        del legacy["variables"]
+        parsed = MODULE.parse_tuples(document(legacy), "legacy")
+        self.assertEqual(parsed["existing"]["variables"], {})
+
     def test_local_and_ci_kas_process_changes_are_material(self) -> None:
         paths = (
             ".github/workflows/layer-adoption-gate.yml",
@@ -99,6 +106,18 @@ class ProtectedTupleTests(unittest.TestCase):
         candidate = entry("existing")
         candidate["product_features"] = "display"
         with self.assertRaisesRegex(ValueError, "redefined=existing"):
+            self.validate(document(entry("existing")), document(candidate))
+
+    def test_redefining_tuple_variables_fails(self) -> None:
+        candidate = entry("existing")
+        candidate["variables"] = {"DEV_MODE": "0"}
+        with self.assertRaisesRegex(ValueError, "redefined=existing"):
+            self.validate(document(entry("existing")), document(candidate))
+
+    def test_invalid_variable_name_fails(self) -> None:
+        candidate = entry("existing")
+        candidate["variables"] = {"bad name": "1"}
+        with self.assertRaisesRegex(ValueError, "invalid variables"):
             self.validate(document(entry("existing")), document(candidate))
 
 

@@ -1,7 +1,13 @@
 {
   "schema": 1,
+  "source": {
+    "repository": "https://source.foundries.io/factories/dynamic-devices/ci-scripts.git",
+    "commit": "520e5c11dede126bd1bd35184293c20addeda380",
+    "file": "factory-config.yml"
+  },
   "tuples": [
-    {"id": "imx8mm-jaguar-screen-image", "machine": "imx8mm-jaguar-screen", "distro": "lmp-dynamicdevices", "image": "lmp-factory-image", "config": "kas/lmp-dynamicdevices.yml", "product_features": "display flutter godot"},
-    {"id": "imx8mm-jaguar-screen-mfgtool", "machine": "imx8mm-jaguar-screen", "distro": "lmp-mfgtool", "image": "mfgtool-files", "config": "kas/lmp-dynamicdevices-mfgtool.yml", "product_features": ""}
+    {"id":"imx8mm-jaguar-screen-image","machine":"imx8mm-jaguar-screen","distro":"lmp-dynamicdevices","image":"lmp-factory-image","config":"kas/lmp-dynamicdevices.yml","product_features":"display flutter godot","variables":{}},
+    {"id":"imx8mm-jaguar-screen-mfgtool","machine":"imx8mm-jaguar-screen","distro":"lmp-mfgtool","image":"mfgtool-files","config":"kas/lmp-dynamicdevices-mfgtool.yml","product_features":"","variables":{}},
+    {"id":"imx8mm-jaguar-screen-waydroid-image","machine":"imx8mm-jaguar-screen","distro":"lmp-dynamicdevices","image":"lmp-factory-image","config":"kas/lmp-dynamicdevices.yml","product_features":"display android-container","variables":{"ACCEPT_FSL_EULA":"1","ASSEMBLE_SYSTEM_IMAGE":"0","DEV_MODE":"1","DOCKER_COMPOSE_APP":"1","PATCHTOOL":"git","WAYDROID_SELINUX_DEVELOPMENT_PERMISSIVE":"1","WAYDROID_SELINUX_POLICY_DISCOVERY":"1"}}
   ]
 }

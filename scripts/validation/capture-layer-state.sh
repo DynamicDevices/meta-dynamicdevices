@@ -2,8 +2,8 @@
 # Build one protected tuple and capture deterministic layer/package/task state.
 set -euo pipefail
 
-if [ "$#" -ne 6 ]; then
-    echo "Usage: $0 KAS_CONFIG MACHINE DISTRO TARGET PRODUCT_FEATURES OUTPUT_DIR" >&2
+if [ "$#" -ne 7 ]; then
+    echo "Usage: $0 KAS_CONFIG MACHINE DISTRO TARGET PRODUCT_FEATURES VARIABLES_JSON OUTPUT_DIR" >&2
     exit 2
 fi
 
@@ -12,7 +12,8 @@ machine=$2
 distro=$3
 target=$4
 product_features=$5
-output_dir=$6
+variables_json=$6
+output_dir=$7
 test_keys_dir=${LAYER_ADOPTION_TEST_KEYS_DIR:-}
 cache_root=${LAYER_ADOPTION_CACHE_DIR:-$HOME/yocto}
 
@@ -52,6 +53,22 @@ export DISTRO="$distro"
 product_features_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$product_features")
 downloads_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$cache_root/downloads")
 sstate_quoted=$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$cache_root/sstate-cache")
+variable_assignments=$(python3 - "$variables_json" <<'PY'
+import json
+import re
+import sys
+
+variables = json.loads(sys.argv[1])
+if not isinstance(variables, dict):
+    raise SystemExit("tuple variables must be a JSON object")
+for name, value in sorted(variables.items()):
+    if not isinstance(name, str) or not re.fullmatch(r"[A-Z0-9_]+(?::[a-z0-9_-]+)*", name):
+        raise SystemExit(f"invalid BitBake variable name: {name!r}")
+    if not isinstance(value, str):
+        raise SystemExit(f"BitBake variable {name} must have a string value")
+    print(f"    {name} = {json.dumps(value)}")
+PY
+)
 repository_root=$(git rev-parse --show-toplevel)
 overlay_dir="$repository_root/.layer-adoption-overlays"
 mkdir -p "$overlay_dir"
@@ -67,8 +84,26 @@ header:
 local_conf_header:
   layer-adoption-product-features: |
     DD_PRODUCT_FEATURES = $product_features_quoted
+$variable_assignments
     DL_DIR = $downloads_quoted
     SSTATE_DIR = $sstate_quoted
+    # Use a stable, deliberately selected CI probe rather than OE-core's
+    # release-specific default URL. Source fetches remain independently fatal.
+    CONNECTIVITY_CHECK_URIS = "https://www.example.com/"
+    # docker-compose vendors golang.org/x/oauth2 from go.googlesource.com.
+    # Prefer its official GitHub mirror so this protected tuple is not coupled
+    # to one source host; BitBake still verifies the recipe-pinned SRCREV.
+    PREMIRRORS:append = " git://go.googlesource.com/oauth2 git://github.com/golang/oauth2.git;protocol=https \n"
+    # Foundries tuples use PATCHTOOL=git, which can make bison's generated
+    # manual appear stale. Provide the generator hermetically rather than
+    # depending on an undeclared package in the CI container.
+    DEPENDS:append:pn-bison-native = " help2man-native"
+    # runc vendors src/import as a Git submodule. PATCHTOOL=git applies the
+    # recipe patch inside that nested tree but then tries to commit only the
+    # parent repository, leaving the submodule dirty and failing do_patch.
+    # Keep the Foundries-wide Git patch policy and isolate this recipe to the
+    # standard Quilt backend for identical baseline and candidate builds.
+    PATCHTOOL:pn-runc-opencontainers = "quilt"
     BB_DISKMON_DIRS = "STOPTASKS,\${TMPDIR},20G,100K STOPTASKS,\${DL_DIR},20G,100K STOPTASKS,\${SSTATE_DIR},20G,100K HALT,\${TMPDIR},10G,50K HALT,\${DL_DIR},10G,50K HALT,\${SSTATE_DIR},10G,50K"
     UBOOT_SIGN_KEYDIR:forcevariable = "$test_keys_dir"
     UBOOT_SPL_SIGN_KEYDIR:forcevariable = "$test_keys_dir"
@@ -90,9 +125,22 @@ EOF
 combined_config="${config}:${overlay}"
 kas checkout "$combined_config"
 
-cat > "$output_dir/metadata.json" <<EOF
-{"commit":"$(git rev-parse HEAD)","config":"$config","machine":"$machine","distro":"$distro","target":"$target","product_features":"$product_features"}
-EOF
+python3 - "$output_dir/metadata.json" "$(git rev-parse HEAD)" "$config" "$machine" "$distro" "$target" "$product_features" "$variables_json" <<'PY'
+import json
+import pathlib
+import sys
+
+path, commit, config, machine, distro, target, features, variables = sys.argv[1:]
+pathlib.Path(path).write_text(json.dumps({
+    "commit": commit,
+    "config": config,
+    "machine": machine,
+    "distro": distro,
+    "target": target,
+    "product_features": features,
+    "variables": json.loads(variables),
+}, sort_keys=True) + "\n", encoding="utf-8")
+PY
 
 # Record only public fingerprints. This proves both halves of the comparison
 # used the same signing identities without preserving disposable private keys.
@@ -111,8 +159,10 @@ printf '%s\n' \
     "bitbake-layers show-recipes" \
     "bitbake -g $target" \
     "bitbake -e $target" \
+    "bitbake -c fetch docker-compose (when DOCKER_COMPOSE_APP=1)" \
     "bitbake $target" \
-    "DD_PRODUCT_FEATURES=$product_features" > "$output_dir/commands.txt"
+    "DD_PRODUCT_FEATURES=$product_features" \
+    "TUPLE_VARIABLES=$variables_json" > "$output_dir/commands.txt"
 
 # Static layer surfaces are captured as well as BitBake's resolved view. This
 # makes wildcard/dangling appends and global layer.conf policy visible even
@@ -223,6 +273,13 @@ require_selected_value UEFI_SIGN_KEYDIR "<TEST_KEYS>/uefi"
 require_selected_value OPTEE_TA_SIGN_KEY "<TEST_KEYS>/ubootdev.key"
 require_selected_value TF_A_SIGN_KEY_PATH "<TEST_KEYS>/tf-a/privkey_ec_prime256v1.pem"
 rm "$output_dir/environment.log"
+
+# Fail fast on the large docker-compose Go source set instead of discovering
+# an unavailable vendor repository after hours of unrelated compilation.
+if python3 -c 'import json,sys; raise SystemExit(0 if json.loads(sys.argv[1]).get("DOCKER_COMPOSE_APP") == "1" else 1)' "$variables_json"; then
+    capture_command fetch-docker-compose run_bitbake \
+        "bitbake -c fetch docker-compose" >/dev/null
+fi
 
 # A parse-only graph is not proof that packaging, signing, recovery image size,
 # or deploy layout still works. Complete the real image/recovery build for both

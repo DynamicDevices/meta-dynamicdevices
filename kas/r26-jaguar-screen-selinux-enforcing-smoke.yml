@@ -1,0 +1,10 @@
+header:
+  version: 14
+  includes:
+    - r26-jaguar-screen-selinux.yml
+
+# Local enforcing-policy smoke configuration. Signing remains disabled by the
+# included development configuration, so this is not a production image.
+local_conf_header:
+  r26-jaguar-screen-selinux-enforcing-smoke: |
+    WAYDROID_SELINUX_DEVELOPMENT_PERMISSIVE = "0"

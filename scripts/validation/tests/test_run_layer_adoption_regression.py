@@ -80,7 +80,16 @@ class BaselineEvidenceTests(unittest.TestCase):
         self.assertIn("fail-fast: false", workflow)
         self.assertIn("fromJSON(needs.detect.outputs.tuple_ids)", workflow)
         self.assertIn("--tuple-id '${{ matrix.tuple_id }}'", workflow)
-        self.assertIn("name: Layer Adoption Gate", workflow)
+        self.assertIn("merge_group:", workflow)
+        self.assertIn("types: [checks_requested]", workflow)
+        self.assertIn("github.event.merge_group.base_sha", workflow)
+        self.assertIn("github.event_name != 'merge_group'", workflow)
+        self.assertIn("Development validation — baseline comparison", workflow)
+        self.assertIn("Product readiness validation — baseline comparison", workflow)
+        self.assertIn("Development Validation", workflow)
+        self.assertIn("imx8mm-jaguar-screen-waydroid-image", workflow)
+        self.assertIn("unknown protected tuple", workflow)
+        self.assertIn("'Layer Adoption Gate'", workflow)
 
     def test_audited_baseline_repair_is_exact_and_fail_closed(self) -> None:
         old = "a" * 40
@@ -114,14 +123,18 @@ class BaselineEvidenceTests(unittest.TestCase):
                 MODULE,
                 "git_output",
                 side_effect=[changed_file + "\n", new, ""],
-            ), mock.patch.object(MODULE.subprocess, "run") as run:
+            ), mock.patch.object(
+                MODULE.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0),
+            ) as run:
                 MODULE.apply_baseline_repairs(
                     root / "baseline", root / "candidate", contract, "base"
                 )
 
-            self.assertEqual(run.call_count, 3)
+            self.assertEqual(run.call_count, 4)
             self.assertEqual(
-                run.call_args_list[1].args[0],
+                run.call_args_list[2].args[0],
                 [
                     "git",
                     "fetch",
@@ -129,6 +142,44 @@ class BaselineEvidenceTests(unittest.TestCase):
                     "refs/heads/focused-backport",
                 ],
             )
+
+    def test_audited_repair_must_be_ancestor_of_candidate_pin(self) -> None:
+        old = "a" * 40
+        repair = "b" * 40
+        candidate = "c" * 40
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            contract = root / "contract.json"
+            contract.write_text(
+                json.dumps(
+                    {
+                        "baseline_repairs": [
+                            {
+                                "base_sha": "base",
+                                "submodule": "meta-dynamicdevices-bsp",
+                                "from": old,
+                                "to": repair,
+                                "url": "https://github.com/DynamicDevices/bsp.git",
+                                "ref": "refs/heads/focused-backport",
+                                "files": ["fix.patch"],
+                                "reason": "focused repair",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            ancestry = [
+                subprocess.CompletedProcess([], 0),
+                subprocess.CompletedProcess([], 1),
+            ]
+            with mock.patch.object(
+                MODULE, "submodule_commit", side_effect=[old, candidate]
+            ), mock.patch.object(MODULE.subprocess, "run", side_effect=ancestry):
+                with self.assertRaisesRegex(RuntimeError, "does not contain audited repair"):
+                    MODULE.apply_baseline_repairs(
+                        root / "baseline", root / "candidate", contract, "base"
+                    )
 
     def test_audited_baseline_repair_rejects_extra_files(self) -> None:
         old = "a" * 40
@@ -159,7 +210,11 @@ class BaselineEvidenceTests(unittest.TestCase):
                 MODULE, "submodule_commit", side_effect=[old, new]
             ), mock.patch.object(
                 MODULE, "git_output", return_value="unexpected.patch\n"
-            ), mock.patch.object(MODULE.subprocess, "run"):
+            ), mock.patch.object(
+                MODULE.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0),
+            ):
                 with self.assertRaisesRegex(RuntimeError, "do not match contract"):
                     MODULE.apply_baseline_repairs(
                         root / "baseline", root / "candidate", contract, "base"
@@ -253,7 +308,9 @@ class BaselineEvidenceTests(unittest.TestCase):
     def test_gate_does_not_run_bitbake_as_root(self) -> None:
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
         self.assertNotIn("--user 0:0", workflow)
-        self.assertIn("--user 1002:1002", workflow)
+        self.assertIn("--user 999:995", workflow)
+        self.assertIn("dd-esl-proxmox", workflow)
+        self.assertNotIn("ai-tools", workflow)
 
     def test_valid_cache_is_accepted_and_tampering_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

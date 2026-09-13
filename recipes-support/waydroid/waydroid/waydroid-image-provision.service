@@ -1,0 +1,20 @@
+[Unit]
+Description=Provision Waydroid Android images into persistent storage
+Wants=network-online.target
+After=network-online.target dbus.service
+Before=waydroid-container.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+# OTA preserves /var, so migrate pre-SELinux Waydroid state to the policy
+# labels shipped by this deployment before entering the Waydroid domain.
+ExecStartPre=-/sbin/restorecon -RF /var/lib/waydroid
+ExecStart=/usr/libexec/waydroid-image-provision
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=60
+TimeoutStartSec=infinity
+
+[Install]
+WantedBy=multi-user.target

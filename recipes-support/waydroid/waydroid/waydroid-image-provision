@@ -1,0 +1,18 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+
+set -eu
+
+images_dir=/var/lib/waydroid/images
+config=/var/lib/waydroid/waydroid.cfg
+
+if [ -s "${images_dir}/system.img" ] && [ -s "${images_dir}/vendor.img" ]; then
+    exit 0
+fi
+
+# An interrupted first initialization can leave configuration claiming a
+# channel revision whose image was never fully installed.  Let Waydroid build
+# that configuration again before its checksum-verified channel download.
+rm -f "${config}"
+
+exec /usr/bin/waydroid init
