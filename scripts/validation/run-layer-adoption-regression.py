@@ -15,6 +15,7 @@ from pathlib import Path
 
 
 MARKER = ".complete.json"
+LFS_POINTER_PREFIX = b"version https://git-lfs.github.com/spec/v1\n"
 FIELDS = ("id", "machine", "distro", "image", "config", "product_features")
 PRODUCT_SUBMODULES = ("meta-dynamicdevices-bsp", "meta-dynamicdevices-distro")
 CAPTURE_SCHEMA_FILES = (
@@ -99,6 +100,24 @@ def select_tuples(
     if not selected:
         raise ValueError(f"unknown protected tuple: {tuple_id}")
     return selected
+
+
+def materialize_config(repository: Path, relative: str) -> None:
+    """Resolve a KAS config stored in Git LFS before either build starts."""
+    path = repository / relative
+    if not path.is_file():
+        raise RuntimeError(f"{repository}: protected KAS config is missing: {relative}")
+    if not path.read_bytes().startswith(LFS_POINTER_PREFIX):
+        return
+    subprocess.run(
+        ["git", "lfs", "pull", f"--include={relative}", "--exclude="],
+        cwd=repository,
+        check=True,
+    )
+    if path.read_bytes().startswith(LFS_POINTER_PREFIX):
+        raise RuntimeError(
+            f"{repository}: Git LFS did not materialize protected KAS config: {relative}"
+        )
 
 
 def remove_build_tree(repository: Path) -> None:
@@ -277,6 +296,9 @@ def main() -> int:
     prepare_repository(baseline)
     prepare_repository(candidate)
     apply_baseline_repairs(baseline, candidate, contract, base_sha)
+    for config in sorted({entry["config"] for entry in tuples}):
+        materialize_config(baseline, config)
+        materialize_config(candidate, config)
 
     environment = os.environ.copy()
     environment["LAYER_ADOPTION_TEST_KEYS_DIR"] = str(test_keys)

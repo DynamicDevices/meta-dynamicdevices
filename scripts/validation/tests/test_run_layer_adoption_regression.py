@@ -35,6 +35,46 @@ class BaselineEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unknown protected tuple"):
             MODULE.select_tuples(tuples, "missing")
 
+    def test_lfs_backed_kas_config_is_materialized_by_shared_driver(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            config = repository / "kas/lmp-mfgtool.yml"
+            config.parent.mkdir()
+            config.write_bytes(
+                MODULE.LFS_POINTER_PREFIX
+                + b"oid sha256:" + b"a" * 64 + b"\nsize 42\n"
+            )
+
+            def materialize(*args: object, **kwargs: object) -> None:
+                config.write_text("header:\n  version: 14\n", encoding="utf-8")
+
+            with mock.patch.object(
+                MODULE.subprocess, "run", side_effect=materialize
+            ) as run:
+                MODULE.materialize_config(repository, "kas/lmp-mfgtool.yml")
+
+            run.assert_called_once_with(
+                [
+                    "git",
+                    "lfs",
+                    "pull",
+                    "--include=kas/lmp-mfgtool.yml",
+                    "--exclude=",
+                ],
+                cwd=repository,
+                check=True,
+            )
+
+    def test_unresolved_lfs_backed_kas_config_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            config = repository / "kas/lmp-mfgtool.yml"
+            config.parent.mkdir()
+            config.write_bytes(MODULE.LFS_POINTER_PREFIX)
+            with mock.patch.object(MODULE.subprocess, "run"):
+                with self.assertRaisesRegex(RuntimeError, "did not materialize"):
+                    MODULE.materialize_config(repository, "kas/lmp-mfgtool.yml")
+
     def test_workflow_shards_all_tuples_without_fail_fast(self) -> None:
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
         self.assertIn("fail-fast: false", workflow)
