@@ -229,6 +229,12 @@ rm "$output_dir/environment.log"
 # baseline and candidate.
 capture_command build run_bitbake "bitbake $target"
 
+# Task warnings must not depend on whether shared sstate caused the task to run
+# during this particular image build. Force the kernel's warning-producing
+# configuration check on both sides before collecting cooker diagnostics.
+capture_command kernel-configcheck run_bitbake \
+    "bitbake -f -c kernel_configcheck virtual/kernel" >/dev/null
+
 deploy_dir="build/tmp/deploy/images/$machine"
 if [ ! -d "$deploy_dir" ]; then
     echo "ERROR: deploy directory missing after successful build: $deploy_dir" >&2
