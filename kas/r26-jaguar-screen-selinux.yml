@@ -11,6 +11,7 @@ local_conf_header:
   r26-jaguar-screen-selinux: |
     DD_PRODUCT_FEATURES = "display android-container"
     WAYDROID_SELINUX_DEVELOPMENT_PERMISSIVE = "1"
+    WAYDROID_SELINUX_POLICY_DISCOVERY = "1"
     ASSEMBLE_SYSTEM_IMAGE = "0"
     LOCAL_DEVELOPMENT_BUILD = "1"
     OPTEE_TA_SIGN_ENABLE = "0"

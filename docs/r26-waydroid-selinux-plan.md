@@ -47,11 +47,14 @@ new refpolicy modules otherwise default to `off` when absent from the upstream
 The first hardware image keeps the host globally enforcing but explicitly sets
 `WAYDROID_SELINUX_DEVELOPMENT_PERMISSIVE = "1"` to declare only `waydroid_t`
 permissive. The recipe rejects that setting unless
-`LOCAL_DEVELOPMENT_BUILD = "1"`; all other builds compile the Waydroid domain
-enforcing by default. This isolates policy discovery to the Waydroid domain,
+`WAYDROID_SELINUX_POLICY_DISCOVERY = "1"`; all other builds compile the
+Waydroid domain enforcing by default. The dedicated gate deliberately avoids
+`LOCAL_DEVELOPMENT_BUILD`, which also changes SE05x and other platform content,
+so a Foundries discovery OTA can retain the production-shaped secure-boot and
+hardware configuration. This isolates policy discovery to the Waydroid domain,
 avoids weakening unrelated host services, and prevents the discovery setting
-from leaking into a Foundries production build. Hardware AVCs must still be
-classified and converted to narrow rules before release.
+from leaking into a release build. Hardware AVCs must still be classified and
+converted to narrow rules before release.
 
 Immutable OSTree content is labelled at image construction with
 `selinux-image`. `FIRST_BOOT_RELABEL` remains disabled because a whole-root

@@ -17,5 +17,5 @@ type waydroid_rootfs_t;
 files_type(waydroid_rootfs_t)
 
 # Replaced with a permissive declaration only for an explicitly selected
-# LOCAL_DEVELOPMENT_BUILD. Release policy is enforcing by default.
+# Waydroid policy-discovery build. Release policy is enforcing by default.
 # WAYDROID_DEVELOPMENT_PERMISSIVE
