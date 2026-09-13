@@ -6,7 +6,7 @@
       "base_sha": "dda54409ee27e29612c01cc1ff0eb88233ca1da5",
       "submodule": "meta-dynamicdevices-bsp",
       "from": "47542ad3f8d49850df69e37a3414c1ef60c51809",
-      "to": "22d33e11a4c4d2a98c77ec247b20d45ffdf328d6",
+      "to": "cb3e579f96092951b0a5c3cd69248efa58b55e13",
       "url": "https://github.com/DynamicDevices/meta-dynamicdevices-bsp.git",
       "ref": "refs/heads/fix/imx8mm-jaguar-uboot-dtb-context-lmp-v96",
       "files": [
@@ -15,7 +15,7 @@
         "recipes-bsp/board-scripts/board-scripts_1.0.bb",
         "recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-handheld.dts"
       ],
-      "reason": "The immutable baseline has two stale U-Boot patch contexts, creates empty package directories for products without board scripts, and uses an undefined Handheld pinmux macro. Build both sides with the focused four-file backport while auditing the exact old-to-new submodule transition."
+      "reason": "The immutable baseline has two stale U-Boot patch contexts, creates empty package directories for products without board scripts, and carries a Handheld DTS with an undefined pinmux macro and duplicate base-board labels. Build both sides with the focused four-file backport while auditing the exact old-to-new submodule transition."
     }
   ],
   "allowed_deltas": {}
