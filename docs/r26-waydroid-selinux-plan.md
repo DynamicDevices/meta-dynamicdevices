@@ -93,6 +93,22 @@ only the new Jaguar Screen image.
 
 ## Gates before manifest publication
 
+### Completed exact-pin preflight evidence
+
+- `kas checkout kas/r26-jaguar-screen-selinux.yml` resolved all candidate
+  layers at their recorded SHAs and parsed 4,172 recipes with zero errors.
+- `bitbake -g refpolicy-targeted` proves the policy recipe has no target
+  compiler or libc dependency; it uses only its declared host-native policy
+  tools (`INHIBIT_DEFAULT_DEPS = "1"`).
+- `bitbake refpolicy-targeted -c compile` completed all 459 tasks. The generated
+  `policy/modules.conf` contains `waydroid = module` and the build produced
+  `waydroid.pp` (114,378 bytes), proving the custom module is compiled rather
+  than merely present in `SRC_URI`.
+
+The full image, kernel configuration, adoption matrix, Foundries build and
+physical-board gates remain open; this recipe proof does not substitute for
+them.
+
 1. Resolve the exact candidate manifest and prove every project SHA exists.
 2. Parse the Jaguar Screen platform and mfgtool configurations.
 3. Run `bitbake-layers show-layers`, `show-appends`, and provider checks.

@@ -1,5 +1,11 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
+# Refpolicy builds policy text with explicitly declared host-native SELinux
+# tools and passes BUILD_CC to its makefiles. It has no target-compiled code,
+# so the default target compiler/libc dependency is both unused and especially
+# expensive in LmP's global Clang configuration.
+INHIBIT_DEFAULT_DEPS = "1"
+
 SRC_URI:append = "${@bb.utils.contains('DISTRO_FEATURES', 'waydroid', ' file://waydroid.te file://waydroid.fc file://waydroid.if', '', d)}"
 EXTRA_OEMAKE:append = "${@bb.utils.contains('DISTRO_FEATURES', 'waydroid', ' APPS_MODS=waydroid', '', d)}"
 
