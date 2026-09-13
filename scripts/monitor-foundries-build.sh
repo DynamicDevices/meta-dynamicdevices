@@ -5,7 +5,7 @@
 set -e
 
 TARGET=${1:-2027}
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+POLL_INTERVAL=${FOUNDRIES_POLL_INTERVAL:-30}
 
 # Extract OAuth token from fioctl config
 FIOCTL_CONFIG="$HOME/.config/fioctl.yaml"
@@ -43,14 +43,14 @@ show_build_info() {
     echo "$build_data" | jq -r '.data.build | 
         "   Build ID: \(.build_id // "N/A")
    Status: \(.status // "UNKNOWN")
-   Created: \(.created_at // "N/A")
-   Updated: \(.updated_at // "N/A")"'
+   Created: \(.created // "N/A")
+   Updated: \((.status_events // [] | last | .time) // "N/A")"'
     
     # Show runs if available
-    if echo "$build_data" | jq -e '.data.runs[]?' >/dev/null 2>&1; then
+    if echo "$build_data" | jq -e '.data.build.runs[]?' >/dev/null 2>&1; then
         echo ""
         echo "🏃 Build Runs:"
-        echo "$build_data" | jq -r '.data.runs[] | "   \(.name): \(.status)"'
+        echo "$build_data" | jq -r '.data.build.runs[] | "   \(.name): \(.status)"'
     else
         echo ""
         echo "🏃 Build Runs: Not started yet"
@@ -64,10 +64,13 @@ echo "⏱️  Starting monitoring (Ctrl+C to stop)..."
 echo ""
 
 while true; do
-    BUILD_DATA=$(get_build_status)
-    
-    if [ $? -eq 0 ]; then
-        clear
+    if BUILD_DATA=$(get_build_status); then
+        # `clear` fails when there is no interactive TERM (for example when
+        # this monitor is run by CI or an agent).  Display refresh is cosmetic
+        # and must never terminate authoritative build monitoring.
+        if [ -t 1 ] && [ -n "${TERM:-}" ]; then
+            clear || true
+        fi
         echo "🔍 Monitoring Foundries.io Build $TARGET - $(date)"
         echo "========================================"
         echo ""
@@ -83,10 +86,10 @@ while true; do
             break
         fi
         
-        echo "🔄 Refreshing in 30 seconds..."
+        echo "🔄 Refreshing in ${POLL_INTERVAL} seconds..."
     else
         echo "❌ Failed to get build status"
     fi
     
-    sleep 30
+    sleep "$POLL_INTERVAL"
 done

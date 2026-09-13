@@ -7,6 +7,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+# shellcheck source=kas-container-image.sh
+. "$SCRIPT_DIR/kas-container-image.sh"
 
 # Default values
 DEFAULT_MACHINE="imx93-jaguar-eink"
