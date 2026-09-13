@@ -38,5 +38,25 @@ class DeployComparisonTests(unittest.TestCase):
             MODULE.deploy_entries(["image.wic\t1", "image.wic\t2"])
 
 
+class WarningComparisonTests(unittest.TestCase):
+    def test_new_candidate_warning_is_a_delta(self) -> None:
+        self.assertEqual(
+            MODULE.warning_deltas(
+                ["WARNING: existing"],
+                ["WARNING: existing", "WARNING: regression"],
+            ),
+            ["WARNING: regression"],
+        )
+
+    def test_removed_baseline_warning_is_not_a_delta(self) -> None:
+        self.assertEqual(
+            MODULE.warning_deltas(
+                ["WARNING: fixed", "WARNING: existing"],
+                ["WARNING: existing"],
+            ),
+            [],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
