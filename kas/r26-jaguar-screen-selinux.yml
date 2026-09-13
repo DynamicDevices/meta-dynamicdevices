@@ -1,0 +1,13 @@
+header:
+  version: 14
+  includes:
+    - lmp-dynamicdevices.yml
+
+machine: imx8mm-jaguar-screen
+distro: lmp-dynamicdevices
+target: lmp-factory-image
+
+local_conf_header:
+  r26-jaguar-screen-selinux: |
+    DD_PRODUCT_FEATURES = "display android-container"
+    ASSEMBLE_SYSTEM_IMAGE = "0"
