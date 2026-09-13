@@ -94,6 +94,12 @@ $variable_assignments
     # manual appear stale. Provide the generator hermetically rather than
     # depending on an undeclared package in the CI container.
     DEPENDS:append:pn-bison-native = " help2man-native"
+    # runc vendors src/import as a Git submodule. PATCHTOOL=git applies the
+    # recipe patch inside that nested tree but then tries to commit only the
+    # parent repository, leaving the submodule dirty and failing do_patch.
+    # Keep the Foundries-wide Git patch policy and isolate this recipe to the
+    # standard Quilt backend for identical baseline and candidate builds.
+    PATCHTOOL:pn-runc-opencontainers = "quilt"
     BB_DISKMON_DIRS = "STOPTASKS,\${TMPDIR},20G,100K STOPTASKS,\${DL_DIR},20G,100K STOPTASKS,\${SSTATE_DIR},20G,100K HALT,\${TMPDIR},10G,50K HALT,\${DL_DIR},10G,50K HALT,\${SSTATE_DIR},10G,50K"
     UBOOT_SIGN_KEYDIR:forcevariable = "$test_keys_dir"
     UBOOT_SPL_SIGN_KEYDIR:forcevariable = "$test_keys_dir"

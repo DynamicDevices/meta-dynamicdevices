@@ -166,6 +166,7 @@ capture_command failure bash -c 'printf "visible diagnostic\\n"; exit 7' \\
         self.assertIn(
             'DEPENDS:append:pn-bison-native = " help2man-native"', source
         )
+        self.assertIn('PATCHTOOL:pn-runc-opencontainers = "quilt"', source)
         self.assertIn('re.fullmatch(r"[A-Z0-9_]+(?::[a-z0-9_-]+)*", name)', source)
         self.assertIn("$variable_assignments", source)
 

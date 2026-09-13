@@ -308,7 +308,9 @@ class BaselineEvidenceTests(unittest.TestCase):
     def test_gate_does_not_run_bitbake_as_root(self) -> None:
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
         self.assertNotIn("--user 0:0", workflow)
-        self.assertIn("--user 1002:1002", workflow)
+        self.assertIn("--user 999:995", workflow)
+        self.assertIn("dd-esl-proxmox", workflow)
+        self.assertNotIn("ai-tools", workflow)
 
     def test_valid_cache_is_accepted_and_tampering_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
