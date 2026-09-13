@@ -17,10 +17,9 @@
         "recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-inst.dts",
         "recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-phasora.dts",
         "recipes-bsp/upd72020x-load/upd72020x-load/LicenseRef-markusj-upd72020x-load",
-        "recipes-bsp/upd72020x-load/upd72020x-load/loader-upstream-license-note",
         "recipes-bsp/upd72020x-load/upd72020x-load_git.bb"
       ],
-      "reason": "The immutable baseline has two stale U-Boot patch contexts, mishandles intentionally empty board-scripts packages, carries three product DTS files that no longer compile against the pinned kernel, and does not expose the Phasora loader's custom license text to SPDX generation. Build both sides with the focused nine-file backport while auditing the exact old-to-new submodule transition."
+      "reason": "The immutable baseline has two stale U-Boot patch contexts, mishandles intentionally empty board-scripts packages, carries three product DTS files that no longer compile against the pinned kernel, and does not expose the Phasora loader's custom license text to SPDX generation. Build both sides with the focused eight-file backport while auditing the exact old-to-new submodule transition."
     }
   ],
   "allowed_deltas": {}
