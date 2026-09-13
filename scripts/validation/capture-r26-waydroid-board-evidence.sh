@@ -68,7 +68,8 @@ capture waydroid-status waydroid status
 capture waydroid-processes sh -c 'ps -eZ | grep -E "[w]aydroid|[l]xc" || true'
 capture service-status systemctl --no-pager --full status \
     waydroid-image-provision.service waydroid-jaguar-container.service \
-    waydroid-jaguar-session.service waydroid-jaguar-ui.service weston.service
+    waydroid-jaguar-session.service waydroid-jaguar-ui.service weston.service \
+    auditd.service cra-audit-queue-processor.timer
 capture service-journal journalctl --no-pager -b -u waydroid-image-provision.service \
     -u waydroid-jaguar-container.service -u waydroid-jaguar-session.service \
     -u waydroid-jaguar-ui.service -u weston.service
@@ -116,6 +117,12 @@ if [ "$services_ok" -eq 1 ]; then
     record kiosk-services PASS 'all Waydroid and Weston units are active'
 else
     record kiosk-services FAIL 'one or more Waydroid/Weston units are inactive; see service-status.txt'
+fi
+if systemctl is-active --quiet auditd.service \
+    && systemctl is-active --quiet cra-audit-queue-processor.timer; then
+    record cra-audit-runtime PASS 'auditd and CRA queue processor timer are active'
+else
+    record cra-audit-runtime FAIL 'auditd or CRA queue processor timer is inactive; see service-status.txt'
 fi
 expect_output waydroid-network 'UP|UNKNOWN' waydroid shell ip -brief address
 expect_output zram-active '/dev/zram' sh -c 'cat /proc/swaps'

@@ -131,6 +131,16 @@ reviewed product-lifecycle decision, not an unexplained loss of gate coverage.
   the local preflight correctly removed the disabled `modsign` distro feature.
   This proves the Jaguar kernel accepts the SELinux configuration fragment;
   the earlier dry run and invalid dummy-certificate attempt are not counted.
+- An isolated `repo` sync of the prepared Foundries manifest resolved every
+  pinned project, including the authenticated `main-jaguar-screen` subscriber
+  override. Its production-shaped parse completed 3,954 recipes and 6,137
+  targets with zero errors, and its release-default policy compile completed
+  459/459 tasks with no permissive Waydroid declaration.
+- The exact image inherits `create-spdx`, `license_image` and `buildhistory`,
+  uses a fixed reproducible rootfs timestamp, and selects `cra-audit`. The
+  SELinux Jaguar Screen image now resolves `audit`, `cra-audit-system`,
+  `logrotate`, `rsyslog` and `systemd-analyze`; a separate parse proves those
+  additions do not leak into the non-SELinux screen baseline.
 
 The focused adoption matrix, full image, Foundries build and physical-board
 gates remain open. Deferred product tuples must be restored before a

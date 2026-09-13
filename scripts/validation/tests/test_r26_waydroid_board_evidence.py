@@ -30,6 +30,7 @@ class BoardEvidenceCollectorTests(unittest.TestCase):
             "ota-state",
             "secure-boot",
             "image-hashes",
+            "cra-audit-runtime",
         ):
             self.assertIn(evidence, self.source)
 

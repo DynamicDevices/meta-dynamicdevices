@@ -10,6 +10,7 @@ APPEND = ROOT / "dynamic-layers/selinux/recipes-security/refpolicy/refpolicy-tar
 POLICY = ROOT / "dynamic-layers/selinux/recipes-security/refpolicy/refpolicy-targeted/waydroid.te"
 DEVELOPMENT_KAS = ROOT / "kas/r26-jaguar-screen-selinux.yml"
 ENFORCING_KAS = ROOT / "kas/r26-jaguar-screen-selinux-enforcing-smoke.yml"
+FACTORY_IMAGE = ROOT / "meta-dynamicdevices-distro/recipes-samples/images/lmp-factory-image.bb"
 
 
 class WaydroidSelinuxPolicyTest(unittest.TestCase):
@@ -32,6 +33,12 @@ class WaydroidSelinuxPolicyTest(unittest.TestCase):
     def test_enforcing_smoke_stack_opts_out_explicitly(self) -> None:
         text = ENFORCING_KAS.read_text(encoding="utf-8")
         self.assertIn('WAYDROID_SELINUX_DEVELOPMENT_PERMISSIVE = "0"', text)
+
+    def test_cra_runtime_is_scoped_to_selinux_screen_image(self) -> None:
+        text = FACTORY_IMAGE.read_text(encoding="utf-8")
+        self.assertIn("d.getVar('MACHINE') == 'imx8mm-jaguar-screen'", text)
+        self.assertIn("bb.utils.contains('DISTRO_FEATURES', 'selinux'", text)
+        self.assertIn("'lmp-feature-audit.inc'", text)
 
 
 if __name__ == "__main__":
