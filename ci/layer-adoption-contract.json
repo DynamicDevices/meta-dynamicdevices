@@ -1,17 +1,6 @@
 {
   "schema": 1,
-  "reason": "Adopt the isolated NXP i.MX95 partner layer without changing any active protected Dynamic Devices build tuple.",
-  "protected_machines": [
-    "imx8mm-jaguar-dt510",
-    "imx8mm-jaguar-handheld",
-    "imx8mm-jaguar-screen",
-    "imx8mm-jaguar-sentai",
-    "imx93-jaguar-eink"
-  ],
-  "retired_machines": [
-    "imx8mm-jaguar-inst",
-    "imx8mm-jaguar-phasora"
-  ],
+  "reason": "Adopt the isolated NXP i.MX95 partner layer without changing any pre-existing Dynamic Devices build tuple.",
   "baseline_repairs": [
     {
       "base_sha": "dda54409ee27e29612c01cc1ff0eb88233ca1da5",

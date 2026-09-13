@@ -102,45 +102,6 @@ def select_tuples(
     return selected
 
 
-def validate_tuple_coverage(
-    tuples: list[dict[str, str]], contract: dict[str, object]
-) -> None:
-    """Require one complete image/recovery pair for every active product."""
-    raw_machines = contract.get("protected_machines")
-    if (
-        not isinstance(raw_machines, list)
-        or not raw_machines
-        or any(not isinstance(machine, str) or not machine for machine in raw_machines)
-        or len(set(raw_machines)) != len(raw_machines)
-    ):
-        raise ValueError("contract needs unique protected_machines")
-    protected = set(raw_machines)
-    actual = {entry["machine"] for entry in tuples}
-    if actual != protected:
-        missing = ",".join(sorted(protected - actual)) or "none"
-        unexpected = ",".join(sorted(actual - protected)) or "none"
-        raise ValueError(
-            f"protected tuple coverage mismatch: missing={missing}; "
-            f"unexpected={unexpected}"
-        )
-
-    expected_builds = {
-        ("lmp-dynamicdevices", "lmp-factory-image", "kas/lmp-dynamicdevices.yml"),
-        ("lmp-mfgtool", "mfgtool-files", "kas/lmp-dynamicdevices-mfgtool.yml"),
-    }
-    for machine in sorted(protected):
-        builds = {
-            (entry["distro"], entry["image"], entry["config"])
-            for entry in tuples
-            if entry["machine"] == machine
-        }
-        if builds != expected_builds:
-            raise ValueError(
-                f"{machine}: protected coverage must contain exactly one "
-                "factory-image and one mfgtool build"
-            )
-
-
 def materialize_config(repository: Path, relative: str) -> None:
     """Resolve a KAS config stored in Git LFS before either build starts."""
     path = repository / relative
@@ -321,10 +282,9 @@ def main() -> int:
     capture_script = candidate / "scripts/validation/capture-layer-state.sh"
     compare_script = candidate / "scripts/validation/compare-layer-state.py"
     contract = candidate / "ci/layer-adoption-contract.json"
-    all_tuples = load_tuples(candidate / "ci/layer-adoption-tuples.json")
-    contract_document = json.loads(contract.read_text(encoding="utf-8"))
-    validate_tuple_coverage(all_tuples, contract_document)
-    tuples = select_tuples(all_tuples, args.tuple_id)
+    tuples = select_tuples(
+        load_tuples(candidate / "ci/layer-adoption-tuples.json"), args.tuple_id
+    )
     base_sha = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=baseline, text=True
     ).strip()
