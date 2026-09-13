@@ -90,6 +90,10 @@ $variable_assignments
     # Use a stable, deliberately selected CI probe rather than OE-core's
     # release-specific default URL. Source fetches remain independently fatal.
     CONNECTIVITY_CHECK_URIS = "https://www.example.com/"
+    # Foundries tuples use PATCHTOOL=git, which can make bison's generated
+    # manual appear stale. Provide the generator hermetically rather than
+    # depending on an undeclared package in the CI container.
+    DEPENDS:append:pn-bison-native = " help2man-native"
     BB_DISKMON_DIRS = "STOPTASKS,\${TMPDIR},20G,100K STOPTASKS,\${DL_DIR},20G,100K STOPTASKS,\${SSTATE_DIR},20G,100K HALT,\${TMPDIR},10G,50K HALT,\${DL_DIR},10G,50K HALT,\${SSTATE_DIR},10G,50K"
     UBOOT_SIGN_KEYDIR:forcevariable = "$test_keys_dir"
     UBOOT_SPL_SIGN_KEYDIR:forcevariable = "$test_keys_dir"
