@@ -89,6 +89,18 @@ def load_tuples(path: Path) -> list[dict[str, str]]:
     return tuples
 
 
+def select_tuples(
+    tuples: list[dict[str, str]], tuple_id: str | None
+) -> list[dict[str, str]]:
+    """Select one CI shard while keeping the local default as the full gate."""
+    if tuple_id is None:
+        return tuples
+    selected = [entry for entry in tuples if entry["id"] == tuple_id]
+    if not selected:
+        raise ValueError(f"unknown protected tuple: {tuple_id}")
+    return selected
+
+
 def remove_build_tree(repository: Path) -> None:
     repository = repository.resolve()
     build = (repository / "build").resolve()
@@ -240,6 +252,7 @@ def main() -> int:
     parser.add_argument("--evidence", required=True, type=Path)
     parser.add_argument("--cache", required=True, type=Path)
     parser.add_argument("--test-keys", required=True, type=Path)
+    parser.add_argument("--tuple-id")
     args = parser.parse_args()
 
     baseline = args.baseline.resolve()
@@ -250,7 +263,9 @@ def main() -> int:
     capture_script = candidate / "scripts/validation/capture-layer-state.sh"
     compare_script = candidate / "scripts/validation/compare-layer-state.py"
     contract = candidate / "ci/layer-adoption-contract.json"
-    tuples = load_tuples(candidate / "ci/layer-adoption-tuples.json")
+    tuples = select_tuples(
+        load_tuples(candidate / "ci/layer-adoption-tuples.json"), args.tuple_id
+    )
     base_sha = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=baseline, text=True
     ).strip()

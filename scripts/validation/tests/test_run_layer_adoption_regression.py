@@ -22,6 +22,26 @@ SPEC.loader.exec_module(MODULE)
 
 
 class BaselineEvidenceTests(unittest.TestCase):
+    def test_ci_shard_selects_exactly_one_known_tuple(self) -> None:
+        tuples = [
+            {"id": "image-a"},
+            {"id": "mfgtool-a"},
+        ]
+        self.assertIs(MODULE.select_tuples(tuples, None), tuples)
+        self.assertEqual(
+            MODULE.select_tuples(tuples, "mfgtool-a"),
+            [{"id": "mfgtool-a"}],
+        )
+        with self.assertRaisesRegex(ValueError, "unknown protected tuple"):
+            MODULE.select_tuples(tuples, "missing")
+
+    def test_workflow_shards_all_tuples_without_fail_fast(self) -> None:
+        workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+        self.assertIn("fail-fast: false", workflow)
+        self.assertIn("fromJSON(needs.detect.outputs.tuple_ids)", workflow)
+        self.assertIn("--tuple-id '${{ matrix.tuple_id }}'", workflow)
+        self.assertIn("name: Layer Adoption Gate", workflow)
+
     def test_audited_baseline_repair_is_exact_and_fail_closed(self) -> None:
         old = "a" * 40
         new = "b" * 40
