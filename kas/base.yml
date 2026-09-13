@@ -51,6 +51,11 @@ repos:
       meta-parsec:
       meta-integrity:
 
+  meta-selinux:
+    url: https://git.yoctoproject.org/meta-selinux
+    commit: 48f745109a1ecea9afe2a74d41dbd90fa7b370af
+    path: build/layers/meta-selinux
+
   meta-updater:
     url: https://github.com/lmp-mirrors/meta-updater
     commit: b275153c9c8ea09e27d41db9f2faba3ebf92d2c2

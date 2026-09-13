@@ -1,0 +1,17 @@
+## <summary>Waydroid Android container runtime.</summary>
+
+########################################
+## <summary>
+##     Execute Waydroid in the Waydroid domain.
+## </summary>
+## <param name="domain" required="true">
+##     <summary>Domain allowed to transition.</summary>
+## </param>
+interface(`waydroid_domtrans',`
+    gen_require(`
+        type waydroid_t, waydroid_exec_t;
+    ')
+
+    corecmd_search_bin($1)
+    domtrans_pattern($1, waydroid_exec_t, waydroid_t)
+')

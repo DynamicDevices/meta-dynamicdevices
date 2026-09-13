@@ -1,0 +1,86 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alex J Lennon <ajlennon@dynamicdevices.co.uk>
+Date: Sun, 13 Sep 2026 10:05:00 +0100
+Subject: [PATCH] mount Android rootfs with host SELinux context
+
+Android image xattrs name Android policy types which are unknown to the LXC
+host policy. When the host has SELinux active, apply one host-owned mount
+context to the system, vendor and overlay mounts. This keeps Android image
+contents confined without treating them as unlabeled host files.
+
+Upstream-Status: Inappropriate [product host-policy integration]
+---
+ tools/helpers/images.py | 17 +++++++++++++----
+ tools/helpers/mount.py  |  4 +++-
+ 2 files changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/tools/helpers/images.py b/tools/helpers/images.py
+index f266db3..abf51a4 100644
+--- a/tools/helpers/images.py
++++ b/tools/helpers/images.py
+@@ -154,28 +154,37 @@ def make_prop(args, cfg, full_props_path):
+ 
+ def mount_rootfs(args, images_dir, session):
+     cfg = tools.config.load(args)
++    mount_context = None
++    mount_options = None
++    if os.path.exists("/sys/fs/selinux/enforce"):
++        mount_context = "system_u:object_r:waydroid_rootfs_t:s0"
++        mount_options = ["context=" + mount_context]
+     helpers.mount.mount(args, images_dir + "/system.img",
+-                        tools.config.defaults["rootfs"], umount=True)
++                        tools.config.defaults["rootfs"], umount=True,
++                        options=mount_options)
+     if cfg["waydroid"]["mount_overlays"] == "True":
+         try:
+             helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"],
+                                                tools.config.defaults["rootfs"]],
+                                     tools.config.defaults["rootfs"],
+                                     upper_dir=tools.config.defaults["overlay_rw"] + "/system",
+-                                    work_dir=tools.config.defaults["overlay_work"] + "/system")
++                                    work_dir=tools.config.defaults["overlay_work"] + "/system",
++                                    mount_context=mount_context)
+         except RuntimeError:
+             cfg["waydroid"]["mount_overlays"] = "False"
+             tools.config.save(args, cfg)
+             logging.warning("Mounting overlays failed. The feature has been disabled.")
+ 
+     helpers.mount.mount(args, images_dir + "/vendor.img",
+-                           tools.config.defaults["rootfs"] + "/vendor")
++                           tools.config.defaults["rootfs"] + "/vendor",
++                           options=mount_options)
+     if cfg["waydroid"]["mount_overlays"] == "True":
+         helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"] + "/vendor",
+                                            tools.config.defaults["rootfs"] + "/vendor"],
+                                     tools.config.defaults["rootfs"] + "/vendor",
+                                     upper_dir=tools.config.defaults["overlay_rw"] + "/vendor",
+-                                    work_dir=tools.config.defaults["overlay_work"] + "/vendor")
++                                    work_dir=tools.config.defaults["overlay_work"] + "/vendor",
++                                    mount_context=mount_context)
+ 
+     for egl_path in ["/vendor/lib/egl", "/vendor/lib64/egl"]:
+         if os.path.isdir(egl_path):
+diff --git a/tools/helpers/mount.py b/tools/helpers/mount.py
+index 236ff5b..5a9c915 100644
+--- a/tools/helpers/mount.py
++++ b/tools/helpers/mount.py
+@@ -152,7 +152,7 @@ def mount(args, source, destination, create_folders=True, umount=False,
+         raise RuntimeError("Mount failed: " + source + " -> " + destination)
+ 
+ def mount_overlay(args, lower_dirs, destination, upper_dir=None, work_dir=None,
+-                  create_folders=True, readonly=True):
++                  create_folders=True, readonly=True, mount_context=None):
+     """
+     Mount an overlay.
+     """
+@@ -167,6 +167,8 @@ def mount_overlay(args, lower_dirs, destination, upper_dir=None, work_dir=None,
+ 
+     if kernel_version() >= versiontuple("4.17"):
+         options.append("xino=off")
++    if mount_context:
++        options.append("context=" + mount_context)
+ 
+     for dir_path in dirs:
+         if not os.path.exists(dir_path):
+-- 
+2.43.0

@@ -1,0 +1,22 @@
+policy_module(waydroid, 1.0.0)
+
+########################################
+# Declarations
+
+type waydroid_t;
+type waydroid_exec_t;
+init_daemon_domain(waydroid_t, waydroid_exec_t)
+
+type waydroid_var_lib_t;
+files_type(waydroid_var_lib_t)
+
+type waydroid_runtime_t;
+files_runtime_file(waydroid_runtime_t)
+
+type waydroid_rootfs_t;
+files_type(waydroid_rootfs_t)
+
+# Development phase only. The host remains enforcing while accesses from
+# this dedicated domain are logged but not denied. R26 release validation
+# must remove this statement after the AVC-derived allow-list is reviewed.
+permissive waydroid_t;

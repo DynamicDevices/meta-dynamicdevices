@@ -31,6 +31,7 @@ SRC_URI = "git://github.com/herrie82/waydroid.git;branch=herrie/luneos;protocol=
     file://waydroid-jaguar-ui.service \
     file://weston-jaguar-waydroid.ini \
     file://90-waydroid-screen.conf \
+    file://0001-mount-Android-rootfs-with-host-SELinux-context.patch \
 "
 S = "${WORKDIR}/git"
 

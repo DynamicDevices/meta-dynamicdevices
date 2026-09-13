@@ -7,6 +7,9 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=oneshot
+# OTA preserves /var, so migrate pre-SELinux Waydroid state to the policy
+# labels shipped by this deployment before entering the Waydroid domain.
+ExecStartPre=-/sbin/restorecon -RF /var/lib/waydroid
 ExecStart=/usr/libexec/waydroid-image-provision
 RemainAfterExit=yes
 Restart=on-failure

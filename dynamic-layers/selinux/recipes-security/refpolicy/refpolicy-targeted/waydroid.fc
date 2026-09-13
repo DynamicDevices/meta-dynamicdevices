@@ -1,0 +1,7 @@
+/usr/bin/waydroid                                        --  gen_context(system_u:object_r:waydroid_exec_t,s0)
+/usr/libexec/waydroid-image-provision                    --  gen_context(system_u:object_r:waydroid_exec_t,s0)
+/usr/libexec/waydroid-jaguar-wait                        --  gen_context(system_u:object_r:waydroid_exec_t,s0)
+/usr/lib/waydroid/data/scripts/waydroid-net\.sh           --  gen_context(system_u:object_r:waydroid_exec_t,s0)
+
+/var/lib/waydroid(/.*)?                                      gen_context(system_u:object_r:waydroid_var_lib_t,s0)
+/run/waydroid-lxc(/.*)?                                     gen_context(system_u:object_r:waydroid_runtime_t,s0)
