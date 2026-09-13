@@ -80,7 +80,16 @@ class BaselineEvidenceTests(unittest.TestCase):
         self.assertIn("fail-fast: false", workflow)
         self.assertIn("fromJSON(needs.detect.outputs.tuple_ids)", workflow)
         self.assertIn("--tuple-id '${{ matrix.tuple_id }}'", workflow)
-        self.assertIn("name: Layer Adoption Gate", workflow)
+        self.assertIn("merge_group:", workflow)
+        self.assertIn("types: [checks_requested]", workflow)
+        self.assertIn("github.event.merge_group.base_sha", workflow)
+        self.assertIn("github.event_name != 'merge_group'", workflow)
+        self.assertIn("Development validation — baseline comparison", workflow)
+        self.assertIn("Product readiness validation — baseline comparison", workflow)
+        self.assertIn("Development Validation", workflow)
+        self.assertIn("imx8mm-jaguar-screen-waydroid-image", workflow)
+        self.assertIn("unknown protected tuple", workflow)
+        self.assertIn("'Layer Adoption Gate'", workflow)
 
     def test_audited_baseline_repair_is_exact_and_fail_closed(self) -> None:
         old = "a" * 40
