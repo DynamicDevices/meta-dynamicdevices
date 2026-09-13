@@ -6,16 +6,18 @@
       "base_sha": "dda54409ee27e29612c01cc1ff0eb88233ca1da5",
       "submodule": "meta-dynamicdevices-bsp",
       "from": "47542ad3f8d49850df69e37a3414c1ef60c51809",
-      "to": "768f9e8763a0797d0991fe6ed58e8e8bc85da3c2",
+      "to": "e013655c6f78c250ad5ca4a593ff2815ed6aaaab",
       "url": "https://github.com/DynamicDevices/meta-dynamicdevices-bsp.git",
       "ref": "refs/heads/fix/imx8mm-jaguar-uboot-dtb-context-lmp-v96",
       "files": [
         "recipes-bsp/u-boot/u-boot-fio/imx8mm-jaguar-handheld/01-customise-dtb.patch",
         "recipes-bsp/u-boot/u-boot-fio/imx8mm-jaguar-phasora/01-customise-dtb.patch",
         "recipes-bsp/board-scripts/board-scripts_1.0.bb",
-        "recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-handheld.dts"
+        "recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-handheld.dts",
+        "recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-inst.dts",
+        "recipes-bsp/device-tree/lmp-device-tree/imx8mm-jaguar-phasora.dts"
       ],
-      "reason": "The immutable baseline has two stale U-Boot patch contexts, mishandles intentionally empty board-scripts packages, and carries a Handheld DTS with an undefined pinmux macro and duplicate base-board labels. Build both sides with the focused four-file backport while auditing the exact old-to-new submodule transition."
+      "reason": "The immutable baseline has two stale U-Boot patch contexts, mishandles intentionally empty board-scripts packages, and carries three product DTS files that no longer compile against the pinned kernel. Build both sides with the focused six-file backport while auditing the exact old-to-new submodule transition."
     }
   ],
   "allowed_deltas": {}
