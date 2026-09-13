@@ -50,6 +50,13 @@ printf '%s\n' \\
         self.assertIn("find build/tmp/log/cooker -type f -name '*.log'", source)
         self.assertNotIn("find \"$output_dir\" -type f -name '*.log'", source)
 
+    def test_kernel_warning_capture_is_independent_of_sstate_reuse(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            '"bitbake -f -c kernel_configcheck virtual/kernel" >/dev/null',
+            source,
+        )
+
     def test_encoded_bitbake_provenance_checkout_is_normalised(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(

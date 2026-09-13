@@ -6,7 +6,7 @@ script_dir=$(CDPATH='' cd -P "$(dirname "$0")" && pwd)
 
 # Build mfgtool images for supported i.MX machines
 #
-# Usage: 
+# Usage:
 #   KAS_MACHINE=imx95-frdm-evk ./scripts/kas-build-mfgtools.sh
 #   KAS_MACHINE=imx93-jaguar-eink ./scripts/kas-build-mfgtools.sh
 #   KAS_MACHINE=imx93-11x11-lpddr4x-evk ./scripts/kas-build-mfgtools.sh

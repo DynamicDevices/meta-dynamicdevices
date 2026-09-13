@@ -26,6 +26,7 @@ jobs:
     outputs:
       material: ${{ steps.detect.outputs.material }}
       base_sha: ${{ steps.base.outputs.sha }}
+      tuple_ids: ${{ steps.detect.outputs.tuple_ids }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -58,13 +59,19 @@ jobs:
             --base '${{ steps.base.outputs.sha }}' \
             --head '${{ github.sha }}' \
             --github-output "$GITHUB_OUTPUT"
+          tuple_ids=$(python3 -c 'import json; print(json.dumps([entry["id"] for entry in json.load(open("ci/layer-adoption-tuples.json"))["tuples"]], separators=(",", ":")))')
+          echo "tuple_ids=$tuple_ids" >> "$GITHUB_OUTPUT"
   regression:
-    name: Existing product regression
+    name: Existing product regression (${{ matrix.tuple_id }})
     needs: detect
     if: needs.detect.outputs.material == 'true'
-    # One named ai-tools runner owns the persistent Yocto cache. Keeping the
-    # complete matrix inside one job makes resource use and the required gate
-    # obvious, while the driver still fails closed on every protected tuple.
+    strategy:
+      fail-fast: false
+      matrix:
+        tuple_id: ${{ fromJSON(needs.detect.outputs.tuple_ids) }}
+    # Each tuple is an independent shard so one failure cannot hide later
+    # product failures. The final Layer Adoption Gate remains the single
+    # branch-protection contract, and local driver runs still cover all tuples.
     runs-on: [self-hosted, Linux, X64, yocto, ai-tools]
     container:
       image: ghcr.io/siemens/kas/kas@sha256:d989add57fc441fe9e27bb2dd6ed98c5597b44c807928e35a72dc1cfbdda9abe
@@ -119,12 +126,13 @@ jobs:
             --candidate candidate \
             --evidence evidence \
             --cache "$LAYER_ADOPTION_CACHE" \
-            --test-keys "$LAYER_ADOPTION_CACHE/test-keys"
+            --test-keys "$LAYER_ADOPTION_CACHE/test-keys" \
+            --tuple-id '${{ matrix.tuple_id }}'
       - name: Preserve comparison evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: layer-adoption-evidence
+          name: layer-adoption-evidence-${{ matrix.tuple_id }}
           path: evidence
           retention-days: 14
       - name: Remove job-owned build trees

@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 DEPLOY_SIZES = "deploy-layout-and-sizes.txt"
+WARNINGS = "warnings.txt"
 MAX_DEPLOY_SIZE_DRIFT_RATIO = 0.005
 MIN_DEPLOY_SIZE_DRIFT_BYTES = 4096
 
@@ -46,6 +47,11 @@ def deploy_deltas(old_lines: list[str], new_lines: list[str]) -> list[str]:
                 f"(tolerance {tolerance})"
             )
     return deltas
+
+
+def warning_deltas(old_lines: list[str], new_lines: list[str]) -> list[str]:
+    """Return candidate-added warnings; removing a baseline warning is safe."""
+    return sorted(set(new_lines) - set(old_lines))
 
 
 def files(root: Path) -> dict[str, list[str]]:
@@ -92,6 +98,8 @@ def main() -> int:
             except ValueError as exc:
                 print(f"ERROR: {name}: {exc}", file=sys.stderr)
                 return 2
+        elif name == WARNINGS:
+            changed_lines = warning_deltas(old.get(name, []), new.get(name, []))
         else:
             delta = list(difflib.unified_diff(old.get(name, []), new.get(name, []), lineterm=""))
             changed_lines = [
