@@ -159,6 +159,20 @@ custom-boot-files/               # Custom boot files directory
 
 ## 🏗️ Build & Development
 
+### Local/CI KAS parity
+
+Use the `scripts/kas-*.sh` entry points for local KAS work. They source
+`scripts/kas-container-image.sh`, which pins the same container digest as the
+Layer Adoption Gate. The gate treats changes to these wrappers, KAS YAML,
+pinned layer submodules, its workflow, contract, and regression implementation
+as material. Such changes must update `ci/layer-adoption-contract.json` and run
+every immutable tuple in `ci/layer-adoption-tuples.json`; the tuple matrix may
+be extended but existing coverage cannot be removed or redefined.
+
+The shared `scripts/validation/run-layer-adoption-regression.py` driver owns
+repository preparation and all baseline/candidate captures in both local and
+CI use. Do not duplicate KAS preparation steps in workflow YAML.
+
 ### `kas-build-base.sh`
 **Purpose:** Builds the base LmP (Linux microPlatform) image using KAS configuration.
 
