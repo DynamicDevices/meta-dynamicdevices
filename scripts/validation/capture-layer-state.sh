@@ -159,6 +159,7 @@ printf '%s\n' \
     "bitbake-layers show-recipes" \
     "bitbake -g $target" \
     "bitbake -e $target" \
+    "bitbake -c fetch docker-compose (when DOCKER_COMPOSE_APP=1)" \
     "bitbake $target" \
     "DD_PRODUCT_FEATURES=$product_features" \
     "TUPLE_VARIABLES=$variables_json" > "$output_dir/commands.txt"
@@ -272,6 +273,13 @@ require_selected_value UEFI_SIGN_KEYDIR "<TEST_KEYS>/uefi"
 require_selected_value OPTEE_TA_SIGN_KEY "<TEST_KEYS>/ubootdev.key"
 require_selected_value TF_A_SIGN_KEY_PATH "<TEST_KEYS>/tf-a/privkey_ec_prime256v1.pem"
 rm "$output_dir/environment.log"
+
+# Fail fast on the large docker-compose Go source set instead of discovering
+# an unavailable vendor repository after hours of unrelated compilation.
+if python3 -c 'import json,sys; raise SystemExit(0 if json.loads(sys.argv[1]).get("DOCKER_COMPOSE_APP") == "1" else 1)' "$variables_json"; then
+    capture_command fetch-docker-compose run_bitbake \
+        "bitbake -c fetch docker-compose" >/dev/null
+fi
 
 # A parse-only graph is not proof that packaging, signing, recovery image size,
 # or deploy layout still works. Complete the real image/recovery build for both
