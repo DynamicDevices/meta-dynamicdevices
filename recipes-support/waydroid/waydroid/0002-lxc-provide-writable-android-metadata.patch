@@ -1,0 +1,41 @@
+From 8cb1011fe0ee850422365730ed80466cffbdbd34 Mon Sep 17 00:00:00 2001
+From: Active ESL <engineering@active-esl.com>
+Date: Thu, 10 Sep 2026 19:10:00 +0100
+Subject: [PATCH] lxc: provide writable Android metadata storage
+
+Android 16 selects the new aconfig storage whenever /metadata exists.  The
+directory supplied by the read-only system image is not writable, so aconfigd
+cannot populate its maps.  Manifest parsing then treats enabled flags as
+missing while generated framework callers still see their compiled values.
+
+Bind a small persistent host directory over /metadata before Android starts.
+This matches the separate writable metadata partition available on a normal
+Android device and prevents early system_server failures such as the missing
+RANGING permission/app-op mapping.
+---
+ tools/helpers/lxc.py | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/tools/helpers/lxc.py b/tools/helpers/lxc.py
+index 3dcc5cd..018d223 100644
+--- a/tools/helpers/lxc.py
++++ b/tools/helpers/lxc.py
+@@ -154,6 +154,16 @@ def generate_nodes_lxc_config(args):
+     make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
+     make_entry("tmpfs", "run", "tmpfs", "nodev 0 0", False)
+ 
++    # Android 16 aconfigd needs persistent writable storage under /metadata.
++    # Without this bind, the mountpoint comes from the read-only system image
++    # and framework manifest flags can disagree with their generated callers.
++    metadata_path = os.path.join(tools.config.defaults["work"], "metadata")
++    os.makedirs(metadata_path, mode=0o770, exist_ok=True)
++    os.chown(metadata_path, 0, 1000)  # Android AID_SYSTEM
++    os.chmod(metadata_path, 0o770)
++    make_entry(metadata_path, "metadata",
++               options="rbind,create=dir 0 0")
++
+     # NFC config
+     make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
+ 
+-- 
+2.43.0

@@ -1,0 +1,11 @@
+{
+    "id": "id.waydro.container",
+    "title": "Waydroid",
+    "version": "__VERSION__",
+    "main": "waydroid.sh",
+    "params": "",
+    "type": "native",
+    "uiRevision": 2,
+    "vendorurl": "https://waydro.id",
+    "icon": "icon.png"
+}

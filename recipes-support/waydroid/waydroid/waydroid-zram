@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+
+zram_device=/dev/zram0
+zram_size_bytes=805306368
+
+stop_zram() {
+    if grep -q "^${zram_device}[[:space:]]" /proc/swaps 2>/dev/null; then
+        swapoff "${zram_device}"
+    fi
+    if [ -w /sys/block/zram0/reset ]; then
+        echo 1 > /sys/block/zram0/reset
+    fi
+}
+
+if [ "${1:-start}" = stop ]; then
+    stop_zram
+    exit 0
+fi
+
+modprobe zram
+[ -b "${zram_device}" ] || {
+    echo "zram device was not created" >&2
+    exit 1
+}
+
+if grep -q "^${zram_device}[[:space:]]" /proc/swaps 2>/dev/null; then
+    exit 0
+fi
+
+if grep -qw lz4 /sys/block/zram0/comp_algorithm; then
+    echo lz4 > /sys/block/zram0/comp_algorithm
+fi
+echo "${zram_size_bytes}" > /sys/block/zram0/disksize
+mkswap "${zram_device}"
+swapon -p 100 "${zram_device}"

@@ -1,0 +1,100 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+set -eu
+
+cgroup=/sys/fs/cgroup/system.slice/waydroid-container.service
+
+echo '[memory]'
+awk '/^(MemTotal|MemAvailable|SwapTotal|SwapFree|CmaTotal|CmaFree):/ { print }' /proc/meminfo
+
+echo '[cgroup]'
+for item in memory.current memory.peak memory.high memory.max memory.swap.current memory.swap.max memory.events cpu.stat pids.current pids.peak; do
+    if [ -r "${cgroup}/${item}" ]; then
+        printf '%s=' "${item}"
+        cat "${cgroup}/${item}"
+    fi
+done
+
+if grep -q '^/dev/zram0[[:space:]]' /proc/swaps 2>/dev/null; then
+    echo "zram=active"
+    for item in comp_algorithm disksize mm_stat; do
+        if [ -r "/sys/block/zram0/${item}" ]; then
+            printf 'zram.%s=' "${item}"
+            cat "/sys/block/zram0/${item}"
+        fi
+    done
+else
+    echo "zram=inactive"
+fi
+
+echo '[pressure]'
+for resource in cpu memory io; do
+    if [ -r "/proc/pressure/${resource}" ]; then
+        sed "s/^/${resource}.pressure=/" "/proc/pressure/${resource}"
+    fi
+done
+
+echo '[cpu]'
+cpu_sample() {
+    awk '/^cpu / {
+        total = 0
+        for (field = 2; field <= NF; field++) total += $field
+        idle = $5 + $6
+        printf "%.0f:%.0f\n", total, idle
+        exit
+    }' /proc/stat
+}
+cpu_before=$(cpu_sample)
+sample_seconds=${WAYDROID_CPU_SAMPLE_SECONDS:-2}
+sleep "${sample_seconds}"
+cpu_after=$(cpu_sample)
+total_before=${cpu_before%%:*}
+idle_before=${cpu_before#*:}
+total_after=${cpu_after%%:*}
+idle_after=${cpu_after#*:}
+total_delta=$((total_after - total_before))
+idle_delta=$((idle_after - idle_before))
+if [ "${total_delta}" -gt 0 ]; then
+    idle_pct=$((idle_delta * 100 / total_delta))
+    printf 'cpu.sample_seconds=%s\n' "${sample_seconds}"
+    printf 'cpu.idle_pct=%s\n' "${idle_pct}"
+    printf 'cpu.busy_pct=%s\n' "$((100 - idle_pct))"
+fi
+printf 'cpu.loadavg='
+cat /proc/loadavg
+printf 'cpu.count='
+getconf _NPROCESSORS_ONLN
+
+echo '[storage]'
+for path in / /var/lib/waydroid /etc/waydroid-extra/images; do
+    [ -e "${path}" ] || continue
+    df -Pk "${path}" | awk -v path="${path}" 'NR == 2 {
+        gsub(/%/, "", $5)
+        printf "storage.path=%s size_kib=%s used_kib=%s available_kib=%s used_pct=%s mount=%s\n", \
+            path, $2, $3, $4, $5, $6
+    }'
+done
+
+echo '[gpu-devfreq]'
+for devfreq in /sys/class/devfreq/*; do
+    [ -d "${devfreq}" ] || continue
+    name=$(cat "${devfreq}/name" 2>/dev/null || basename "${devfreq}")
+    case "${name}" in
+        *gpu*|*GPU*|*etnaviv*|*galcore*) ;;
+        *) continue ;;
+    esac
+    echo "gpu.name=${name}"
+    for item in cur_freq min_freq max_freq available_frequencies governor; do
+        if [ -r "${devfreq}/${item}" ]; then
+            printf 'gpu.%s=' "${item}"
+            cat "${devfreq}/${item}"
+        fi
+    done
+done
+
+echo '[thermal]'
+for zone in /sys/class/thermal/thermal_zone*; do
+    [ -r "${zone}/temp" ] || continue
+    printf '%s.%s=' "${zone##*/}" "$(cat "${zone}/type" 2>/dev/null || echo unknown)"
+    cat "${zone}/temp"
+done

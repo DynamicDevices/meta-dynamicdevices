@@ -19,7 +19,8 @@ refs/heads/main-imx93-jaguar-eink:
   machines:
   - imx93-jaguar-eink
   params:
-    DISTRO: lmp-dynamicdevices-headless
+    DISTRO: lmp-dynamicdevices
+    DD_PRODUCT_FEATURES: "improv"
     # Enable secure boot and image signing for production
     UBOOT_SIGN_ENABLE: "1"
     TF_A_SIGN_ENABLE: "1"

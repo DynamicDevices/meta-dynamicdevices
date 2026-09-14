@@ -9,13 +9,16 @@ DEPENDS = "glib-2.0 libglibutil"
 
 inherit pkgconfig
 
-SRC_URI = "git://github.com/mer-hybris/libgbinder.git;branch=master;protocol=https \
+SRC_URI = "git://github.com/mer-hybris/libgbinder.git;nobranch=1;protocol=https \
            file://gbinder.conf \
 "
 S = "${WORKDIR}/git"
 
-PV = "1.1.35"
-SRCREV = "e3f705c4cc6b820d8885b565fc7995e02dd196b3"
+# First libgbinder release with Android API 36 / AIDL6 service-manager
+# support. This is the exact revision proven by the Framework Android 16
+# runtime validation; do not follow the moving master branch.
+PV = "1.1.52"
+SRCREV = "e906afcffbfa51b7fbefe042a13b933d9e8dfdd9"
 
 EXTRA_OEMAKE = "KEEP_SYMBOLS=1"
 PARALLEL_MAKE = ""

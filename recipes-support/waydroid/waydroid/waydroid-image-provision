@@ -1,0 +1,158 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+
+set -eu
+
+config=${WAYDROID_CONFIG:-/var/lib/waydroid/waydroid.cfg}
+sys_drm_dir=${WAYDROID_SYS_DRM_DIR:-/sys/class/drm}
+dev_dri_dir=${WAYDROID_DEV_DRI_DIR:-/dev/dri}
+sys_video_dir=${WAYDROID_SYS_VIDEO_DIR:-/sys/class/video4linux}
+dev_video_dir=${WAYDROID_DEV_VIDEO_DIR:-/dev}
+waydroid_bin=${WAYDROID_BIN:-/usr/bin/waydroid}
+v4l2_probe=${WAYDROID_V4L2_PROBE:-/usr/libexec/waydroid-v4l2-probe}
+
+configured_images_dir() {
+    python3 - "${config}" <<'PY'
+import configparser
+import sys
+
+cfg = configparser.ConfigParser(interpolation=None)
+cfg.read(sys.argv[1])
+print(cfg.get("waydroid", "images_path", fallback="/var/lib/waydroid/images"))
+PY
+}
+
+images_dir=${WAYDROID_IMAGES_DIR:-$(configured_images_dir)}
+if ! [ -s "${images_dir}/system.img" ] || ! [ -s "${images_dir}/vendor.img" ]; then
+    # An interrupted first initialization can leave configuration claiming a
+    # channel revision whose image was never fully installed. Let Waydroid
+    # build that configuration again before its checksum-verified download.
+    rm -f "${config}"
+    "${waydroid_bin}" init
+    if [ -z "${WAYDROID_IMAGES_DIR:-}" ]; then
+        images_dir=$(configured_images_dir)
+    fi
+    if ! [ -s "${images_dir}/system.img" ] || ! [ -s "${images_dir}/vendor.img" ]; then
+        echo "Waydroid initialization did not provide complete images in ${images_dir}" >&2
+        exit 1
+    fi
+fi
+
+render_node=
+for sys_node in "${sys_drm_dir}"/renderD*; do
+    [ -r "${sys_node}/device/uevent" ] || continue
+    if grep -Fqx 'DRIVER=etnaviv' "${sys_node}/device/uevent"; then
+        candidate="${dev_dri_dir}/${sys_node##*/}"
+        if [ -c "${candidate}" ] || [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" = 1 ]; then
+            render_node=${candidate}
+            break
+        fi
+    fi
+done
+
+if [ -z "${render_node}" ]; then
+    echo "No Etnaviv DRM render node is available; refusing GPU fallback" >&2
+    exit 1
+fi
+
+dma_heap_devices=
+separator=
+have_system_heap=false
+for heap_name in system system-uncached linux,cma; do
+    candidate=/dev/dma_heap/${heap_name}
+    test_candidate=${WAYDROID_DEV_DMA_HEAP_DIR:-/dev/dma_heap}/${heap_name}
+    if [ -c "${test_candidate}" ] || {
+        [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" = 1 ] && [ -e "${test_candidate}" ]
+    }; then
+        dma_heap_devices=${dma_heap_devices}${separator}${candidate}
+        separator=';'
+        [ "${heap_name}" = system ] && have_system_heap=true
+    fi
+done
+
+if [ "${have_system_heap}" != true ]; then
+    echo "The required /dev/dma_heap/system device is unavailable" >&2
+    exit 1
+fi
+
+video_devices=
+if [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" = 1 ]; then
+    for sys_node in "${sys_video_dir}"/video*; do
+        [ -r "${sys_node}/name" ] || continue
+        grep -Fqx 'vsi_v4l2dec' "${sys_node}/name" || continue
+        node_name=${sys_node##*/}
+        [ -e "${dev_video_dir}/${node_name}" ] && video_devices=/dev/${node_name}
+    done
+else
+    # The NXP 6.6 driver leaves /sys/class/video4linux/video*/name empty. Query
+    # the ABI instead: accept only a vsiv4l2 stateful M2M streaming device
+    # whose encoded-input queue advertises H.264. This excludes the camera and
+    # the VSI encoder without relying on unstable /dev/video numbering.
+    video_devices=$("${v4l2_probe}" --device-dir "${dev_video_dir}" --select-h264-decoder) \
+        || video_devices=
+fi
+
+if [ -z "${video_devices}" ]; then
+    echo "No H.264-capable NXP vsiv4l2 decoder is available; refusing unrelated V4L2 nodes" >&2
+    exit 1
+fi
+
+if [ "${WAYDROID_ALLOW_FAKE_DRM:-0}" != 1 ]; then
+    # The Android compositor and minigbm allocator use AID_GRAPHICS (stable
+    # numeric GID 1003). Restrict the selected GPU and DMA heaps to that group
+    # rather than making host accelerator devices world-accessible.
+    chown 0:1003 "${render_node}"
+    chmod 0660 "${render_node}"
+    old_ifs=${IFS}
+    IFS=';'
+    for dma_heap in ${dma_heap_devices}; do
+        chown 0:1003 "${dma_heap}"
+        chmod 0660 "${dma_heap}"
+    done
+    IFS=${old_ifs}
+
+    # The Android V4L2 Codec2 service runs as AID_MEDIA (stable numeric GID
+    # 1013). Grant that service access to only the capability-selected decoder;
+    # the camera and encoder are neither changed nor mounted into the container.
+    chown 0:1013 "${video_devices}"
+    chmod 0660 "${video_devices}"
+fi
+
+# Waydroid otherwise selects the first DRM node and may advertise a software
+# or unrelated GPU. Persist an exact, reviewable Android graphics contract.
+python3 - "${config}" "${render_node}" "${dma_heap_devices}" "${video_devices}" <<'PY'
+import configparser
+import os
+import sys
+
+path, render_node, dma_heap_devices, video_devices = sys.argv[1:]
+cfg = configparser.ConfigParser(interpolation=None)
+cfg.optionxform = str
+cfg.read(path)
+
+if not cfg.has_section("waydroid"):
+    cfg.add_section("waydroid")
+cfg.set("waydroid", "drm_device", render_node)
+cfg.set("waydroid", "dma_heap_devices", dma_heap_devices)
+cfg.set("waydroid", "video_devices", video_devices)
+
+if not cfg.has_section("properties"):
+    cfg.add_section("properties")
+properties = {
+    "gralloc.gbm.device": render_node,
+    "ro.hardware.egl": "mesa",
+    "ro.hardware.gralloc": "minigbm_gbm_mesa",
+    "ro.hardware.hwcomposer": "waydroid",
+    "ro.opengles.version": "196609",
+}
+for key, value in properties.items():
+    cfg.set("properties", key, value)
+cfg.remove_option("properties", "ro.hardware.vulkan")
+
+tmp = path + ".tmp"
+with open(tmp, "w", encoding="utf-8") as output:
+    cfg.write(output)
+os.replace(tmp, path)
+PY
+
+echo "Pinned Waydroid graphics to Etnaviv node ${render_node}"

@@ -1,0 +1,132 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+
+set -eu
+
+repo_root=$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)
+provision=${repo_root}/recipes-support/waydroid/waydroid/waydroid-image-provision
+test_root=$(mktemp -d /tmp/waydroid-gpu-provision.XXXXXX)
+trap 'rm -rf "${test_root}"' EXIT HUP INT TERM
+
+mkdir -p "${test_root}/images" \
+    "${test_root}/sys/class/drm/renderD128/device" \
+    "${test_root}/sys/class/video4linux/video2" \
+    "${test_root}/dev/dri" \
+    "${test_root}/dev/dma_heap"
+printf 'image\n' > "${test_root}/images/system.img"
+printf 'image\n' > "${test_root}/images/vendor.img"
+printf 'DRIVER=etnaviv\n' > "${test_root}/sys/class/drm/renderD128/device/uevent"
+printf 'heap\n' > "${test_root}/dev/dma_heap/system"
+printf 'heap\n' > "${test_root}/dev/dma_heap/linux,cma"
+printf 'vsi_v4l2dec\n' > "${test_root}/sys/class/video4linux/video2/name"
+printf 'video\n' > "${test_root}/dev/video2"
+printf '[waydroid]\narch = arm64\nimages_path = %s/images\n\n[properties]\nro.hardware.vulkan = lvp\n' \
+    "${test_root}" > "${test_root}/waydroid.cfg"
+
+WAYDROID_CONFIG=${test_root}/waydroid.cfg \
+WAYDROID_SYS_DRM_DIR=${test_root}/sys/class/drm \
+WAYDROID_DEV_DRI_DIR=${test_root}/dev/dri \
+WAYDROID_DEV_DMA_HEAP_DIR=${test_root}/dev/dma_heap \
+WAYDROID_SYS_VIDEO_DIR=${test_root}/sys/class/video4linux \
+WAYDROID_DEV_VIDEO_DIR=${test_root}/dev \
+WAYDROID_ALLOW_FAKE_DRM=1 \
+    sh "${provision}"
+
+config=${test_root}/waydroid.cfg
+grep -Fqx 'drm_device = '"${test_root}"'/dev/dri/renderD128' "${config}"
+grep -Fqx 'dma_heap_devices = /dev/dma_heap/system;/dev/dma_heap/linux,cma' "${config}"
+grep -Fqx 'video_devices = /dev/video2' "${config}"
+grep -Fqx 'gralloc.gbm.device = '"${test_root}"'/dev/dri/renderD128' "${config}"
+grep -Fqx 'ro.hardware.egl = mesa' "${config}"
+grep -Fqx 'ro.hardware.gralloc = minigbm_gbm_mesa' "${config}"
+grep -Fqx 'ro.hardware.hwcomposer = waydroid' "${config}"
+grep -Fqx 'ro.opengles.version = 196609' "${config}"
+if grep -Fq 'ro.hardware.vulkan' "${config}"; then
+    echo 'Vulkan fallback was not removed' >&2
+    exit 1
+fi
+
+printf '%s\n' \
+    'lxc.cgroup2.devices.deny = a' \
+    "lxc.mount.entry = ${test_root}/dev/dri/renderD128 dev/dri/renderD128 none bind,create=file 0 0" \
+    'lxc.mount.entry = /dev/dma_heap/system dev/dma_heap/system none bind,create=file 0 0' \
+    'lxc.mount.entry = /dev/dma_heap/linux,cma dev/dma_heap/linux,cma none bind,create=file 0 0' \
+    'lxc.mount.entry = /dev/video2 dev/video2 none bind,create=file 0 0' \
+    > "${test_root}/config_nodes"
+
+# The parameter expansion below belongs in the generated fixture script.
+# shellcheck disable=SC2016
+printf '%s\n' \
+    '#!/bin/sh' \
+    'case "$*" in' \
+    '  status) echo "Container: RUNNING" ;;' \
+    '  "shell getprop ro.hardware.egl") echo mesa ;;' \
+    '  "shell getprop ro.hardware.gralloc") echo minigbm_gbm_mesa ;;' \
+    '  "shell getprop ro.hardware.vulkan") : ;;' \
+    '  "shell pm list features") echo feature:android.hardware.opengles.aep ;;' \
+    '  "shell dumpsys SurfaceFlinger") echo "${WAYDROID_TEST_RENDERER:-GLES: Mesa etnaviv GC7000Lite}" ;;' \
+    '  "shell dumpsys media.codec") echo c2.v4l2.avc.decoder ;;' \
+    '  *) exit 1 ;;' \
+    'esac' > "${test_root}/waydroid"
+chmod 0755 "${test_root}/waydroid"
+
+WAYDROID_CONFIG=${config} \
+WAYDROID_LXC_NODES=${test_root}/config_nodes \
+WAYDROID_SYS_DRM_DIR=${test_root}/sys/class/drm \
+WAYDROID_BIN=${test_root}/waydroid \
+WAYDROID_ALLOW_FAKE_DEVICES=1 \
+    sh "${repo_root}/recipes-support/waydroid/waydroid/waydroid-acceleration-check"
+
+run_gate() {
+    WAYDROID_TEST_RENDERER=${WAYDROID_TEST_RENDERER:-} \
+    WAYDROID_CONFIG=${config} \
+    WAYDROID_LXC_NODES=${test_root}/config_nodes \
+    WAYDROID_SYS_DRM_DIR=${test_root}/sys/class/drm \
+    WAYDROID_BIN=${test_root}/waydroid \
+    WAYDROID_ALLOW_FAKE_DEVICES=1 \
+        sh "${repo_root}/recipes-support/waydroid/waydroid/waydroid-acceleration-check"
+}
+
+expect_gate_failure() {
+    description=$1
+    if run_gate > "${test_root}/negative-test.log" 2>&1; then
+        echo "Release gate accepted ${description}" >&2
+        cat "${test_root}/negative-test.log" >&2
+        exit 1
+    fi
+}
+
+cp "${config}" "${test_root}/waydroid.cfg.good"
+cp "${test_root}/config_nodes" "${test_root}/config_nodes.good"
+
+printf 'ro.hardware.vulkan = lvp\n' >> "${config}"
+expect_gate_failure 'a software Vulkan HAL override'
+cp "${test_root}/waydroid.cfg.good" "${config}"
+
+printf 'DRIVER=vgem\n' > "${test_root}/sys/class/drm/renderD128/device/uevent"
+expect_gate_failure 'a non-Etnaviv render node'
+printf 'DRIVER=etnaviv\n' > "${test_root}/sys/class/drm/renderD128/device/uevent"
+
+printf 'lxc.cgroup2.devices.allow = a\n' >> "${test_root}/config_nodes"
+expect_gate_failure 'wildcard LXC device access'
+cp "${test_root}/config_nodes.good" "${test_root}/config_nodes"
+
+WAYDROID_TEST_RENDERER='GLES: llvmpipe etnaviv compatibility shim' \
+    expect_gate_failure 'a software SurfaceFlinger renderer'
+
+cat > "${test_root}/surfaceflinger-latency.txt" <<'LATENCY'
+16666666
+990000000 1000000000 1001000000
+1006666666 1016666666 1017666666
+1023333332 1033333332 1034333332
+1056666664 1066666664 1067666664
+LATENCY
+sh "${repo_root}/recipes-support/waydroid/waydroid/waydroid-frame-headroom" \
+    "${test_root}/surfaceflinger-latency.txt" > "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.target_fps=60.00' "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.intervals=3' "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.effective_fps=45.00' "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.missed_intervals=1' "${test_root}/frame-headroom.txt"
+grep -Fqx 'frame.worst_refresh_periods=2.00' "${test_root}/frame-headroom.txt"
+
+echo 'Waydroid Etnaviv GPU and V4L2 provisioning: passed'

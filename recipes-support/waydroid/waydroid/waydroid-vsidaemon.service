@@ -1,0 +1,14 @@
+[Unit]
+Description=NXP Hantro V4L2 userspace daemon for Waydroid
+After=systemd-modules-load.service
+ConditionPathExists=/dev/vsi_daemon_ctrl
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/vsidaemon
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
