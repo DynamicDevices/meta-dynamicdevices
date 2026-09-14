@@ -31,7 +31,7 @@ jobs:
       image: dynamicdevices/yocto-ci-build@sha256:be170373625e77a6235a0bb3efb84d00be736221782d5d716e88aafd1b965794
       options: --privileged --volume /yocto:/yocto
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -84,7 +84,7 @@ jobs:
           find "${deploy}" -maxdepth 1 -type f -name '*.manifest' -print -quit | grep -q .
           find "${deploy}" -maxdepth 1 -type f -name '*.spdx.tar.zst' -print -quit | grep -q .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: aesl-waydroid-imx8mm-host-${{ github.run_id }}-${{ github.run_attempt }}
           path: /yocto/waydroid-host/tmp/deploy/images/imx8mm-jaguar-screen
