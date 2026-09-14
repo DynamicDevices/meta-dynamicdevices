@@ -7,6 +7,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+# shellcheck source=kas-container-image.sh
+. "$SCRIPT_DIR/kas-container-image.sh"
 
 # Default values
 DEFAULT_MACHINE="imx93-jaguar-eink"
@@ -23,7 +25,7 @@ echo ""
 
 # Validate machine
 case "$MACHINE" in
-    imx93-jaguar-eink|imx8mm-jaguar-sentai|imx8mm-jaguar-inst|imx8mm-jaguar-handheld|imx8mm-jaguar-phasora)
+    imx93-jaguar-eink|imx8mm-jaguar-sentai|imx8mm-jaguar-inst|imx8mm-jaguar-screen|imx8mm-jaguar-handheld|imx8mm-jaguar-phasora)
         echo "✓ Building for supported machine: $MACHINE"
         ;;
     *)
@@ -32,6 +34,7 @@ case "$MACHINE" in
         echo "  - imx93-jaguar-eink (default)"
         echo "  - imx8mm-jaguar-sentai"
         echo "  - imx8mm-jaguar-inst"
+        echo "  - imx8mm-jaguar-screen"
         echo "  - imx8mm-jaguar-handheld"
         echo "  - imx8mm-jaguar-phasora"
         exit 1

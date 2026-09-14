@@ -1,5 +1,9 @@
 #!/bin/sh
 
+script_dir=$(CDPATH='' cd -P "$(dirname "$0")" && pwd)
+# shellcheck source=kas-container-image.sh
+. "$script_dir/kas-container-image.sh"
+
 # TODO: Look at this to fix missing key issue
 #
 #conf/machine/include/lmp-factory-custom.inc:OPTEE_TA_SIGN_KEY = "${TOPDIR}/conf/factory-keys/opteedev.key"

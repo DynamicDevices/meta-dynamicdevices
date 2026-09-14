@@ -461,12 +461,80 @@ def compute_sec_status():
     return dict(_SEC_STATUS)
 
 
+def _read_os_release():
+    """Parse /etc/os-release into a dict (root-free, no subprocess)."""
+    d = {}
+    try:
+        with open("/etc/os-release") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                d[k] = v.strip().strip('"')
+    except Exception as e:
+        logger.debug(f"os-release read failed: {e}")
+    return d
+
+
+def compute_ota_status():
+    """Foundries enrollment / OTA posture (`ota` block, §5/§10).
+
+    Local, self-reported signals about whether this board is enrolled to a
+    Foundries factory and running the OTA client — surfaced over Improv BLE so
+    the app can show, during onboarding, whether the board still needs Foundries
+    enrolment (see the app/cloud onboard/offboard feature). Not cached: the
+    values flip as the board is registered / the daemon starts.
+
+      - `registered`: /var/sota/sota.toml exists — the config lmp-device-register
+        writes and the gate aktualizr-lite.service requires
+        (ConditionPathExists). Absent => board is not enrolled to any factory.
+      - `factory`/`tag`/`hwid`/`target`/`os_version`: baked into /etc/os-release
+        at image build time.
+      - `daemon`: aktualizr-lite.service is active (the OTA poller is running).
+      - `up_to_date`: left null on the board on purpose — the authoritative
+        "is this on the latest factory target" answer comes from the
+        cloud->Foundries API, not from a device that may be OFFLINE to the
+        device-gateway. Like the rest of the diagnostics, this block is
+        self-reported and untrusted until backed by attestation (roadmap P2-1).
+    """
+    osr = _read_os_release()
+    registered = os.path.exists("/var/sota/sota.toml")
+    daemon = False
+    try:
+        out = subprocess.run(["systemctl", "is-active", "aktualizr-lite"],
+                             capture_output=True, timeout=4, text=True)
+        daemon = out.stdout.strip() == "active"
+    except Exception as e:
+        logger.debug(f"aktualizr-lite is-active failed: {e}")
+    target = osr.get("IMAGE_VERSION") or None
+    if target is not None:
+        try:
+            target = int(target)
+        except (TypeError, ValueError):
+            pass
+    return {
+        "registered": registered,
+        "factory": osr.get("LMP_FACTORY") or None,
+        "tag": osr.get("LMP_FACTORY_TAG") or None,
+        "hwid": osr.get("LMP_MACHINE") or None,
+        "target": target,
+        "os_version": osr.get("VERSION_ID") or osr.get("VERSION") or None,
+        "daemon": daemon,
+        "up_to_date": None,
+    }
+
+
 def build_device_status(net):
     """Compose the Device-Status JSON superset (§5) from the flat network dict.
 
-    Emits the nested `net` block and mirrors the legacy flat keys at top level
-    for one release (backward compatibility). `time`/`sec` are appended so the
-    app can render clock-sync and security posture honestly.
+    Emits the nested `net` block plus `time`/`sec`/`ota`. The legacy top-level
+    flat mirror (`state`/`ssid`/`ipv4`/`rssi`/`iface`) is intentionally
+    *not* emitted any more: with `ota` included the compact JSON is ~580 bytes
+    with the mirror and only ~490 without, and BlueZ/bless caps a single
+    characteristic value at 512 bytes (truncating mid-JSON otherwise). The app
+    has preferred the nested `net` block since the Device-Status superset
+    (meta-dynamicdevices #41) and still falls back to flat for older firmware.
     """
     doc = {"v": 1, "net": {
         "bearer": "wifi",
@@ -476,12 +544,9 @@ def build_device_status(net):
         "rssi": net.get("rssi"),
         "iface": net.get("iface"),
     }}
-    # Legacy flat mirror (remove once all app builds read the `net` block).
-    for k in ("state", "ssid", "ipv4", "rssi", "iface"):
-        if k in net:
-            doc[k] = net[k]
     doc["time"] = compute_time_status()
     doc["sec"] = compute_sec_status()
+    doc["ota"] = compute_ota_status()
     return doc
 
 
@@ -490,10 +555,48 @@ def compute_device_status():
     return build_device_status(compute_net_status())
 
 
+# BlueZ/bless characteristic-value ceiling. Truncation mid-JSON is worse than
+# omitting a redundant field, so `_publish_net_status` shrinks before send.
+_ATT_VALUE_MAX = 512
+
+
+def _shrink_to_att(doc):
+    """Return a compact JSON bytes that fits in one ATT value, or the best-effort
+    original. Progressive omits (never invent values): time.iso → ota.os_version
+    → ota.hwid. Logs if even the slim form exceeds the ceiling.
+    """
+    data = json.dumps(doc, separators=(",", ":")).encode("utf-8")
+    if len(data) <= _ATT_VALUE_MAX:
+        return data
+    # 1. Drop time.iso (epoch is enough for the app).
+    if "time" in doc and isinstance(doc["time"], dict) and "iso" in doc["time"]:
+        slim = dict(doc)
+        slim["time"] = {k: v for k, v in doc["time"].items() if k != "iso"}
+        data = json.dumps(slim, separators=(",", ":")).encode("utf-8")
+        if len(data) <= _ATT_VALUE_MAX:
+            logger.info("Device-Status shrunk: dropped time.iso (%d bytes)", len(data))
+            return data
+        doc = slim
+    # 2. Drop ota.os_version / ota.hwid (derivable from factory image / machine).
+    if "ota" in doc and isinstance(doc["ota"], dict):
+        slim = dict(doc)
+        ota = {k: v for k, v in doc["ota"].items() if k not in ("os_version", "hwid")}
+        slim["ota"] = ota
+        data = json.dumps(slim, separators=(",", ":")).encode("utf-8")
+        if len(data) <= _ATT_VALUE_MAX:
+            logger.info("Device-Status shrunk: dropped ota.os_version/hwid (%d bytes)",
+                        len(data))
+            return data
+        doc = slim
+    logger.warning("Device-Status JSON still %d bytes > ATT max %d; truncating",
+                   len(data), _ATT_VALUE_MAX)
+    return data[:_ATT_VALUE_MAX]
+
+
 def _publish_net_status(status_dict, notify=True):
     """Update the cached JSON + characteristic value; notify on change."""
     global _net_status_json_bytes
-    data = json.dumps(status_dict, separators=(",", ":")).encode("utf-8")
+    data = _shrink_to_att(status_dict)
     changed = bytes(data) != bytes(_net_status_json_bytes)
     _net_status_json_bytes = bytearray(data)
     try:

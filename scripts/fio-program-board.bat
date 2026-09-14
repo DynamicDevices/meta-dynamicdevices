@@ -57,7 +57,7 @@ set "DEFAULT_FACTORY="
 set "DEFAULT_MACHINE="
 
 REM Supported machines
-set "SUPPORTED_MACHINES=imx8mm-jaguar-sentai imx93-jaguar-eink imx8mm-jaguar-phasora imx8mm-jaguar-inst imx93-11x11-lpddr4x-evk"
+set "SUPPORTED_MACHINES=imx8mm-jaguar-sentai imx93-jaguar-eink imx8mm-jaguar-phasora imx8mm-jaguar-inst imx8mm-jaguar-screen imx93-11x11-lpddr4x-evk"
 
 REM Command line variables
 set "TARGET_NUMBER="
